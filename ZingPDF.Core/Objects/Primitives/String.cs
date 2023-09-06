@@ -1,0 +1,24 @@
+﻿using ZingPdf.Core.Extensions;
+
+namespace ZingPdf.Core.Objects.Primitives
+{
+    internal class String : PdfObject
+    {
+        private readonly string _value;
+
+        public String(string value)
+        {
+            _value = value;
+        }
+
+        public override async Task WriteOutputAsync(Stream stream)
+        {
+            await stream.WriteTextAsync(Constants.StringStart);
+
+            // TODO: handle escaping?
+            await stream.WriteTextAsync(_value);
+
+            await stream.WriteTextAsync(Constants.StringEnd);
+        }
+    }
+}
