@@ -2,6 +2,8 @@
 {
     internal static class Constants
     {
+        public static string Comment = "%";
+        public static string PdfVersionPrefix = "PDF-";
         public static string Solidus = "/";
         public static string StringStart = "(";
         public static string StringEnd = ")";
@@ -19,10 +21,13 @@
         public static string StreamEnd = "endstream";
         public static string Eof = "%%EOF";
         public static string Whitespace = " ";
+        public static byte[] BinaryCharacters = new byte[] { 129, 130, 131, 132 };
 
         /// <summary>
         /// Special characters used to delimit syntactic entities such as arrays, names, comments.
         /// </summary>
         public static char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
+
+        public static char[] WhitespaceCharacters = new char[] { ' ', '\t', '\n', '\r', '\f' };
     }
 }

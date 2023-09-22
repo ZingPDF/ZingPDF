@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Objects.Primitives
             _indirectObjectCollection = indirectObjectCollection;
         }
 
-        public IndirectObject Create()
+        public IndirectObject Create(Stream data)
         {
             var streamDictionary = new Dictionary<Name, PdfObject>()
             {
