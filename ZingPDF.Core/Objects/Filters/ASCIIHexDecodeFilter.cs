@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.Filters
 {
@@ -10,12 +10,15 @@ namespace ZingPdf.Core.Objects.Filters
     /// </summary>
     internal class ASCIIHexDecodeFilter : IFilter
     {
-        private readonly char _endOfDataMarker = '>';
+        public Name Name => "ASCIIHexDecode";
+        public string EndOfDataMarker => ">";
+
+        public FilterParams? Params => null;
 
         public byte[] Decode(string data)
         {
             if (string.IsNullOrWhiteSpace(data)) throw new ArgumentException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
-            if (!data.EndsWith(_endOfDataMarker)) throw new ArgumentException($"'{nameof(data)}' must end with the EOD marker: {_endOfDataMarker}.", nameof(data));
+            if (!data.EndsWith(EndOfDataMarker)) throw new ArgumentException($"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.", nameof(data));
 
             // Remove unwanted whitespace characters
             data = string.Join("", data.Split(Constants.WhitespaceCharacters));
@@ -36,7 +39,7 @@ namespace ZingPdf.Core.Objects.Filters
         {
             if (data is null) throw new ArgumentNullException(nameof(data));
 
-           return Convert.ToHexString(data) + _endOfDataMarker;
+           return Convert.ToHexString(data) + EndOfDataMarker;
         }
 
         private static byte[] StringToByteArray(string hex)
@@ -48,7 +51,7 @@ namespace ZingPdf.Core.Objects.Filters
 
             for (int i = 0; i < hex.Length >> 1; ++i)
             {
-                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + GetHexVal(hex[(i << 1) + 1]));
             }
 
             return arr;
