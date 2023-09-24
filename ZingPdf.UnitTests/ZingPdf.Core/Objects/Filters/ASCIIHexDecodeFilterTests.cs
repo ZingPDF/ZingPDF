@@ -12,7 +12,7 @@ namespace ZingPdf.Core.Objects.Filters
             var action = () => new ASCIIHexDecodeFilter()
                 .Decode("7368652073656C6C73207365617368656C6C73206F6E20746865207365612073686F7265");
 
-            action.Should().Throw<ArgumentException>();
+            action.Should().Throw<FilterInputFormatException>();
         }
 
         [Fact]
@@ -21,7 +21,7 @@ namespace ZingPdf.Core.Objects.Filters
             var action = () => new ASCIIHexDecodeFilter()
                 .Decode("7368652073656C6C73207365617368656C6C73206F6E20746865207365612073686F7265> blah");
 
-            action.Should().Throw<ArgumentException>();
+            action.Should().Throw<FilterInputFormatException>();
         }
 
         [Fact]
