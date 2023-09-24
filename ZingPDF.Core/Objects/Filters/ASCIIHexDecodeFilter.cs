@@ -17,8 +17,8 @@ namespace ZingPdf.Core.Objects.Filters
 
         public byte[] Decode(string data)
         {
-            if (string.IsNullOrWhiteSpace(data)) throw new ArgumentException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
-            if (!data.EndsWith(EndOfDataMarker)) throw new ArgumentException($"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.", nameof(data));
+            if (string.IsNullOrWhiteSpace(data)) throw new FilterInputFormatException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
+            if (!data.EndsWith(EndOfDataMarker)) throw new FilterInputFormatException($"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.", nameof(data));
 
             // Remove unwanted whitespace characters
             data = string.Join("", data.Split(Constants.WhitespaceCharacters));
@@ -45,7 +45,7 @@ namespace ZingPdf.Core.Objects.Filters
         private static byte[] StringToByteArray(string hex)
         {
             if (hex.Length % 2 == 1)
-                throw new Exception("The binary key cannot have an odd number of digits");
+                throw new FilterInputFormatException("The binary key cannot have an odd number of digits");
 
             byte[] arr = new byte[hex.Length >> 1];
 
