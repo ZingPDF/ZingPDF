@@ -7,10 +7,19 @@ namespace ZingPdf.Core.Objects.Filters
     public class ASCII85DecodeFilterTests
     {
         [Fact]
+        public void DecodeThrowsForNullData()
+        {
+            var action = () => new ASCII85DecodeFilter()
+                .Decode(null);
+
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
         public void DecodeThrowsWhenMissingEODMarker()
         {
             var action = () => new ASCII85DecodeFilter()
-                .Decode("F(f,-F(K0(F!,O8@<6*nCi\"/8Df-\\>BOr<-ARQ^&BQ%p&");
+                .Decode(Encoding.ASCII.GetBytes("F(f,-F(K0(F!,O8@<6*nCi\"/8Df-\\>BOr<-ARQ^&BQ%p&"));
 
             action.Should().Throw<FilterInputFormatException>();
         }
@@ -18,7 +27,7 @@ namespace ZingPdf.Core.Objects.Filters
         [Fact]
         public void DecodeThrowsForZInMiddleOf5CharacterSequence()
         {
-            var action = () => new ASCII85DecodeFilter().Decode("qjzqo~>");
+            var action = () => new ASCII85DecodeFilter().Decode(Encoding.ASCII.GetBytes("qjzqo~>"));
 
             action.Should().Throw<FilterInputFormatException>();
         }
@@ -27,7 +36,7 @@ namespace ZingPdf.Core.Objects.Filters
         public void DecodeIgnoresSpacesInInput()
         {
             new ASCII85DecodeFilter()
-                .Decode("<+oiaAKYE%ASrl;+EV:.+CoM2Bk29-H#IgQEb-A    0Df9E*DJ()(DfRH~>")
+                .Decode(Encoding.ASCII.GetBytes("<+oiaAKYE%ASrl;+EV:.+CoM2Bk29-H#IgQEb-A    0Df9E*DJ()(DfRH~>"))
                 .Should().BeEquivalentTo(Encoding.ASCII.GetBytes("These aren't the droids you're looking for."));
         }
 
@@ -35,7 +44,7 @@ namespace ZingPdf.Core.Objects.Filters
         public void DecodeReplacesZWithEmptyBytes()
         {
             new ASCII85DecodeFilter()
-                .Decode("9jqo^zBlbD-~>")
+                .Decode(Encoding.ASCII.GetBytes("9jqo^zBlbD-~>"))
                 .Should().BeEquivalentTo(Encoding.ASCII.GetBytes("Man \0\0\0\0is d"));
         }
 
@@ -46,7 +55,7 @@ namespace ZingPdf.Core.Objects.Filters
         public void DecodeProducesProperOutput(string encoded, string decoded)
         {
             new ASCII85DecodeFilter()
-                .Decode(encoded)
+                .Decode(Encoding.ASCII.GetBytes(encoded))
                 .Should().BeEquivalentTo(Encoding.ASCII.GetBytes(decoded));
         }
 
@@ -58,7 +67,7 @@ namespace ZingPdf.Core.Objects.Filters
         {
             new ASCII85DecodeFilter()
                 .Encode(Encoding.ASCII.GetBytes(input))
-                .Should().Be(output);
+                .Should().BeEquivalentTo(Encoding.ASCII.GetBytes(output));
         }
     }
 }

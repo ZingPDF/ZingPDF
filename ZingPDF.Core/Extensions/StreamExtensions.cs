@@ -1,17 +1,15 @@
 ﻿using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace ZingPdf.Core.Extensions
 {
     internal static class StreamExtensions
     {
-        private static readonly Encoding _iso88591 = Encoding.GetEncoding("ISO-8859-1");
-        private static readonly byte[] _newLine = _iso88591.GetBytes("\n");
+        private static readonly Encoding _defaultEncoding = Encoding.ASCII;
 
         public static async Task WriteTextAsync(this Stream stream, string text)
         {
-            await stream.WriteAsync(_iso88591.GetBytes(text));
+            await stream.WriteAsync(_defaultEncoding.GetBytes(text));
         }
 
         public static async Task WriteIntAsync(this Stream stream, int value)
@@ -31,6 +29,6 @@ namespace ZingPdf.Core.Extensions
         /// <summary>
         /// Write a new line character to the stream.
         /// </summary>
-        public static async Task WriteNewLineAsync(this Stream stream) => await stream.WriteAsync(_newLine);
+        public static async Task WriteNewLineAsync(this Stream stream) => await stream.WriteAsync(_defaultEncoding.GetBytes(new[] { Constants.NewLine }));
     }
 }
