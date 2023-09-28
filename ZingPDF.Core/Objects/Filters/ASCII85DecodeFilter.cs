@@ -3,6 +3,13 @@ using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.Filters
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.4.3
+    /// 
+    /// ASCII85Decode
+    /// 
+    /// Represents data using ASCII base-85 encoding.
+    /// </summary>
     internal class ASCII85DecodeFilter : IFilter
     {
         /// <summary>
@@ -26,19 +33,16 @@ namespace ZingPdf.Core.Objects.Filters
 
         public Name Name => "ASCII85Decode";
 
-        public string EndOfDataMarker => "~>";
+        private readonly byte[] _endOfDataMarker = Encoding.ASCII.GetBytes("~>");
 
         public FilterParams? Params => null;
 
-        public byte[] Decode(string data)
+        public byte[] Decode(byte[] data)
         {
-            if (string.IsNullOrWhiteSpace(data)) throw new FilterInputFormatException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
-            if (EnforceSuffixMark && !data.EndsWith(EndOfDataMarker)) throw new FilterInputFormatException($"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.", nameof(data));
+            if (data is null) throw new ArgumentNullException(nameof(data));
+            if (EnforceSuffixMark && !data.Skip(data.Length - 2).SequenceEqual(_endOfDataMarker)) throw new FilterInputFormatException(nameof(data), $"'{nameof(data)}' must end with the EOD marker: {_endOfDataMarker}.");
 
-            if (data.EndsWith(EndOfDataMarker))
-            {
-                data = data[..^EndOfDataMarker.Length];
-            }
+            data = data[..^_endOfDataMarker.Length];
 
             var ms = new MemoryStream();
             int count = 0;
@@ -50,7 +54,7 @@ namespace ZingPdf.Core.Objects.Filters
                     case 'z':
                         if (count != 0)
                         {
-                            throw new FilterInputFormatException("The character 'z' is invalid inside an ASCII85 block.");
+                            throw new FilterInputFormatException(nameof(data), "The character 'z' is invalid inside an ASCII85 block.");
                         }
                         _decodedBlock[0] = 0;
                         _decodedBlock[1] = 0;
@@ -71,7 +75,7 @@ namespace ZingPdf.Core.Objects.Filters
                     default:
                         if (c < '!' || c > 'u')
                         {
-                            throw new FilterInputFormatException("Bad character '" + c + "' found. ASCII85 only allows characters '!' to 'u'.");
+                            throw new FilterInputFormatException(nameof(data), "Bad character '" + c + "' found. ASCII85 only allows characters '!' to 'u'.");
                         }
                         processChar = true;
                         break;
@@ -96,7 +100,7 @@ namespace ZingPdf.Core.Objects.Filters
             {
                 if (count == 1)
                 {
-                    throw new FilterInputFormatException("The last block of ASCII85 data cannot be a single byte.");
+                    throw new FilterInputFormatException(nameof(data), "The last block of ASCII85 data cannot be a single byte.");
                 }
                 count--;
                 _tuple += pow85[count];
@@ -110,7 +114,7 @@ namespace ZingPdf.Core.Objects.Filters
             return ms.ToArray();
         }
 
-        public string Encode(byte[] data)
+        public byte[] Encode(byte[] data)
         {
             if (data is null) throw new ArgumentNullException(nameof(data));
 
@@ -150,10 +154,10 @@ namespace ZingPdf.Core.Objects.Filters
 
             if (EnforceSuffixMark)
             {
-                AppendString(sb, EndOfDataMarker);
+                AppendString(sb, Encoding.ASCII.GetString(_endOfDataMarker));
             }
 
-            return sb.ToString();
+            return Encoding.ASCII.GetBytes(sb.ToString());
         }
 
         private void EncodeBlock(StringBuilder sb)

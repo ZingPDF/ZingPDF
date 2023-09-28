@@ -1,9 +1,12 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿using System.Text;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.Filters
 {
     /// <summary>
     /// ISO 32000-2:2020 7.4.2
+    /// 
+    /// ASCIIHexDecode
     /// 
     /// Represents data using ASCII hexadecimal encoding.
     /// Each byte is represented by two ASCII characters.
@@ -11,64 +14,53 @@ namespace ZingPdf.Core.Objects.Filters
     internal class ASCIIHexDecodeFilter : IFilter
     {
         public Name Name => "ASCIIHexDecode";
-        public string EndOfDataMarker => ">";
+        private readonly int _endOfDataMarker = '>';
 
         public FilterParams? Params => null;
 
-        public byte[] Decode(string data)
+        public byte[] Decode(byte[] data)
         {
-            if (string.IsNullOrWhiteSpace(data)) throw new FilterInputFormatException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
-            if (!data.EndsWith(EndOfDataMarker)) throw new FilterInputFormatException($"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.", nameof(data));
+            if (data is null) throw new FilterInputFormatException(nameof(data));
+            if (data.Last() != _endOfDataMarker) throw new FilterInputFormatException(nameof(data), $"'{nameof(data)}' must end with the EOD marker: {_endOfDataMarker}.");
 
-            // Remove unwanted whitespace characters
-            data = string.Join("", data.Split(Constants.WhitespaceCharacters));
-
-            // Remove EOD marker
             data = data[..^1];
 
-            // Pad odd length string with trailing zero
-            if (data.Length % 2 == 1)
+            // Pad odd length data using a zero as per spec.
+            if (data.Length % 2 != 0)
             {
-                data += '0';
+                // 48 is the ASCII representation of the character '0'
+                data = data.Append((byte)48).ToArray();
             }
 
-            return StringToByteArray(data);
-        }
+            // Create a byte array to store the decoded data
+            var decodedData = new List<byte>();
 
-        public string Encode(byte[] data)
-        {
-            if (data is null) throw new ArgumentNullException(nameof(data));
-
-           return Convert.ToHexString(data) + EndOfDataMarker;
-        }
-
-        private static byte[] StringToByteArray(string hex)
-        {
-            if (hex.Length % 2 == 1)
-                throw new FilterInputFormatException("The binary key cannot have an odd number of digits");
-
-            byte[] arr = new byte[hex.Length >> 1];
-
-            for (int i = 0; i < hex.Length >> 1; ++i)
+            for (int i = 0; i < data.Length; i += 2)
             {
-                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + GetHexVal(hex[(i << 1) + 1]));
+                // Whitepace characters in input data are to be ignored
+                // Read a single byte and check if it's a whitespace character.
+                var isWhitespace = Constants.WhitespaceCharacters.Contains(Encoding.ASCII.GetString(data, i, 1)[0]);
+                if (isWhitespace)
+                {
+                    i--;
+                    continue;
+                }
+
+                var decodedChar = byte.Parse(Encoding.ASCII.GetString(data, i, 2), System.Globalization.NumberStyles.HexNumber);
+
+                decodedData.Add(decodedChar);
             }
 
-            return arr;
+            return decodedData.ToArray();
         }
 
-        private static int GetHexVal(char hex)
+        public byte[] Encode(byte[] data)
         {
-            int val = hex;
+           if (data is null) throw new FilterInputFormatException(nameof(data));
 
-            //For uppercase A-F letters:
-            //return val - (val < 58 ? 48 : 55);
-
-            //For lowercase a-f letters:
-            //return val - (val < 58 ? 48 : 87);
-
-            //Or the two combined, but a bit slower:
-            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+            return Encoding.ASCII.GetBytes(Convert.ToHexString(data))
+                .Append((byte)_endOfDataMarker)
+                .ToArray();
         }
     }
 }

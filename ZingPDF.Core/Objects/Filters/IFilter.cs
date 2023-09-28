@@ -10,11 +10,8 @@ namespace ZingPdf.Core.Objects.Filters
     internal interface IFilter
     {
         Name Name { get; }
-        string EndOfDataMarker { get; }
-
         FilterParams? Params { get; }
-        
-        byte[] Decode(string data);
-        string Encode(byte[] data);
+        byte[] Decode(byte[] data);
+        byte[] Encode(byte[] data);
     }
 }
