@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Text;
-using ZingPdf.Core.Extensions;
+﻿using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Filters;
 
 namespace ZingPdf.Core.Objects.Primitives
@@ -21,16 +19,14 @@ namespace ZingPdf.Core.Objects.Primitives
 
             var decodedDataLength = data.Length;
 
-            string content = "";
             foreach (var filter in filters)
             {
-                content = filter.Encode(data);
-                data = Encoding.ASCII.GetBytes(content);
+                data = filter.Encode(data);
             }
 
             var streamDictionary = new Dictionary<Name, PdfObject>()
             {
-                { "Length", new Integer(data.Length - filters.Last().EndOfDataMarker.Length) },
+                { "Length", new Integer(data.Length) },
                 { "DL", new Integer(decodedDataLength) }
             };
 
@@ -63,7 +59,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
             // TODO: add support for external file (F, FFilter, FDecodeParms
 
-            return _indirectObjectCollection.Add(new Dictionary(streamDictionary), new StreamObject(content));
+            return _indirectObjectCollection.Add(new Dictionary(streamDictionary), new StreamObject(data));
         }
 
         /// <summary>
@@ -71,13 +67,11 @@ namespace ZingPdf.Core.Objects.Primitives
         /// </summary>
         private class StreamObject : PdfObject
         {
-            private readonly string _data;
+            private readonly byte[] _data;
 
-            public StreamObject(string data)
+            public StreamObject(byte[] data)
             {
-                if (string.IsNullOrWhiteSpace(data)) throw new ArgumentException($"'{nameof(data)}' cannot be null or whitespace.", nameof(data));
-
-                _data = data;
+                _data = data ?? throw new ArgumentNullException(nameof(data));
             }
 
             public override async Task WriteOutputAsync(Stream stream)
@@ -86,7 +80,7 @@ namespace ZingPdf.Core.Objects.Primitives
                 await stream.WriteTextAsync(Constants.StreamStart);
                 await stream.WriteNewLineAsync();
 
-                await stream.WriteTextAsync(_data);
+                await stream.WriteAsync(_data);
 
                 await stream.WriteNewLineAsync();
                 await stream.WriteTextAsync(Constants.StreamEnd);
