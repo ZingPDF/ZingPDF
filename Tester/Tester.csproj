@@ -9,7 +9,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ZingPdf.Core\ZingPdf.Core.csproj" />
-    <ProjectReference Include="..\ZingPdf\ZingPdf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="test.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

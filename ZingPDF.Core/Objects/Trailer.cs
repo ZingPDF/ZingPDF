@@ -8,13 +8,13 @@ namespace ZingPdf.Core.Objects
     /// </summary>
     internal class Trailer : PdfObject
     {
-        private readonly IndirectObject _documentCatalog;
+        private readonly IndirectObjectReference _documentCatalogReference;
         private readonly CrossReferenceTable _xrefTable;
         private readonly int _objectCount;
 
-        public Trailer(IndirectObject documentCatalog, CrossReferenceTable xrefTable, int objectCount)
+        public Trailer(IndirectObjectReference documentCatalogReference, CrossReferenceTable xrefTable, int objectCount)
         {
-            _documentCatalog = documentCatalog ?? throw new ArgumentNullException(nameof(documentCatalog));
+            _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
             _xrefTable = xrefTable ?? throw new ArgumentNullException(nameof(xrefTable));
             _objectCount = objectCount;
         }
@@ -28,10 +28,10 @@ namespace ZingPdf.Core.Objects
             var trailerDictionary = new Dictionary<Name, PdfObject>
             {
                 { "Size", new Integer(_objectCount) },
-                { "Root", _documentCatalog.Id }
+                { "Root", _documentCatalogReference }
             };
 
-            if (false) // TODO: this is for when there are more than one cross reference table
+            if (false) // TODO: this is for when there is more than one cross reference table
             {
                 //trailerDictionary.Add("Prev", new IndirectObjectReference(0, 0));
             }
