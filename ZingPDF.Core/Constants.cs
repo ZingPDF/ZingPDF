@@ -5,6 +5,7 @@
         public static char NewLine = '\n';
         public static char CarriageReturn = '\r';
         public static char Tab = '\t';
+        public static char Space = ' ';
         public static string Comment = "%";
         public static string PdfVersionPrefix = "PDF-";
         public static string Solidus = "/";
@@ -31,6 +32,6 @@
         /// </summary>
         public static char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
 
-        public static char[] WhitespaceCharacters = new char[] { ' ', Tab, NewLine, CarriageReturn, '\f' };
+        public static char[] WhitespaceCharacters = new char[] { Space, Tab, NewLine, CarriageReturn, '\f' };
     }
 }
