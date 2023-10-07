@@ -43,7 +43,7 @@ namespace ZingPdf
 
             var xrefTable = new CrossReferenceTable(_indirectObjects);
             await xrefTable.WriteAsync(stream);
-            await new Trailer(documentCatalog.Id, xrefTable, _indirectObjects.Count).WriteAsync(stream);
+            await new Trailer(documentCatalog.Id, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
 
             await stream.FlushAsync();
         }

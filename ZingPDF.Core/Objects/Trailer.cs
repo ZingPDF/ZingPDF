@@ -9,13 +9,13 @@ namespace ZingPdf.Core.Objects
     internal class Trailer : PdfObject
     {
         private readonly IndirectObjectReference _documentCatalogReference;
-        private readonly CrossReferenceTable _xrefTable;
-        private readonly int _objectCount;
+        private readonly long _xrefTableByteOffset;
+        private readonly Integer _objectCount;
 
-        public Trailer(IndirectObjectReference documentCatalogReference, CrossReferenceTable xrefTable, int objectCount)
+        public Trailer(IndirectObjectReference documentCatalogReference, long xrefTableByteOffset, Integer objectCount)
         {
             _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
-            _xrefTable = xrefTable ?? throw new ArgumentNullException(nameof(xrefTable));
+            _xrefTableByteOffset = xrefTableByteOffset;
             _objectCount = objectCount;
         }
 
@@ -27,7 +27,7 @@ namespace ZingPdf.Core.Objects
 
             var trailerDictionary = new Dictionary<Name, PdfObject>
             {
-                { "Size", new Integer(_objectCount) },
+                { "Size", _objectCount },
                 { "Root", _documentCatalogReference }
             };
 
@@ -58,7 +58,7 @@ namespace ZingPdf.Core.Objects
             await stream.WriteTextAsync(Constants.StartXref);
             await stream.WriteNewLineAsync();
 
-            await stream.WriteLongAsync(_xrefTable.ByteOffset!.Value);
+            await stream.WriteLongAsync(_xrefTableByteOffset);
             await stream.WriteNewLineAsync();
 
             await stream.WriteTextAsync(Constants.Eof);
