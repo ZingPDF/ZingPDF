@@ -6,15 +6,18 @@
         public static char CarriageReturn = '\r';
         public static char Tab = '\t';
         public static char Space = ' ';
-        public static string Comment = "%";
+        public static char Comment = '%';
+        public static char Solidus = '/';
+        public static char StringStart = '(';
+        public static char StringEnd = ')';
+        public static char Whitespace = ' ';
+        public static char ArrayStart = '[';
+        public static char ArrayEnd = ']';
+
         public static string PdfVersionPrefix = "PDF-";
-        public static string Solidus = "/";
-        public static string StringStart = "(";
-        public static string StringEnd = ")";
         public static string ObjStart = "obj";
         public static string ObjEnd = "endobj";
-        public static string ArrayStart = "[";
-        public static string ArrayEnd = "]";
+
         public static string DictionaryStart = "<<";
         public static string DictionaryEnd = ">>";
         public static string Trailer = "trailer";
@@ -24,7 +27,7 @@
         public static string StreamStart = "stream";
         public static string StreamEnd = "endstream";
         public static string Eof = "%%EOF";
-        public static string Whitespace = " ";
+        
         public static byte[] BinaryCharacters = new byte[] { 129, 130, 131, 132 };
 
         /// <summary>

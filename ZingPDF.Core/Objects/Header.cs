@@ -23,7 +23,7 @@ namespace ZingPdf.Core.Objects
             await stream.WriteNewLineAsync();
 
             // Write binary bytes to cater for readers which try to detect whether file contains binary data
-            await stream.WriteTextAsync(Constants.Comment);
+            await stream.WriteCharsAsync(Constants.Comment);
             await stream.WriteAsync(Constants.BinaryCharacters);
 
             await stream.WriteNewLineAsync();
