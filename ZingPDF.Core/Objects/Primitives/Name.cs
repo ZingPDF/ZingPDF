@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Objects.Primitives
                 }
             }
 
-            await stream.WriteTextAsync(Constants.Solidus);
+            await stream.WriteCharsAsync(Constants.Solidus);
             await stream.WriteTextAsync(sb.ToString());
         }
 

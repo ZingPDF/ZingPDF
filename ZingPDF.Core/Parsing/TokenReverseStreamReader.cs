@@ -7,7 +7,7 @@ namespace ZingPdf.Core.Parsing
     /// Provides tokenised access to the contents of a stream.
     /// </summary>
     /// <remarks>
-    /// Given a byte stream representing a PDF document, this class allows random, forward, and backward access to the tokens within.
+    /// Given a byte stream representing a PDF document, this class allows backward access to the tokens within.
     /// 
     /// In practice, this is used by the <see cref="PdfParser"/> to find and read the document trailer from the end of the file, before accessing other PDF objects by their byte offsets.
     /// 
@@ -77,7 +77,7 @@ namespace ZingPdf.Core.Parsing
             string bufferContent = Encoding.UTF8.GetString(buffer, 0, readSize);
 
             var tokens = bufferContent
-                .SplitAndKeep(new[] { Constants.NewLine, Constants.Space })
+                .SplitBefore(Constants.Delimiters)
                 .ToArray();
 
             // We're going to record the offset for each token
@@ -99,7 +99,7 @@ namespace ZingPdf.Core.Parsing
                 var prevTokenOffset = prevToken != null ? _stream.Position - prevToken.Length : (long?)null;
 
                 Console.WriteLine($"Parsed token at position: {_stream.Position}. Value: {token}");
-                _tokens[_stream.Position] = new Token(prevTokenOffset, token);
+                _tokens[_stream.Position] = new Token(prevTokenOffset, token.Trim());
 
                 _stream.Position += token.Length;
             }
