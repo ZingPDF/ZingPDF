@@ -13,12 +13,12 @@ namespace ZingPdf.Core.Objects.Primitives
 
         public override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteTextAsync(Constants.StringStart);
+            await stream.WriteCharsAsync(Constants.StringStart);
 
             // TODO: handle escaping?
             await stream.WriteTextAsync(_value);
 
-            await stream.WriteTextAsync(Constants.StringEnd);
+            await stream.WriteCharsAsync(Constants.StringEnd);
         }
     }
 }
