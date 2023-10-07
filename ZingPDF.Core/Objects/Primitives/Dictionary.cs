@@ -6,12 +6,14 @@ namespace ZingPdf.Core.Objects.Primitives
 {
     internal class Dictionary : PdfObject, IDictionary<Name, PdfObject>
     {
-        private readonly IDictionary<Name, PdfObject> _dictionary;
+        private readonly IDictionary<Name, PdfObject> _dictionary = new Dictionary<Name, PdfObject>();
 
         public Dictionary(IDictionary<Name, PdfObject>? dictionary = null)
         {
             _dictionary = dictionary ?? new Dictionary<Name, PdfObject>();
         }
+
+        public T Get<T>(Name key) where T : PdfObject => (T)_dictionary[key];
 
         #region IDictionary
         public virtual PdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }

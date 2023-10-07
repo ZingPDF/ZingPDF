@@ -18,7 +18,7 @@ namespace ZingPdf.Core.Objects.DataStructures
 
         public override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteTextAsync(Constants.ArrayStart);
+            await stream.WriteCharsAsync(Constants.ArrayStart);
             
             await stream.WriteIntAsync(_lowerLeft.X);
             await stream.WriteWhitespaceAsync();
@@ -31,7 +31,7 @@ namespace ZingPdf.Core.Objects.DataStructures
 
             await stream.WriteIntAsync(_upperRight.Y);
 
-            await stream.WriteTextAsync(Constants.ArrayEnd);
+            await stream.WriteCharsAsync(Constants.ArrayEnd);
         }
     }
 

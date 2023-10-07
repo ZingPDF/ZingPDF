@@ -18,14 +18,14 @@ namespace ZingPdf.Core.Objects.Primitives
 
         public override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteTextAsync(Constants.ArrayStart);
+            await stream.WriteCharsAsync(Constants.ArrayStart);
 
             foreach(var obj in _values)
             {
                 await obj.WriteAsync(stream);
             }
 
-            await stream.WriteTextAsync(Constants.ArrayEnd);
+            await stream.WriteCharsAsync(Constants.ArrayEnd);
         }
 
         public static Array Empty { get => _empty; }

@@ -1,10 +1,11 @@
-﻿namespace ZingPdf.Core.Parsing
+﻿using ZingPdf.Core.Objects;
+
+namespace ZingPdf.Core.Parsing
 {
     public class PdfParser
     {
         public async Task ParseAsync(Stream stream)
         {
-            //using var tokenReader = new TokenStreamReader(stream, ReadDirection.Backward);
             using var tokenReader = new TokenReverseStreamReader(stream);
 
             var trailerTokens = new List<string>();
@@ -26,7 +27,7 @@
             // Reading from end of file, so we need to reverse the list
             trailerTokens.Reverse();
 
-            var trailer = new TrailerParser().Parse(trailerTokens);
+            var trailer = Parser.For<Trailer>().Parse(trailerTokens);
         }
     }
 }
