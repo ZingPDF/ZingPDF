@@ -7,6 +7,7 @@ namespace ZingPdf.Core.Parsing
 {
     internal static class Parser
     {
+        private static readonly IPdfObjectParser<Name> _nameParser = new NameParser();
         private static readonly IPdfObjectParser<Dictionary> _dictionaryParser = new DictionaryParser();
         private static readonly IPdfObjectParser<Trailer> _trailerParser = new TrailerParser();
         private static readonly IPdfObjectParser<Integer> _integerParser = new IntegerParser();
@@ -22,6 +23,7 @@ namespace ZingPdf.Core.Parsing
         {
             return type switch
             {
+                Type t when t == typeof(Name) => _nameParser,
                 Type t when t == typeof(Dictionary) => _dictionaryParser,
                 Type t when t == typeof(Trailer) => _trailerParser,
                 Type t when t == typeof(Integer) => _integerParser,
