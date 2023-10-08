@@ -64,15 +64,6 @@ namespace ZingPdf.Core.Extensions
             }
         }
 
-        public static bool IsInteger(this string input)
-        {
-            foreach (char c in input)
-            {
-                if (c < '0' || c > '9')
-                    return false;
-            }
-
-            return true;
-        }
+        public static bool IsInteger(this string input) => input.All(c => c.IsInteger());
     }
 }

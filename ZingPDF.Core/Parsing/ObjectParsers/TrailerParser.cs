@@ -1,11 +1,12 @@
-﻿using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.ObjectParsers
 {
     internal class TrailerParser : IPdfObjectParser<Trailer>
     {
-        public Trailer Parse(IEnumerable<string> tokens)
+        public Trailer Parse(string content)
         {
             // trailer
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
@@ -13,12 +14,22 @@ namespace ZingPdf.Core.Parsing.ObjectParsers
             // 148076
 
             // Parse trailer dictionary
-            var trailerDictionary = Parser.For<Dictionary>().Parse(tokens);
+            var trailerDictionary = Parser.For<Dictionary>().Parse(content);
 
             // Find cross reference table byte offset
-            var index = tokens.ToList().IndexOf(Constants.StartXref);
+            var startIndex = content.IndexOf(Constants.StartXref) + Constants.StartXref.Length;
 
-            var xrefOffset = long.Parse(tokens.ElementAt(index + 1));
+            // This loop should skip all whitespace chars and EOL markers.
+            char c = content[startIndex];
+            while (!c.IsInteger())
+            {
+                startIndex++;
+                c = content[startIndex];
+            }
+
+            var endIndex = content.IndexOf(Constants.NewLine, startIndex);
+
+            var xrefOffset = long.Parse(content[startIndex..endIndex]);
 
             return new Trailer(
                 trailerDictionary.Get<IndirectObjectReference>("Root"),
