@@ -4,9 +4,9 @@ namespace ZingPdf.Core.Parsing.ObjectParsers
 {
     internal class IndirectObjectReferenceParser : IPdfObjectParser<IndirectObjectReference>
     {
-        public IndirectObjectReference Parse(IEnumerable<string> tokens)
+        public IndirectObjectReference Parse(string content)
         {
-            var parts = tokens.ElementAt(0).Split(Constants.Whitespace);
+            var parts = content.Split(Constants.Whitespace);
 
             var id = int.Parse(parts[0]);
             var generation = int.Parse(parts[1]);

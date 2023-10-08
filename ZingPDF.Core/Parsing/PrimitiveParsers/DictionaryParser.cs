@@ -1,4 +1,5 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
@@ -12,40 +13,55 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         private static string _defaultExceptionMessage = "Invalid dictionary";
 
-        public Dictionary Parse(IEnumerable<string> tokens)
+        public Dictionary Parse(string content)
         {
             // trailer
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
             // startxref
             // 148076
 
-            var startIndex = tokens.ToList().IndexOf(Constants.DictionaryStart);
+            var dictionary = new Dictionary();
 
+            var startIndex = content.IndexOf(Constants.DictionaryStart);
             if (startIndex == -1)
             {
                 throw new ParserException();
             }
 
-            var dictionary = new Dictionary();
+            var nameParser = Parser.For<Name>();
 
-            foreach (var token in tokens.Skip(startIndex + 1))
+            var keyIndex = content.IndexOf(Constants.Solidus, startIndex);
+
+            do
             {
                 // The key is always a name.
-                var index = token.IndexOf(Constants.Whitespace);
-                Name key = token[1..index];
+                var key = nameParser.Parse(content);
 
                 // The value can be anything.
-                var value = token[(index + 1)..token.Length];
+                var valueStartIndex = keyIndex + (int)key.Length!;
+                var valueContent = content[valueStartIndex..];
 
-                if (!TokenTypeIdentifier.TryIdentify(value, out var tokenType))
+                if (!TokenTypeIdentifier.TryIdentify(valueContent, out var tokenType))
                 {
                     throw new ParserException();
                 }
 
-                var obj = Parser.For(tokenType).Parse(new[] { value });
+                var obj = Parser.For(tokenType).Parse(valueContent);
 
                 dictionary[key] = obj;
+
+                if (obj.Length.HasValue)
+                {
+                    startIndex += (int)obj.Length;
+                }
+                else
+                {
+                    // TODO: where to start next when we don't have a length?
+                }
+
+                keyIndex = content.IndexOf(Constants.Solidus, startIndex);
             }
+            while (keyIndex != -1);
 
             return dictionary;
         }

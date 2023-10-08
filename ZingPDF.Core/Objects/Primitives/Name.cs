@@ -3,11 +3,11 @@ using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
-    internal class Name : PdfObject
+    public class Name : PdfObject
     {
         private readonly string _value;
 
-        public Name(string value)
+        public Name(string value) : base(value.Length)
         {
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
 
