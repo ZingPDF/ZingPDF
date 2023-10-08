@@ -4,7 +4,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class IntegerParser : IPdfObjectParser<Integer>
     {
-        public Integer Parse(IEnumerable<string> tokens)
-            => new(int.Parse(tokens.ElementAt(0)));
+        public Integer Parse(string content)
+            => new(int.Parse(content));
     }
 }
