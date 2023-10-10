@@ -13,6 +13,8 @@
         public static char Whitespace = ' ';
         public static char ArrayStart = '[';
         public static char ArrayEnd = ']';
+        public static char LessThan = '<';
+        public static char GreaterThan = '>';
 
         public static string PdfVersionPrefix = "PDF-";
         public static string ObjStart = "obj";

@@ -34,6 +34,17 @@ namespace ZingPdf.Core.Objects.Primitives
             await stream.WriteTextAsync(sb.ToString());
         }
 
+        public override bool Equals(object? obj)
+        {
+            return obj is Name name &&
+                   _value == name._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_value);
+        }
+
         public static implicit operator Name(string value) => new(value);
     }
 }

@@ -4,7 +4,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class NameParser : IPdfObjectParser<Name>
     {
-        public Name Parse(string content)
+        public IParseResult<Name> Parse(string content)
         {
             var keyStartIndex = content.IndexOf(Constants.Solidus) + 1;
             var keyEndIndex = content.IndexOfAny(new[] { Constants.Solidus, Constants.Space }, keyStartIndex);
@@ -14,7 +14,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 keyEndIndex = content.Length;
             }
 
-            return content[keyStartIndex..keyEndIndex];
+            return new ParseResult<Name>(content[keyStartIndex..keyEndIndex], content[keyEndIndex..]);
         }
     }
 }
