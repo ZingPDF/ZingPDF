@@ -1,4 +1,4 @@
-﻿using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Objects.ObjectGroups;
 
 namespace ZingPdf.Core.Parsing
 {
