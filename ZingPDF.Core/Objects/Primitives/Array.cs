@@ -1,17 +1,18 @@
-﻿using ZingPdf.Core.Extensions;
+﻿using System.Collections;
+using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
     /// <summary>
     /// PDF 32000-1:2008 7.3.6
     /// </summary>
-    internal class Array : PdfObject
+    internal class Array : PdfObject, IEnumerable<PdfObject>
     {
         private static readonly Array _empty = new(System.Array.Empty<PdfObject>());
 
         private readonly PdfObject[] _values;
 
-        public Array(PdfObject[] values)
+        public Array(PdfObject[] values, long? length = null) : base(length)
         {
             _values = values ?? throw new ArgumentNullException(nameof(values));
         }
@@ -28,6 +29,11 @@ namespace ZingPdf.Core.Objects.Primitives
             await stream.WriteCharsAsync(Constants.ArrayEnd);
         }
 
+        public IEnumerator<PdfObject> GetEnumerator() => ((IEnumerable<PdfObject>)_values).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
+
         public static Array Empty { get => _empty; }
+
+        public static implicit operator Array(PdfObject[] items) => new(items);
     }
 }

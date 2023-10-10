@@ -1,4 +1,4 @@
-﻿using ZingPdf.Core.Extensions;
+﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
@@ -13,57 +13,56 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         private static string _defaultExceptionMessage = "Invalid dictionary";
 
-        public Dictionary Parse(string content)
+        public IParseResult<Dictionary> Parse(string content)
         {
-            // trailer
+            // A dictionary is a key-value collection, where the key is always a 'Name' object
+            // and the valuie can be any type of PDF object
+
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
-            // startxref
-            // 148076
 
-            var dictionary = new Dictionary();
-
-            var startIndex = content.IndexOf(Constants.DictionaryStart);
+            // Find start of dictionary
+            var startIndex = content.IndexOf(Constants.DictionaryStart) + 2;
             if (startIndex == -1)
             {
-                throw new ParserException();
+                throw new ParserException(_defaultExceptionMessage);
             }
 
-            var nameParser = Parser.For<Name>();
-
-            var keyIndex = content.IndexOf(Constants.Solidus, startIndex);
-
-            do
+            // Find end of dictionary
+            int countStart = 0;
+            int countEnd = 0;
+            int i;
+            for (i = 0; i < content.Length - 1; i ++)
             {
-                // The key is always a name.
-                var key = nameParser.Parse(content);
 
-                // The value can be anything.
-                var valueStartIndex = keyIndex + (int)key.Length!;
-                var valueContent = content[valueStartIndex..];
+                // TODO: consider if objects can contain escaped dictionary delimiters which may break this logic, write tests
 
-                if (!TokenTypeIdentifier.TryIdentify(valueContent, out var tokenType))
+                var c = content[i..(i + 2)];
+
+                if (c == Constants.DictionaryStart) { countStart++; }
+                if (c == Constants.DictionaryEnd) { countEnd++; }
+
+                if (countStart > 0 && countEnd == countStart)
                 {
-                    throw new ParserException();
+                    break;
                 }
-
-                var obj = Parser.For(tokenType).Parse(valueContent);
-
-                dictionary[key] = obj;
-
-                if (obj.Length.HasValue)
-                {
-                    startIndex += (int)obj.Length;
-                }
-                else
-                {
-                    // TODO: where to start next when we don't have a length?
-                }
-
-                keyIndex = content.IndexOf(Constants.Solidus, startIndex);
             }
-            while (keyIndex != -1);
 
-            return dictionary;
+            Dictionary<Name, PdfObject> dictionary = new();
+
+            var dictContent = content[startIndex..i].TrimEnd();
+            if (string.IsNullOrWhiteSpace(dictContent))
+            {
+                return new ParseResult<Dictionary>(dictionary, content[(i + 2)..]);
+            }
+
+            var items = PdfContentParser.Parse(dictContent).ToArray();
+
+            for (int j = 0; j < items.Length; j += 2)
+            {
+                dictionary.Add((Name)items[j], items[j + 1]);
+            }
+
+            return new ParseResult<Dictionary>(dictionary, content[(i + 2)..]);
         }
     }
 }
