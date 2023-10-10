@@ -62,5 +62,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
             await stream.WriteTextAsync(Constants.DictionaryEnd);
         }
+
+        public static implicit operator Dictionary(Dictionary<Name, PdfObject> value) => new(value);
     }
 }
