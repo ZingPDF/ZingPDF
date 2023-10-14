@@ -1,12 +1,14 @@
-﻿using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf
 {
     public class Pdf
     {
-        private readonly IndirectObjectCollection _indirectObjects = new();
+        private readonly IndirectObjectManager _indirectObjects = new();
 
         //public List<Page> Pages { get; } = new();
 
@@ -38,11 +40,17 @@ namespace ZingPdf
                 pageTreeNode,
             };
 
-            bodyObjects.AddRange(pages);
+            //bodyObjects.AddRange(pages);
 
             await new Body(bodyObjects.ToArray()).WriteAsync(stream);
 
-            var xrefTable = new CrossReferenceTable(_indirectObjects);
+            var xrefSections = new[]
+            {
+                // An unmodified PDF has only one cross reference section
+                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value, true)))
+            };
+
+            var xrefTable = new CrossReferenceTable(xrefSections);
             await xrefTable.WriteAsync(stream);
             await new Trailer(documentCatalog.Id, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
 

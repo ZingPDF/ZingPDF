@@ -16,7 +16,7 @@ namespace ZingPdf.Core.Objects
             _pdfVersion = pdfVersion;
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             // Write PDF version number
             await stream.WriteTextAsync($"{Constants.Comment}{Constants.PdfVersionPrefix}{_pdfVersion:0.0}");

@@ -4,6 +4,9 @@ using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.7 - Dictionary objects
+    /// </summary>
     internal class Dictionary : PdfObject, IDictionary<Name, PdfObject>
     {
         private readonly IDictionary<Name, PdfObject> _dictionary = new Dictionary<Name, PdfObject>();
@@ -49,7 +52,7 @@ namespace ZingPdf.Core.Objects.Primitives
         IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
         #endregion
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteTextAsync(Constants.DictionaryStart);
 

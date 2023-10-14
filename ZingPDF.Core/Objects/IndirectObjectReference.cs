@@ -4,16 +4,16 @@ namespace ZingPdf.Core.Objects
 {
     internal class IndirectObjectReference : PdfObject
     {
-        public IndirectObjectReference(int id, int generation)
+        public IndirectObjectReference(int id, ushort generation)
         {
             Id = id;
             Generation = generation;
         }
 
         public int Id { get; }
-        public int Generation { get; }
+        public ushort Generation { get; }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             // e.g. 12 0 R
 
@@ -25,7 +25,7 @@ namespace ZingPdf.Core.Objects
             await stream.WriteIntAsync(Generation);
             await stream.WriteWhitespaceAsync();
 
-            await stream.WriteTextAsync(Constants.IndirectReference);
+            await stream.WriteCharsAsync(Constants.IndirectReference);
         }
 
         public override int GetHashCode()
