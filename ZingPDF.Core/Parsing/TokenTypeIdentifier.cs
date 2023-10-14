@@ -1,66 +1,71 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing
 {
     internal static class TokenTypeIdentifier
     {
+        private static readonly int _bufferSize = 1024;
+
         private static readonly Regex _numberPattern = new("^\\d+\\s*");
         private static readonly Regex _namePattern = new(@"^\/.*|\#[\d]+");
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R");
 
-        public static bool TryIdentify(string token, [MaybeNullWhen(false)] out Type type)
+        public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
-            token = token.TrimStart();
+            var buffer = new byte[_bufferSize];
 
-            if (string.IsNullOrWhiteSpace(token))
+            var read = await stream.ReadAsync(buffer.AsMemory(0, _bufferSize));
+
+            var content = Encoding.UTF8.GetString(buffer, 0, read).TrimStart();
+
+            if (string.IsNullOrWhiteSpace(content))
             {
-                type = null;
-                return false;
+                return null;
             }
 
-            if (_namePattern.IsMatch(token))
+            stream.Position -= read;
+
+            if (_namePattern.IsMatch(content))
             {
-                type = typeof(Name);
-                return true;
+                return typeof(Name);
             }
 
-            if (_iorPattern.IsMatch(token))
+            if (_iorPattern.IsMatch(content))
             {
-                type = typeof(IndirectObjectReference);
-                return true;
+                return typeof(IndirectObjectReference);
             }
 
-            if (_numberPattern.IsMatch(token))
+            if (_numberPattern.IsMatch(content))
             {
-                type = typeof(Integer);
-                return true;
+                return typeof(Integer);
             }
 
-            if (token.StartsWith(Constants.DictionaryStart))
+            if (content.StartsWith(Constants.DictionaryStart))
             {
-                type = typeof(Dictionary);
-                return true;
+                return typeof(Dictionary);
             }
 
             // This check must always come after the DictionaryStart check.
-            if (token.StartsWith(Constants.LessThan))
+            if (content.StartsWith(Constants.LessThan))
             {
-                type = typeof(HexadecimalString);
-                return true;
+                return typeof(HexadecimalString);
             }
 
-            if (token.StartsWith(Constants.ArrayStart))
+            if (content.StartsWith(Constants.ArrayStart))
             {
-                type = typeof(Objects.Primitives.Array);
-                return true;
+                return typeof(Objects.Primitives.Array);
             }
 
-            type = null;
-            return false;
+            if (content.StartsWith(Constants.Trailer))
+            {
+                return typeof(Trailer);
+            }
+
+            throw new ParserException("Unable to identify token from stream");
         }
     }
 }

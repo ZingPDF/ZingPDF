@@ -7,14 +7,14 @@ namespace ZingPdf.Core.Objects
     /// </summary>
     internal class PdfKeyword : PdfObject
     {
-        public PdfKeyword(string value) : base(value.Length)
+        public PdfKeyword(string value)
         {
             Value = value;
         }
 
         public string Value { get; }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteTextAsync(Value);
             await stream.WriteNewLineAsync();

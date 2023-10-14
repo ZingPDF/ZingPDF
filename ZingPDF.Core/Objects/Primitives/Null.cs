@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ZingPdf.Core.Objects.Primitives
+﻿namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.9 - Null object
+    /// </summary>
     internal class Null : PdfObject
     {
-        public override Task WriteOutputAsync(Stream stream)
+        protected override Task WriteOutputAsync(Stream stream)
         {
             throw new NotImplementedException();
         }

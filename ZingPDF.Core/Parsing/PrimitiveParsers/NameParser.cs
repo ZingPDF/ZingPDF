@@ -1,20 +1,16 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿using MorseCode.ITask;
+using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class NameParser : IPdfObjectParser<Name>
     {
-        public IParseResult<Name> Parse(string content)
+        public async ITask<Name> ParseAsync(Stream stream)
         {
-            var keyStartIndex = content.IndexOf(Constants.Solidus) + 1;
-            var keyEndIndex = content.IndexOfAny(new[] { Constants.Solidus, Constants.Space }, keyStartIndex);
+            await stream.AdvanceBeyondNextAsync(Constants.Solidus);
 
-            if (keyEndIndex == -1)
-            {
-                keyEndIndex = content.Length;
-            }
-
-            return new ParseResult<Name>(content[keyStartIndex..keyEndIndex], content[keyEndIndex..]);
+            return await stream.ReadUpToExcludingAsync(Constants.Solidus, Constants.Space);
         }
     }
 }

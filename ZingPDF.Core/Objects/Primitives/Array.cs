@@ -4,7 +4,7 @@ using ZingPdf.Core.Extensions;
 namespace ZingPdf.Core.Objects.Primitives
 {
     /// <summary>
-    /// PDF 32000-1:2008 7.3.6
+    /// ISO 32000-2:2020 7.3.6 - Array objects
     /// </summary>
     internal class Array : PdfObject, IEnumerable<PdfObject>
     {
@@ -12,12 +12,12 @@ namespace ZingPdf.Core.Objects.Primitives
 
         private readonly PdfObject[] _values;
 
-        public Array(PdfObject[] values, long? length = null) : base(length)
+        public Array(PdfObject[] values, long? length = null)
         {
             _values = values ?? throw new ArgumentNullException(nameof(values));
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.ArrayStart);
 

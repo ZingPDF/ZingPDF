@@ -14,7 +14,7 @@ namespace ZingPdf.Core.Objects
             _pageTreeNode = pageTreeNode ?? throw new ArgumentNullException(nameof(pageTreeNode));
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             var catalogDictionary = new Dictionary<Name, PdfObject>()
             {

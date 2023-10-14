@@ -4,11 +4,11 @@
     {
         protected List<PdfObject> Objects { get; } = new();
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             foreach (var obj in Objects)
             {
-                await obj.WriteOutputAsync(stream);
+                await obj.WriteAsync(stream);
             }
         }
     }

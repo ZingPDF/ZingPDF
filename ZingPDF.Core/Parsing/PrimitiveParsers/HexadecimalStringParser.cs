@@ -1,32 +1,18 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿using MorseCode.ITask;
+using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class HexadecimalStringParser : IPdfObjectParser<HexadecimalString>
     {
-        private readonly string _defaultExceptionMessage = "Invalid hexadecimal string";
-
-        public IParseResult<HexadecimalString> Parse(string content)
+        public async ITask<HexadecimalString> ParseAsync(Stream stream)
         {
-            var startIndex = content.IndexOf(Constants.LessThan) + 1;
-            if (startIndex == -1)
-            {
-                throw new ParserException(_defaultExceptionMessage);
-            }
+            await stream.AdvanceToNextAsync(Constants.LessThan);
 
-            // Find end of string
-            int endIndex;
-            for (endIndex = startIndex; endIndex < content.Length; endIndex++)
-            {
-                var c = content[endIndex];
+            var content = await stream.ReadUpToIncludingAsync(Constants.GreaterThan);
 
-                if (c == Constants.GreaterThan)
-                {
-                    break;
-                }
-            }
-
-            return new ParseResult<HexadecimalString>(content[startIndex..endIndex], content[(endIndex + 1)..]);
+            return content[..^1];
         }
     }
 }
