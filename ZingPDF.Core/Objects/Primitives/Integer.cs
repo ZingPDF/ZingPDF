@@ -3,6 +3,9 @@ using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.3 - Numeric objects
+    /// </summary>
     internal class Integer : PdfObject
     {
         private readonly long _value;
@@ -14,7 +17,7 @@ namespace ZingPdf.Core.Objects.Primitives
             _value = value;
         }
 
-        public override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString("G", CultureInfo.InvariantCulture));
+        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString("G", CultureInfo.InvariantCulture));
 
         public static implicit operator Integer(int value) => new(value);
         public static implicit operator Integer(long value) => new(value);

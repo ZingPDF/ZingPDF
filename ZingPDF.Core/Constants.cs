@@ -15,6 +15,7 @@
         public static char ArrayEnd = ']';
         public static char LessThan = '<';
         public static char GreaterThan = '>';
+        public static char IndirectReference = 'R';
 
         public static string PdfVersionPrefix = "PDF-";
         public static string ObjStart = "obj";
@@ -25,7 +26,6 @@
         public static string Trailer = "trailer";
         public static string StartXref = "startxref";
         public static string Xref = "xref";
-        public static string IndirectReference = "R";
         public static string StreamStart = "stream";
         public static string StreamEnd = "endstream";
         public static string Eof = "%%EOF";

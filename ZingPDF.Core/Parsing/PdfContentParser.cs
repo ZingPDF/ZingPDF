@@ -4,22 +4,16 @@ namespace ZingPdf.Core.Parsing
 {
     internal static class PdfContentParser
     {
-        public static IEnumerable<PdfObject> Parse(string content)
+        public static async IAsyncEnumerable<PdfObject?> ParseAsync(Stream stream)
         {
-            do
+            while (stream.Position < stream.Length)
             {
-                if (!TokenTypeIdentifier.TryIdentify(content, out var tokenType))
-                {
-                    throw new ParserException($"Unable to identify token: {content}");
-                }
+                var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
 
-                var result = Parser.For(tokenType).Parse(content);
-
-                yield return result.Obj;
-
-                content = result.RemainingContent;
+                yield return type == null
+                    ? null
+                    : await Parser.For(type).ParseAsync(stream);
             }
-            while (content.Length > 0); // TODO: exit strategy
         }
     }
 }

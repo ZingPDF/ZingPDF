@@ -1,35 +1,38 @@
 ﻿using FluentAssertions;
 using Xunit;
+using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.UnitTests;
 
 namespace ZingPdf.Core.Parsing
 {
     public class DictionaryParserTests
     {
         [Fact]
-        public void ParseEmpty()
+        public async Task ParseEmptyAsync()
         {
-            Parser.For<Dictionary>()
-                .Parse("<< >>")
-                .Obj
-                .Should()
-                .BeEmpty();
+            using var input = "<< >>".ToStream();
+
+            var output = await Parser.For<Dictionary>().ParseAsync(input);
+
+            output.Should().BeEmpty();
         }
 
         [Fact]
-        public void ParseTrailerDictionary()
+        public async Task ParseTrailerDictionaryAsync()
         {
-            var input = "trailer\r\n<< /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>\r\nstartxref\r\n148076\r\n%%EOF\r\n";
+            var contentString = "trailer\r\n<< /Size 50 /Root 49 0 R /Info 47 0 R " +
+                "/ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>\r\n" +
+                "startxref\r\n148076\r\n%%EOF\r\n";
 
-            var output = Parser.For<Dictionary>()
-                .Parse(input);
+            using var input = contentString.ToStream();
 
-            output.Obj.Get<Integer>("Size");
-            output.Obj.Get<IndirectObjectReference>("Root");
-            output.Obj.Get<IndirectObjectReference>("Info");
-            output.Obj.Get<Objects.Primitives.Array>("ID").Should().NotBeNullOrEmpty();
+            var output = await Parser.For<Dictionary>().ParseAsync(input);
+
+            output.Get<Integer>("Size");
+            output.Get<IndirectObjectReference>("Root");
+            output.Get<IndirectObjectReference>("Info");
+            output.Get<Objects.Primitives.Array>("ID").Should().NotBeNullOrEmpty();
 
         }
     }

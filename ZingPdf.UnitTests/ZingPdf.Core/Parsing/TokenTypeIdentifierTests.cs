@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Xunit;
+using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.Primitives;
 
@@ -8,23 +9,25 @@ namespace ZingPdf.Core.Parsing
     public class TokenTypeIdentifierTests
     {
         [Theory]
-        [InlineData("/Name", true, typeof(Name))]
-        [InlineData(" /Name", true, typeof(Name))]
-        [InlineData("<<>>", true, typeof(Dictionary))]
-        [InlineData(" <<>>", true, typeof(Dictionary))]
-        [InlineData("[]", true, typeof(Objects.Primitives.Array))]
-        [InlineData(" []", true, typeof(Objects.Primitives.Array))]
-        [InlineData("49 0 R", true, typeof(IndirectObjectReference))]
-        [InlineData(" 49 0 R", true, typeof(IndirectObjectReference))]
-        [InlineData("123456", true, typeof(Integer))]
-        [InlineData(" 123456", true, typeof(Integer))]
-        [InlineData(" ", false, null)]
-        [InlineData("<4E6F762073686D6F7A206B6120706F702E>", true, typeof(HexadecimalString))]
-        public void TryIdentifyBasic(string token, bool identified, Type expectedType)
+        [InlineData("/Name", typeof(Name))]
+        [InlineData(" /Name", typeof(Name))]
+        [InlineData("<<>>", typeof(Dictionary))]
+        [InlineData(" <<>>", typeof(Dictionary))]
+        [InlineData("[]", typeof(Objects.Primitives.Array))]
+        [InlineData(" []", typeof(Objects.Primitives.Array))]
+        [InlineData("49 0 R", typeof(IndirectObjectReference))]
+        [InlineData(" 49 0 R", typeof(IndirectObjectReference))]
+        [InlineData("123456", typeof(Integer))]
+        [InlineData(" 123456", typeof(Integer))]
+        [InlineData(" ", null)]
+        [InlineData("<4E6F762073686D6F7A206B6120706F702E>", typeof(HexadecimalString))]
+        public async Task TryIdentifyBasicAsync(string token, Type expectedType)
         {
-            TokenTypeIdentifier.TryIdentify(token, out var type).Should().Be(identified);
+            using var input = token.ToStream();
 
-            type.Should().Be(expectedType);
+            var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+            
+            output.Should().Be(expectedType);
         }
     }
 }

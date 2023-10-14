@@ -3,17 +3,19 @@ using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects
 {
-    internal class IndirectObjectCollection : IEnumerable<KeyValuePair<IndirectObjectReference, IndirectObject>>
+    internal class IndirectObjectManager : IEnumerable<KeyValuePair<IndirectObjectReference, IndirectObject>>
     {
         private readonly Dictionary<IndirectObjectReference, IndirectObject?> _items = new();
 
-        public IndirectObjectCollection()
+        public IndirectObjectManager()
         {
             // First item in the list is the head of the linked list of free entries.
             _items.Add(new IndirectObjectReference(0, 65535), null);
         }
 
         public int Count => _items.Count;
+
+        public IEnumerable<IndirectObject> Values => _items.Values.Skip(1).Cast<IndirectObject>();
 
         public IndirectObjectReference ReserveId()
         {

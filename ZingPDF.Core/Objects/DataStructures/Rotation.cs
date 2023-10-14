@@ -13,7 +13,7 @@ namespace ZingPdf.Core.Objects.DataStructures
             _amount = amount;
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteIntAsync(_amount);
         }
