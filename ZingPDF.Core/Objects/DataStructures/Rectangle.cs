@@ -16,7 +16,7 @@ namespace ZingPdf.Core.Objects.DataStructures
             _upperRight = upperRight ?? throw new ArgumentNullException(nameof(upperRight));
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.ArrayStart);
             

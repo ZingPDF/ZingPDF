@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Objects
             _pages = pages ?? throw new ArgumentNullException(nameof(pages));
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await new Dictionary(new Dictionary<Name, PdfObject>
             {

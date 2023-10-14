@@ -239,7 +239,7 @@ public static class lzw
 
     private class ArrayComparer : IEqualityComparer<List<byte>>
     {
-        public bool Equals(List<byte> left, List<byte> right)
+        public bool Equals(List<byte>? left, List<byte>? right)
         {
             if (left == null || right == null)
                 return false;

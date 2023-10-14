@@ -2,6 +2,9 @@
 
 namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.4.3 - Hexadecimal strings
+    /// </summary>
     internal class HexadecimalString : PdfObject
     {
         private string _value;
@@ -11,7 +14,7 @@ namespace ZingPdf.Core.Objects.Primitives
             _value = string.Empty;
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.LessThan);
             await stream.WriteTextAsync(_value);

@@ -3,18 +3,21 @@ using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.5 Name objects
+    /// </summary>
     public class Name : PdfObject
     {
         private readonly string _value;
 
-        public Name(string value) : base(value.Length)
+        public Name(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
 
             _value = value;
         }
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             var sb = new StringBuilder();
 

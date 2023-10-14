@@ -1,14 +1,13 @@
-﻿using ZingPdf.Core.Objects.ObjectGroups;
-
-namespace ZingPdf.Core.Parsing
+﻿namespace ZingPdf.Core.Parsing
 {
     public class PdfParser
     {
         public async Task ParseAsync(Stream stream)
         {
-            var trailerContent = await new TrailerFinder().FindAsync(stream);
+            await new TrailerFinder().FindAsync(stream);
 
-            var trailer = Parser.For<Trailer>().Parse(trailerContent);
+            var trailerObjects = PdfContentParser.ParseAsync(stream);
+
         }
     }
 }

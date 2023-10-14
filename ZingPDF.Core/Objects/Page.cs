@@ -52,7 +52,7 @@ namespace ZingPdf.Core.Objects
         /// </summary>
         public Rotation? Rotation { get; set; } = null;
 
-        public override async Task WriteOutputAsync(Stream stream)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
             var pageDictionary = new Dictionary<Name, PdfObject>
             {

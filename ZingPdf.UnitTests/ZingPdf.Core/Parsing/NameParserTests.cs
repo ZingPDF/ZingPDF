@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Xunit;
+using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing
@@ -7,20 +8,21 @@ namespace ZingPdf.Core.Parsing
     public class NameParserTests
     {
         [Theory]
-        [InlineData("/Size", "Size", "")]
-        [InlineData("/Size 50", "Size", " 50")]
-        [InlineData("/Type/Catalog", "Type", "/Catalog")]
-        [InlineData("/Pages 2 0 R", "Pages", " 2 0 R")]
-        [InlineData("<</Type/Catalog/Pages 2 0 R", "Type", "/Catalog/Pages 2 0 R")]
-        [InlineData("2 0 obj\r\n<</Type/Pages/Count 3", "Type", "/Pages/Count 3")]
-        public void ParseBasic(string content, string expected, string remainingContent)
+        [InlineData("/Size", "Size")]
+        [InlineData("/Size 50", "Size")]
+        [InlineData("/Type/Catalog", "Type")]
+        [InlineData("/Pages 2 0 R", "Pages")]
+        [InlineData("<</Type/Catalog/Pages 2 0 R", "Type")]
+        [InlineData("2 0 obj\r\n<</Type/Pages/Count 3", "Type")]
+        public async Task ParseBasicAsync(string content, string expected)
         {
-            ParseResult<Name> expectedName = new(expected, remainingContent);
+            using var input = content.ToStream();
 
-            Parser.For<Name>()
-                .Parse(content)
-                .Should()
-                .BeEquivalentTo(expectedName, options => options.Excluding(name => name.Obj.ByteOffset));
+            Name expectedName = expected;
+
+            var output = await Parser.For<Name>().ParseAsync(input);
+
+            output.Should().BeEquivalentTo(expectedName);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ZingPdf.Core.Objects;
+﻿using System.Text;
+using ZingPdf.Core.Objects;
 
 namespace ZingPdf.Core.Extensions
 {
@@ -65,5 +66,7 @@ namespace ZingPdf.Core.Extensions
         }
 
         public static bool IsInteger(this string input) => input.All(c => c.IsInteger());
+
+        public static Stream ToStream(this string input) => new MemoryStream(Encoding.UTF8.GetBytes(input));
     }
 }
