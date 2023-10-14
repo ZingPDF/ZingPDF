@@ -1,23 +1,17 @@
-﻿namespace ZingPdf.Core.Objects
+﻿using ZingPdf.Core.Objects.ObjectGroups;
+
+namespace ZingPdf.Core.Objects
 {
     /// <summary>
-    /// PDF 32000-1:2008 7.5.3
+    /// ISO 32000-2:2020 7.5.3 - File body
     /// </summary>
-    internal class Body : PdfObject
+    internal class Body : PdfObjectGroup
     {
-        private readonly PdfObject[] _objects;
-
         public Body(PdfObject[] objects)
         {
-            _objects = objects ?? throw new ArgumentNullException(nameof(objects));
-        }
+            if (objects is null) throw new ArgumentNullException(nameof(objects));
 
-        public override async Task WriteOutputAsync(Stream stream)
-        {
-            foreach (var obj in _objects)
-            {
-                await obj.WriteAsync(stream);
-            }
+            Objects.AddRange(objects);
         }
     }
 }

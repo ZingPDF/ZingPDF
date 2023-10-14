@@ -2,6 +2,9 @@
 
 namespace ZingPdf.Core.Objects.Primitives
 {
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.2 - Boolean objects
+    /// </summary>
     internal class Boolean : PdfObject
     {
         private readonly bool _value;
@@ -11,6 +14,6 @@ namespace ZingPdf.Core.Objects.Primitives
             _value = value;
         }
 
-        public override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString().ToLower());
+        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString().ToLower());
     }
 }
