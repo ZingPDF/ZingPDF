@@ -12,6 +12,9 @@
             }
         }
 
+        public T Get<T>(int index) where T : PdfObject
+            => (T)Objects[index];
+
         public static implicit operator PdfObjectGroup(List<PdfObject> items) => new() { Objects = items };
         public static implicit operator PdfObjectGroup(PdfObject[] items) => new() { Objects = items.ToList() };
     }
