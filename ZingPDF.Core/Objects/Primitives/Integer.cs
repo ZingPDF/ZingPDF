@@ -21,6 +21,8 @@ namespace ZingPdf.Core.Objects.Primitives
 
         public static implicit operator Integer(int value) => new(value);
         public static implicit operator Integer(long value) => new(value);
+
+        public static implicit operator ushort(Integer value) => (ushort)value._value;
         public static implicit operator int(Integer value) => (int)value._value;
         public static implicit operator long(Integer value) => value._value;
     }

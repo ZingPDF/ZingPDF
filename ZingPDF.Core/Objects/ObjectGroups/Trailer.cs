@@ -26,11 +26,11 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             XrefTableByteOffset = xrefTableByteOffset;
             ObjectCount = objectCount;
 
-            Objects.Add(new PdfKeyword(Constants.Trailer));
+            Objects.Add(new Keyword(Constants.Trailer));
             Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference));
-            Objects.Add(new PdfKeyword(Constants.StartXref));
+            Objects.Add(new Keyword(Constants.StartXref));
             Objects.Add(new Integer(xrefTableByteOffset));
-            Objects.Add(new PdfKeyword(Constants.Eof));
+            Objects.Add(new Keyword(Constants.Eof));
         }
 
         public long XrefTableByteOffset { get; }

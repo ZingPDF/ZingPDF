@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
@@ -55,6 +56,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 if (countStart > 0 && countEnd == countStart)
                 {
                     dictEnd = i;
+                    stream.Position = dictStart + i;
 
                     await stream.AdvanceBeyondNextAsync(Constants.DictionaryEnd);
                     break;
@@ -65,15 +67,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             using var dictStream = await stream.RangeAsync(dictStart + 2, dictEnd + dictStart);
 
-            var items = await PdfContentParser.ParseAsync(dictStream).ToArrayAsync();
+            var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 
-            // The parser will return a single null value if the dictionary is empty
-            if (items.Length > 1)
+            for (int j = 0; j < objectGroup.Objects.Count; j += 2)
             {
-                for (int j = 0; j < items.Length; j += 2)
-                {
-                    dictionary.Add((Name)items[j], items[j + 1]);
-                }
+                dictionary.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
             }
 
             return dictionary;

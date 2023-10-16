@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<HexadecimalString> ParseAsync(Stream stream)
         {
-            await stream.AdvanceToNextAsync(Constants.LessThan);
+            await stream.AdvanceBeyondNextAsync(Constants.LessThan);
 
             var content = await stream.ReadUpToIncludingAsync(Constants.GreaterThan);
 

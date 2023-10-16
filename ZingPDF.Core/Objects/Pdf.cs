@@ -1,5 +1,4 @@
-﻿using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
@@ -47,7 +46,7 @@ namespace ZingPdf
             var xrefSections = new[]
             {
                 // An unmodified PDF has only one cross reference section
-                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value, true)))
+                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value.ByteOffset!.Value, i.Value.Id.Generation, true)))
             };
 
             var xrefTable = new CrossReferenceTable(xrefSections);

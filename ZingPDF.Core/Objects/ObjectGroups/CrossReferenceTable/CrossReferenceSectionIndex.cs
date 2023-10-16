@@ -4,20 +4,20 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 {
     internal class CrossReferenceSectionIndex : PdfObject
     {
-        private readonly int _startIndex;
-        private readonly int _count;
-
         public CrossReferenceSectionIndex(int startIndex, int count)
         {
-            _startIndex = startIndex;
-            _count = count;
+            StartIndex = startIndex;
+            Count = count;
         }
+
+        public int StartIndex { get; }
+        public int Count { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteIntAsync(_startIndex);
+            await stream.WriteIntAsync(StartIndex);
             await stream.WriteWhitespaceAsync();
-            await stream.WriteIntAsync(_count);
+            await stream.WriteIntAsync(Count);
             await stream.WriteNewLineAsync();
         }
     }

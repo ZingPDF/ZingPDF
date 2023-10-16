@@ -48,6 +48,11 @@ namespace ZingPdf.Core.Objects.Primitives
             return HashCode.Combine(_value);
         }
 
+        public override string ToString()
+        {
+            return $"/{_value}";
+        }
+
         public static implicit operator Name(string value) => new(value);
     }
 }
