@@ -4,7 +4,7 @@ using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Parsing;
 
-namespace ZingPdf.UnitTests.ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing
 {
     public class KeywordParserTests
     {

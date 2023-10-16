@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.DataStructures;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
@@ -9,13 +10,17 @@ namespace ZingPdf.Core.Parsing
 {
     internal static class TokenTypeIdentifier
     {
+        private static readonly string[] _keywords = new[] { Constants.Eof, Constants.StartXref };
+
         private static readonly int _bufferSize = 1024;
         
-        private static readonly Regex _numberPattern = new("^\\d+\\s*"); // 1234
+        private static readonly Regex _integerPattern = new(@"^\d+\s*"); // 1234
+        private static readonly Regex _realNumberPattern = new(@"^\d+\.\d+"); // 595.276000
         private static readonly Regex _namePattern = new(@"^\/.*|\#[\d]+"); // /Name
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
         private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
         private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
+        private static readonly Regex _datePattern = new(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)");
 
         public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
@@ -32,8 +37,14 @@ namespace ZingPdf.Core.Parsing
 
             stream.Position -= read;
 
-            if (content.StartsWith(Constants.StartXref) || content.StartsWith(Constants.Eof))
+            if (_keywords.Any(k => content.StartsWith(k)))
             {
+                return typeof(Keyword);
+            }
+
+            if (content.StartsWith(Constants.Null))
+            {
+                // TODO: figure out if the word "null" should be represented as a keyword, or the null object, or a string literal, or something else
                 return typeof(Keyword);
             }
 
@@ -57,9 +68,19 @@ namespace ZingPdf.Core.Parsing
                 return typeof(IndirectObjectReference);
             }
 
-            if (_numberPattern.IsMatch(content))
+            if (_realNumberPattern.IsMatch(content))
+            {
+                return typeof(RealNumber);
+            }
+
+            if (_integerPattern.IsMatch(content))
             {
                 return typeof(Integer);
+            }
+
+            if (_datePattern.IsMatch(content))
+            {
+                return typeof(Date);
             }
 
             if (content.StartsWith(Constants.DictionaryStart))
