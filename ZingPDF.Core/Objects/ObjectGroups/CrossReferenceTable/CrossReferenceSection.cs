@@ -6,8 +6,14 @@
         {
             if (entries is null) throw new ArgumentNullException(nameof(entries));
 
-            Objects.Add(new CrossReferenceSectionIndex(startIndex, entries.Count()));
+            Index = new CrossReferenceSectionIndex(startIndex, entries.Count());
+            Entries = entries;
+
+            Objects.Add(Index);
             Objects.AddRange(entries);
         }
+
+        public CrossReferenceSectionIndex Index { get; }
+        public IEnumerable<CrossReferenceEntry> Entries { get; }
     }
 }

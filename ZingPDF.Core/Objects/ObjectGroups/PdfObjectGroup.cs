@@ -1,8 +1,8 @@
 ﻿namespace ZingPdf.Core.Objects.ObjectGroups
 {
-    internal abstract class PdfObjectGroup : PdfObject
+    internal class PdfObjectGroup : PdfObject
     {
-        protected List<PdfObject> Objects { get; } = new();
+        public List<PdfObject> Objects { get; private set; } = new();
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -11,5 +11,8 @@
                 await obj.WriteAsync(stream);
             }
         }
+
+        public static implicit operator PdfObjectGroup(List<PdfObject> items) => new() { Objects = items };
+        public static implicit operator PdfObjectGroup(PdfObject[] items) => new() { Objects = items.ToList() };
     }
 }
