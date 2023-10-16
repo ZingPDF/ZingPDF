@@ -2,41 +2,42 @@
 {
     internal static class Constants
     {
-        public static char NewLine = '\n';
-        public static char CarriageReturn = '\r';
-        public static char Tab = '\t';
-        public static char Space = ' ';
-        public static char Comment = '%';
-        public static char Solidus = '/';
-        public static char StringStart = '(';
-        public static char StringEnd = ')';
-        public static char Whitespace = ' ';
-        public static char ArrayStart = '[';
-        public static char ArrayEnd = ']';
-        public static char LessThan = '<';
-        public static char GreaterThan = '>';
-        public static char IndirectReference = 'R';
+        public static readonly char NewLine = '\n';
+        public static readonly char CarriageReturn = '\r';
+        public static readonly char Tab = '\t';
+        public static readonly char Space = ' ';
+        public static readonly char Comment = '%';
+        public static readonly char Solidus = '/';
+        public static readonly char StringStart = '(';
+        public static readonly char StringEnd = ')';
+        public static readonly char Whitespace = ' ';
+        public static readonly char ArrayStart = '[';
+        public static readonly char ArrayEnd = ']';
+        public static readonly char LessThan = '<';
+        public static readonly char GreaterThan = '>';
+        public static readonly char IndirectReference = 'R';
 
-        public static string PdfVersionPrefix = "PDF-";
-        public static string ObjStart = "obj";
-        public static string ObjEnd = "endobj";
+        public static readonly string PdfVersionPrefix = "PDF-";
+        public static readonly string ObjStart = "obj";
+        public static readonly string ObjEnd = "endobj";
 
-        public static string DictionaryStart = "<<";
-        public static string DictionaryEnd = ">>";
-        public static string Trailer = "trailer";
-        public static string StartXref = "startxref";
-        public static string Xref = "xref";
-        public static string StreamStart = "stream";
-        public static string StreamEnd = "endstream";
-        public static string Eof = "%%EOF";
+        public static readonly string DictionaryStart = "<<";
+        public static readonly string DictionaryEnd = ">>";
+        public static readonly string Trailer = "trailer";
+        public static readonly string StartXref = "startxref";
+        public static readonly string Xref = "xref";
+        public static readonly string StreamStart = "stream";
+        public static readonly string StreamEnd = "endstream";
+        public static readonly string Null = "null";
+        public static readonly string Eof = "%%EOF";
         
-        public static byte[] BinaryCharacters = new byte[] { 129, 130, 131, 132 };
+        public static readonly byte[] BinaryCharacters = new byte[] { 129, 130, 131, 132 };
 
         /// <summary>
         /// Special characters used to delimit syntactic entities such as arrays, names, comments.
         /// </summary>
-        public static char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
+        public static readonly char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
 
-        public static char[] WhitespaceCharacters = new char[] { Space, Tab, NewLine, CarriageReturn, '\f' };
+        public static readonly char[] WhitespaceCharacters = new char[] { Space, Tab, NewLine, CarriageReturn, '\f' };
     }
 }

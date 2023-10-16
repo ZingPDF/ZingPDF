@@ -8,13 +8,21 @@ namespace ZingPdf.Core.Objects.Primitives
     /// </summary>
     internal class RealNumber : PdfObject
     {
-        private readonly double _value;
-
         public RealNumber(double value)
         {
-            _value = value;
+            Value = value;
         }
 
-        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString("G", CultureInfo.InvariantCulture));
+        public double Value { get; }
+
+        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(Value.ToString("G", CultureInfo.InvariantCulture));
+
+        public static implicit operator RealNumber(double value) => new(value);
+        public static implicit operator RealNumber(long value) => new(value);
+        public static implicit operator RealNumber(int value) => new(value);
+
+        public static implicit operator double(RealNumber value) => value.Value;
+        public static implicit operator long(RealNumber value) => (long)value.Value;
+        public static implicit operator int(RealNumber value) => (int)value.Value;
     }
 }
