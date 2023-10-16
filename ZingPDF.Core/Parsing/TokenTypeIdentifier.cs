@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing
@@ -9,10 +10,12 @@ namespace ZingPdf.Core.Parsing
     internal static class TokenTypeIdentifier
     {
         private static readonly int _bufferSize = 1024;
-
-        private static readonly Regex _numberPattern = new("^\\d+\\s*");
-        private static readonly Regex _namePattern = new(@"^\/.*|\#[\d]+");
-        private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R");
+        
+        private static readonly Regex _numberPattern = new("^\\d+\\s*"); // 1234
+        private static readonly Regex _namePattern = new(@"^\/.*|\#[\d]+"); // /Name
+        private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
+        private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
+        private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
 
         public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
@@ -28,6 +31,21 @@ namespace ZingPdf.Core.Parsing
             }
 
             stream.Position -= read;
+
+            if (content.StartsWith(Constants.StartXref) || content.StartsWith(Constants.Eof))
+            {
+                return typeof(Keyword);
+            }
+
+            if (_xrefSectionIndexPattern.IsMatch(content))
+            {
+                return typeof(CrossReferenceSection);
+            }
+
+            if (_xrefEntryPattern.IsMatch(content))
+            {
+                return typeof(CrossReferenceEntry);
+            }
 
             if (_namePattern.IsMatch(content))
             {
@@ -62,7 +80,7 @@ namespace ZingPdf.Core.Parsing
 
             if (content.StartsWith(Constants.Trailer))
             {
-                return typeof(Trailer);
+                return typeof(PdfObjectGroup);
             }
 
             throw new ParserException("Unable to identify token from stream");

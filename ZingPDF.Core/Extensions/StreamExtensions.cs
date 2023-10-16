@@ -108,11 +108,7 @@ namespace ZingPdf.Core.Extensions
         public static Task<string> ReadUpToIncludingAsync(this Stream stream, params char[] c)
             => ReadUpToAsync(stream, includeValueInOutput: true, c);
 
-        /// <summary>
-        /// Reads the stream into a string until it finds any of the specified characters.
-        /// The found character is included in the output.
-        /// </summary>
-        public static async Task<string> ReadUpToAsync(this Stream stream, bool includeValueInOutput, params char[] c)
+        private static async Task<string> ReadUpToAsync(this Stream stream, bool includeValueInOutput, params char[] c)
         {
             var bufferSize = 128;
             var buffer = new byte[bufferSize];

@@ -1,13 +1,13 @@
 ﻿using ZingPdf.Core.Extensions;
 
-namespace ZingPdf.Core.Objects
+namespace ZingPdf.Core.Objects.Primitives
 {
     /// <summary>
     /// Represents special PDF keywords, such as 'trailer', or 'startxref'.
     /// </summary>
-    internal class PdfKeyword : PdfObject
+    internal class Keyword : PdfObject
     {
-        public PdfKeyword(string value)
+        public Keyword(string value)
         {
             Value = value;
         }
@@ -19,5 +19,8 @@ namespace ZingPdf.Core.Objects
             await stream.WriteTextAsync(Value);
             await stream.WriteNewLineAsync();
         }
+
+        public static implicit operator Keyword(string value) => new(value);
+        public static implicit operator string(Keyword value) => value.Value;
     }
 }

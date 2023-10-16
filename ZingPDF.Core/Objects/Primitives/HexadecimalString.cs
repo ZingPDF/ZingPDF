@@ -7,23 +7,24 @@ namespace ZingPdf.Core.Objects.Primitives
     /// </summary>
     internal class HexadecimalString : PdfObject
     {
-        private string _value;
-
         private HexadecimalString()
         {
-            _value = string.Empty;
+            Value = string.Empty;
         }
+
+        public string Value { get; private set; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.LessThan);
-            await stream.WriteTextAsync(_value);
+            await stream.WriteTextAsync(Value);
             await stream.WriteCharsAsync(Constants.GreaterThan);
         }
 
-        public static HexadecimalString FromBytes(byte[] value) => new() { _value = Convert.ToHexString(value) };
-        public static HexadecimalString FromHexStringValue(string value) => new() { _value = value };
+        public static HexadecimalString FromBytes(byte[] value) => new() { Value = Convert.ToHexString(value) };
+        public static HexadecimalString FromHexStringValue(string value) => new() { Value = value };
 
         public static implicit operator HexadecimalString(string value) => FromHexStringValue(value);
+        public static implicit operator string(HexadecimalString value) => value.Value;
     }
 }
