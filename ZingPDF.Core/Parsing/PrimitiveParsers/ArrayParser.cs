@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.ObjectGroups;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
@@ -38,6 +39,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     if (countStart > 0 && countEnd == countStart)
                     {
                         arrayEnd = i;
+                        stream.Position = arrayStart + i;
 
                         await stream.AdvanceBeyondNextAsync(Constants.ArrayEnd);
                         break;
@@ -48,9 +50,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             using var arrayStream = await stream.RangeAsync(arrayStart + 1, arrayEnd + arrayStart);
 
-            var items = await PdfContentParser.ParseAsync(arrayStream).ToArrayAsync();
+            var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
 
-            return items.Where(i => i != null).ToArray();
+            return objectGroup.Objects.ToArray();
         }
     }
 }
