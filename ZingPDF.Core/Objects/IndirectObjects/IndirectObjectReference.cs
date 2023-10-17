@@ -1,28 +1,26 @@
 ﻿using ZingPdf.Core.Extensions;
 
-namespace ZingPdf.Core.Objects
+namespace ZingPdf.Core.Objects.IndirectObjects
 {
     internal class IndirectObjectReference : PdfObject
     {
-        public IndirectObjectReference(int id, ushort generation)
+        public IndirectObjectReference(IndirectObjectId id)
         {
             Id = id;
-            Generation = generation;
         }
 
-        public int Id { get; }
-        public ushort Generation { get; }
+        public IndirectObjectId Id { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             // e.g. 12 0 R
 
             // Object number
-            await stream.WriteIntAsync(Id);
+            await stream.WriteIntAsync(Id.Index);
             await stream.WriteWhitespaceAsync();
 
             // Generation number
-            await stream.WriteIntAsync(Generation);
+            await stream.WriteIntAsync(Id.GenerationNumber);
             await stream.WriteWhitespaceAsync();
 
             await stream.WriteCharsAsync(Constants.IndirectReference);
