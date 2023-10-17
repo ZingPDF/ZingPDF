@@ -153,10 +153,10 @@ namespace ZingPdf.Core.Extensions
             do
             {
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
+                var str = Encoding.UTF8.GetString(buffer, 0, read);
 
-                content += Encoding.UTF8.GetString(buffer, 0, read);
+                content += str;
 
-                string str = content[^read..^0];
                 for (int i = 0; i < str.Length; i++)
                 {
                     char c = str[i];
