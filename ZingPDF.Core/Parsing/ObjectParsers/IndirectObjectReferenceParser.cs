@@ -1,6 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.IndirectObjects;
 
 namespace ZingPdf.Core.Parsing.ObjectParsers
 {
@@ -17,7 +17,7 @@ namespace ZingPdf.Core.Parsing.ObjectParsers
             var id = int.Parse(parts[0]);
             var generation = ushort.Parse(parts[1]);
 
-            return new IndirectObjectReference(id, generation);
+            return new IndirectObjectReference(new(id, generation));
         }
     }
 }

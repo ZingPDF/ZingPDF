@@ -1,5 +1,6 @@
 ﻿using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Filters;
+using ZingPdf.Core.Objects.IndirectObjects;
 
 namespace ZingPdf.Core.Objects.Primitives
 {

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
+using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
@@ -10,13 +10,13 @@ namespace ZingPdf.Core.Parsing
 {
     internal static class TokenTypeIdentifier
     {
-        private static readonly string[] _keywords = new[] { Constants.Eof, Constants.StartXref };
+        private static readonly string[] _keywords = new[] { Constants.Eof, Constants.StartXref, Constants.ObjEnd };
 
         private static readonly int _bufferSize = 1024;
         
         private static readonly Regex _integerPattern = new(@"^\d+\s*"); // 1234
         private static readonly Regex _realNumberPattern = new(@"^\d+\.\d+"); // 595.276000
-        private static readonly Regex _namePattern = new(@"^\/.*|\#[\d]+"); // /Name
+        private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
         private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
         private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing
