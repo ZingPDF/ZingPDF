@@ -1,5 +1,6 @@
 ﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
+using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
@@ -13,6 +14,7 @@ namespace ZingPdf.Core.Parsing
     internal static class Parser
     {
         private static readonly PdfObjectGroupParser _pdfObjectGroupParser = new();
+        private static readonly IndirectObjectParser _indirectObjectParser = new();
         private static readonly KeywordParser _keywordParser = new();
         private static readonly NameParser _nameParser = new();
         private static readonly DictionaryParser _dictionaryParser = new();
@@ -38,6 +40,7 @@ namespace ZingPdf.Core.Parsing
             return type switch
             {
                 Type t when t == typeof(PdfObjectGroup) => _pdfObjectGroupParser,
+                Type t when t == typeof(IndirectObject) => _indirectObjectParser,
                 Type t when t == typeof(Keyword) => _keywordParser,
                 Type t when t == typeof(Name) => _nameParser,
                 Type t when t == typeof(Dictionary) => _dictionaryParser,

@@ -1,4 +1,5 @@
 ﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.IndirectObjects;
 
 namespace ZingPdf.Core.Objects.Primitives
 {
@@ -9,15 +10,14 @@ namespace ZingPdf.Core.Objects.Primitives
     /// </summary>
     internal class IndirectObject : PdfObject
     {
-        private readonly IEnumerable<PdfObject> _children;
-
-        public IndirectObject(IndirectObjectReference id, IEnumerable<PdfObject> children)
+        public IndirectObject(IndirectObjectId id, IEnumerable<PdfObject> children)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
-            _children = children ?? throw new ArgumentNullException(nameof(children));
+            Children = children ?? throw new ArgumentNullException(nameof(children));
         }
 
-        public IndirectObjectReference Id { get; }
+        public IndirectObjectId Id { get; }
+        public IEnumerable<PdfObject> Children { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -27,17 +27,17 @@ namespace ZingPdf.Core.Objects.Primitives
             // endobj
 
             // Object number
-            await stream.WriteIntAsync(Id.Id);
+            await stream.WriteIntAsync(Id.Index);
             await stream.WriteWhitespaceAsync();
 
             // Generation number
-            await stream.WriteIntAsync(Id.Generation);
+            await stream.WriteIntAsync(Id.GenerationNumber);
             await stream.WriteWhitespaceAsync();
 
             await stream.WriteTextAsync(Constants.ObjStart);
             await stream.WriteNewLineAsync();
 
-            foreach (PdfObject child in _children)
+            foreach (PdfObject child in Children)
             {
                 await child.WriteAsync(stream);
             }

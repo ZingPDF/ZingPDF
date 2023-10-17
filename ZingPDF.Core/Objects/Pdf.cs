@@ -1,4 +1,5 @@
 ﻿using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
@@ -23,10 +24,10 @@ namespace ZingPdf
             var documentCatalogIndex = _indirectObjects.ReserveId();
             var pageTreeNodeIndex = _indirectObjects.ReserveId();
 
-            var pages = new[] { _indirectObjects.Add(new Page(pageTreeNodeIndex)) };
+            var pages = new[] { _indirectObjects.Add(new Page(pageTreeNodeIndex.Reference)) };
 
-            var pageTreeNode = _indirectObjects.SetChild(pageTreeNodeIndex, new PageTreeNode(pages.Select(p => p.Id).ToArray()));
-            var documentCatalog = _indirectObjects.SetChild(documentCatalogIndex, new DocumentCatalog(pageTreeNodeIndex));
+            var pageTreeNode = _indirectObjects.SetChild(pageTreeNodeIndex, new PageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
+            var documentCatalog = _indirectObjects.SetChild(documentCatalogIndex, new DocumentCatalog(pageTreeNodeIndex.Reference));
 
             await new Header().WriteAsync(stream);
             await documentCatalog.WriteAsync(stream);
@@ -43,12 +44,12 @@ namespace ZingPdf
             var xrefSections = new[]
             {
                 // An unmodified PDF has only one cross reference section
-                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value?.ByteOffset!.Value ?? 0, i.Value?.Id.Generation ?? 0, i.Value != null)))
+                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value?.ByteOffset!.Value ?? 0, i.Value?.Id.GenerationNumber ?? 0, i.Value != null)))
             };
 
             var xrefTable = new CrossReferenceTable(xrefSections);
             await xrefTable.WriteAsync(stream);
-            await new Trailer(documentCatalog.Id, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
+            await new Trailer(documentCatalog.Id.Reference, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
 
             await stream.FlushAsync();
         }
