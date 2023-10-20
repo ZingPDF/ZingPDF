@@ -16,7 +16,16 @@ namespace ZingPdf.Core.Objects.Primitives
             _dictionary = dictionary ?? new Dictionary<Name, PdfObject>();
         }
 
-        public T Get<T>(Name key) where T : PdfObject => (T)_dictionary[key];
+        /// <summary>
+        /// Strongly typed access to the underlying <see cref="PdfObject"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
+        /// </remarks>
+        public T? Get<T>(Name key) where T : PdfObject
+            => _dictionary.ContainsKey(key)
+            ? _dictionary[key] as T
+            : null;
 
         #region IDictionary
         public virtual PdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }
