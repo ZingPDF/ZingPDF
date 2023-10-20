@@ -210,6 +210,15 @@ namespace ZingPdf.Core.Extensions
                 return ms;
             }
 
+            if (from == 0 && to == stream.Length)
+            {
+                await stream.CopyToAsync(ms);
+                stream.Position = originalPosition;
+                ms.Position = 0;
+
+                return ms;
+            }
+
             do
             {
                 var amountToRead = Math.Min(bufferSize, (int)Math.Min(to - stream.Position, stream.Length));
@@ -245,6 +254,20 @@ namespace ZingPdf.Core.Extensions
             while (stream.Position < stream.Length);
 
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Read the remaining contents of the stream.
+        /// </summary>
+        public static async Task<byte[]> ReadToEndAsync(this Stream stream)
+        {
+            using var ms = new MemoryStream();
+
+            await stream.CopyToAsync(ms);
+
+            //Array.Copy(stream, stream.Position, )
+
+            return ms.ToArray();
         }
     }
 }
