@@ -1,4 +1,6 @@
-﻿namespace ZingPdf.Core
+﻿using ZingPdf.Core.Objects.Primitives;
+
+namespace ZingPdf.Core
 {
     internal static class Constants
     {
@@ -39,5 +41,14 @@
         public static readonly char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
 
         public static readonly char[] WhitespaceCharacters = new char[] { Space, Tab, NewLine, CarriageReturn, '\f' };
+
+        public static class Filters
+        {
+            public const string ASCII85 = "ASCII85Decode";
+            public const string ASCIIHex = "ASCIIHexDecode";
+            public const string LZW = "LZWDecode";
+            public const string Flate = "FlateDecode";
+            public const string RunLength = "RunLengthDecode";
+        }
     }
 }

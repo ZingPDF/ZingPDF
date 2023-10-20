@@ -13,10 +13,10 @@ namespace ZingPdf.Core.Objects.Filters
     /// </summary>
     internal class ASCIIHexDecodeFilter : IFilter
     {
-        public Name Name => "ASCIIHexDecode";
         private readonly int _endOfDataMarker = '>';
 
-        public FilterParams? Params => null;
+        public Name Name => Constants.Filters.ASCIIHex;
+        public Dictionary? Params => null;
 
         public byte[] Decode(byte[] data)
         {

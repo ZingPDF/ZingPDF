@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Objects.Filters
         [InlineData(new byte[] { 1, 0, 0, 0, 5, 0, 0, 0 }, new byte[] { 1, 5 })]
         public void DecodeProducesProperOutput(byte[] encoded, byte[] decoded)
         {
-            new LZWDecodeFilter()
+            new LZWDecodeFilter(null)
                 .Decode(encoded)
                 .Should().BeEquivalentTo(decoded);
         }
@@ -22,7 +22,7 @@ namespace ZingPdf.Core.Objects.Filters
         [InlineData(new byte[] { 1, 5 }, new byte[] { 1, 0, 0, 0, 5, 0, 0, 0 })]
         public void EncodeProducesProperOutput(byte[] input, byte[] encoded)
         {
-            new LZWDecodeFilter()
+            new LZWDecodeFilter(null)
                 .Encode(input)
                 .Should().BeEquivalentTo(encoded);
         }
