@@ -28,6 +28,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly CrossReferenceSectionIndexParser _xrefSectionIndexParser = new();
         private static readonly CrossReferenceEntryParser _xrefEntryParser = new();
         private static readonly DateParser _dateParser = new();
+        private static readonly StreamObjectParser _streamParser = new();
 
         public static IPdfObjectParser<PdfObject> For(Type pdfObjectType)
             => GetParserForType(pdfObjectType);
@@ -54,6 +55,7 @@ namespace ZingPdf.Core.Parsing
                 Type t when t == typeof(CrossReferenceSectionIndex) => _xrefSectionIndexParser,
                 Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
                 Type t when t == typeof(Date) => _dateParser,
+                Type t when t == typeof(StreamObject) => _streamParser,
                 _ => throw new ParserException()
             };
         }

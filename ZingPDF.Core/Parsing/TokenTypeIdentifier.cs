@@ -20,7 +20,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
         private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
         private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
-        private static readonly Regex _datePattern = new(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)");
+        private static readonly Regex _datePattern = new(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)"); // (D:20230922161207+10'00')
 
         public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
@@ -102,6 +102,11 @@ namespace ZingPdf.Core.Parsing
             if (content.StartsWith(Constants.Trailer))
             {
                 return typeof(PdfObjectGroup);
+            }
+
+            if (content.StartsWith(Constants.StreamStart))
+            {
+                return typeof(StreamObject);
             }
 
             throw new ParserException("Unable to identify token from stream");

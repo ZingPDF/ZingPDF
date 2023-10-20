@@ -24,18 +24,18 @@ namespace ZingPdf.Core.Objects.Filters
         public bool EnforceSuffixMark = true;
 
         private const int _asciiOffset = 33;
-        private byte[] _encodedBlock = new byte[5];
-        private byte[] _decodedBlock = new byte[4];
+        private readonly byte[] _encodedBlock = new byte[5];
+        private readonly byte[] _decodedBlock = new byte[4];
         private uint _tuple = 0;
         private int _linePos = 0;
 
-        private uint[] pow85 = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
-
-        public Name Name => "ASCII85Decode";
+        
+        private readonly uint[] _pow85 = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
 
         private readonly byte[] _endOfDataMarker = Encoding.ASCII.GetBytes("~>");
 
-        public FilterParams? Params => null;
+        public Name Name => Constants.Filters.ASCII85;
+        public Dictionary? Params => null;
 
         public byte[] Decode(byte[] data)
         {
@@ -83,7 +83,7 @@ namespace ZingPdf.Core.Objects.Filters
 
                 if (processChar)
                 {
-                    _tuple += (uint)(c - _asciiOffset) * pow85[count];
+                    _tuple += (uint)(c - _asciiOffset) * _pow85[count];
                     count++;
                     if (count == _encodedBlock.Length)
                     {
@@ -103,7 +103,7 @@ namespace ZingPdf.Core.Objects.Filters
                     throw new FilterInputFormatException(nameof(data), "The last block of ASCII85 data cannot be a single byte.");
                 }
                 count--;
-                _tuple += pow85[count];
+                _tuple += _pow85[count];
                 DecodeBlock(count);
                 for (int i = 0; i < count; i++)
                 {
