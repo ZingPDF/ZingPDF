@@ -14,8 +14,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     /// </remarks>
     internal class DictionaryParser : IPdfObjectParser<Dictionary>
     {
-        private static readonly string _defaultExceptionMessage = "Invalid dictionary";
-
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
             // A dictionary is a key-value collection, where the key is always a 'Name' object

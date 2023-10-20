@@ -18,16 +18,33 @@ namespace ZingPdf.Core.Parsing
 
             var indirectObjectDereferencer = new IndirectObjectDereferencer(xrefTable);
 
-            var documentCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, trailerDict.Get<IndirectObjectReference>("Root"));
-            var pagesCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages"));
+            var documentCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, trailerDict.Get<IndirectObjectReference>("Root")!);
+            var pagesCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
 
+            // TODO: this parses pages as dictionaries (which they are, obvs).
+            // Do we need to parse them to proper Page objects which have the right properties?
             List<Dictionary> pages = await GetPagesDictionaries(stream, xrefTable, pagesCatalog);
+
+            // TODO: THIS IS TEST CODE FOR NOW:
+            // can't use IndirectObjectDereferencer to get stream contents
+            // it contains 2 objects, dict and stream, we need the dict to get the length in order to parse this efficiently.
+            var contentsReference = pages.First().Get<IndirectObjectReference>("Contents")!;
+
+            var contentsStreamOffset = xrefTable.IndirectObjectLocations[contentsReference.Id.Index];
+
+            stream.Position = contentsStreamOffset;
+
+            await stream.AdvanceToNextAsync(Constants.DictionaryStart);
+
+            var contentsStreamObject = await Parser.For<StreamObject>().ParseAsync(stream);
+
+            var test = System.Text.Encoding.UTF8.GetString(await contentsStreamObject.DecodeAsync());
         }
 
         private static async Task<List<Dictionary>> GetPagesDictionaries(Stream stream, CrossReferenceTable xrefTable, Dictionary pagesCatalog)
         {
             var pageRefs = pagesCatalog
-                .Get<Objects.Primitives.Array>("Kids")
+                .Get<Objects.Primitives.Array>("Kids")!
                 .Cast<IndirectObjectReference>();
 
             List<Dictionary> pages = new();

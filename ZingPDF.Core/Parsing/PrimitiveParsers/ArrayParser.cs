@@ -6,8 +6,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class ArrayParser : IPdfObjectParser<Objects.Primitives.Array>
     {
-        private static string _defaultExceptionMessage = "Invalid array";
-
         public async ITask<Objects.Primitives.Array> ParseAsync(Stream stream)
         {
             // An array is a collection of any type of PDF object

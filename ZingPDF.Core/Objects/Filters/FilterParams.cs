@@ -1,61 +1,61 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿//using ZingPdf.Core.Objects.Primitives;
 
-namespace ZingPdf.Core.Objects.Filters
-{
-    internal class FilterParams : Dictionary
-    {
-        public bool Modified = false;
+//namespace ZingPdf.Core.Objects.Filters
+//{
+//    internal class FilterParams : Dictionary
+//    {
+//        public bool Modified = false;
 
-        public override PdfObject this[Name key]
-        {
-            get => base[key];
-            set
-            {
-                base[key] = value;
+//        public override PdfObject this[Name key]
+//        {
+//            get => base[key];
+//            set
+//            {
+//                base[key] = value;
 
-                Modified = true;
-            }
-        }
+//                Modified = true;
+//            }
+//        }
 
-        public override void Add(KeyValuePair<Name, PdfObject> item)
-        {
-            base.Add(item);
+//        public override void Add(KeyValuePair<Name, PdfObject> item)
+//        {
+//            base.Add(item);
 
-            Modified = true;
-        }
+//            Modified = true;
+//        }
 
-        public override void Add(Name key, PdfObject value)
-        {
-            base.Add(key, value);
+//        public override void Add(Name key, PdfObject value)
+//        {
+//            base.Add(key, value);
 
-            Modified = true;
-        }
+//            Modified = true;
+//        }
 
-        public override void Clear()
-        {
-            base.Clear();
+//        public override void Clear()
+//        {
+//            base.Clear();
 
-            Modified = false;
-        }
+//            Modified = false;
+//        }
 
-        public override bool Remove(KeyValuePair<Name, PdfObject> item)
-        {
-            if (Count == 1)
-            {
-                Modified = false;
-            }
+//        public override bool Remove(KeyValuePair<Name, PdfObject> item)
+//        {
+//            if (Count == 1)
+//            {
+//                Modified = false;
+//            }
 
-            return base.Remove(item);
-        }
+//            return base.Remove(item);
+//        }
 
-        public override bool Remove(Name key)
-        {
-            if (Count == 1)
-            {
-                Modified = false;
-            }
+//        public override bool Remove(Name key)
+//        {
+//            if (Count == 1)
+//            {
+//                Modified = false;
+//            }
 
-            return base.Remove(key);
-        }
-    }
-}
+//            return base.Remove(key);
+//        }
+//    }
+//}
