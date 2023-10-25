@@ -29,7 +29,10 @@ namespace ZingPdf.Core.Objects.Primitives
         {
             await stream.WriteCharsAsync(Constants.LeftParenthesis);
 
-            await stream.WriteAsync(_encodeUsing.Preamble.ToArray().AsMemory());
+            // Write byte order mark
+            await stream.WriteAsync(GetEncodingPreamble().AsMemory());
+
+            // TODO: use octals to escape values outside of the specified encoding?
             await stream.WriteTextAsync(Value, _encodeUsing);
 
             await stream.WriteCharsAsync(Constants.RightParenthesis);
