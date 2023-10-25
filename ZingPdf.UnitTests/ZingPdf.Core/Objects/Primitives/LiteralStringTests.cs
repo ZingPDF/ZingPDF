@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.ComponentModel;
 using System.Text;
 using Xunit;
 
@@ -7,19 +8,32 @@ namespace ZingPdf.Core.Objects.Primitives
     public class LiteralStringTests
     {
         [Fact]
-        public void ConstructorThrowsForASCIIEncoding()
+        public void ConstructorThrowsForUnsupportedEncoding()
         {
-            var act = () => new LiteralString("test", Encoding.ASCII);
+            var act = () => new LiteralString("test", (LiteralStringEncoding)99);
 
-            act.Should().Throw<ArgumentException>().WithParameterName("encodeUsing");
+            act.Should().Throw<InvalidEnumArgumentException>().WithParameterName("encodeUsing");
         }
 
-        [Fact]
-        public void ConstructorThrowsForUTF16LEEncoding()
+        [Theory]
+        [InlineData(LiteralStringEncoding.UTF8)]
+        [InlineData(LiteralStringEncoding.UTF16BE)]
+        [InlineData(LiteralStringEncoding.PDFDocEncoding)]
+        internal async Task WriteAsyncProducesCorrectByteOrderMarks(LiteralStringEncoding encoding)
         {
-            var act = () => new LiteralString("test", Encoding.GetEncoding(1200));
+            var literalString = new LiteralString("test", encoding);
 
-            act.Should().Throw<ArgumentException>().WithParameterName("encodeUsing");
+            using var ms = new MemoryStream();
+
+            await literalString.WriteAsync(ms);
+
+            // Skip the opening parenthesis
+            ms.Position = 1;
+
+            foreach (var c in literalString.GetEncodingPreamble())
+            {
+                ms.ReadByte().Should().Be(c);
+            }
         }
     }
 }
