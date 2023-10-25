@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using ICSharpCode.SharpZipLib.BZip2;
+using System.Text;
 using ZingPdf.Core.Objects;
 
 namespace ZingPdf.Core.Extensions
@@ -66,6 +67,33 @@ namespace ZingPdf.Core.Extensions
         }
 
         public static bool IsInteger(this string input) => input.All(c => c.IsInteger());
+
+        /// <summary>
+        /// Removes the next EOL marker. This could be a single carriage return (\r), a single line feed (\n), or both together. 
+        /// </summary>
+        public static string RemoveNextEndOfLineMarker(this string input)
+        {
+            var index = input.IndexOf($"{Constants.CarriageReturn}{Constants.LineFeed}");
+
+            if (index != -1)
+            {
+                return input.Remove(index, 2);
+            }
+
+            index = input.IndexOfAny(Constants.EndOfLineCharacters);
+
+            if (index != -1)
+            {
+                return input.Remove(index + 1, 1);
+            }
+
+            return input;
+        }
+
+        public static char ToCharFromOctal(this string input)
+        {
+            return (char)Convert.ToInt32($"{input}", 8);
+        }
 
         public static Stream ToStream(this string input) => new MemoryStream(Encoding.UTF8.GetBytes(input));
     }

@@ -94,6 +94,11 @@ namespace ZingPdf.Core.Parsing
                 return typeof(HexadecimalString);
             }
 
+            if (content.StartsWith(Constants.LeftParenthesis))
+            {
+                return typeof(Objects.Primitives.LiteralString);
+            }
+
             if (content.StartsWith(Constants.ArrayStart))
             {
                 return typeof(Objects.Primitives.Array);
