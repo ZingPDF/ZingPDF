@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing
 {
     public class PdfParser
     {
-        public async Task ParseAsync(Stream stream)
+        public async Task<Pdf> ParseAsync(Stream stream)
         {
             PdfObjectGroup trailerObjects = await GetTrailer(stream);
 
@@ -18,27 +18,34 @@ namespace ZingPdf.Core.Parsing
 
             var indirectObjectDereferencer = new IndirectObjectDereferencer(xrefTable);
 
-            var documentCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, trailerDict.Get<IndirectObjectReference>("Root")!);
-            var pagesCatalog = await indirectObjectDereferencer.GetSingle<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
+            IndirectObjectReference documentCatalogId = trailerDict.Get<IndirectObjectReference>("Root")
+                ?? throw new ParserException("Trailer is missing an entry for `Root`");
 
-            // TODO: this parses pages as dictionaries (which they are, obvs).
-            // Do we need to parse them to proper Page objects which have the right properties?
-            List<Dictionary> pages = await GetPagesDictionaries(stream, xrefTable, pagesCatalog);
+            var allIndirectObjects = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
-            // TODO: THIS IS TEST CODE FOR NOW:
-            // can't use IndirectObjectDereferencer to get stream contents
-            // it contains 2 objects, dict and stream, we need the dict to get the length in order to parse this efficiently.
-            var contentsReference = pages.First().Get<IndirectObjectReference>("Contents")!;
+            return new Pdf(allIndirectObjects, documentCatalogId);
 
-            var contentsStreamOffset = xrefTable.IndirectObjectLocations[contentsReference.Id.Index];
+            //var documentCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalogId);
+            //var pagesCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
 
-            stream.Position = contentsStreamOffset;
+            //// TODO: this parses pages as dictionaries (which they are, obvs).
+            //// Do we need to parse them to proper Page objects which have the right properties?
+            //List<Dictionary> pages = await GetPagesDictionaries(stream, xrefTable, pagesCatalog);
 
-            await stream.AdvanceToNextAsync(Constants.DictionaryStart);
+            //// TODO: THIS IS TEST CODE FOR NOW:
+            //// can't use IndirectObjectDereferencer to get stream contents
+            //// it contains 2 objects, dict and stream, we need the dict to get the length in order to parse this efficiently.
+            //var contentsReference = pages.First().Get<IndirectObjectReference>("Contents")!;
 
-            var contentsStreamObject = await Parser.For<StreamObject>().ParseAsync(stream);
+            //var contentsStreamOffset = xrefTable.IndirectObjectLocations[contentsReference.Id.Index];
 
-            var test = System.Text.Encoding.UTF8.GetString(await contentsStreamObject.DecodeAsync());
+            //stream.Position = contentsStreamOffset;
+
+            //await stream.AdvanceToNextAsync(Constants.DictionaryStart);
+
+            //var contentsStreamObject = await Parser.For<StreamObject>().ParseAsync(stream);
+
+            //var test = System.Text.Encoding.UTF8.GetString(await contentsStreamObject.DecodeAsync());
         }
 
         private static async Task<List<Dictionary>> GetPagesDictionaries(Stream stream, CrossReferenceTable xrefTable, Dictionary pagesCatalog)

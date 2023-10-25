@@ -9,5 +9,8 @@
 
             return true;
         }
+
+        public static bool IsEndOfLine(this char input)
+            => Constants.EndOfLineCharacters.Contains(input);
     }
 }
