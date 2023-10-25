@@ -94,8 +94,8 @@ namespace ZingPdf.Core.Parsing
         }
 
         [Theory]
-        [InlineData("(This string contains \\245two octal characters\\307.)", "This string contains Ñtwo octal characters╟.")] // TODO: check this case
-        [InlineData("(\\0053)", "␅3")]
+        [InlineData("(This string contains \\245two octal characters\\307.)", "This string contains ¥two octal charactersÇ.")]
+        [InlineData("(\\0053)", "\u00053")]
         [InlineData("(\\053)", "+")]
         [InlineData("(\\53)", "+")]
         public async Task ParseOctalCharactersAreProperlyParsed(string content, string expected)
