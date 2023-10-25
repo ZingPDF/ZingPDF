@@ -7,4 +7,4 @@ using ZingPdf.Core.Parsing;
 
 //await pdf.WriteAsync(new FileStream("output.pdf", FileMode.Truncate));
 
-await new PdfParser().ParseAsync(new FileStream("test.pdf", FileMode.Open));
+var pdf = await new PdfParser().ParseAsync(new FileStream("test.pdf", FileMode.Open));

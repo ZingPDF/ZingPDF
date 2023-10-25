@@ -1,16 +1,22 @@
 ﻿using System.Globalization;
 using System.Text;
-using ZingPdf.Core.Parsing;
-using System;
 
 namespace ZingPdf.Core.Extensions
 {
     internal static class StreamExtensions
     {
-        private static readonly Encoding _defaultEncoding = Encoding.ASCII;
+        private static readonly Encoding _defaultEncoding = Encoding.UTF8;
 
-        public static async Task WriteTextAsync(this Stream stream, string text)
-            => await stream.WriteAsync(_defaultEncoding.GetBytes(text));
+        public static Task WriteTextAsync(this Stream stream, string text)
+            => WriteTextAsync(stream, text, _defaultEncoding);
+
+        public static async Task WriteTextAsync(this Stream stream, string text, Encoding encoding)
+        {
+            if (stream is null) throw new ArgumentNullException(nameof(stream));
+            if (text is null) throw new ArgumentNullException(nameof(text));
+
+            await stream.WriteAsync(encoding.GetBytes(text));
+        }
 
         public static async Task WriteCharsAsync(this Stream stream, params char[] characters)
             => await stream.WriteAsync(_defaultEncoding.GetBytes(characters));
@@ -34,7 +40,7 @@ namespace ZingPdf.Core.Extensions
         /// Write a new line character to the stream.
         /// </summary>
         public static async Task WriteNewLineAsync(this Stream stream)
-            => await stream.WriteCharsAsync(Constants.NewLine);
+            => await stream.WriteCharsAsync(Constants.LineFeed);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.

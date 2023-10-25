@@ -10,6 +10,17 @@ namespace ZingPdf
     {
         private readonly IndirectObjectManager _indirectObjects = new();
 
+        /// <summary>
+        /// Used internally to create a PDF from a parsed document.
+        /// </summary>
+        internal Pdf(IEnumerable<IndirectObject> indirectObjects, IndirectObjectReference documentCatalogId)
+        {
+            foreach (var indirectObject in indirectObjects)
+            {
+                _indirectObjects.Add(indirectObject);
+            }
+        }
+
         public async Task<Stream> ToStreamAsync()
         {
             var ms = new MemoryStream();
