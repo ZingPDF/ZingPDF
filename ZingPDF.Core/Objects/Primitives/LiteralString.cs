@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Text;
 using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Objects.Primitives
@@ -10,28 +11,25 @@ namespace ZingPdf.Core.Objects.Primitives
     {
         private readonly Encoding _encodeUsing;
 
-        public LiteralString(string value, Encoding? encodeUsing = null)
+        public LiteralString(string value, LiteralStringEncoding encodeUsing = LiteralStringEncoding.UTF8)
         {
-            Value = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
 
-            _encodeUsing = encodeUsing ?? Encoding.UTF8;
+            if (!Enum.IsDefined(encodeUsing))
+                throw new InvalidEnumArgumentException(nameof(encodeUsing), (int)encodeUsing, typeof(LiteralStringEncoding));
 
-            if (
-                _encodeUsing is not UTF8Encoding
-                && _encodeUsing is not PDFDocEncoding
-                && (_encodeUsing is not UnicodeEncoding || _encodeUsing is UnicodeEncoding u && u.CodePage != 1201)
-                )
-            {
-                throw new ArgumentException("Invalid Encoding specified", nameof(encodeUsing));
-            }
+            _encodeUsing = GetEncoding(encodeUsing);
         }
 
         public string Value { get; private set; }
+
+        public byte[] GetEncodingPreamble() => _encodeUsing.GetPreamble();
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.LeftParenthesis);
 
+            await stream.WriteAsync(_encodeUsing.Preamble.ToArray().AsMemory());
             await stream.WriteTextAsync(Value, _encodeUsing);
 
             await stream.WriteCharsAsync(Constants.RightParenthesis);
@@ -39,5 +37,16 @@ namespace ZingPdf.Core.Objects.Primitives
 
         public static implicit operator LiteralString(string value) => new(value);
         public static implicit operator string(LiteralString value) => value.Value;
+
+        private static Encoding GetEncoding(LiteralStringEncoding encoding)
+        {
+            return encoding switch
+            {
+                LiteralStringEncoding.UTF8 => Encoding.UTF8,
+                LiteralStringEncoding.UTF16BE => Encoding.Unicode,
+                LiteralStringEncoding.PDFDocEncoding => new PDFDocEncoding(),
+                _ => throw new InvalidOperationException(),
+            };
+        }
     }
 }

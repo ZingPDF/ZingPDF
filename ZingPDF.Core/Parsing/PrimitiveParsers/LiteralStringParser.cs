@@ -10,15 +10,13 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
         public async ITask<LiteralString> ParseAsync(Stream stream)
         {
-            // TODO: support reading byte order marks etc, identify the string encoding.
+            await stream.AdvanceBeyondNextAsync(Constants.LeftParenthesis);
 
-            await stream.AdvanceToNextAsync(Constants.LeftParenthesis);
-
-            var stringStart = stream.Position;
+            var stringStart = stream.Position - 1;
 
             // Find end of string
             var content = string.Empty;
-            int countStart = 0;
+            int countStart = 1;
             int countEnd = 0;
             int stringEnd = 0;
 
@@ -91,7 +89,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
             while (stream.Position < stream.Length && countEnd != countStart);
 
-            return content[1..stringEnd];
+            return content[..stringEnd];
         }
     }
 }
