@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using System.ComponentModel;
-using System.Text;
 using Xunit;
 
 namespace ZingPdf.Core.Objects.Primitives
