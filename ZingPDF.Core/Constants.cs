@@ -1,23 +1,24 @@
-﻿using ZingPdf.Core.Objects.Primitives;
-
-namespace ZingPdf.Core
+﻿namespace ZingPdf.Core
 {
     internal static class Constants
     {
-        public static readonly char NewLine = '\n';
-        public static readonly char CarriageReturn = '\r';
-        public static readonly char Tab = '\t';
-        public static readonly char Space = ' ';
-        public static readonly char Comment = '%';
-        public static readonly char Solidus = '/';
-        public static readonly char StringStart = '(';
-        public static readonly char StringEnd = ')';
-        public static readonly char Whitespace = ' ';
-        public static readonly char ArrayStart = '[';
-        public static readonly char ArrayEnd = ']';
-        public static readonly char LessThan = '<';
-        public static readonly char GreaterThan = '>';
-        public static readonly char IndirectReference = 'R';
+        public const char LineFeed = '\n';
+        public const char CarriageReturn = '\r';
+        public const char HorizontalTab = '\t';
+        public const char FormFeed = '\f';
+        public const char Backspace = '\b';
+        public const char Space = ' ';
+        public const char Comment = '%';
+        public const char Solidus = '/';
+        public const char ReverseSolidus = '\\';
+        public const char LeftParenthesis = '(';
+        public const char RightParenthesis = ')';
+        public const char Whitespace = ' ';
+        public const char ArrayStart = '[';
+        public const char ArrayEnd = ']';
+        public const char LessThan = '<';
+        public const char GreaterThan = '>';
+        public const char IndirectReference = 'R';
 
         public static readonly string PdfVersionPrefix = "PDF-";
         public static readonly string ObjStart = "obj";
@@ -40,7 +41,8 @@ namespace ZingPdf.Core
         /// </summary>
         public static readonly char[] Delimiters = new char[] { '(', ')', '<', '>', '[', ']', '{', '}', '/', '%' };
 
-        public static readonly char[] WhitespaceCharacters = new char[] { Space, Tab, NewLine, CarriageReturn, '\f' };
+        public static readonly char[] WhitespaceCharacters = new char[] { Space, HorizontalTab, LineFeed, CarriageReturn, FormFeed };
+        public static readonly char[] EndOfLineCharacters = new char[] { CarriageReturn, LineFeed };
 
         public static class Filters
         {
