@@ -105,7 +105,7 @@ namespace ZingPdf.Core.Objects.Filters
                     compressedData.AddRange(data[i..(i + runLength)]);
                 }
 
-               i += runLength;
+                i += runLength;
             }
 
             // Add End of Data marker
