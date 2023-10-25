@@ -44,7 +44,7 @@ namespace ZingPdf.Core.Objects.Primitives
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,
                 LiteralStringEncoding.UTF16BE => Encoding.Unicode,
-                LiteralStringEncoding.PDFDocEncoding => new PDFDocEncoding(),
+                LiteralStringEncoding.PDFDocEncoding => Encoding.Latin1,
                 _ => throw new InvalidOperationException(),
             };
         }
