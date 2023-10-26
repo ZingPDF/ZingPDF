@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing
 {
@@ -11,7 +12,7 @@ namespace ZingPdf.Core.Parsing
         {
             using var input = "[]".ToStream();
 
-            var output = await Parser.For<Objects.Primitives.Array>()
+            var output = await Parser.For<ArrayObject>()
                 .ParseAsync(input);
 
             output.Should().BeEmpty();
@@ -25,7 +26,7 @@ namespace ZingPdf.Core.Parsing
         {
             using var input = content.ToStream();
 
-            var output = await Parser.For<Objects.Primitives.Array>()
+            var output = await Parser.For<ArrayObject>()
                 .ParseAsync(input);
 
             output.Should().HaveCount(expectedCount);

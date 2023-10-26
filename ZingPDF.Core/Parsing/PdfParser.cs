@@ -51,7 +51,7 @@ namespace ZingPdf.Core.Parsing
         private static async Task<List<Dictionary>> GetPagesDictionaries(Stream stream, CrossReferenceTable xrefTable, Dictionary pagesCatalog)
         {
             var pageRefs = pagesCatalog
-                .Get<Objects.Primitives.Array>("Kids")!
+                .Get<ArrayObject>("Kids")!
                 .Cast<IndirectObjectReference>();
 
             List<Dictionary> pages = new();
