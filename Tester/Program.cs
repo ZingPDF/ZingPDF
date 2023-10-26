@@ -5,6 +5,8 @@ using ZingPdf.Core.Parsing;
 
 //pdf.Pages.Add(new Page());
 
-//await pdf.WriteAsync(new FileStream("output.pdf", FileMode.Truncate));
+var pdf = await PdfParser.ParseAsync(new FileStream("test.pdf", FileMode.Open));
 
-var pdf = await new PdfParser().ParseAsync(new FileStream("test.pdf", FileMode.Open));
+await pdf.WriteAsync(new FileStream("output.pdf", FileMode.Truncate));
+
+Console.WriteLine("Done parsing");

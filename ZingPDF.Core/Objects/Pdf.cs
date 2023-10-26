@@ -9,16 +9,36 @@ namespace ZingPdf
     public class Pdf
     {
         private readonly IndirectObjectManager _indirectObjects = new();
+        private readonly IndirectObjectId _documentCatalogId;
+
+        /// <summary>
+        /// Create a new blank PDF document.
+        /// </summary>
+        /// <remarks>
+        /// The new document will contain a single blank page by default.
+        /// </remarks>
+        public Pdf()
+        {
+            _documentCatalogId = _indirectObjects.ReserveId();
+            var pageTreeNodeIndex = _indirectObjects.ReserveId();
+
+            var pages = new[] { _indirectObjects.Create(new Page(pageTreeNodeIndex.Reference)) };
+
+            var pageTreeNode = _indirectObjects.Create(pageTreeNodeIndex, CreatePageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
+            var documentCatalog = _indirectObjects.Create(_documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+        }
 
         /// <summary>
         /// Used internally to create a PDF from a parsed document.
         /// </summary>
-        internal Pdf(IEnumerable<IndirectObject> indirectObjects, IndirectObjectReference documentCatalogId)
+        internal Pdf(IEnumerable<IndirectObject> indirectObjects, IndirectObjectId documentCatalogId)
         {
             foreach (var indirectObject in indirectObjects)
             {
-                _indirectObjects.Add(indirectObject);
+                _indirectObjects.Add(indirectObject.Id, indirectObject);
             }
+
+            _documentCatalogId = documentCatalogId;
         }
 
         public async Task<Stream> ToStreamAsync()
@@ -32,25 +52,12 @@ namespace ZingPdf
 
         public async Task WriteAsync(Stream stream)
         {
-            var documentCatalogIndex = _indirectObjects.ReserveId();
-            var pageTreeNodeIndex = _indirectObjects.ReserveId();
-
-            var pages = new[] { _indirectObjects.Add(new Page(pageTreeNodeIndex.Reference)) };
-
-            var pageTreeNode = _indirectObjects.SetChild(pageTreeNodeIndex, new PageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
-            var documentCatalog = _indirectObjects.SetChild(documentCatalogIndex, new DocumentCatalog(pageTreeNodeIndex.Reference));
-
             await new Header().WriteAsync(stream);
-            await documentCatalog.WriteAsync(stream);
 
-            var bodyObjects = new List<PdfObject>()
+            foreach(var indirectObject in _indirectObjects.Skip(1))
             {
-                pageTreeNode,
-            };
-
-            bodyObjects.AddRange(pages);
-
-            await new Body(bodyObjects.ToArray()).WriteAsync(stream);
+                await indirectObject.Value.WriteAsync(stream);
+            }
 
             var xrefSections = new[]
             {
@@ -60,9 +67,28 @@ namespace ZingPdf
 
             var xrefTable = new CrossReferenceTable(xrefSections);
             await xrefTable.WriteAsync(stream);
-            await new Trailer(documentCatalog.Id.Reference, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
+            await new Trailer(_documentCatalogId.Reference, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
 
             await stream.FlushAsync();
+        }
+
+        private static Dictionary CreateDocumentCatalog(IndirectObjectReference pageTreeNode)
+        {
+            return new Dictionary<Name, PdfObject>()
+            {
+                { "Type", new Name("Catalog") },
+                { "Pages", pageTreeNode },
+            };
+        }
+
+        private static Dictionary CreatePageTreeNode(IndirectObjectReference[] pages)
+        {
+            return new Dictionary(new Dictionary<Name, PdfObject>
+            {
+                { "Type", new Name("Pages") },
+                { "Kids", new ArrayObject(pages) },
+                { "Count", new Integer(pages.Length) },
+            });
         }
     }
 }
