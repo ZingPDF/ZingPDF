@@ -1,12 +1,13 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.ObjectGroups;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
-    internal class ArrayParser : IPdfObjectParser<Objects.Primitives.Array>
+    internal class ArrayParser : IPdfObjectParser<ArrayObject>
     {
-        public async ITask<Objects.Primitives.Array> ParseAsync(Stream stream)
+        public async ITask<ArrayObject> ParseAsync(Stream stream)
         {
             // An array is a collection of any type of PDF object
 

@@ -32,7 +32,7 @@ namespace ZingPdf.Core.Parsing
             output.Get<Integer>("Size");
             output.Get<IndirectObjectReference>("Root");
             output.Get<IndirectObjectReference>("Info");
-            output.Get<Objects.Primitives.Array>("ID").Should().NotBeNullOrEmpty();
+            output.Get<ArrayObject>("ID").Should().NotBeNullOrEmpty();
 
         }
     }

@@ -101,7 +101,7 @@ namespace ZingPdf.Core.Parsing
 
             if (content.StartsWith(Constants.ArrayStart))
             {
-                return typeof(Objects.Primitives.Array);
+                return typeof(ArrayObject);
             }
 
             if (content.StartsWith(Constants.Trailer))
