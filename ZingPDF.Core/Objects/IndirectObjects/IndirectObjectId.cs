@@ -12,5 +12,10 @@
         public ushort GenerationNumber { get; }
 
         public IndirectObjectReference Reference { get => new(this); }
+
+        public override string ToString()
+        {
+            return $"{nameof(IndirectObjectId)} {{{Index}, {GenerationNumber}}}";
+        }
     }
 }
