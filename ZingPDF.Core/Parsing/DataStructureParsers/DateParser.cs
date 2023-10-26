@@ -22,7 +22,7 @@ namespace ZingPdf.Core.Parsing.DataStructureParsers
             return new Date(date);
         }
 
-        static DateTime ParseCustomDateTime(string input)
+        private static DateTimeOffset ParseCustomDateTime(string input)
         {
             string[] formats = {
                 "yyyyMMddHHmmsszzz", "yyyyMMddHHmmzzz", "yyyyMMddHHzzz", "yyyyMMddzzz", "yyyyMMzzz", "yyyyzzz",
@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Parsing.DataStructureParsers
             };
 
             // Try parsing with different formats
-            if (DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTime))
+            if (DateTimeOffset.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset parsedDateTime))
             {
                 return parsedDateTime;
             }
