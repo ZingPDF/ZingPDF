@@ -19,6 +19,8 @@ namespace ZingPdf.Core.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(_value.ToString("G", CultureInfo.InvariantCulture));
 
+        public override string ToString() => _value.ToString(CultureInfo.InvariantCulture);
+
         public static implicit operator Integer(int value) => new(value);
         public static implicit operator Integer(long value) => new(value);
 
