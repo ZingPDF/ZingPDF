@@ -57,13 +57,13 @@ namespace ZingPdf.Core.Objects.Primitives
             // TODO: stream contents may be encrypted, decrypt.
 
             var filterNamesEntry = _streamDictionary["Filter"];
-            var filterNames = filterNamesEntry as Array ?? new[] { filterNamesEntry };
+            var filterNames = filterNamesEntry as ArrayObject ?? new[] { filterNamesEntry };
 
-            var allFilterParamsArray = _streamDictionary.Get<Array>("DecodeParms");
+            var allFilterParamsArray = _streamDictionary.Get<ArrayObject>("DecodeParms");
             var singleFilterParamsDictionary = _streamDictionary.Get<Dictionary>("DecodeParms");
 
             var allFilterParams = allFilterParamsArray ??
-                (singleFilterParamsDictionary != null ? new[] { singleFilterParamsDictionary } : (Array?)null);
+                (singleFilterParamsDictionary != null ? new[] { singleFilterParamsDictionary } : (ArrayObject?)null);
 
             var relevantRange = await _source.RangeAsync(_from, _to);
 
@@ -101,7 +101,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
             if (filters.Any())
             {
-                streamDictionary.Add("Filter", new Array(filters.Select(f => f.Name).ToArray()));
+                streamDictionary.Add("Filter", new ArrayObject(filters.Select(f => f.Name).ToArray()));
 
                 if (filters.Any(f => f.Params != null))// && f.Params.Modified))
                 {
@@ -111,7 +111,7 @@ namespace ZingPdf.Core.Objects.Primitives
                     }
                     else
                     {
-                        streamDictionary.Add("DecodeParms", new Array(filters.Select(f =>
+                        streamDictionary.Add("DecodeParms", new ArrayObject(filters.Select(f =>
                         {
                             if (f.Params != null)// && f.Params.Modified)
                             {
