@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing
 {
     public class PdfParser
     {
-        public async Task<Pdf> ParseAsync(Stream stream)
+        public static async Task<Pdf> ParseAsync(Stream stream)
         {
             PdfObjectGroup trailerObjects = await GetTrailer(stream);
 
@@ -23,7 +23,7 @@ namespace ZingPdf.Core.Parsing
 
             var allIndirectObjects = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
-            return new Pdf(allIndirectObjects, documentCatalogId);
+            return new Pdf(allIndirectObjects, documentCatalogId.Id);
 
             //var documentCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalogId);
             //var pagesCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
