@@ -46,7 +46,7 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Describes the contents of the page.
         /// </summary>
-        public Primitives.Array? Contents { get; set; } = null;
+        public Primitives.ArrayObject? Contents { get; set; } = null;
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
