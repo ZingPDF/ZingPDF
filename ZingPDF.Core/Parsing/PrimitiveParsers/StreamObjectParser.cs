@@ -14,7 +14,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             await stream.AdvancePastWhitepaceAsync();
 
-            return StreamObject.FromEncodedStream(stream, stream.Position, streamLength, streamDict);
+            return StreamObject.FromEncodedStream(stream, stream.Position, stream.Position + streamLength, streamDict);
         }
     }
 }
