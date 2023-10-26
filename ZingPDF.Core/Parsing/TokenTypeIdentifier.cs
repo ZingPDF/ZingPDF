@@ -14,7 +14,7 @@ namespace ZingPdf.Core.Parsing
 
         private static readonly int _bufferSize = 1024;
         
-        private static readonly Regex _integerPattern = new(@"^\d+\s*"); // 1234
+        private static readonly Regex _integerPattern = new(@"^-?\d+\s*"); // 1234
         private static readonly Regex _realNumberPattern = new(@"^\d+\.\d+"); // 595.276000
         private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
@@ -96,7 +96,7 @@ namespace ZingPdf.Core.Parsing
 
             if (content.StartsWith(Constants.LeftParenthesis))
             {
-                return typeof(Objects.Primitives.LiteralString);
+                return typeof(LiteralString);
             }
 
             if (content.StartsWith(Constants.ArrayStart))

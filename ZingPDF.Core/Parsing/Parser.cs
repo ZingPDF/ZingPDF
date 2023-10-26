@@ -22,6 +22,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly IntegerParser _integerParser = new();
         private static readonly RealNumberParser _realNumberParser = new();
         private static readonly IndirectObjectReferenceParser _indirectObjectReferenceParser = new();
+        private static readonly LiteralStringParser _literalStringParser = new();
         private static readonly HexadecimalStringParser _hexadecimalStringParser = new();
         private static readonly CrossReferenceTableParser _xrefTableParser = new();
         private static readonly CrossReferenceSectionParser _xrefSectionParser = new();
@@ -45,10 +46,11 @@ namespace ZingPdf.Core.Parsing
                 Type t when t == typeof(Keyword) => _keywordParser,
                 Type t when t == typeof(Name) => _nameParser,
                 Type t when t == typeof(Dictionary) => _dictionaryParser,
-                Type t when t == typeof(Objects.Primitives.Array) => _arrayParser,
+                Type t when t == typeof(ArrayObject) => _arrayParser,
                 Type t when t == typeof(Integer) => _integerParser,
                 Type t when t == typeof(RealNumber) => _realNumberParser,
                 Type t when t == typeof(IndirectObjectReference) => _indirectObjectReferenceParser,
+                Type t when t == typeof(LiteralString) => _literalStringParser,
                 Type t when t == typeof(HexadecimalString) => _hexadecimalStringParser,
                 Type t when t == typeof(CrossReferenceTable) => _xrefTableParser,
                 Type t when t == typeof(CrossReferenceSection) => _xrefSectionParser,
