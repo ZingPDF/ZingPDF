@@ -6,13 +6,13 @@ namespace ZingPdf.Core.Objects.Primitives
     /// <summary>
     /// ISO 32000-2:2020 7.3.6 - Array objects
     /// </summary>
-    internal class Array : PdfObject, IEnumerable<PdfObject>
+    internal class ArrayObject : PdfObject, IEnumerable<PdfObject>
     {
-        private static readonly Array _empty = new(System.Array.Empty<PdfObject>());
+        private static readonly ArrayObject _empty = new(Array.Empty<PdfObject>());
 
         private readonly PdfObject[] _values;
 
-        public Array(PdfObject[] values, long? length = null)
+        public ArrayObject(PdfObject[] values)
         {
             _values = values ?? throw new ArgumentNullException(nameof(values));
         }
@@ -32,8 +32,8 @@ namespace ZingPdf.Core.Objects.Primitives
         public IEnumerator<PdfObject> GetEnumerator() => ((IEnumerable<PdfObject>)_values).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
-        public static Array Empty { get => _empty; }
+        public static ArrayObject Empty { get => _empty; }
 
-        public static implicit operator Array(PdfObject[] items) => new(items);
+        public static implicit operator ArrayObject(PdfObject[] items) => new(items);
     }
 }
