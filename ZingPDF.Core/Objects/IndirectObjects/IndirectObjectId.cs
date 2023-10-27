@@ -13,9 +13,6 @@
 
         public IndirectObjectReference Reference { get => new(this); }
 
-        public override string ToString()
-        {
-            return $"{nameof(IndirectObjectId)} {{{Index}, {GenerationNumber}}}";
-        }
+        public override string ToString() => $"{nameof(IndirectObjectId)}: {{{Index}, {GenerationNumber}}}";
     }
 }

@@ -8,8 +8,11 @@ namespace ZingPdf
 {
     public class Pdf
     {
+        private readonly Header _header;
         private readonly IndirectObjectManager _indirectObjects = new();
-        private readonly IndirectObjectId _documentCatalogId;
+
+        private readonly IndirectObjectReference _documentCatalogReference;
+        private readonly IndirectObjectReference? _infoReference;
 
         /// <summary>
         /// Create a new blank PDF document.
@@ -19,26 +22,39 @@ namespace ZingPdf
         /// </remarks>
         public Pdf()
         {
-            _documentCatalogId = _indirectObjects.ReserveId();
+            _header = new Header();
+
+            var documentCatalogId = _indirectObjects.ReserveId();
+            _documentCatalogReference = documentCatalogId.Reference;
+
             var pageTreeNodeIndex = _indirectObjects.ReserveId();
 
             var pages = new[] { _indirectObjects.Create(new Page(pageTreeNodeIndex.Reference)) };
 
             var pageTreeNode = _indirectObjects.Create(pageTreeNodeIndex, CreatePageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
-            var documentCatalog = _indirectObjects.Create(_documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+            var documentCatalog = _indirectObjects.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
         }
 
         /// <summary>
         /// Used internally to create a PDF from a parsed document.
         /// </summary>
-        internal Pdf(IEnumerable<IndirectObject> indirectObjects, IndirectObjectId documentCatalogId)
+        internal Pdf(
+            Header header,
+            IEnumerable<IndirectObject> indirectObjects,
+            IndirectObjectReference documentCatalogReference,
+            IndirectObjectReference? infoReference
+            )
         {
+            _header = header ?? throw new ArgumentNullException(nameof(header));
+            if (indirectObjects is null) throw new ArgumentNullException(nameof(indirectObjects));
+
             foreach (var indirectObject in indirectObjects)
             {
                 _indirectObjects.Add(indirectObject.Id, indirectObject);
             }
 
-            _documentCatalogId = documentCatalogId;
+            _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
+            _infoReference = infoReference;
         }
 
         public async Task<Stream> ToStreamAsync()
@@ -52,7 +68,7 @@ namespace ZingPdf
 
         public async Task WriteAsync(Stream stream)
         {
-            await new Header().WriteAsync(stream);
+            await _header.WriteAsync(stream);
 
             foreach(var indirectObject in _indirectObjects.Skip(1))
             {
@@ -67,7 +83,14 @@ namespace ZingPdf
 
             var xrefTable = new CrossReferenceTable(xrefSections);
             await xrefTable.WriteAsync(stream);
-            await new Trailer(_documentCatalogId.Reference, xrefTable.ByteOffset!.Value, new Integer(_indirectObjects.Count)).WriteAsync(stream);
+
+            await new Trailer(
+                _documentCatalogReference,
+                xrefTable.ByteOffset!.Value,
+                new Integer(_indirectObjects.Count),
+                _infoReference
+                )
+                .WriteAsync(stream);
 
             await stream.FlushAsync();
         }

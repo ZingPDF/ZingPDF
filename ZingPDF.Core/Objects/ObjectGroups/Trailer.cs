@@ -8,9 +8,15 @@ namespace ZingPdf.Core.Objects.ObjectGroups
     /// </summary>
     internal class Trailer : PdfObjectGroup
     {
-        public Trailer(IndirectObjectReference documentCatalogReference, long xrefTableByteOffset, int objectCount)
+        public Trailer(
+            IndirectObjectReference documentCatalogReference,
+            long xrefTableByteOffset,
+            int objectCount,
+            IndirectObjectReference? infoReference = null
+            )
         {
             if (documentCatalogReference is null) throw new ArgumentNullException(nameof(documentCatalogReference));
+            if (infoReference is null) throw new ArgumentNullException(nameof(infoReference));
 
             // trailer
             //     <</Size 22
@@ -28,7 +34,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             ObjectCount = objectCount;
 
             Objects.Add(new Keyword(Constants.Trailer));
-            Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference));
+            Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference, infoReference));
             Objects.Add(new Keyword(Constants.StartXref));
             Objects.Add(new Integer(xrefTableByteOffset));
             Objects.Add(new Keyword(Constants.Eof));
@@ -37,7 +43,11 @@ namespace ZingPdf.Core.Objects.ObjectGroups
         public long XrefTableByteOffset { get; }
         public int ObjectCount { get; }
 
-        private static Dictionary BuildTrailerDictionary(Integer objectCount, IndirectObjectReference documentCatalogReference)
+        private static Dictionary BuildTrailerDictionary(
+            Integer objectCount,
+            IndirectObjectReference documentCatalogReference,
+            IndirectObjectReference? infoReference
+            )
         {
             var trailerDictionary = new Dictionary<Name, PdfObject>
             {
@@ -55,9 +65,9 @@ namespace ZingPdf.Core.Objects.ObjectGroups
                 //trailerDictionary.Add("Encrypt", new Dictionary(new Dictionary<Name, PdfObject> { }));
             }
 
-            if (false) // TODO: this is for when there is an info dictionary
+            if (infoReference != null)
             {
-                //trailerDictionary.Add("Info", new IndirectObjectReference(0, 0));
+                trailerDictionary.Add("Info", infoReference);
             }
 
             if (false) // TODO: this is required if encrypted, optional otherwise

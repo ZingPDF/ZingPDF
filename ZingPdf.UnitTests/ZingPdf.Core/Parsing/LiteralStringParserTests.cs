@@ -1,8 +1,11 @@
 ﻿using FluentAssertions;
+using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Parsing.PrimitiveParsers;
+using static System.Net.WebRequestMethods;
 
 namespace ZingPdf.Core.Parsing
 {
@@ -123,6 +126,69 @@ namespace ZingPdf.Core.Parsing
             LiteralString expectedLiteralString = expected;
 
             var output = await new LiteralStringParser().ParseAsync(input);
+
+            output.Should().BeEquivalentTo(expectedLiteralString);
+        }
+
+        [Fact]
+        public async Task ParseHandlesSimpleUTF16BEEncodedString()
+        {
+            var inputBytes = new List<byte>();
+            var input = "TEST";
+            
+            var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
+
+            inputBytes.Add((byte)Constants.LeftParenthesis);
+            inputBytes.AddRange(encoding.GetPreamble());
+            inputBytes.AddRange(encoding.GetBytes(input));
+            inputBytes.Add((byte)Constants.RightParenthesis);
+
+            LiteralString expectedLiteralString = input;
+
+            using var ms = new MemoryStream(inputBytes.ToArray());
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Should().BeEquivalentTo(expectedLiteralString);
+        }
+
+        [Fact]
+        public async Task ParseHandlesComplexUTF16BEEncodedString()
+        {
+            var inputBytes = new List<byte>();
+            var input = "https://learn.something.new.com/en-gb/file.pdf";
+
+            var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
+
+            inputBytes.Add((byte)Constants.LeftParenthesis);
+            inputBytes.AddRange(encoding.GetPreamble());
+            inputBytes.AddRange(encoding.GetBytes(input));
+            inputBytes.AddRange(Encoding.ASCII.GetBytes($"{Constants.RightParenthesis} /P 12 0 R /NM (0001-0001)"));
+
+            LiteralString expectedLiteralString = input;
+
+            using var ms = new MemoryStream(inputBytes.ToArray());
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Should().BeEquivalentTo(expectedLiteralString);
+            ms.Position.Should().Be(96, because: "parsing needs to continue from the end of the literal string");
+        }
+
+        [Fact]
+        public async Task ParseHandlesUTF8ByteOrderMark()
+        {
+            var inputBytes = new List<byte>();
+
+            var textInput = "TEST";
+            var encoding = Encoding.UTF8;
+
+            inputBytes.Add((byte)Constants.LeftParenthesis);
+            inputBytes.AddRange(encoding.GetPreamble());
+            inputBytes.AddRange(encoding.GetBytes($"{textInput}{Constants.RightParenthesis}"));
+
+            LiteralString expectedLiteralString = textInput;
+
+            using var ms = new MemoryStream(inputBytes.ToArray());
+            var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Should().BeEquivalentTo(expectedLiteralString);
         }

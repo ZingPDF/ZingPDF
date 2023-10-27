@@ -24,6 +24,7 @@ namespace ZingPdf.Core.Objects.Primitives
             foreach(var obj in _values)
             {
                 await obj.WriteAsync(stream);
+                await stream.WriteWhitespaceAsync();
             }
 
             await stream.WriteCharsAsync(Constants.ArrayEnd);

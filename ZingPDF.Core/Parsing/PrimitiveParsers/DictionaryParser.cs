@@ -21,15 +21,14 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
-            await stream.AdvanceToNextAsync(Constants.DictionaryStart);
+            await stream.AdvanceBeyondNextAsync(Constants.DictionaryStart);
 
             var dictStart = stream.Position;
 
             // Find end of dictionary
             var content = string.Empty;
-            int countStart = 0;
+            int countStart = 1;
             int countEnd = 0;
-            long dictEnd = 0;
 
             while (stream.Position < stream.Length)
             {
@@ -40,10 +39,19 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 {
                     // TODO: consider if objects can contain escaped dictionary delimiters which may break this logic, write tests
 
-                    var c = content[i..(i + 2)];
+                    var c = content[i..(i + Constants.DictionaryEnd.Length)];
 
-                    if (c == Constants.DictionaryStart) { countStart++; }
-                    if (c == Constants.DictionaryEnd) { countEnd++; }
+                    if (c == Constants.DictionaryStart)
+                    {
+                        countStart++;
+                        i++; // increment so that nested dictionaries don't cause false positives <<<<
+                    }
+
+                    if (c == Constants.DictionaryEnd)
+                    {
+                        countEnd++;
+                        i++; // increment so that nested dictionaries don't cause false positives >>>>
+                    }
 
                     if (countStart > 0 && countEnd == countStart)
                     {
@@ -53,19 +61,19 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                 if (countStart > 0 && countEnd == countStart)
                 {
-                    dictEnd = i;
-                    stream.Position = dictStart + i;
+                    stream.Position = dictStart + i - 1;
 
-                    await stream.AdvanceBeyondNextAsync(Constants.DictionaryEnd);
                     break;
                 }
             }
 
-            Dictionary<Name, PdfObject> dictionary = new();
+            using var dictStream = await stream.RangeAsync(dictStart, stream.Position);
 
-            using var dictStream = await stream.RangeAsync(dictStart + 2, dictEnd + dictStart);
+            stream.Position += Constants.DictionaryEnd.Length;
 
             var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
+
+            Dictionary<Name, PdfObject> dictionary = new();
 
             for (int j = 0; j < objectGroup.Objects.Count; j += 2)
             {

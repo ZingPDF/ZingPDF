@@ -10,7 +10,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             await stream.AdvanceBeyondNextAsync(Constants.Solidus);
 
-            return await stream.ReadUpToExcludingAsync(Constants.Solidus, Constants.Space);
+            return await stream.ReadUpToExcludingAsync(Constants.Solidus, Constants.Space, Constants.CarriageReturn, Constants.LineFeed);
         }
     }
 }

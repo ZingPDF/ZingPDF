@@ -14,15 +14,14 @@ namespace ZingPdf.Core.Parsing
         [InlineData("/Pages 2 0 R", "Pages")]
         [InlineData("<</Type/Catalog/Pages 2 0 R", "Type")]
         [InlineData("2 0 obj\r\n<</Type/Pages/Count 3", "Type")]
+        [InlineData("/Page\r\n", "Page")]
         public async Task ParseBasicAsync(string content, string expected)
         {
             using var input = content.ToStream();
 
-            Name expectedName = expected;
-
             var output = await Parser.For<Name>().ParseAsync(input);
 
-            output.Should().BeEquivalentTo(expectedName);
+            output.Value.Should().Be(expected);
         }
     }
 }
