@@ -10,6 +10,8 @@ namespace ZingPdf.Core.Parsing
     {
         public static async Task<Pdf> ParseAsync(Stream stream)
         {
+            var header = await new HeaderParser().ParseAsync(stream);
+
             PdfObjectGroup trailerObjects = await GetTrailer(stream);
 
             var trailerDict = trailerObjects.Get<Dictionary>(0);
@@ -18,12 +20,14 @@ namespace ZingPdf.Core.Parsing
 
             var indirectObjectDereferencer = new IndirectObjectDereferencer(xrefTable);
 
-            IndirectObjectReference documentCatalogId = trailerDict.Get<IndirectObjectReference>("Root")
+            var documentCatalogReference = trailerDict.Get<IndirectObjectReference>("Root")
                 ?? throw new ParserException("Trailer is missing an entry for `Root`");
+
+            var infoReference = trailerDict.Get<IndirectObjectReference>("Root");
 
             var allIndirectObjects = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
-            return new Pdf(allIndirectObjects, documentCatalogId.Id);
+            return new Pdf(header, allIndirectObjects, documentCatalogReference, infoReference);
 
             //var documentCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalogId);
             //var pagesCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
