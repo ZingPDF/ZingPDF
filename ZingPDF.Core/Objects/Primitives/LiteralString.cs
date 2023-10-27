@@ -41,12 +41,14 @@ namespace ZingPdf.Core.Objects.Primitives
         public static implicit operator LiteralString(string value) => new(value);
         public static implicit operator string(LiteralString value) => value.Value;
 
+        public override string ToString() => Value;
+
         private static Encoding GetEncoding(LiteralStringEncoding encoding)
         {
             return encoding switch
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,
-                LiteralStringEncoding.UTF16BE => Encoding.Unicode,
+                LiteralStringEncoding.UTF16BE => Encoding.BigEndianUnicode,
                 LiteralStringEncoding.PDFDocEncoding => Encoding.Latin1,
                 _ => throw new InvalidOperationException(),
             };
