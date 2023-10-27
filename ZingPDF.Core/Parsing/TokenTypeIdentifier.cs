@@ -15,7 +15,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly int _bufferSize = 1024;
         
         private static readonly Regex _integerPattern = new(@"^-?\d+\s*"); // 1234
-        private static readonly Regex _realNumberPattern = new(@"^\d+\.\d+"); // 595.276000
+        private static readonly Regex _realNumberPattern = new(@"^-?\d*\.\d+"); // 595.276000
         private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
         private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
@@ -112,6 +112,11 @@ namespace ZingPdf.Core.Parsing
             if (content.StartsWith(Constants.StreamStart))
             {
                 return typeof(StreamObject);
+            }
+
+            if (content.StartsWith("true") || content.StartsWith("false"))
+            {
+                return typeof(BooleanObject);
             }
 
             throw new ParserException("Unable to identify token from stream");
