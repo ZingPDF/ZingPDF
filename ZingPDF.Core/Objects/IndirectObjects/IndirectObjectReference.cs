@@ -30,5 +30,7 @@ namespace ZingPdf.Core.Objects.IndirectObjects
         {
             return base.GetHashCode(); // TODO
         }
+
+        public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
     }
 }

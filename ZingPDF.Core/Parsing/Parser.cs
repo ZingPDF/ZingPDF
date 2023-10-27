@@ -19,6 +19,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly NameParser _nameParser = new();
         private static readonly DictionaryParser _dictionaryParser = new();
         private static readonly ArrayParser _arrayParser = new();
+        private static readonly BooleanObjectParser _booleanObjectParser = new();
         private static readonly IntegerParser _integerParser = new();
         private static readonly RealNumberParser _realNumberParser = new();
         private static readonly IndirectObjectReferenceParser _indirectObjectReferenceParser = new();
@@ -47,6 +48,7 @@ namespace ZingPdf.Core.Parsing
                 Type t when t == typeof(Name) => _nameParser,
                 Type t when t == typeof(Dictionary) => _dictionaryParser,
                 Type t when t == typeof(ArrayObject) => _arrayParser,
+                Type t when t == typeof(BooleanObject) => _booleanObjectParser,
                 Type t when t == typeof(Integer) => _integerParser,
                 Type t when t == typeof(RealNumber) => _realNumberParser,
                 Type t when t == typeof(IndirectObjectReference) => _indirectObjectReferenceParser,

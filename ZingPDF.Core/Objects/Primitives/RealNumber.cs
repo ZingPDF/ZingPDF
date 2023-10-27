@@ -17,6 +17,8 @@ namespace ZingPdf.Core.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(Value.ToString("G", CultureInfo.InvariantCulture));
 
+        public override string ToString() => $"{nameof(Integer)}: {Value}";
+
         public static implicit operator RealNumber(double value) => new(value);
         public static implicit operator RealNumber(long value) => new(value);
         public static implicit operator RealNumber(int value) => new(value);

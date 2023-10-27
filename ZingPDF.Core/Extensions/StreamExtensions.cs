@@ -5,7 +5,7 @@ namespace ZingPdf.Core.Extensions
 {
     internal static class StreamExtensions
     {
-        private static readonly Encoding _defaultEncoding = Encoding.UTF8;
+        private static readonly Encoding _defaultEncoding = Encoding.ASCII;
 
         public static Task WriteTextAsync(this Stream stream, string text)
             => WriteTextAsync(stream, text, _defaultEncoding);
@@ -46,30 +46,30 @@ namespace ZingPdf.Core.Extensions
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
         public static async Task AdvanceToNextAsync(this Stream stream, char value)
-            => await stream.AdvanceAsync(value.ToString(), includeValueInOutput: true);
+            => await stream.AdvanceAsync(value.ToString(), skipValue: false);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
         public static async Task AdvanceToNextAsync(this Stream stream, string value)
-            => await stream.AdvanceAsync(value.ToString(), includeValueInOutput: true);
+            => await stream.AdvanceAsync(value.ToString(), skipValue: false);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
         public static async Task AdvanceBeyondNextAsync(this Stream stream, char value)
-            => await stream.AdvanceAsync(value.ToString(), includeValueInOutput: false);
+            => await stream.AdvanceAsync(value.ToString(), skipValue: true);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
         public static async Task AdvanceBeyondNextAsync(this Stream stream, string value)
-            => await stream.AdvanceAsync(value.ToString(), includeValueInOutput: false);
+            => await stream.AdvanceAsync(value.ToString(), skipValue: true);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
-        private static async Task AdvanceAsync(this Stream stream, string value, bool includeValueInOutput)
+        private static async Task AdvanceAsync(this Stream stream, string value, bool skipValue)
         {
             var bufferSize = value.Length;
 
@@ -78,11 +78,11 @@ namespace ZingPdf.Core.Extensions
             {
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
 
-                string content = Encoding.UTF8.GetString(buffer, 0, bufferSize);
+                string content = _defaultEncoding.GetString(buffer, 0, bufferSize);
 
                 if (content == value)
                 {
-                    if (includeValueInOutput)
+                    if (!skipValue)
                     {
                         stream.Position -= bufferSize;
                     }
@@ -124,7 +124,7 @@ namespace ZingPdf.Core.Extensions
             {
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
 
-                content += Encoding.UTF8.GetString(buffer, 0, read);
+                content += _defaultEncoding.GetString(buffer, 0, read);
 
                 var index = content.IndexOfAny(c);
                 if (index != -1)
@@ -159,7 +159,7 @@ namespace ZingPdf.Core.Extensions
             do
             {
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
-                var str = Encoding.UTF8.GetString(buffer, 0, read);
+                var str = _defaultEncoding.GetString(buffer, 0, read);
 
                 content += str;
 
@@ -249,7 +249,7 @@ namespace ZingPdf.Core.Extensions
             do
             {
                 var i = stream.ReadByte();
-                str = Encoding.ASCII.GetString(new[] { (byte)i });
+                str = _defaultEncoding.GetString(new[] { (byte)i });
 
                 if (!string.IsNullOrWhiteSpace(str))
                 {
