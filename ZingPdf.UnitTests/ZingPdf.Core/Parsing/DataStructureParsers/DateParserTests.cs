@@ -1,8 +1,7 @@
 ﻿using Xunit;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Parsing.DataStructureParsers;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing.DataStructureParsers
 {
     public class DateParserTests
     {

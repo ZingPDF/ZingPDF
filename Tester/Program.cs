@@ -1,12 +1,13 @@
 ﻿using ZingPdf;
 using ZingPdf.Core.Parsing;
 
-//var pdf = new Pdf();
+var input = "test2.pdf";
+var output = "output.pdf";
+var pdf = await PdfParser.ParseAsync(new FileStream(input, FileMode.Open));
 
-//pdf.Pages.Add(new Page());
+var fileStream = new FileStream(output, FileMode.Truncate);
+await pdf.WriteAsync(fileStream);
 
-var pdf = await PdfParser.ParseAsync(new FileStream("test.pdf", FileMode.Open));
+Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
+fileStream.Position = 0;
 
-await pdf.WriteAsync(new FileStream("output.pdf", FileMode.Truncate));
-
-Console.WriteLine("Done parsing");
