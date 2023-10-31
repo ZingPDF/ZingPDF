@@ -24,10 +24,10 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             // gen number _________| |
             // free(f) in-use(n)_____|
 
-            await stream.WriteLongLeftPaddedAsync(IndirectObjectByteOffset, 10);
+            await stream.WriteLeftPaddedAsync(IndirectObjectByteOffset, 10);
             await stream.WriteWhitespaceAsync();
 
-            await stream.WriteIntAsync(IndirectObjectGenerationNumber);
+            await stream.WriteLeftPaddedAsync(IndirectObjectGenerationNumber, 5);
             await stream.WriteWhitespaceAsync();
 
             await stream.WriteTextAsync(InUse ? "n" : "f");

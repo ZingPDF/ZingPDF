@@ -2,7 +2,7 @@
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing.ObjectGroupParsers
 {
     internal class PdfObjectGroupParser : IPdfObjectParser<PdfObjectGroup>
     {
