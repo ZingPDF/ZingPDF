@@ -2,9 +2,8 @@
 using Xunit;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Parsing;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     public class KeywordParserTests
     {

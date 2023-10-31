@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+﻿using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Parsing;
 
@@ -14,9 +13,12 @@ namespace ZingPdf.Core.Objects.IndirectObjects
             _xrefTable = xrefTable ?? throw new ArgumentNullException(nameof(xrefTable));
         }
 
+        /// <summary>
+        /// Returns the latest Indirect Object matching the given reference.
+        /// </summary>
         public async Task<IndirectObject> GetAsync(Stream stream, IndirectObjectReference reference)
         {
-            var offset = _xrefTable.IndirectObjectLocations[reference.Id.Index];
+            var offset = _xrefTable.IndirectObjectLocations.Last(kvp => kvp.Key == reference.Id.Index).Value;
 
             stream.Position = offset;
 
