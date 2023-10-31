@@ -3,7 +3,7 @@ using Xunit;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     public class NameParserTests
     {

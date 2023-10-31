@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ABCpdf" Version="12.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ZingPdf.Core\ZingPdf.Core.csproj" />
   </ItemGroup>
 
