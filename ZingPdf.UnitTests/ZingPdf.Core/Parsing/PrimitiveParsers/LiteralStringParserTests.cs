@@ -1,13 +1,10 @@
 ﻿using FluentAssertions;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Parsing.PrimitiveParsers;
-using static System.Net.WebRequestMethods;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     public class LiteralStringParserTests
     {
