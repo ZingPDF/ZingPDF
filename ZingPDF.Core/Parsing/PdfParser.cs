@@ -23,7 +23,7 @@ namespace ZingPdf.Core.Parsing
             var documentCatalogReference = trailerDict.Get<IndirectObjectReference>("Root")
                 ?? throw new ParserException("Trailer is missing an entry for `Root`");
 
-            var infoReference = trailerDict.Get<IndirectObjectReference>("Root");
+            var infoReference = trailerDict.Get<IndirectObjectReference>("Info");
 
             var allIndirectObjects = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 

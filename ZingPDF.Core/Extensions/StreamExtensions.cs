@@ -26,8 +26,11 @@ namespace ZingPdf.Core.Extensions
 
         public static async Task WriteLongAsync(this Stream stream, long value)
             => await stream.WriteTextAsync(value.ToString("G", CultureInfo.InvariantCulture));
+ 
+        public static async Task WriteLeftPaddedAsync(this Stream stream, ushort value, int padToBytes)
+            => await stream.WriteTextAsync(value.ToString("G", CultureInfo.InvariantCulture).PadLeft(padToBytes, '0'));
 
-        public static async Task WriteLongLeftPaddedAsync(this Stream stream, long value, int padToBytes)
+        public static async Task WriteLeftPaddedAsync(this Stream stream, long value, int padToBytes)
             => await stream.WriteTextAsync(value.ToString("G", CultureInfo.InvariantCulture).PadLeft(padToBytes, '0'));
 
         /// <summary>
