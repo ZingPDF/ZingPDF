@@ -1,4 +1,6 @@
-﻿namespace ZingPdf.Core.Objects.ObjectGroups
+﻿using ZingPdf.Core.Extensions;
+
+namespace ZingPdf.Core.Objects.ObjectGroups
 {
     internal class PdfObjectGroup : PdfObject
     {
@@ -17,5 +19,18 @@
 
         public static implicit operator PdfObjectGroup(List<PdfObject> items) => new() { Objects = items };
         public static implicit operator PdfObjectGroup(PdfObject[] items) => new() { Objects = items.ToList() };
+
+        protected void InsertNewLine() => Objects.Add(new NewLineObject());
+
+        /// <summary>
+        /// Convenience class for separating objects within a <see cref="PdfObject"/> with a new line.
+        /// </summary>
+        private class NewLineObject : PdfObject
+        {
+            protected override async Task WriteOutputAsync(Stream stream)
+            {
+                await stream.WriteNewLineAsync();
+            }
+        }
     }
 }

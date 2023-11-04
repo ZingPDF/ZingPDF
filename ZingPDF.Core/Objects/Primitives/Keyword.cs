@@ -16,9 +16,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteNewLineAsync();
             await stream.WriteTextAsync(Value);
-            await stream.WriteNewLineAsync();
         }
 
         public static implicit operator Keyword(string value) => new(value);

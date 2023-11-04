@@ -8,19 +8,13 @@ namespace ZingPdf.Core.Objects.IndirectObjects
     {
         private readonly Dictionary<IndirectObjectId, IndirectObject?> _items = new();
 
-        public IndirectObjectManager()
-        {
-            // First item in the list is the head of the linked list of free entries.
-            _items.Add(new IndirectObjectId(0, 65535), null);
-        }
-
         /// <summary>
         /// Reserve an object ID to use later for an <see cref="IndirectObject"/>.
         /// </summary>
         /// <returns></returns>
         public IndirectObjectId ReserveId()
         {
-            var id = new IndirectObjectId(_items.Count, 0);
+            var id = new IndirectObjectId(_items.Count + 1, 0);
             _items.Add(id, null);
 
             return id;

@@ -128,6 +128,16 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
+        public async Task ParseEscapedParenthesisAtEndOfStringCorrectStreamPosition()
+        {
+            using var input = "(test string \\))".ToStream();
+
+            _ = await new LiteralStringParser().ParseAsync(input);
+
+            input.Position.Should().Be(input.Length, because: "the parser should move the stream past the string-end delimiter");
+        }
+
+        [Fact]
         public async Task ParseHandlesSimpleUTF16BEEncodedString()
         {
             var inputBytes = new List<byte>();

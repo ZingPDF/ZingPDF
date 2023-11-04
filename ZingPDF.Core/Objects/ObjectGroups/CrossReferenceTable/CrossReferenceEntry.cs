@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             InUse = inUse;
         }
 
-        public long IndirectObjectByteOffset { get; }
+        public long IndirectObjectByteOffset { get; internal set; }
         public ushort IndirectObjectGenerationNumber { get; }
         public bool InUse { get; }
 

@@ -21,10 +21,16 @@ namespace ZingPdf.Core.Objects.Primitives
         {
             await stream.WriteCharsAsync(Constants.ArrayStart);
 
-            foreach(var obj in _values)
+            for (int i = 0; i < _values.Length; i++)
             {
+                PdfObject obj = _values[i];
+
                 await obj.WriteAsync(stream);
-                await stream.WriteWhitespaceAsync();
+
+                if (i < _values.Length - 1)
+                {
+                    await stream.WriteWhitespaceAsync();
+                }
             }
 
             await stream.WriteCharsAsync(Constants.ArrayEnd);
