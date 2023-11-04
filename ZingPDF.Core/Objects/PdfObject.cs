@@ -1,5 +1,8 @@
 ﻿namespace ZingPdf.Core.Objects
 {
+    /// <summary>
+    /// Represents a PDF object as described in ISO 32000-2:2020 7.1. This is an abstract class.
+    /// </summary>
     public abstract class PdfObject
     {
         public bool Written { get; private set; }

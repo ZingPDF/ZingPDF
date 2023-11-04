@@ -8,11 +8,10 @@ namespace ZingPdf
 {
     public class Pdf
     {
-        private readonly Header _header;
         private readonly IndirectObjectManager _indirectObjects = new();
 
-        private readonly IndirectObjectReference _documentCatalogReference;
-        private readonly IndirectObjectReference? _infoReference;
+        private readonly Header _header;
+        private readonly IEnumerable<PdfIncrement> _increments;
 
         /// <summary>
         /// Create a new blank PDF document.
@@ -22,39 +21,39 @@ namespace ZingPdf
         /// </remarks>
         public Pdf()
         {
-            _header = new Header();
+            _header = new();
 
             var documentCatalogId = _indirectObjects.ReserveId();
-            _documentCatalogReference = documentCatalogId.Reference;
-
             var pageTreeNodeIndex = _indirectObjects.ReserveId();
 
             var pages = new[] { _indirectObjects.Create(new Page(pageTreeNodeIndex.Reference)) };
 
             var pageTreeNode = _indirectObjects.Create(pageTreeNodeIndex, CreatePageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
             var documentCatalog = _indirectObjects.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+
+            var xrefEntries = new List<CrossReferenceEntry>
+            {
+                new CrossReferenceEntry(0, 65535, false)
+            };
+
+            xrefEntries.AddRange(_indirectObjects.Select(i => new CrossReferenceEntry(i.Value.ByteOffset ?? 0, i.Value.Id.GenerationNumber, inUse: true)));
+
+            var xrefTable = new CrossReferenceTable(new[]
+            {
+                // An unmodified PDF has only one cross reference section
+                new CrossReferenceSection(0, xrefEntries)
+            });
+
+            _increments = new[] { new PdfIncrement(_indirectObjects.Select(o => o.Value), xrefTable, documentCatalogId.Reference) };
         }
 
         /// <summary>
         /// Used internally to create a PDF from a parsed document.
         /// </summary>
-        internal Pdf(
-            Header header,
-            IEnumerable<IndirectObject> indirectObjects,
-            IndirectObjectReference documentCatalogReference,
-            IndirectObjectReference? infoReference
-            )
+        internal Pdf(Header header, IEnumerable<PdfIncrement> increments)
         {
             _header = header ?? throw new ArgumentNullException(nameof(header));
-            if (indirectObjects is null) throw new ArgumentNullException(nameof(indirectObjects));
-
-            foreach (var indirectObject in indirectObjects)
-            {
-                _indirectObjects.Add(indirectObject.Id, indirectObject);
-            }
-
-            _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
-            _infoReference = infoReference;
+            _increments = increments ?? throw new ArgumentNullException(nameof(increments));
         }
 
         public async Task<Stream> ToStreamAsync()
@@ -70,27 +69,10 @@ namespace ZingPdf
         {
             await _header.WriteAsync(stream);
 
-            foreach(var indirectObject in _indirectObjects.Skip(1))
+            foreach(var increment in _increments)
             {
-                await indirectObject.Value.WriteAsync(stream);
+                await increment.WriteAsync(stream);
             }
-
-            var xrefSections = new[]
-            {
-                // An unmodified PDF has only one cross reference section
-                new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value?.ByteOffset!.Value ?? 0, i.Value?.Id.GenerationNumber ?? 0, i.Value != null)))
-            };
-
-            var xrefTable = new CrossReferenceTable(xrefSections);
-            await xrefTable.WriteAsync(stream);
-
-            await new Trailer(
-                _documentCatalogReference,
-                xrefTable.ByteOffset!.Value,
-                new Integer(_indirectObjects.Count),
-                _infoReference
-                )
-                .WriteAsync(stream);
 
             await stream.FlushAsync();
         }
@@ -114,4 +96,173 @@ namespace ZingPdf
             });
         }
     }
+
+    /// <summary>
+    /// The body, xref table and trailer for a document.
+    /// Each incremental update adds a new PdfIncrement.
+    /// </summary>
+    internal class PdfIncrement : PdfObject
+    {
+        private readonly IEnumerable<IndirectObject> _body;
+        private readonly CrossReferenceTable _crossReferenceTable;
+        private readonly IndirectObjectReference _documentCatalogReference;
+        private readonly IndirectObjectReference? _infoReference;
+        private readonly ArrayObject? _id;
+
+        internal PdfIncrement(
+            IEnumerable<IndirectObject> body,
+            CrossReferenceTable crossReferenceTable,
+            IndirectObjectReference documentCatalogReference,
+            IndirectObjectReference? infoReference = null,
+            ArrayObject? id = null
+            )
+        {
+            _body = body ?? throw new ArgumentNullException(nameof(body));
+            _crossReferenceTable = crossReferenceTable ?? throw new ArgumentNullException(nameof(crossReferenceTable));
+            _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
+            _infoReference = infoReference;
+            _id = id;
+        }
+
+        protected override async Task WriteOutputAsync(Stream stream)
+        {
+            foreach(var item in _body)
+            {
+                await item.WriteAsync(stream);
+            }
+
+            _crossReferenceTable.UpdateByteOffsets(_body);
+
+            await _crossReferenceTable.WriteAsync(stream);
+
+            await new Trailer(
+                _documentCatalogReference,
+                _crossReferenceTable.ByteOffset!.Value,
+                _body.Count() + 1,
+                _infoReference,
+                _id
+                )
+                .WriteAsync(stream);
+        }
+    }
+
+    //public class Pdf2
+    //{
+    //    private readonly Header _header;
+    //    private readonly IndirectObjectManager _indirectObjects = new();
+
+    //    private readonly IndirectObjectReference _documentCatalogReference;
+    //    private readonly CrossReferenceTable _crossReferenceTable;
+    //    private readonly IndirectObjectReference? _infoReference;
+
+    //    /// <summary>
+    //    /// Create a new blank PDF document.
+    //    /// </summary>
+    //    /// <remarks>
+    //    /// The new document will contain a single blank page by default.
+    //    /// </remarks>
+    //    public Pdf2()
+    //    {
+    //        _header = new Header();
+
+    //        var documentCatalogId = _indirectObjects.ReserveId();
+    //        _documentCatalogReference = documentCatalogId.Reference;
+
+    //        var pageTreeNodeIndex = _indirectObjects.ReserveId();
+
+    //        var pages = new[] { _indirectObjects.Create(new Page(pageTreeNodeIndex.Reference)) };
+
+    //        var pageTreeNode = _indirectObjects.Create(pageTreeNodeIndex, CreatePageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
+    //        var documentCatalog = _indirectObjects.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+
+    //        var xrefEntries = new List<CrossReferenceEntry>
+    //        {
+    //            new CrossReferenceEntry(0, 65535, false)
+    //        };
+
+    //        xrefEntries.AddRange(_indirectObjects.Select(i => new CrossReferenceEntry(i.Value?.ByteOffset!.Value ?? 0, i.Value?.Id.GenerationNumber ?? 0, i.Value != null)));
+
+    //        var xrefSections = new[]
+    //        {
+    //            // An unmodified PDF has only one cross reference section
+    //            new CrossReferenceSection(0, _indirectObjects.Select(i => new CrossReferenceEntry(i.Value?.ByteOffset!.Value ?? 0, i.Value?.Id.GenerationNumber ?? 0, i.Value != null)))
+    //        };
+
+    //        _crossReferenceTable = new CrossReferenceTable(xrefSections);
+    //    }
+
+    //    /// <summary>
+    //    /// Used internally to create a PDF from a parsed document.
+    //    /// </summary>
+    //    internal Pdf2(
+    //        Header header,
+    //        IEnumerable<IndirectObject> indirectObjects,
+    //        IndirectObjectReference documentCatalogReference,
+    //        CrossReferenceTable crossReferenceTable,
+    //        IndirectObjectReference? infoReference
+    //        )
+    //    {
+    //        _header = header ?? throw new ArgumentNullException(nameof(header));
+    //        if (indirectObjects is null) throw new ArgumentNullException(nameof(indirectObjects));
+
+    //        foreach (var indirectObject in indirectObjects)
+    //        {
+    //            _indirectObjects.Add(indirectObject.Id, indirectObject);
+    //        }
+
+    //        _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
+    //        _crossReferenceTable = crossReferenceTable ?? throw new ArgumentNullException(nameof(crossReferenceTable));
+    //        _infoReference = infoReference;
+    //    }
+
+    //    public async Task<Stream> ToStreamAsync()
+    //    {
+    //        var ms = new MemoryStream();
+    //        await WriteAsync(ms);
+
+    //        ms.Position = 0;
+    //        return ms;
+    //    }
+
+    //    public async Task WriteAsync(Stream stream)
+    //    {
+    //        await _header.WriteAsync(stream);
+
+    //        foreach(var indirectObject in _indirectObjects.Skip(1))
+    //        {
+    //            await indirectObject.Value.WriteAsync(stream);
+    //        }
+
+    //        await _crossReferenceTable.WriteAsync(stream);
+
+    //        await new Trailer(
+    //            _documentCatalogReference,
+    //            _crossReferenceTable.ByteOffset!.Value,
+    //            new Integer(_indirectObjects.Count),
+    //            _infoReference
+    //            )
+    //            .WriteAsync(stream);
+
+    //        await stream.FlushAsync();
+    //    }
+
+    //    private static Dictionary CreateDocumentCatalog(IndirectObjectReference pageTreeNode)
+    //    {
+    //        return new Dictionary<Name, PdfObject>()
+    //        {
+    //            { "Type", new Name("Catalog") },
+    //            { "Pages", pageTreeNode },
+    //        };
+    //    }
+
+    //    private static Dictionary CreatePageTreeNode(IndirectObjectReference[] pages)
+    //    {
+    //        return new Dictionary(new Dictionary<Name, PdfObject>
+    //        {
+    //            { "Type", new Name("Pages") },
+    //            { "Kids", new ArrayObject(pages) },
+    //            { "Count", new Integer(pages.Length) },
+    //        });
+    //    }
+    //}
 }

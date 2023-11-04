@@ -71,23 +71,30 @@ namespace ZingPdf.Core.Extensions
         /// <summary>
         /// Removes the next EOL marker. This could be a single carriage return (\r), a single line feed (\n), or both together. 
         /// </summary>
-        public static string RemoveNextEndOfLineMarker(this string input)
+        public static string RemoveNextEndOfLineMarker(this string input, out char[] removedChars)
         {
             var index = input.IndexOf($"{Constants.CarriageReturn}{Constants.LineFeed}");
-
             if (index != -1)
             {
+                removedChars = new[] { Constants.CarriageReturn, Constants.LineFeed };
                 return input.Remove(index, 2);
             }
 
-            index = input.IndexOfAny(Constants.EndOfLineCharacters);
-
+            index = input.IndexOf(Constants.LineFeed);
             if (index != -1)
             {
+                removedChars = new[] { Constants.LineFeed };
                 return input.Remove(index + 1, 1);
             }
 
-            return input;
+            index = input.IndexOf(Constants.CarriageReturn);
+            if (index != -1)
+            {
+                removedChars = new[] { Constants.CarriageReturn };
+                return input.Remove(index + 1, 1);
+            }
+
+            throw new InvalidOperationException();
         }
 
         public static char ToCharFromOctal(this string input)
