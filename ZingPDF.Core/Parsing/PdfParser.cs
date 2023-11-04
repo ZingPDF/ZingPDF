@@ -12,6 +12,7 @@ namespace ZingPdf.Core.Parsing
         {
             var header = await new HeaderParser().ParseAsync(stream);
 
+            // TODO: support parsing multiple trailers for incremental updates
             PdfObjectGroup trailerObjects = await GetTrailer(stream);
 
             var trailerDict = trailerObjects.Get<Dictionary>(0);
@@ -24,10 +25,11 @@ namespace ZingPdf.Core.Parsing
                 ?? throw new ParserException("Trailer is missing an entry for `Root`");
 
             var infoReference = trailerDict.Get<IndirectObjectReference>("Info");
+            var id = trailerDict.Get<ArrayObject>("ID");
 
-            var allIndirectObjects = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
+            var body = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
-            return new Pdf(header, allIndirectObjects, documentCatalogReference, infoReference);
+            return new Pdf(header, new[] { new PdfIncrement(body, xrefTable, documentCatalogReference, infoReference, id) });
 
             //var documentCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalogId);
             //var pagesCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
@@ -62,7 +64,7 @@ namespace ZingPdf.Core.Parsing
 
             foreach (var pageRef in pageRefs)
             {
-                var offset = xrefTable.IndirectObjectLocations[pageRef.Id.Index];
+                var offset = xrefTable.IndirectObjectLocations.Last(kvp => kvp.Key == pageRef.Id.Index).Value;
                 stream.Position = offset;
 
                 pages.Add(await Parser.For<Dictionary>().ParseAsync(stream));
@@ -83,6 +85,7 @@ namespace ZingPdf.Core.Parsing
 
         private static async Task<PdfObjectGroup> GetTrailer(Stream stream)
         {
+            // TODO: add support for finding multiple trailers (incremental updates)
             await new TrailerFinder().FindAsync(stream);
 
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);

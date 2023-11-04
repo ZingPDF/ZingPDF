@@ -12,11 +12,11 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             IndirectObjectReference documentCatalogReference,
             long xrefTableByteOffset,
             int objectCount,
-            IndirectObjectReference? infoReference = null
+            IndirectObjectReference? infoReference = null,
+            ArrayObject? id = null
             )
         {
             if (documentCatalogReference is null) throw new ArgumentNullException(nameof(documentCatalogReference));
-            if (infoReference is null) throw new ArgumentNullException(nameof(infoReference));
 
             // trailer
             //     <</Size 22
@@ -34,9 +34,17 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             ObjectCount = objectCount;
 
             Objects.Add(new Keyword(Constants.Trailer));
-            Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference, infoReference));
+            InsertNewLine();
+
+            Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference, infoReference, id));
+            InsertNewLine();
+            
             Objects.Add(new Keyword(Constants.StartXref));
+            InsertNewLine();
+            
             Objects.Add(new Integer(xrefTableByteOffset));
+            InsertNewLine();
+            
             Objects.Add(new Keyword(Constants.Eof));
         }
 
@@ -46,7 +54,8 @@ namespace ZingPdf.Core.Objects.ObjectGroups
         private static Dictionary BuildTrailerDictionary(
             Integer objectCount,
             IndirectObjectReference documentCatalogReference,
-            IndirectObjectReference? infoReference
+            IndirectObjectReference? infoReference,
+            ArrayObject? id
             )
         {
             var trailerDictionary = new Dictionary<Name, PdfObject>
@@ -70,9 +79,9 @@ namespace ZingPdf.Core.Objects.ObjectGroups
                 trailerDictionary.Add("Info", infoReference);
             }
 
-            if (false) // TODO: this is required if encrypted, optional otherwise
+            if (id != null) // This is required if encrypted, optional otherwise
             {
-                //trailerDictionary.Add("ID", new Primitives.Array(new PdfObject[] { }));
+                trailerDictionary.Add("ID", id);
             }
 
             return trailerDictionary;
