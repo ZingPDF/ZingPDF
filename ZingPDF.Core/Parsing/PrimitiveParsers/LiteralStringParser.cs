@@ -22,6 +22,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             int countEnd = 0;
             int stringEnd = 0;
 
+            // We need to track any characters we remove.
+            // After parsing, we'll need to move the stream to the end of the string.
+            // We can't do this using the string content length, as it may have characters missing.
+            // We'll add the correct number of bytes to the position by calculating the byte length of these characters.
+            List<char> removedChars = new();
+
             var isEscapeSequence = (string input) => _escapeSequences.Contains(input);
 
             var encoding = DetectEncoding(stream);
@@ -44,7 +50,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 content += encoding.GetString(buffer);
                 asciiContent += Encoding.ASCII.GetString(buffer).Replace("\0", "");
 
-                for (; i < content.Length; i++)
+                for (; i < asciiContent.Length; i++)
                 {
                     var c = content[i];
                     var asciiChar = asciiContent[i];
@@ -64,11 +70,13 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                             // - escape parentheses
                             // - escape a backslash
-                            if (i < content.Length - 1 && isEscapeSequence(content[i..(i + 2)]))
+                            if (i < asciiContent.Length - 1 && isEscapeSequence(content[i..(i + 2)]))
                             {
                                 // Simply remove the slash
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
+
+                                removedChars.Add(Constants.ReverseSolidus);
                             }
                             // - split a string across multiple lines (ignore any end of line markers following the slash)
                             else if (i < content.Length - 1 && content[i + 1].IsEndOfLine())
@@ -77,13 +85,19 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
 
+                                removedChars.Add(Constants.ReverseSolidus);
+
                                 // ...and the EOL marker
-                                content = content.RemoveNextEndOfLineMarker();
-                                asciiContent = asciiContent.RemoveNextEndOfLineMarker();
+                                content = content.RemoveNextEndOfLineMarker(out var removedEOLChars);
+                                asciiContent = asciiContent.RemoveNextEndOfLineMarker(out _);
+
+                                removedChars.AddRange(removedEOLChars);
                             }
                             // - represent a 3 digit octal character code \005
                             else if (i < content.Length - 4 && content[(i + 1)..(i + 4)].IsInteger())
                             {
+                                removedChars.AddRange(content[i..(i + 4)]);
+
                                 var octalAsChar = content[(i + 1)..(i + 4)].ToCharFromOctal();
 
                                 content = content[..i] + octalAsChar + content[(i + 4)..];
@@ -92,6 +106,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                             // - represent a 2 digit octal character code \53 (equivalent to \053)
                             else if (i < content.Length - 3 && content[(i + 1)..(i + 3)].IsInteger())
                             {
+                                removedChars.AddRange(content[i..(i + 3)]);
+
                                 var octalAsChar = content[(i + 1)..(i + 3)].ToCharFromOctal();
 
                                 content = content[..i] + octalAsChar + content[(i + 3)..];
@@ -103,6 +119,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                                 // Remove the slash
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
+
+                                removedChars.Add(Constants.ReverseSolidus);
                             }
                             break;
                     }
@@ -110,7 +128,10 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     if (countStart > 0 && countEnd == countStart)
                     {
                         stringEnd = i;
-                        stream.Position = stringStart + encoding.GetPreamble().Length + encoding.GetByteCount(content[..stringEnd]);
+                        stream.Position = stringStart
+                            + encoding.GetPreamble().Length
+                            + encoding.GetByteCount(content[..stringEnd])
+                            + encoding.GetByteCount(removedChars.ToArray());
 
                         await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
                         break;

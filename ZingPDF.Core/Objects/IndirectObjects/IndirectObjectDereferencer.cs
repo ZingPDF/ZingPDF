@@ -34,8 +34,7 @@ namespace ZingPdf.Core.Objects.IndirectObjects
 
         public async IAsyncEnumerable<IndirectObject> GetAllAsync(Stream stream)
         {
-            // Skip the first, which is always the head of the linked list of free entries.
-            foreach (var record in  _xrefTable.IndirectObjectLocations.Skip(1))
+            foreach (var record in _xrefTable.IndirectObjectLocations)
             {
                 stream.Position = record.Value;
 

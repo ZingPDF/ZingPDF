@@ -1,4 +1,4 @@
-﻿using ZingPdf.Core.Objects.IndirectObjects;
+﻿using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
@@ -6,16 +6,15 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
     /// <summary>
     /// ISO 32000-2:2020 7.5.4 - Cross-reference table
     /// </summary>
-    internal class CrossReferenceTable : PdfObjectGroup
+    internal class CrossReferenceTable : PdfObject
     {
+        private readonly IEnumerable<CrossReferenceSection> _xrefSections;
+
         public CrossReferenceTable(IEnumerable<CrossReferenceSection> xrefSections)
         {
-            if (xrefSections is null) throw new ArgumentNullException(nameof(xrefSections));
+            _xrefSections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
 
-            Objects.Add(new Keyword(Constants.Xref));
-            Objects.AddRange(xrefSections);
-
-            ExtractIndirectObjectLocations(xrefSections);
+            ExtractIndirectObjectLocations();
         }
 
         /// <summary>
@@ -30,18 +29,42 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         /// due to whitespace/line-break differences. This method is used to update the byte offsets of 
         /// all existing records, once the objects have been written, and we know their new offsets.
         /// </summary>
-        public void UpdateByteOffsets()
+        public void UpdateByteOffsets(IEnumerable<IndirectObject> objects)
         {
+            foreach(IndirectObject indirectObject in objects)
+            {
+                foreach (var section in _xrefSections)
+                {
+                    for (var i = section.Index.StartIndex; i < section.Entries.Count(); i++)
+                    {
+                        if (indirectObject.Id.Index == i)
+                        {
+                            section.Entries.ElementAt(i).IndirectObjectByteOffset = indirectObject.ByteOffset!.Value;
+                            break;
+                        }
+                    }
+                }
 
+                IndirectObjectLocations.Clear();
+
+                ExtractIndirectObjectLocations();
+            }
         }
 
-        private void ExtractIndirectObjectLocations(IEnumerable<CrossReferenceSection> xrefSections)
+        protected override async Task WriteOutputAsync(Stream stream)
         {
-            // TODO: incremental updates may cause multiple objects with the same object identifier (object number and generation number)
-            // This class needs to provide access to all objects (which the IndirectObjectLocations property does not support)
-            // This class also needs to provide access to the latest object for a given identifier.
+            await new Keyword(Constants.Xref).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
 
-            foreach (var section in xrefSections)
+            foreach(var section in _xrefSections)
+            {
+                await section.WriteAsync(stream);
+            }
+        }
+
+        private void ExtractIndirectObjectLocations()
+        {
+            foreach (var section in _xrefSections)
             {
                 for (var i = 0; i < section.Entries.Count(); i++)
                 {
