@@ -86,8 +86,13 @@ namespace ZingPdf.Core.Objects.Primitives
         {
             await _streamDictionary.WriteAsync(stream);
 
+            await stream.WriteNewLineAsync();
             await new Keyword(Constants.StreamStart).WriteAsync(stream);
+
+            await stream.WriteNewLineAsync();
             await new StreamData(_source, _from, _to).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
+
             await new Keyword(Constants.StreamEnd).WriteAsync(stream);
         }
 
