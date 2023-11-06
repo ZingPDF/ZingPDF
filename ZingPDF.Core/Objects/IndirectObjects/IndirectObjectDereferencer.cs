@@ -34,7 +34,7 @@ namespace ZingPdf.Core.Objects.IndirectObjects
 
         public async IAsyncEnumerable<IndirectObject> GetAllAsync(Stream stream)
         {
-            foreach (var record in _xrefTable.IndirectObjectLocations)
+            foreach (var record in _xrefTable.IndirectObjectLocations.Skip(1))
             {
                 stream.Position = record.Value;
 
