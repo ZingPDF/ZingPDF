@@ -3,7 +3,7 @@ using ZingPdf.Core.Parsing;
 
 //await CreateNewPdfAndValidate("output.pdf");
 
-await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("test2.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
