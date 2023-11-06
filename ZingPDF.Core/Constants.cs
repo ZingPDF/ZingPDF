@@ -34,7 +34,7 @@
         public static readonly string Null = "null";
         public static readonly string Eof = "%%EOF";
         
-        public static readonly byte[] BinaryCharacters = new byte[] { 129, 130, 131, 132 };
+        public static readonly byte[] BinaryCharacters = new byte[] { 226, 227, 207, 211 };
 
         /// <summary>
         /// Special characters used to delimit syntactic entities such as arrays, names, comments.
