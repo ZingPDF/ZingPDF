@@ -8,7 +8,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
-await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("test2.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
