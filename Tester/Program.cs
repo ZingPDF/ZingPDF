@@ -1,20 +1,20 @@
 ﻿using ZingPdf;
 using ZingPdf.Core.Parsing;
 
-await CreateNewPdfAndValidate();
+//await CreateNewPdfAndValidate("output.pdf");
 
-//await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("test.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
-    var inputFileStream = new FileStream(input, FileMode.Open);
+    using var inputFileStream = new FileStream(input, FileMode.Open);
 
     var errors = ValidatePdf("Before", inputFileStream).ToList();
     inputFileStream.Position = 0;
 
     var pdf = await PdfParser.ParseAsync(inputFileStream);
 
-    var outputFileStream = new FileStream(output, FileMode.Truncate);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
 
     await pdf.WriteAsync(outputFileStream);
 
@@ -31,9 +31,9 @@ static async Task ParseResaveValidate(string input, string output)
     }
 }
 
-static async Task CreateNewPdfAndValidate()
+static async Task CreateNewPdfAndValidate(string outputPath)
 {
-    var outputFileStream = new FileStream("output.pdf", FileMode.Truncate);
+    using var outputFileStream = new FileStream(outputPath, FileMode.Truncate);
     var pdf = new Pdf();
     await pdf.WriteAsync(outputFileStream);
 

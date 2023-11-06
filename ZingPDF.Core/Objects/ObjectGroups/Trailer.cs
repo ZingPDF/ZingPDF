@@ -46,6 +46,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             InsertNewLine();
             
             Objects.Add(new Keyword(Constants.Eof));
+            InsertNewLine();
         }
 
         public long XrefTableByteOffset { get; }
