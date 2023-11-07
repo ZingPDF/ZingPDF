@@ -56,7 +56,49 @@ namespace ZingPdf
             _increments = increments ?? throw new ArgumentNullException(nameof(increments));
         }
 
-        public async Task<Stream> ToStreamAsync()
+        /// <summary>
+        /// Get the page at the specified number.
+        /// </summary>
+        /// <returns>A <see cref="Page"/> instance.</returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Page GetPage()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add a blank page to the end of the document.
+        /// </summary>
+        /// <returns>The page number of the new page.</returns>
+        public int AppendPage()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Insert a blank page at the specified location.
+        /// </summary>
+        /// <param name="pageNumber">The location at which to insert the page.</param>
+        /// <exception cref="NotImplementedException"></exception>
+        public void InsertPage(int pageNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Delete a page.
+        /// </summary>
+        /// <param name="pageNumber">The location of the page to delete.</param>
+        public void DeletePage(int pageNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Output the PDF to a new <see cref="MemoryStream"/>.
+        /// </summary>
+        /// <returns>A <see cref="MemoryStream"/> instance containing the byte data of the PDF. The stream position will be zero.</returns>
+        public async Task<MemoryStream> ToStreamAsync()
         {
             var ms = new MemoryStream();
             await WriteAsync(ms);
@@ -65,8 +107,18 @@ namespace ZingPdf
             return ms;
         }
 
+        /// <summary>
+        /// Write the PDF to the supplied <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         public async Task WriteAsync(Stream stream)
         {
+            if (!stream.CanWrite)
+            {
+                throw new ArgumentException("Provided stream must be writable", nameof(stream));
+            }
+
             await _header.WriteAsync(stream);
 
             foreach(var increment in _increments)
