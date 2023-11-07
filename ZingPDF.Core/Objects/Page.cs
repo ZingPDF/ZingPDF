@@ -5,9 +5,9 @@ using ZingPdf.Core.Objects.Primitives;
 namespace ZingPdf.Core.Objects
 {
     /// <summary>
-    /// PDF 32000-1:2008 7.7.3.3
+    /// ISO 32000-2:2020 7.7.3.3 - Page objects
     /// </summary>
-    internal class Page : PdfObject
+    public class Page : PdfObject
     {
         private readonly IndirectObjectReference _parentPageTreeNode;
         private readonly Dictionary _resourceDictionary = new();
@@ -46,7 +46,7 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Describes the contents of the page.
         /// </summary>
-        public Primitives.ArrayObject? Contents { get; set; } = null;
+        public ArrayObject? Contents { get; set; } = null;
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
