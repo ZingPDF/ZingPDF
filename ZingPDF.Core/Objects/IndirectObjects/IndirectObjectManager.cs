@@ -52,6 +52,13 @@ namespace ZingPdf.Core.Objects.IndirectObjects
             return indirectObject;
         }
 
+        /// <summary>
+        /// When you know the Indirect Object contains a single object of a specific type, 
+        /// this method provides strongly typed access to it.
+        /// </summary>
+        public T GetSingle<T>(IndirectObjectId id) where T : PdfObject
+            => (T)this[id].Children.First();
+
         #region IDictionary<IndirectObjectId, IndirectObject>
         public ICollection<IndirectObjectId> Keys => ((IDictionary<IndirectObjectId, IndirectObject>)_items).Keys;
         public ICollection<IndirectObject> Values => ((IDictionary<IndirectObjectId, IndirectObject>)_items).Values;

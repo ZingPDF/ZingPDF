@@ -13,11 +13,11 @@ namespace ZingPdf.Core.Objects.Primitives
         public IndirectObject(IndirectObjectId id, IEnumerable<PdfObject> children)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
-            Children = children ?? throw new ArgumentNullException(nameof(children));
+            Children = children?.ToList() ?? throw new ArgumentNullException(nameof(children));
         }
 
         public IndirectObjectId Id { get; }
-        public IEnumerable<PdfObject> Children { get; }
+        public List<PdfObject> Children { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {

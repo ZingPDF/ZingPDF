@@ -1,8 +1,9 @@
-﻿using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+﻿using ZingPdf.Core.Objects;
+using ZingPdf.Core.Objects.IndirectObjects;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Parsing;
 
-namespace ZingPdf.Core.Objects.IndirectObjects
+namespace ZingPdf.Core.Parsing
 {
     internal class IndirectObjectDereferencer
     {

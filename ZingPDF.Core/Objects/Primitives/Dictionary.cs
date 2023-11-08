@@ -7,7 +7,7 @@ namespace ZingPdf.Core.Objects.Primitives
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    internal class Dictionary : PdfObject, IDictionary<Name, PdfObject>
+    public class Dictionary : PdfObject, IDictionary<Name, PdfObject>
     {
         private readonly IDictionary<Name, PdfObject> _dictionary = new Dictionary<Name, PdfObject>();
 
@@ -26,6 +26,11 @@ namespace ZingPdf.Core.Objects.Primitives
             => _dictionary.ContainsKey(key)
             ? _dictionary[key] as T
             : null;
+
+        public void Set<T>(Name key, T pdfObject) where T : PdfObject
+        {
+            _dictionary[key] = pdfObject;
+        }
 
         #region IDictionary
         public virtual PdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }

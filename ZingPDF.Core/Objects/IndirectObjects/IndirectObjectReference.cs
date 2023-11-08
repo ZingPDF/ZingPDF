@@ -2,7 +2,10 @@
 
 namespace ZingPdf.Core.Objects.IndirectObjects
 {
-    internal class IndirectObjectReference : PdfObject
+    /// <summary>
+    /// ISO 32000-2:2020 7.3.10 - Indirect objects
+    /// </summary>
+    public class IndirectObjectReference : PdfObject
     {
         public IndirectObjectReference(IndirectObjectId id)
         {
