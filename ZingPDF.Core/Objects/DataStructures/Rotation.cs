@@ -2,7 +2,7 @@
 
 namespace ZingPdf.Core.Objects.DataStructures
 {
-    internal class Rotation : PdfObject
+    public class Rotation : PdfObject
     {
         private readonly int _amount;
 

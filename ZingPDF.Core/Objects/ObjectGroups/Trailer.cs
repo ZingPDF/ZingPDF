@@ -10,7 +10,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups
     {
         public Trailer(
             IndirectObjectReference documentCatalogReference,
-            long xrefTableByteOffset,
+            long? xrefTableByteOffset,
             int objectCount,
             IndirectObjectReference? infoReference = null,
             ArrayObject? id = null
@@ -32,25 +32,38 @@ namespace ZingPdf.Core.Objects.ObjectGroups
 
             XrefTableByteOffset = xrefTableByteOffset;
             ObjectCount = objectCount;
+            Dictionary = BuildTrailerDictionary(objectCount, documentCatalogReference, infoReference, id);
 
             Objects.Add(new Keyword(Constants.Trailer));
             InsertNewLine();
 
-            Objects.Add(BuildTrailerDictionary(objectCount, documentCatalogReference, infoReference, id));
+            Objects.Add(Dictionary);
             InsertNewLine();
             
             Objects.Add(new Keyword(Constants.StartXref));
             InsertNewLine();
             
-            Objects.Add(new Integer(xrefTableByteOffset));
+            Objects.Add(new Integer(xrefTableByteOffset ?? 0));
             InsertNewLine();
             
             Objects.Add(new Keyword(Constants.Eof));
             InsertNewLine();
         }
 
-        public long XrefTableByteOffset { get; }
+        /// <summary>
+        /// The byte offset of the cross reference table. This will be null until the PDF is written.
+        /// </summary>
+        public long? XrefTableByteOffset { get; }
+
+        /// <summary>
+        /// The number of indirect objects contained in the increment.
+        /// </summary>
         public int ObjectCount { get; }
+
+        /// <summary>
+        /// The trailer dictionary.
+        /// </summary>
+        public Dictionary Dictionary { get; }
 
         private static Dictionary BuildTrailerDictionary(
             Integer objectCount,
