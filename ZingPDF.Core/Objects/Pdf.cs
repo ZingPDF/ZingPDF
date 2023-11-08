@@ -28,7 +28,7 @@ namespace ZingPdf
             var pages = new[] { _indirectObjectManager.Create(Page.CreateNew(pageTreeNodeIndex.Reference)) };
 
             var pageTreeNode = _indirectObjectManager.Create(pageTreeNodeIndex, PagesCatalog.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
-            var documentCatalog = _indirectObjectManager.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+            var documentCatalog = _indirectObjectManager.Create(documentCatalogId, DocumentCatalog.CreateNew(pageTreeNodeIndex.Reference));
 
             var xrefEntries = new List<CrossReferenceEntry>
             {
@@ -135,19 +135,6 @@ namespace ZingPdf
             await stream.FlushAsync();
         }
 
-        //private IEnumerable<Page> GetPages()
-        //{
-        //    var trailerDictionary = GetTrailerDictionary();
-        //    var documentCatalog = GetDocumentCatalog(trailerDictionary);
-        //    var pagesCatalog = GetPagesCatalog(documentCatalog);
-
-        //    var pageRefs = pagesCatalog
-        //        .Get<ArrayObject>("Kids")!
-        //        .Cast<IndirectObjectReference>();
-
-        //    return pageRefs.Select(r => Page.FromDictionary(_indirectObjectManager.GetSingle<Dictionary>(r.Id)));
-        //}
-
         private IndirectObject GetPagesCatalog()
         {
             var trailerDictionary = GetTrailerDictionary();
@@ -168,15 +155,6 @@ namespace ZingPdf
             var documentCatalogReference = trailerDictionary.Get<IndirectObjectReference>("Root")!;
             
             return _indirectObjectManager.GetSingle<Dictionary>(documentCatalogReference.Id);
-        }
-
-        private static Dictionary CreateDocumentCatalog(IndirectObjectReference pageTreeNode)
-        {
-            return new Dictionary<Name, PdfObject>()
-            {
-                { "Type", new Name("Catalog") },
-                { "Pages", pageTreeNode },
-            };
         }
     }
 }
