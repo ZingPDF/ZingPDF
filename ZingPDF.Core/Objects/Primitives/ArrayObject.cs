@@ -6,7 +6,7 @@ namespace ZingPdf.Core.Objects.Primitives
     /// <summary>
     /// ISO 32000-2:2020 7.3.6 - Array objects
     /// </summary>
-    internal class ArrayObject : PdfObject, IEnumerable<PdfObject>
+    public class ArrayObject : PdfObject, IEnumerable<PdfObject>
     {
         private static readonly ArrayObject _empty = new(Array.Empty<PdfObject>());
 
