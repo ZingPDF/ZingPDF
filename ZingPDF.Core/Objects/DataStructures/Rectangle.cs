@@ -5,7 +5,7 @@ namespace ZingPdf.Core.Objects.DataStructures
     /// <summary>
     /// PDF 32000-1:2008 7.9.5
     /// </summary>
-    internal class Rectangle : PdfObject
+    public class Rectangle : PdfObject
     {
         private readonly Coordinate _lowerLeft;
         private readonly Coordinate _upperRight;
@@ -35,7 +35,7 @@ namespace ZingPdf.Core.Objects.DataStructures
         }
     }
 
-    internal class Coordinate
+    public class Coordinate
     {
         public Coordinate(int x, int y)
         {

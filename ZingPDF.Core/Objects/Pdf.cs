@@ -1,6 +1,5 @@
 ﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.IndirectObjects;
-using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
 
@@ -8,7 +7,7 @@ namespace ZingPdf
 {
     public class Pdf
     {
-        private readonly IndirectObjectManager _indirectObjects = new();
+        private readonly IndirectObjectManager _indirectObjectManager = new();
 
         private readonly Header _header;
         private readonly IEnumerable<PdfIncrement> _increments;
@@ -23,20 +22,20 @@ namespace ZingPdf
         {
             _header = new();
 
-            var documentCatalogId = _indirectObjects.ReserveId();
-            var pageTreeNodeIndex = _indirectObjects.ReserveId();
+            var documentCatalogId = _indirectObjectManager.ReserveId();
+            var pageTreeNodeIndex = _indirectObjectManager.ReserveId();
 
-            var pages = new[] { _indirectObjects.Create(new Page(pageTreeNodeIndex.Reference)) };
+            var pages = new[] { _indirectObjectManager.Create(Page.CreateNew(pageTreeNodeIndex.Reference)) };
 
-            var pageTreeNode = _indirectObjects.Create(pageTreeNodeIndex, CreatePageTreeNode(pages.Select(p => p.Id.Reference).ToArray()));
-            var documentCatalog = _indirectObjects.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
+            var pageTreeNode = _indirectObjectManager.Create(pageTreeNodeIndex, PagesCatalog.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
+            var documentCatalog = _indirectObjectManager.Create(documentCatalogId, CreateDocumentCatalog(pageTreeNodeIndex.Reference));
 
             var xrefEntries = new List<CrossReferenceEntry>
             {
                 new CrossReferenceEntry(0, 65535, false)
             };
 
-            xrefEntries.AddRange(_indirectObjects.Select(i => new CrossReferenceEntry(i.Value.ByteOffset ?? 0, i.Value.Id.GenerationNumber, inUse: true)));
+            xrefEntries.AddRange(_indirectObjectManager.Select(i => new CrossReferenceEntry(i.Value.ByteOffset ?? 0, i.Value.Id.GenerationNumber, inUse: true)));
 
             var xrefTable = new CrossReferenceTable(new[]
             {
@@ -44,7 +43,7 @@ namespace ZingPdf
                 new CrossReferenceSection(0, xrefEntries)
             });
 
-            _increments = new[] { new PdfIncrement(_indirectObjects.Select(o => o.Value), xrefTable, documentCatalogId.Reference) };
+            _increments = new[] { new PdfIncrement(_indirectObjectManager.Select(o => o.Value), xrefTable, documentCatalogId.Reference) };
         }
 
         /// <summary>
@@ -70,9 +69,16 @@ namespace ZingPdf
         /// Add a blank page to the end of the document.
         /// </summary>
         /// <returns>The page number of the new page.</returns>
-        public int AppendPage()
+        public void AppendPage()
         {
-            throw new NotImplementedException();
+            var pagesCatalogIndirectObject = GetPagesCatalog();
+            var page = _indirectObjectManager.Create(Page.CreateNew(pagesCatalogIndirectObject.Id.Reference));
+
+            var pagesCatalog = (pagesCatalogIndirectObject.Children.First() as PagesCatalog)!;
+
+            pagesCatalog.Pages = pagesCatalog.Pages.Append(page.Id.Reference).ToArray();
+
+            _increments.Last().Add(page);
         }
 
         /// <summary>
@@ -121,12 +127,47 @@ namespace ZingPdf
 
             await _header.WriteAsync(stream);
 
-            foreach(var increment in _increments)
+            foreach (var increment in _increments)
             {
                 await increment.WriteAsync(stream);
             }
 
             await stream.FlushAsync();
+        }
+
+        //private IEnumerable<Page> GetPages()
+        //{
+        //    var trailerDictionary = GetTrailerDictionary();
+        //    var documentCatalog = GetDocumentCatalog(trailerDictionary);
+        //    var pagesCatalog = GetPagesCatalog(documentCatalog);
+
+        //    var pageRefs = pagesCatalog
+        //        .Get<ArrayObject>("Kids")!
+        //        .Cast<IndirectObjectReference>();
+
+        //    return pageRefs.Select(r => Page.FromDictionary(_indirectObjectManager.GetSingle<Dictionary>(r.Id)));
+        //}
+
+        private IndirectObject GetPagesCatalog()
+        {
+            var trailerDictionary = GetTrailerDictionary();
+            var documentCatalog = GetDocumentCatalog(trailerDictionary);
+
+            var pagesCatalogReference = documentCatalog.Get<IndirectObjectReference>("Pages")!;
+
+            return _indirectObjectManager[pagesCatalogReference.Id];
+        }
+
+        private Dictionary GetTrailerDictionary()
+        {
+            return _increments.Last().Trailer.Dictionary;
+        }
+
+        private Dictionary GetDocumentCatalog(Dictionary trailerDictionary)
+        {
+            var documentCatalogReference = trailerDictionary.Get<IndirectObjectReference>("Root")!;
+            
+            return _indirectObjectManager.GetSingle<Dictionary>(documentCatalogReference.Id);
         }
 
         private static Dictionary CreateDocumentCatalog(IndirectObjectReference pageTreeNode)
@@ -136,65 +177,6 @@ namespace ZingPdf
                 { "Type", new Name("Catalog") },
                 { "Pages", pageTreeNode },
             };
-        }
-
-        private static Dictionary CreatePageTreeNode(IndirectObjectReference[] pages)
-        {
-            return new Dictionary(new Dictionary<Name, PdfObject>
-            {
-                { "Type", new Name("Pages") },
-                { "Kids", new ArrayObject(pages) },
-                { "Count", new Integer(pages.Length) },
-            });
-        }
-    }
-
-    /// <summary>
-    /// The body, xref table and trailer for a document.
-    /// Each incremental update adds a new PdfIncrement.
-    /// </summary>
-    internal class PdfIncrement : PdfObject
-    {
-        private readonly IEnumerable<IndirectObject> _body;
-        private readonly CrossReferenceTable _crossReferenceTable;
-        private readonly IndirectObjectReference _documentCatalogReference;
-        private readonly IndirectObjectReference? _infoReference;
-        private readonly ArrayObject? _id;
-
-        internal PdfIncrement(
-            IEnumerable<IndirectObject> body,
-            CrossReferenceTable crossReferenceTable,
-            IndirectObjectReference documentCatalogReference,
-            IndirectObjectReference? infoReference = null,
-            ArrayObject? id = null
-            )
-        {
-            _body = body ?? throw new ArgumentNullException(nameof(body));
-            _crossReferenceTable = crossReferenceTable ?? throw new ArgumentNullException(nameof(crossReferenceTable));
-            _documentCatalogReference = documentCatalogReference ?? throw new ArgumentNullException(nameof(documentCatalogReference));
-            _infoReference = infoReference;
-            _id = id;
-        }
-
-        protected override async Task WriteOutputAsync(Stream stream)
-        {
-            foreach(var item in _body)
-            {
-                await item.WriteAsync(stream);
-            }
-
-            _crossReferenceTable.UpdateByteOffsets(_body);
-
-            await _crossReferenceTable.WriteAsync(stream);
-
-            await new Trailer(
-                _documentCatalogReference,
-                _crossReferenceTable.ByteOffset!.Value,
-                _body.Count() + 1,
-                _infoReference,
-                _id
-                )
-                .WriteAsync(stream);
         }
     }
 }
