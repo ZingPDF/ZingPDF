@@ -1,4 +1,5 @@
 ﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
@@ -45,10 +46,17 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
                     }
                 }
 
-                IndirectObjectLocations.Clear();
-
                 ExtractIndirectObjectLocations();
             }
+        }
+
+        public void Add(IndirectObjectReference indirectObjectReference)
+        {
+            if (indirectObjectReference is null) throw new ArgumentNullException(nameof(indirectObjectReference));
+
+            _xrefSections.Last().Add(indirectObjectReference.Id.GenerationNumber);
+
+            ExtractIndirectObjectLocations();
         }
 
         protected override async Task WriteOutputAsync(Stream stream)
@@ -62,8 +70,13 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             }
         }
 
+        /// <summary>
+        /// Reset the internal list of object locations.
+        /// </summary>
         private void ExtractIndirectObjectLocations()
         {
+            IndirectObjectLocations.Clear();
+
             foreach (var section in _xrefSections)
             {
                 for (var i = 0; i < section.Entries.Count(); i++)

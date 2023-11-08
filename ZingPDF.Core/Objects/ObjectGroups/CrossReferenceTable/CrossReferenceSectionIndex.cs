@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         }
 
         public int StartIndex { get; }
-        public int Count { get; }
+        public int Count { get; internal set; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
