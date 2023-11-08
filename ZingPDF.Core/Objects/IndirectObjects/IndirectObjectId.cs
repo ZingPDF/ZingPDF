@@ -1,6 +1,6 @@
 ﻿namespace ZingPdf.Core.Objects.IndirectObjects
 {
-    internal class IndirectObjectId
+    public class IndirectObjectId
     {
         public IndirectObjectId(int index, ushort generationNumber)
         {
