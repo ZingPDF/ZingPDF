@@ -7,9 +7,9 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
     public class CrossReferenceEntryTests
     {
         [Theory]
-        [InlineData(0, 65535, false, "0000000000 65535 f\n")]
-        [InlineData(15, 0, true, "0000000015 00000 n\n")]
-        [InlineData(14278075, 0, true, "0014278075 00000 n\n")]
+        [InlineData(0, 65535, false, "0000000000 65535 f\r\n")]
+        [InlineData(15, 0, true, "0000000015 00000 n\r\n")]
+        [InlineData(14278075, 0, true, "0014278075 00000 n\r\n")]
         public async Task WriteAsyncCorrectGenerationNumberFormat(long byteOffset, ushort genNumber, bool inUse, string expected)
         {
             var xrefEntry = new CrossReferenceEntry(byteOffset, genNumber, inUse);

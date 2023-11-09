@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
-namespace ZingPdf.Core.Objects.IndirectObjects
+namespace ZingPdf.Core.Objects
 {
     internal class IndirectObjectManager : IDictionary<IndirectObjectId, IndirectObject>
     {

@@ -1,6 +1,6 @@
 ﻿using ZingPdf.Core.Objects.DataStructures;
-using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects
 {
@@ -36,38 +36,39 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.
         /// </summary>
-        public Rectangle MediaBox { get => Get<Rectangle>(DictionaryKeys.MediaBox); set => this[DictionaryKeys.MediaBox] = value; } // TODO: should inherit if applicable rather than impose a default
+        // TODO: this is a required field, but its value can be inherited from an ancestor, check if we need to do anything to achieve this.
+        public Rectangle? MediaBox { get => Get<Rectangle>(DictionaryKeys.MediaBox); set => this[DictionaryKeys.MediaBox] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Defines the visible region of default user space.
         /// Contents will be clipped to this rectangle.
         /// </summary>
-        public Rectangle? CropBox { get => Get<Rectangle>(DictionaryKeys.CropBox); set => this[DictionaryKeys.CropBox] = value; } // TODO: should inherit, or use MediaBox if null and no inherited value
+        public Rectangle? CropBox { get => Get<Rectangle>(DictionaryKeys.CropBox); set => this[DictionaryKeys.CropBox] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Defines a clipping rectangle for output in a production environment.
         /// </summary>
-        public Rectangle? BleedBox { get => Get<Rectangle>(DictionaryKeys.BleedBox); set => this[DictionaryKeys.BleedBox] = value; } // TODO: should use CropBox if null
+        public Rectangle? BleedBox { get => Get<Rectangle>(DictionaryKeys.BleedBox); set => this[DictionaryKeys.BleedBox] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Defines the intended dimensions of the finished page after trimming.
         /// </summary>
-        public Rectangle? TrimBox { get => Get<Rectangle>(DictionaryKeys.TrimBox); set => this[DictionaryKeys.TrimBox] = value; } // TODO: should use CropBox if null
+        public Rectangle? TrimBox { get => Get<Rectangle>(DictionaryKeys.TrimBox); set => this[DictionaryKeys.TrimBox] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Defines the extent of the page's meaningful content (including whitespace) intended by the page's creator.
         /// </summary>
-        public Rectangle? ArtBox { get => Get<Rectangle>(DictionaryKeys.ArtBox); set => this[DictionaryKeys.ArtBox] = value; }
+        public Rectangle? ArtBox { get => Get<Rectangle>(DictionaryKeys.ArtBox); set => this[DictionaryKeys.ArtBox] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Describes the contents of the page.
         /// </summary>
-        public ArrayObject? Contents { get => Get<ArrayObject>(DictionaryKeys.Contents); set => this[DictionaryKeys.Contents] = value; }
+        public ArrayObject? Contents { get => Get<ArrayObject>(DictionaryKeys.Contents); set => this[DictionaryKeys.Contents] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
         /// </summary>
-        public Rotation? Rotate { get => Get<Rotation>(DictionaryKeys.Rotate); set => this[DictionaryKeys.Rotate] = value; }
+        public Rotation? Rotate { get => Get<Rotation>(DictionaryKeys.Rotate); set => this[DictionaryKeys.Rotate] = value ?? throw new ArgumentNullException(nameof(value)); }
 
         /// <summary>
         /// Create a blank page.
