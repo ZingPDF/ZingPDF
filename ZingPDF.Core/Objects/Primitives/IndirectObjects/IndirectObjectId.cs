@@ -1,4 +1,4 @@
-﻿namespace ZingPdf.Core.Objects.IndirectObjects
+﻿namespace ZingPdf.Core.Objects.Primitives.IndirectObjects
 {
     public class IndirectObjectId
     {
@@ -12,6 +12,18 @@
         public ushort GenerationNumber { get; }
 
         public IndirectObjectReference Reference { get => new(this); }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is IndirectObjectId id &&
+                   Index == id.Index &&
+                   GenerationNumber == id.GenerationNumber;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Index, GenerationNumber);
+        }
 
         public override string ToString() => $"{nameof(IndirectObjectId)}: {{{Index}, {GenerationNumber}}}";
     }
