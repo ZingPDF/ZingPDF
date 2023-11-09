@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using ZingPdf.Core.Objects.DataStructures;
-using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Parsing
 {
