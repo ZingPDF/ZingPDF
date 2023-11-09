@@ -1,5 +1,5 @@
-﻿using ZingPdf.Core.Objects.IndirectObjects;
-using ZingPdf.Core.Objects.Primitives;
+﻿using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects
 {

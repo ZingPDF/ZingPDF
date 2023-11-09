@@ -1,12 +1,12 @@
 ﻿using ZingPdf.Core.Objects;
-using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
-using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Pages;
 
 namespace ZingPdf
 {
     public class Pdf
     {
+        private readonly PdfTraversal _pdfTraversal = new();
         private readonly IndirectObjectManager _indirectObjectManager = new();
 
         private readonly Header _header;
@@ -27,7 +27,7 @@ namespace ZingPdf
 
             var pages = new[] { _indirectObjectManager.Create(Page.CreateNew(pageTreeNodeIndex.Reference)) };
 
-            var pageTreeNode = _indirectObjectManager.Create(pageTreeNodeIndex, PagesCatalog.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
+            var rootPageTreeNode = _indirectObjectManager.Create(pageTreeNodeIndex, PageTreeNode.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
             var documentCatalog = _indirectObjectManager.Create(documentCatalogId, DocumentCatalog.CreateNew(pageTreeNodeIndex.Reference));
 
             var xrefEntries = new List<CrossReferenceEntry>
@@ -53,13 +53,27 @@ namespace ZingPdf
         {
             _header = header ?? throw new ArgumentNullException(nameof(header));
             _increments = increments ?? throw new ArgumentNullException(nameof(increments));
+
+            foreach(var item in increments.SelectMany(i => i.Body))
+            {
+                _indirectObjectManager.Add(item.Id, item);
+            }
+        }
+
+        public int GetPageCount()
+        {
+            var trailerDictionary = _pdfTraversal.GetLatestTrailerDictionary(_increments);
+
+            var rootPageTreeNode = _pdfTraversal
+                .GetRootPageTreeNode(trailerDictionary, _indirectObjectManager);
+
+            return rootPageTreeNode.PageCount;
         }
 
         /// <summary>
         /// Get the page at the specified number.
         /// </summary>
         /// <returns>A <see cref="Page"/> instance.</returns>
-        /// <exception cref="NotImplementedException"></exception>
         public Page GetPage()
         {
             throw new NotImplementedException();
@@ -71,12 +85,20 @@ namespace ZingPdf
         /// <returns>The page number of the new page.</returns>
         public void AppendPage()
         {
-            var pagesCatalogIndirectObject = GetPagesCatalog();
+            var trailerDictionary = _pdfTraversal.GetLatestTrailerDictionary(_increments);
+            var documentCatalog = _pdfTraversal.GetDocumentCatalog(trailerDictionary, _indirectObjectManager);
+
+            var pagesCatalogIndirectObject = _indirectObjectManager[documentCatalog.Pages.Id];
             var page = _indirectObjectManager.Create(Page.CreateNew(pagesCatalogIndirectObject.Id.Reference));
 
-            var pagesCatalog = (pagesCatalogIndirectObject.Children.First() as PagesCatalog)!;
+            var rootPageTreeNode = _pdfTraversal.GetRootPageTreeNode(trailerDictionary, _indirectObjectManager);
 
-            pagesCatalog.Pages = pagesCatalog.Pages.Append(page.Id.Reference).ToArray();
+            // TODO: For now, to simplify adding pages,
+            // new pages are appended to the root page tree node.
+            // Determine if there's a better way, like ensuring a balanced tree.
+            rootPageTreeNode.Pages.Add(page.Id.Reference);
+
+            rootPageTreeNode.PageCount++;
 
             _increments.Last().Add(page);
         }
@@ -85,7 +107,6 @@ namespace ZingPdf
         /// Insert a blank page at the specified location.
         /// </summary>
         /// <param name="pageNumber">The location at which to insert the page.</param>
-        /// <exception cref="NotImplementedException"></exception>
         public void InsertPage(int pageNumber)
         {
             throw new NotImplementedException();
@@ -133,28 +154,6 @@ namespace ZingPdf
             }
 
             await stream.FlushAsync();
-        }
-
-        private IndirectObject GetPagesCatalog()
-        {
-            var trailerDictionary = GetTrailerDictionary();
-            var documentCatalog = GetDocumentCatalog(trailerDictionary);
-
-            var pagesCatalogReference = documentCatalog.Get<IndirectObjectReference>("Pages")!;
-
-            return _indirectObjectManager[pagesCatalogReference.Id];
-        }
-
-        private Dictionary GetTrailerDictionary()
-        {
-            return _increments.Last().Trailer.Dictionary;
-        }
-
-        private Dictionary GetDocumentCatalog(Dictionary trailerDictionary)
-        {
-            var documentCatalogReference = trailerDictionary.Get<IndirectObjectReference>("Root")!;
-            
-            return _indirectObjectManager.GetSingle<Dictionary>(documentCatalogReference.Id);
         }
     }
 }
