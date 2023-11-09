@@ -10,24 +10,30 @@ namespace ZingPdf.Core.Objects.Primitives
     {
         private static readonly ArrayObject _empty = new(Array.Empty<PdfObject>());
 
-        private readonly PdfObject[] _values;
+        private readonly List<PdfObject> _values = new();
 
         public ArrayObject(PdfObject[] values)
         {
-            _values = values ?? throw new ArgumentNullException(nameof(values));
+            _values = values?.ToList() ?? throw new ArgumentNullException(nameof(values));
         }
+
+        /// <summary>
+        /// Adds an item to the <see cref="ArrayObject"/>.
+        /// </summary>
+        public void Add<T>(T item) where T : PdfObject
+            => _values.Add(item);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.ArrayStart);
 
-            for (int i = 0; i < _values.Length; i++)
+            for (int i = 0; i < _values.Count; i++)
             {
                 PdfObject obj = _values[i];
 
                 await obj.WriteAsync(stream);
 
-                if (i < _values.Length - 1)
+                if (i < _values.Count - 1)
                 {
                     await stream.WriteWhitespaceAsync();
                 }

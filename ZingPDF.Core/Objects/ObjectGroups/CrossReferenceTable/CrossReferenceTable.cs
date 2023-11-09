@@ -1,6 +1,6 @@
 ﻿using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.IndirectObjects;
 using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 {
@@ -36,7 +36,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             {
                 foreach (var section in _xrefSections)
                 {
-                    for (var i = section.Index.StartIndex; i < section.Entries.Count(); i++)
+                    for (var i = section.Index.StartIndex; i < section.Entries.Count; i++)
                     {
                         if (indirectObject.Id.Index == i)
                         {
@@ -79,7 +79,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 
             foreach (var section in _xrefSections)
             {
-                for (var i = 0; i < section.Entries.Count(); i++)
+                for (var i = 0; i < section.Entries.Count; i++)
                 {
                     var entry = section.Entries.ElementAt(i);
 

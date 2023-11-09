@@ -1,7 +1,6 @@
 ﻿using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.IndirectObjects;
 
-namespace ZingPdf.Core.Objects.Primitives
+namespace ZingPdf.Core.Objects.Primitives.IndirectObjects
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.10 - Indirect objects
