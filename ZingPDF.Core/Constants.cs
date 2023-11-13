@@ -52,5 +52,10 @@
             public const string Flate = "FlateDecode";
             public const string RunLength = "RunLengthDecode";
         }
+
+        public static class DictionaryKeys
+        {
+            public const string Type = "Type";
+        }
     }
 }
