@@ -12,7 +12,8 @@ namespace ZingPdf.Core.Parsing
         {
             var header = await new HeaderParser().ParseAsync(stream);
 
-            // TODO: support parsing multiple trailers for incremental updates
+            // TODO: support parsing linearized files
+            // TODO: check parsing multiple trailers for incremental updates works
             PdfObjectGroup trailerObjects = await GetTrailer(stream);
 
             var trailerDict = trailerObjects.Get<Dictionary>(0);

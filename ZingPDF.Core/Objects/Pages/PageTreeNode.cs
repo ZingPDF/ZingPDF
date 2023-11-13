@@ -5,9 +5,9 @@ namespace ZingPdf.Core.Objects.Pages
 {
     internal class PageTreeNode : Dictionary
     {
-        private static class DictionaryKeys
+        internal static class DictionaryKeys
         {
-            public const string Type = "Type";
+            public const string Pages = "Pages";
             public const string Parent = "Parent";
             public const string Kids = "Kids";
             public const string Count = "Count";
@@ -24,12 +24,12 @@ namespace ZingPdf.Core.Objects.Pages
             }
         }
 
-        public ArrayObject Pages
+        public ArrayObject Kids
         {
             get => Get<ArrayObject>(DictionaryKeys.Kids)!;
             set
             {
-                this[DictionaryKeys.Kids] = value;
+                this[DictionaryKeys.Kids] = new ArrayObject(value.ToArray());
             }
         }
 
@@ -39,7 +39,7 @@ namespace ZingPdf.Core.Objects.Pages
         {
             return new(new Dictionary<Name, PdfObject>
             {
-                { DictionaryKeys.Type, new Name("Pages") },
+                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Pages) },
                 { DictionaryKeys.Kids, pageReferences },
                 { DictionaryKeys.Count, new Integer(pageReferences.Count()) },
             });

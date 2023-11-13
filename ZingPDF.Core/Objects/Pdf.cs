@@ -74,9 +74,17 @@ namespace ZingPdf
         /// Get the page at the specified number.
         /// </summary>
         /// <returns>A <see cref="Page"/> instance.</returns>
-        public Page GetPage()
+        public Page GetPage(int pageNumber)
         {
-            throw new NotImplementedException();
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
+            var trailerDictionary = _pdfTraversal.GetLatestTrailerDictionary(_increments);
+
+            var pages = _pdfTraversal.GetPages(trailerDictionary, _indirectObjectManager);
+
+            if (pageNumber > pages.Count()) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
+            return pages.ElementAt(pageNumber - 1);
         }
 
         /// <summary>
@@ -96,7 +104,7 @@ namespace ZingPdf
             // TODO: For now, to simplify adding pages,
             // new pages are appended to the root page tree node.
             // Determine if there's a better way, like ensuring a balanced tree.
-            rootPageTreeNode.Pages.Add(page.Id.Reference);
+            rootPageTreeNode.Kids.Add(page.Id.Reference);
 
             rootPageTreeNode.PageCount++;
 
