@@ -1,7 +1,9 @@
 ﻿using MorseCode.ITask;
+using System.Net.Http.Headers;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
+using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
@@ -78,6 +80,17 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             for (int j = 0; j < objectGroup.Objects.Count; j += 2)
             {
                 dictionary.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
+            }
+
+            if (dictionary.ContainsKey(Constants.DictionaryKeys.Type))
+            {
+                switch ((Name)dictionary[Constants.DictionaryKeys.Type])
+                {
+                    case Page.DictionaryKeys.Page:
+                        return Page.FromDictionary(dictionary);
+                    case PageTreeNode.DictionaryKeys.Pages:
+                        return PageTreeNode.FromDictionary(dictionary);
+                }
             }
 
             return dictionary;
