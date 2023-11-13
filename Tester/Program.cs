@@ -15,38 +15,39 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
-await ParseResaveValidate("test2.pdf", "output.pdf");
+await ParseResaveValidate("test.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
 
-    var errors = ValidatePdf("Before", inputFileStream).ToList();
-    inputFileStream.Position = 0;
+    //var errors = ValidatePdf("Before", inputFileStream).ToList();
+    //inputFileStream.Position = 0;
 
     var pdf = await PdfParser.ParseAsync(inputFileStream);
 
-    var pageCount1 = pdf.GetPageCount();
+    var count = pdf.GetPageCount();
 
     pdf.AppendPage();
 
-    var pageCount2 = pdf.GetPageCount();
+    var test = pdf.GetPage(1);
 
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
     await pdf.WriteAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
-    outputFileStream.Position = 0;
 
-    var errors2 = ValidatePdf("After", outputFileStream).ToList();
+    //outputFileStream.Position = 0;
 
-    var newErrors = errors.Except(errors2);
+    //var errors2 = ValidatePdf("After", outputFileStream).ToList();
 
-    foreach (var error in newErrors)
-    {
-        Console.WriteLine(error);
-    }
+    //var newErrors = errors.Except(errors2);
+
+    //foreach (var error in newErrors)
+    //{
+    //    Console.WriteLine(error);
+    //}
 }
 
 static void LoadAndSaveUsingAbcpdf(string inputPath, string outputPath)

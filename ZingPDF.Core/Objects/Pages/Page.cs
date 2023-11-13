@@ -9,8 +9,11 @@ namespace ZingPdf.Core.Objects
     /// </summary>
     public class Page : Dictionary
     {
-        private static class DictionaryKeys
+        internal static class DictionaryKeys
         {
+            public const string Page = "Page";
+            public const string Parent = "Parent";
+            public const string Resources = "Resources";
             public const string MediaBox = "MediaBox";
             public const string CropBox = "CropBox";
             public const string BleedBox = "BleedBox";
@@ -23,13 +26,10 @@ namespace ZingPdf.Core.Objects
         private Page(IndirectObjectReference parentPageTreeNode)
             : base(new Dictionary<Name, PdfObject>
             {
-                { "Type", new Name("Page") },
-                { "Parent", parentPageTreeNode },
-                { "Resources", new Dictionary() },
-                { "MediaBox", new Rectangle(new(0, 0), new(800, 1000)) }, // TODO: think about this default value
-            })
-        {
-        }
+                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
+                { DictionaryKeys.Parent, parentPageTreeNode },
+                { DictionaryKeys.Resources, new Dictionary() },
+            }) {}
 
         private Page(Dictionary pageDictionary) : base(pageDictionary) { }
 
@@ -76,11 +76,20 @@ namespace ZingPdf.Core.Objects
         /// <param name="pagesCatalogReference">An <see cref="IndirectObjectReference"/> pointing to the page's parent.</param>
         /// <returns>A <see cref="Page"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static Page CreateNew(IndirectObjectReference pagesCatalogReference)
+        internal static Page CreateNew(IndirectObjectReference pagesCatalogReference, PageCreationOptions? options = null)
         {
             if (pagesCatalogReference is null) throw new ArgumentNullException(nameof(pagesCatalogReference));
 
-            return new Page(pagesCatalogReference);
+            options ??= new PageCreationOptions();
+
+            var page = new Page(pagesCatalogReference);
+
+            if (options.MediaBox is not null)
+            {
+                page.MediaBox = options.MediaBox;
+            }
+
+            return page;
         }
 
         /// <summary>
@@ -93,6 +102,14 @@ namespace ZingPdf.Core.Objects
             if (pageDictionary is null) throw new ArgumentNullException(nameof(pageDictionary));
 
             return new Page(pageDictionary);
+        }
+
+        internal class PageCreationOptions
+        {
+            /// <summary>
+            /// Represents the overall size of the page.
+            /// </summary>
+            public Rectangle? MediaBox { get; set; } 
         }
     }
 }

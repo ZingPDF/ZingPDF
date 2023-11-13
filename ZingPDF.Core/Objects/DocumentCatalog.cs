@@ -7,7 +7,7 @@ namespace ZingPdf.Core.Objects
     {
         private static class DictionaryKeys
         {
-            public const string Type = "Type";
+            public const string Catalog = "Catalog";
             public const string Pages = "Pages";
         }
 
@@ -16,7 +16,7 @@ namespace ZingPdf.Core.Objects
         private DocumentCatalog(IndirectObjectReference pageTreeNode)
             : base(new Dictionary<Name, PdfObject>()
             {
-                { DictionaryKeys.Type, new Name("Catalog") },
+                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Catalog) },
                 { DictionaryKeys.Pages, pageTreeNode },
             })
         { }
