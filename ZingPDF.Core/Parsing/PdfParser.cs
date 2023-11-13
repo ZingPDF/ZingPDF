@@ -31,47 +31,6 @@ namespace ZingPdf.Core.Parsing
             var body = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
             return new Pdf(header, new[] { new PdfIncrement(body, xrefTable, documentCatalogReference, infoReference, id) });
-
-            //var documentCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalogId);
-            //var pagesCatalog = await indirectObjectDereferencer.GetSingleAsync<Dictionary>(stream, documentCatalog.Get<IndirectObjectReference>("Pages")!);
-
-            //// TODO: this parses pages as dictionaries (which they are, obvs).
-            //// Do we need to parse them to proper Page objects which have the right properties?
-            //List<Dictionary> pages = await GetPagesDictionaries(stream, xrefTable, pagesCatalog);
-
-            //// TODO: THIS IS TEST CODE FOR NOW:
-            //// can't use IndirectObjectDereferencer to get stream contents
-            //// it contains 2 objects, dict and stream, we need the dict to get the length in order to parse this efficiently.
-            //var contentsReference = pages.First().Get<IndirectObjectReference>("Contents")!;
-
-            //var contentsStreamOffset = xrefTable.IndirectObjectLocations[contentsReference.Id.Index];
-
-            //stream.Position = contentsStreamOffset;
-
-            //await stream.AdvanceToNextAsync(Constants.DictionaryStart);
-
-            //var contentsStreamObject = await Parser.For<StreamObject>().ParseAsync(stream);
-
-            //var test = System.Text.Encoding.UTF8.GetString(await contentsStreamObject.DecodeAsync());
-        }
-
-        private static async Task<List<Dictionary>> GetPagesDictionaries(Stream stream, CrossReferenceTable xrefTable, Dictionary pagesCatalog)
-        {
-            var pageRefs = pagesCatalog
-                .Get<ArrayObject>("Kids")!
-                .Cast<IndirectObjectReference>();
-
-            List<Dictionary> pages = new();
-
-            foreach (var pageRef in pageRefs)
-            {
-                var offset = xrefTable.IndirectObjectLocations.Last(kvp => kvp.Key == pageRef.Id.Index).Value;
-                stream.Position = offset;
-
-                pages.Add(await Parser.For<Dictionary>().ParseAsync(stream));
-            }
-
-            return pages;
         }
 
         private static async Task<CrossReferenceTable> GetCrossReferenceTable(Stream stream, PdfObjectGroup trailerObjects)
@@ -86,7 +45,6 @@ namespace ZingPdf.Core.Parsing
 
         private static async Task<PdfObjectGroup> GetTrailer(Stream stream)
         {
-            // TODO: add support for finding multiple trailers (incremental updates)
             await new TrailerFinder().FindAsync(stream);
 
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);
