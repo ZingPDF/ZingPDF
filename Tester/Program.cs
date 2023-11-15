@@ -34,7 +34,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    await pdf.WriteAsync(outputFileStream);
+    await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
 
@@ -82,8 +82,8 @@ static IEnumerable<string> ValidatePdf(string name, FileStream fileStream)
 static async Task CreateNewPdfAndValidate(string outputPath)
 {
     using var outputFileStream = new FileStream(outputPath, FileMode.Create);
-    var pdf = new Pdf();
-    await pdf.WriteAsync(outputFileStream);
+    var pdf = Pdf.Create();
+    await pdf.SaveAsync(outputFileStream);
 
     outputFileStream.Position = 0;
 

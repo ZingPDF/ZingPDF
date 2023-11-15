@@ -5,7 +5,7 @@
         /// <summary>
         /// Given a value, returns the percentage of another value.
         /// </summary>
-        int PercentageOfValue(double val, double maxValue);
+        int PercentageOfValue(double value1, double value2);
 
         /// <summary>
         /// Returns to two decimal places a value between 0 and 1 for the given byte value.
@@ -22,6 +22,6 @@
         /// Given a page display rotation angle in degrees, find the point about which the coordinate system can be rotated
         ///     to undo that rotation, so that the true left hand side of the coordinate system aligns to the left of the displayed page.
         /// </summary>
-        Coordinate FindRotationPoint(int pageDisplayRotation, double pageWidth, double pageHeight);
+        Point FindRotationPoint(int pageDisplayRotation, double pageWidth, double pageHeight);
     }
 }
