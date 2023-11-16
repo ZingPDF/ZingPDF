@@ -11,11 +11,11 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await pdf.WriteAsync(outputFileStream);
 
-//await CreateNewPdfAndValidate("output.pdf");
+await CreateNewPdfAndValidate("output.pdf");
 
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
-await ParseResaveValidate("test.pdf", "output.pdf");
+//await ParseResaveValidate("test.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
@@ -85,11 +85,11 @@ static async Task CreateNewPdfAndValidate(string outputPath)
     var pdf = Pdf.Create();
     await pdf.SaveAsync(outputFileStream);
 
-    outputFileStream.Position = 0;
+    //outputFileStream.Position = 0;
 
-    var errors = ValidatePdf("file", outputFileStream).ToList();
-    foreach (var error in errors)
-    {
-        Console.WriteLine(error);
-    }
+    //var errors = ValidatePdf("file", outputFileStream).ToList();
+    //foreach (var error in errors)
+    //{
+    //    Console.WriteLine(error);
+    //}
 }
