@@ -67,19 +67,6 @@ namespace ZingPdf
             var rootPageTreeNode = indirectObjectManager.Create(pageTreeNodeIndex, PageTreeNode.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
             var documentCatalog = indirectObjectManager.Create(documentCatalogId, DocumentCatalog.CreateNew(pageTreeNodeIndex.Reference));
 
-            var xrefEntries = new List<CrossReferenceEntry>
-            {
-                new CrossReferenceEntry(0, 65535, false)
-            };
-
-            xrefEntries.AddRange(indirectObjectManager.Select(i => new CrossReferenceEntry(i.Value.ByteOffset ?? 0, i.Value.Id.GenerationNumber, inUse: true)));
-
-            var xrefTable = new CrossReferenceTable(new[]
-            {
-                // An unmodified PDF has only one cross reference section
-                new CrossReferenceSection(0, xrefEntries)
-            });
-
             var ms = new MemoryStream();
 
             new Header().WriteAsync(ms).Wait();
@@ -88,6 +75,19 @@ namespace ZingPdf
             {
                 item.WriteAsync(ms).Wait();
             }
+
+            var xrefEntries = new List<CrossReferenceEntry>
+            {
+                new CrossReferenceEntry(0, 65535, false)
+            };
+
+            xrefEntries.AddRange(indirectObjectManager.Select(i => new CrossReferenceEntry(i.Value.ByteOffset!.Value, i.Value.Id.GenerationNumber, inUse: true)));
+
+            var xrefTable = new CrossReferenceTable(new[]
+            {
+                // An unmodified PDF has only one cross reference section
+                new CrossReferenceSection(0, xrefEntries)
+            });
 
             xrefTable.WriteAsync(ms).Wait();
 
@@ -134,7 +134,7 @@ namespace ZingPdf
 
             var trailer = await pdfTraversal.GetLatestTrailerAsync();
 
-            
+            _stream.Position = 0;
 
             await _stream.CopyToAsync(outputStream);
             await _stream.WriteNewLineAsync();
