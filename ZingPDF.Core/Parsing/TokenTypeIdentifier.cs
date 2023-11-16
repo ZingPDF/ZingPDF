@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using ZingPdf.Core.Objects.DataStructures;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
@@ -106,7 +107,7 @@ namespace ZingPdf.Core.Parsing
 
             if (content.StartsWith(Constants.Trailer))
             {
-                return typeof(PdfObjectGroup);
+                return typeof(Trailer);
             }
 
             if (content.StartsWith(Constants.StreamStart))

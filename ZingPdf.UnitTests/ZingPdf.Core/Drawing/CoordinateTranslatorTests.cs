@@ -9,7 +9,7 @@ namespace ZingPdf.Core.Drawing
         [Fact]
         public void FlipImageCoordinatesDoesNothingForBottomUp()
         {
-            var coordinate = new Coordinate(10, 10);
+            var coordinate = new Point(10, 10);
 
             new CoordinateTranslator(A.Fake<ICalculations>())
                 .FlipImageCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, coordinate, 100).Should().BeEquivalentTo(coordinate);
@@ -18,7 +18,7 @@ namespace ZingPdf.Core.Drawing
         [Fact]
         public void FlipTextCoordinatesDoesNothingForBottomUp()
         {
-            var coordinate = new Coordinate(10, 10);
+            var coordinate = new Point(10, 10);
             var boundingBox = new BoundingBox(coordinate, 100, 100);
 
             new CoordinateTranslator(A.Fake<ICalculations>())
@@ -28,7 +28,7 @@ namespace ZingPdf.Core.Drawing
         [Fact]
         public void FlipPathCoordinatesDoesNothingForBottomUp()
         {
-            var coordinates = new[] { new Coordinate(10, 10) };
+            var coordinates = new[] { new Point(10, 10) };
 
             new CoordinateTranslator(A.Fake<ICalculations>())
                 .FlipPathCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, coordinates).Should().BeEquivalentTo(coordinates);
@@ -49,8 +49,8 @@ namespace ZingPdf.Core.Drawing
             var expectedTranslatedYValue = pageHeight - y;
 
             new CoordinateTranslator(calculations)
-                .FlipPathCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new[] { new Coordinate(arbitraryXValue, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(arbitraryXValue, expectedYValue) });
+                .FlipPathCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new[] { new Point(arbitraryXValue, y) })
+                .Should().BeEquivalentTo(new[] { new Point(arbitraryXValue, expectedYValue) });
         }
 
         [Theory]
@@ -67,8 +67,8 @@ namespace ZingPdf.Core.Drawing
             var arbitraryPageWidth = 100;
 
             new CoordinateTranslator(calculations)
-                .FlipImageCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new Coordinate(arbitraryXValue, y), imageHeight)
-                .Should().BeEquivalentTo(new Coordinate(arbitraryXValue, expectedYValue));
+                .FlipImageCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new Point(arbitraryXValue, y), imageHeight)
+                .Should().BeEquivalentTo(new Point(arbitraryXValue, expectedYValue));
         }
 
         [Theory]
@@ -85,8 +85,8 @@ namespace ZingPdf.Core.Drawing
             var arbitraryBoxWidth = 100;
             var arbitraryPageWidth = 100;
 
-            var boundingBox = new BoundingBox(new Coordinate(arbitraryXValue, y), arbitraryBoxWidth, boundingBoxHeight);
-            var translatedBoundingBox = new BoundingBox(new Coordinate(arbitraryXValue, expectedYValue), arbitraryBoxWidth, boundingBoxHeight);
+            var boundingBox = new BoundingBox(new Point(arbitraryXValue, y), arbitraryBoxWidth, boundingBoxHeight);
+            var translatedBoundingBox = new BoundingBox(new Point(arbitraryXValue, expectedYValue), arbitraryBoxWidth, boundingBoxHeight);
 
             new CoordinateTranslator(calculations)
                 .FlipTextCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, boundingBox)
@@ -107,10 +107,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, horizontalCentre));
+                .Returns(new Point(horizontalCentre, horizontalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -127,10 +127,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, horizontalCentre));
+                .Returns(new Point(horizontalCentre, horizontalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -145,10 +145,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(verticalCentre, verticalCentre));
+                .Returns(new Point(verticalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -163,10 +163,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(verticalCentre, verticalCentre));
+                .Returns(new Point(verticalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -184,10 +184,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, verticalCentre));
+                .Returns(new Point(horizontalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -205,10 +205,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, verticalCentre));
+                .Returns(new Point(horizontalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -226,10 +226,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, verticalCentre));
+                .Returns(new Point(horizontalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -247,10 +247,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, verticalCentre));
+                .Returns(new Point(horizontalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -265,10 +265,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(verticalCentre, verticalCentre));
+                .Returns(new Point(verticalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -283,10 +283,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(verticalCentre, verticalCentre));
+                .Returns(new Point(verticalCentre, verticalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -303,10 +303,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, horizontalCentre));
+                .Returns(new Point(horizontalCentre, horizontalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
 
         [Theory]
@@ -323,10 +323,10 @@ namespace ZingPdf.Core.Drawing
             var calculations = A.Fake<ICalculations>();
 
             A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-                .Returns(new Coordinate(horizontalCentre, horizontalCentre));
+                .Returns(new Point(horizontalCentre, horizontalCentre));
 
-            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Coordinate(x, y) })
-                .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
+            new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
+                .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
         }
     }
 }

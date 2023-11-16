@@ -2,6 +2,7 @@
 using ZingPdf.Core.Objects.DataStructures;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 using ZingPdf.Core.Parsing.DataStructureParsers;
@@ -32,6 +33,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly CrossReferenceEntryParser _xrefEntryParser = new();
         private static readonly DateParser _dateParser = new();
         private static readonly StreamObjectParser _streamParser = new();
+        private static readonly TrailerParser _trailerParser = new();
 
         public static IPdfObjectParser<PdfObject> For(Type pdfObjectType)
             => GetParserForType(pdfObjectType);
@@ -61,6 +63,7 @@ namespace ZingPdf.Core.Parsing
                 Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
                 Type t when t == typeof(Date) => _dateParser,
                 Type t when t == typeof(StreamObject) => _streamParser,
+                Type t when t == typeof(Trailer) => _trailerParser,
                 _ => throw new ParserException()
             };
         }

@@ -3,15 +3,16 @@
     public enum PathType
     {
         /// <summary>
-        /// Lines are straight between points.
+        /// Cubic bézier curve.
         /// </summary>
-        Linear,
+        /// <remarks>
+        /// A cubic bézier curve is defined by four points: two endpoints, and two control points.
+        /// </remarks>
+        Bezier,
 
         /// <summary>
-        /// Represents a cubic bézier curve.
-        /// <para />
-        /// Each curve along a path is defined by four points: two endpoints, and two control points.
+        /// Linear paths are straight between points.
         /// </summary>
-        Bezier,
+        Linear
     }
 }

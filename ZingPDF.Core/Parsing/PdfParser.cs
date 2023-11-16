@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Parsing
 
             var body = await indirectObjectDereferencer.GetAllAsync(stream).ToListAsync();
 
-            return new Pdf(header, new[] { new PdfIncrement(body, xrefTable, documentCatalogReference, infoReference, id) });
+            throw new NotImplementedException();
         }
 
         private static async Task<CrossReferenceTable> GetCrossReferenceTable(Stream stream, PdfObjectGroup trailerObjects)
