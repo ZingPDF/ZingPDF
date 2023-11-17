@@ -1,19 +1,34 @@
-﻿using ZingPdf.Core.Objects.Primitives;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
 {
     /// <summary>
     /// ISO 32000-2:2020 7.5.5 - File Trailer
     /// </summary>
-    internal class Trailer : PdfObjectGroup
+    internal class Trailer : PdfObject
     {
         public Trailer(
             TrailerDictionary trailerDictionary,
-            long? xrefTableByteOffset
+            long xrefTableByteOffset
             )
         {
-            if (trailerDictionary is null) throw new ArgumentNullException(nameof(trailerDictionary));
+            Dictionary = trailerDictionary ?? throw new ArgumentNullException(nameof(trailerDictionary));
+            XrefTableByteOffset = xrefTableByteOffset;
+        }
 
+        /// <summary>
+        /// The byte offset of the cross reference table.
+        /// </summary>
+        public long XrefTableByteOffset { get; internal set; }
+
+        /// <summary>
+        /// The trailer dictionary.
+        /// </summary>
+        public TrailerDictionary Dictionary { get; }
+
+        protected override async Task WriteOutputAsync(Stream stream)
+        {
             // trailer
             //     <</Size 22
             //       /Root 2 0 R
@@ -26,34 +41,20 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
             // 18799
             // %%EOF
 
-            XrefTableByteOffset = xrefTableByteOffset;
+            await new Keyword(Constants.Trailer).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
 
-            Dictionary = trailerDictionary;
+            await Dictionary.WriteAsync(stream);
+            await stream.WriteNewLineAsync();
 
-            Objects.Add(new Keyword(Constants.Trailer));
-            InsertNewLine();
+            await new Keyword(Constants.StartXref).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
 
-            Objects.Add(Dictionary);
-            InsertNewLine();
+            await new Integer(XrefTableByteOffset).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
 
-            Objects.Add(new Keyword(Constants.StartXref));
-            InsertNewLine();
-
-            Objects.Add(new Integer(xrefTableByteOffset ?? 0));
-            InsertNewLine();
-
-            Objects.Add(new Keyword(Constants.Eof));
-            InsertNewLine();
+            await new Keyword(Constants.Eof).WriteAsync(stream);
+            await stream.WriteNewLineAsync();
         }
-
-        /// <summary>
-        /// The byte offset of the cross reference table. This will be null until the PDF is written.
-        /// </summary>
-        public long? XrefTableByteOffset { get; }
-
-        /// <summary>
-        /// The trailer dictionary.
-        /// </summary>
-        public TrailerDictionary Dictionary { get; }
     }
 }

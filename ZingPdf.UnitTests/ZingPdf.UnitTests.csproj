@@ -21,4 +21,10 @@
     <ProjectReference Include="..\ZingPDF.Core\ZingPdf.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\minimal.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
