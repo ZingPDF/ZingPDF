@@ -10,7 +10,7 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Get the root page tree node.
         /// </summary>
-        PageTreeNode GetRootPageTreeNode(Dictionary trailerDictionary);
+        PageTreeNode GetRootPageTreeNode(TrailerDictionary trailerDictionary);
 
         /// <summary>
         /// Get a page tree node from its containing <see cref="IndirectObject"/> instance.
@@ -21,12 +21,12 @@ namespace ZingPdf.Core.Objects
         /// Get all pages.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<Page> GetPages(Dictionary trailerDictionary);
+        IEnumerable<Page> GetPages(TrailerDictionary trailerDictionary);
 
         /// <summary>
         /// Get the document catalog.
         /// </summary>
-        DocumentCatalog GetDocumentCatalog(Dictionary trailerDictionary);
+        DocumentCatalog GetDocumentCatalog(TrailerDictionary trailerDictionary);
 
         /// <summary>
         /// Get the most recent trailer.
