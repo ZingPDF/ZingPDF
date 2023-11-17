@@ -61,7 +61,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
         /// Optional, present only if the file has more than one cross-reference section;
         /// The byte offset from the beginning of the PDF file to the beginning of the previous cross-reference section.
         /// </summary>
-        public Integer? Prev { get => Get<Integer>(DictionaryKeys.Prev); private set => this[DictionaryKeys.Prev] = value!; }
+        public Integer? Prev { get => Get<Integer>(DictionaryKeys.Prev); internal set => this[DictionaryKeys.Prev] = value!; }
 
         /// <summary>
         /// The catalog dictionary for the PDF file.

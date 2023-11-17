@@ -1,19 +1,14 @@
-﻿using System.IO;
-using System.Xml.Linq;
-using ZingPdf.Core;
-using ZingPdf.Core.Drawing;
+﻿using ZingPdf.Core.Drawing;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
-using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
-using ZingPdf.Core.Parsing;
 
-namespace ZingPdf
+namespace ZingPdf.Core
 {
     // When doing incremental update, we need
     //  - last trailer
@@ -35,11 +30,8 @@ namespace ZingPdf
 
     public class Pdf
     {
+        private readonly IncrementalUpdateManager _pdfUpdateManager = new();
         private readonly Stream _stream;
-        private List<IndirectObject> _newAndUpdatedObjects = new();
-
-        //private readonly PdfTraversal _pdfTraversal = new();
-        //private readonly IndirectObjectManager _indirectObjectManager = new();
 
         private Pdf(Stream stream)
         {
@@ -57,54 +49,46 @@ namespace ZingPdf
         /// <returns>A <see cref="Pdf"/> instance.</returns>
         public static Pdf Create()
         {
-            IndirectObjectManager indirectObjectManager = new();
+            var documentCatalogId = new IndirectObjectId(1, 0);
+            var pageTreeNodeId = new IndirectObjectId(2, 0);
+            var pageId = new IndirectObjectId(3, 0);
 
-            var documentCatalogId = indirectObjectManager.ReserveId();
-            var pageTreeNodeIndex = indirectObjectManager.ReserveId();
+            var page = new IndirectObject(pageId, Page.CreateNew(pageTreeNodeId.Reference));
+            var rootPageTreeNode = new IndirectObject(pageTreeNodeId, PageTreeNode.CreateNew(new[] { page.Id.Reference }));
 
-            var pages = new[] { indirectObjectManager.Create(Page.CreateNew(pageTreeNodeIndex.Reference)) };
-
-            var rootPageTreeNode = indirectObjectManager.Create(pageTreeNodeIndex, PageTreeNode.CreateNew(pages.Select(p => p.Id.Reference).ToArray()));
-            var documentCatalog = indirectObjectManager.Create(documentCatalogId, DocumentCatalog.CreateNew(pageTreeNodeIndex.Reference));
+            var documentCatalog = new IndirectObject(documentCatalogId, DocumentCatalog.CreateNew(pageTreeNodeId.Reference));
 
             var ms = new MemoryStream();
 
             new Header().WriteAsync(ms).Wait();
 
-            foreach (var item in indirectObjectManager.Values)
-            {
-                item.WriteAsync(ms).Wait();
-            }
+            documentCatalog.WriteAsync(ms).Wait();
+            rootPageTreeNode.WriteAsync(ms).Wait();
+            page.WriteAsync(ms).Wait();
 
-            var xrefEntries = new List<CrossReferenceEntry>
-            {
-                new CrossReferenceEntry(0, 65535, false)
-            };
-
-            xrefEntries.AddRange(indirectObjectManager.Select(i => new CrossReferenceEntry(i.Value.ByteOffset!.Value, i.Value.Id.GenerationNumber, inUse: true)));
-
-            var xrefTable = new CrossReferenceTable(new[]
-            {
-                // An unmodified PDF has only one cross reference section
-                new CrossReferenceSection(0, xrefEntries)
+            var xrefTable = new CrossReferenceTable(
+                new[] { new CrossReferenceSection(0, new[] {
+                    new CrossReferenceEntry(0, 65535, inUse: false),
+                    new CrossReferenceEntry(documentCatalog.ByteOffset!.Value, 0, inUse: true),
+                    new CrossReferenceEntry(rootPageTreeNode.ByteOffset!.Value, 0, inUse: true),
+                    new CrossReferenceEntry(page.ByteOffset!.Value, 0, inUse: true),
+                })
             });
 
             xrefTable.WriteAsync(ms).Wait();
 
             var id = HexadecimalString.FromHexStringValue(Guid.NewGuid().ToString("N"));
 
-            new Trailer(
-                TrailerDictionary.CreateNew(
-                    size: indirectObjectManager.Count,
-                    prev: null,
-                    root: documentCatalogId.Reference,
-                    encrypt: null,
-                    info: null,
-                    id: new[] { id, id }
-                    ),
-                    xrefTable.ByteOffset
-                )
-                .WriteAsync(ms).Wait();
+            var trailerDictionary = TrailerDictionary.CreateNew(
+                size: 4,
+                prev: null,
+                root: documentCatalog.Id.Reference,
+                encrypt: null,
+                info: null,
+                id: new ArrayObject(new[] { id, id })
+                );
+
+            new Trailer(trailerDictionary, xrefTable.ByteOffset!.Value).WriteAsync(ms).Wait();
 
             ms.Position = 0;
 
@@ -130,32 +114,13 @@ namespace ZingPdf
 
             saveOptions ??= PdfSaveOptions.Default;
 
-            var pdfTraversal = new StreamPdfTraversal(_stream);
-
-            var trailer = await pdfTraversal.GetLatestTrailerAsync();
-
             _stream.Position = 0;
 
+            // Copy original PDf to output.
             await _stream.CopyToAsync(outputStream);
             await _stream.WriteNewLineAsync();
 
-            foreach(var indirectObject in _newAndUpdatedObjects)
-            {
-                await indirectObject.WriteAsync(outputStream);
-            }
-
-            // TODO: account for the use of features which should increase the pdf version
-
-            var xrefEntries = _newAndUpdatedObjects.Select(i =>
-                new CrossReferenceEntry(i.ByteOffset!.Value, i.Id.GenerationNumber, inUse: true)
-                );
-
-            var xrefTable = new CrossReferenceTable(new[]
-            {
-                new CrossReferenceSection(0, xrefEntries)
-            });
-
-            await outputStream.FlushAsync();
+            await _pdfUpdateManager.SaveAsync(outputStream);
         }
 
         public int GetPageCount()
@@ -170,6 +135,29 @@ namespace ZingPdf
 
         public void AppendPage()
         {
+            var pdfTraversal = new StreamPdfTraversal(_stream);
+
+            var trailer = pdfTraversal.GetLatestTrailerAsync().Result;
+            var documentCatalog = pdfTraversal.GetDocumentCatalog(trailer.Dictionary);
+
+            var rootPageTreeNodeReference = documentCatalog.Pages;
+
+            var page = Page.CreateNew(rootPageTreeNodeReference);
+            var pageId = new IndirectObjectId(trailer.Dictionary.Size + 1, 0);
+
+            _pdfUpdateManager.AddObject(new IndirectObject(pageId, page));
+
+            var rootPageTreeNode = pdfTraversal.GetRootPageTreeNode(trailer.Dictionary);
+
+            // TODO: For now, to simplify adding pages,
+            // new pages are appended to the root page tree node.
+            // Determine if there's a better way, like ensuring a balanced tree.
+            rootPageTreeNode.Kids.Add(pageId.Reference);
+
+            rootPageTreeNode.PageCount++;
+
+            //_pdfUpdateManager.AddObject(rootPageTreeNode);
+
             throw new NotImplementedException();
         }
 
@@ -195,7 +183,7 @@ namespace ZingPdf
 
         public void Draw(
             int pageNumber,
-            IEnumerable<Core.Drawing.Path> paths,
+            IEnumerable<Drawing.Path> paths,
             IEnumerable<Text> text,
             IEnumerable<Image> imageOperations,
             CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
