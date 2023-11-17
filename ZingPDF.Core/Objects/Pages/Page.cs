@@ -73,16 +73,16 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Create a blank page.
         /// </summary>
-        /// <param name="pagesCatalogReference">An <see cref="IndirectObjectReference"/> pointing to the page's parent.</param>
+        /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="Pages.PageTreeNode"/>.</param>
         /// <returns>A <see cref="Page"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static Page CreateNew(IndirectObjectReference pagesCatalogReference, PageCreationOptions? options = null)
+        internal static Page CreateNew(IndirectObjectReference parent, PageCreationOptions? options = null)
         {
-            if (pagesCatalogReference is null) throw new ArgumentNullException(nameof(pagesCatalogReference));
+            if (parent is null) throw new ArgumentNullException(nameof(parent));
 
             options ??= new PageCreationOptions();
 
-            var page = new Page(pagesCatalogReference);
+            var page = new Page(parent);
 
             if (options.MediaBox is not null)
             {

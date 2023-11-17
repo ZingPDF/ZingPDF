@@ -65,7 +65,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
             while (stream.Position < stream.Length);
 
-            return new IndirectObject(new IndirectObjectId(id, genNumber), items);
+            return new IndirectObject(new IndirectObjectId(id, genNumber), items.ToArray());
         }
     }
 }

@@ -6,7 +6,7 @@ namespace ZingPdf.Core.Parsing
     {
         private readonly int _bufferSize = 1024;
 
-        public async Task FindAsync(Stream stream)
+        public async Task<long?> FindAsync(Stream stream)
         {
             if (!stream.CanSeek)
             {
@@ -44,7 +44,9 @@ namespace ZingPdf.Core.Parsing
                     break;
                 }
             }
-            while (true);
+            while (stream.Position < stream.Length);
+
+            return stream.Position > 0 ? stream.Position : null;
         }
     }
 }
