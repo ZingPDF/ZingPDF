@@ -25,7 +25,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         public List<KeyValuePair<int, long>> IndirectObjectLocations { get; } = new();
 
         /// <summary>
-        /// Given a parsed PDF, it is important to keep the xref table intact, as it contains file updates.
+        /// Given a parsed PDF, it is important to keep the xref table intact, as it contains the file update history.
         /// The specified byte offsets for each object will likely be incorrect when the file is re-written,
         /// due to whitespace/line-break differences. This method is used to update the byte offsets of 
         /// all existing records, once the objects have been written, and we know their new offsets.
@@ -48,15 +48,6 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 
                 ExtractIndirectObjectLocations();
             }
-        }
-
-        public void Add(IndirectObjectReference indirectObjectReference)
-        {
-            if (indirectObjectReference is null) throw new ArgumentNullException(nameof(indirectObjectReference));
-
-            _xrefSections.Last().Add(indirectObjectReference.Id.GenerationNumber);
-
-            ExtractIndirectObjectLocations();
         }
 
         protected override async Task WriteOutputAsync(Stream stream)
