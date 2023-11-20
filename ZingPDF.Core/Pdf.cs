@@ -30,7 +30,7 @@ namespace ZingPdf.Core
 
     public class Pdf
     {
-        private readonly IncrementalUpdateManager _pdfUpdateManager = new();
+        private readonly IncrementalUpdateManager _incrementalUpdateManager = new();
         private readonly Stream _stream;
 
         private Pdf(Stream stream)
@@ -120,7 +120,7 @@ namespace ZingPdf.Core
             await _stream.CopyToAsync(outputStream);
             await _stream.WriteNewLineAsync();
 
-            await _pdfUpdateManager.SaveAsync(outputStream);
+            await _incrementalUpdateManager.SaveAsync(outputStream);
         }
 
         public int GetPageCount()
@@ -133,32 +133,27 @@ namespace ZingPdf.Core
             throw new NotImplementedException();
         }
 
-        public void AppendPage()
+        public async Task AppendPageAsync()
         {
             var pdfTraversal = new StreamPdfTraversal(_stream);
 
-            var trailer = pdfTraversal.GetLatestTrailerAsync().Result;
-            var documentCatalog = pdfTraversal.GetDocumentCatalog(trailer.Dictionary);
+            var trailer = await pdfTraversal.GetLatestTrailerAsync();
+            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary);
 
-            var rootPageTreeNodeReference = documentCatalog.Pages;
+            var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference);
 
-            var page = Page.CreateNew(rootPageTreeNodeReference);
-            var pageId = new IndirectObjectId(trailer.Dictionary.Size + 1, 0);
+            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page, _stream);
 
-            _pdfUpdateManager.AddObject(new IndirectObject(pageId, page));
-
-            var rootPageTreeNode = pdfTraversal.GetRootPageTreeNode(trailer.Dictionary);
+            var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
             // TODO: For now, to simplify adding pages,
             // new pages are appended to the root page tree node.
             // Determine if there's a better way, like ensuring a balanced tree.
-            rootPageTreeNode.Kids.Add(pageId.Reference);
+            rootPageTreeNode.Kids.Add(pageIndirectObject.Id.Reference);
 
             rootPageTreeNode.PageCount++;
 
-            //_pdfUpdateManager.AddObject(rootPageTreeNode);
-
-            throw new NotImplementedException();
+            _incrementalUpdateManager.UpdateObject(rootPageTreeNodeIndirectObject);
         }
 
         public void InsertPage(int pageNumber)
