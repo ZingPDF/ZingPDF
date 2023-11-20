@@ -8,7 +8,6 @@ using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 using ZingPdf.Core.Parsing.DataStructureParsers;
 using ZingPdf.Core.Parsing.ObjectGroupParsers;
 using ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing;
-using ZingPdf.Core.Parsing.ObjectParsers;
 using ZingPdf.Core.Parsing.PrimitiveParsers;
 
 namespace ZingPdf.Core.Parsing
