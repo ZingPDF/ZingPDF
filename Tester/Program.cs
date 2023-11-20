@@ -23,7 +23,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count = pdf.GetPageCount();
 
-    pdf.AppendPage();
+    pdf.AppendPageAsync();
 
     var test = pdf.GetPage(1);
 
@@ -49,6 +49,9 @@ static async Task CreateNewPdfAndValidate(string outputPath)
 {
     using var outputFileStream = new FileStream(outputPath, FileMode.Create);
     var pdf = Pdf.Create();
+
+    await pdf.AppendPageAsync();
+
     await pdf.SaveAsync(outputFileStream);
 
     //outputFileStream.Position = 0;
