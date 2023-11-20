@@ -1,32 +1,23 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core
 {
-    public class PdfUpdateManagerTests
+    public class PdfTests
     {
         [Fact]
         public async Task SimpleIncrementalUpdate()
         {
-            var manager = new IncrementalUpdateManager();
+            var pdf = Pdf.Load(File.Open("TestFiles/minimal.pdf", FileMode.Open));
 
-            var dummyObject = new LiteralString("");
-            var dummyIndirectObject = new IndirectObject(new IndirectObjectId(1, 0), dummyObject);
-
-            manager.AddObject(dummyIndirectObject);
-
-            var inputStream = File.Open("TestFiles/minimal.pdf", FileMode.Open);
             var outputStream = File.Open("output.pdf", FileMode.Create);
 
-            inputStream.CopyTo(outputStream);
+            await pdf.AppendPageAsync();
 
-            await manager.SaveAsync(outputStream);
+            await pdf.SaveAsync(outputStream);
 
             outputStream.Position = 0;
-
             var output = await outputStream.GetAsync();
 
             var expectedOutput = "%PDF-2.0\r\n" +
@@ -52,7 +43,7 @@ namespace ZingPdf.Core
                 "184\r\n" +
                 "%%EOF\r\n" +
                 "1 0 obj\r\n" +
-                "(﻿)\r\n" +
+                "<</Type /Page/Parent 2 0 R/Resources <<>>>>\r\n" +
                 "endobj\r\n" +
                 "xref\r\n" +
                 "0 2\r\n" +

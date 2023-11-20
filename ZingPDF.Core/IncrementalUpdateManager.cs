@@ -1,20 +1,48 @@
 ﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
-using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core
 {
+    // TODO: unit tests are vital for this class
     internal class IncrementalUpdateManager
     {
         private readonly Dictionary<IndirectObjectId, IndirectObject> _entries = new();
 
-        public void AddObject(IndirectObject indirectObject)
+        public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject, Stream stream)
         {
-            if (indirectObject is null)
+            if (pdfObject is null) throw new ArgumentNullException(nameof(pdfObject));
+            if (stream is null) throw new ArgumentNullException(nameof(stream));
+
+            var pdfTraversal = new StreamPdfTraversal(stream);
+
+            // Concatenate unsaved entries with existing objects
+            var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync())
+                .Concat(_entries.Select(e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true)));
+
+            var freeIndex = xrefs.ToList().FindIndex(x => !x.InUse);
+            IndirectObjectId objectId;
+            if (freeIndex == -1)
             {
-                throw new ArgumentNullException(nameof(indirectObject));
+                freeIndex = xrefs.Count() + 1;
+                objectId = new IndirectObjectId(freeIndex, 0);
             }
+            else
+            {
+                var xref = xrefs.ElementAt(freeIndex);
+                objectId = new IndirectObjectId(freeIndex, xref.IndirectObjectGenerationNumber);
+            }
+
+            var indirectObject = new IndirectObject(objectId, pdfObject);
+
+            _entries[indirectObject.Id] = indirectObject;
+
+            return indirectObject;
+        }
+
+        public void UpdateObject(IndirectObject indirectObject)
+        {
+            if (indirectObject is null) throw new ArgumentNullException(nameof(indirectObject));
 
             _entries[indirectObject.Id] = indirectObject;
         }
@@ -26,13 +54,18 @@ namespace ZingPdf.Core
                 throw new ArgumentException("Provided stream must be writable", nameof(stream));
             }
 
+            if (!_entries.Any())
+            {
+                return;
+            }
+
             var pdfTraversal = new StreamPdfTraversal(stream);
 
-            Trailer existingTrailer = await pdfTraversal.GetLatestTrailerAsync();
+            var latestTrailer = await pdfTraversal.GetLatestTrailerAsync();
 
             stream.Seek(0, SeekOrigin.End);
 
-            foreach (var entry in _entries)
+            foreach (var entry in _entries.Skip(1))
             {
                 await entry.Value.WriteAsync(stream);
             }
@@ -40,9 +73,9 @@ namespace ZingPdf.Core
             var xrefTable = GenerateCrossReferences();
             await xrefTable.WriteAsync(stream);
 
-            existingTrailer.Dictionary.Prev = existingTrailer.XrefTableByteOffset;
-            existingTrailer.XrefTableByteOffset = xrefTable.ByteOffset!.Value;
-            await existingTrailer.WriteAsync(stream);
+            latestTrailer.Dictionary.Prev = latestTrailer.XrefTableByteOffset;
+            latestTrailer.XrefTableByteOffset = xrefTable.ByteOffset!.Value;
+            await latestTrailer.WriteAsync(stream);
 
             //TODO: account for the use of features which should increase the pdf version
 

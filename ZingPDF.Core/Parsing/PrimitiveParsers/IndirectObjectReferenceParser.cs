@@ -2,7 +2,7 @@
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
-namespace ZingPdf.Core.Parsing.ObjectParsers
+namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class IndirectObjectReferenceParser : IPdfObjectParser<IndirectObjectReference>
     {
