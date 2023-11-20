@@ -1,24 +1,18 @@
 ﻿using ZingPdf.Core.Objects;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Parsing
 {
     internal class IndirectObjectDereferencer
     {
-        private readonly CrossReferenceTable _xrefTable;
-
-        public IndirectObjectDereferencer(CrossReferenceTable xrefTable)
-        {
-            _xrefTable = xrefTable ?? throw new ArgumentNullException(nameof(xrefTable));
-        }
-
         /// <summary>
         /// Returns the latest Indirect Object matching the given reference.
         /// </summary>
         public async Task<IndirectObject> GetAsync(Stream stream, IndirectObjectReference reference)
         {
-            var offset = _xrefTable.IndirectObjectLocations.Last(kvp => kvp.Key == reference.Id.Index).Value;
+            var pdfTraversal = new StreamPdfTraversal(stream);
+            var xrefs = await pdfTraversal.GetAggregateCrossReferencesAsync();
+            var offset = xrefs.ElementAt(reference.Id.Index).IndirectObjectByteOffset;
 
             stream.Position = offset;
 
@@ -34,9 +28,12 @@ namespace ZingPdf.Core.Parsing
 
         public async IAsyncEnumerable<IndirectObject> GetAllAsync(Stream stream)
         {
-            foreach (var record in _xrefTable.IndirectObjectLocations.Skip(1))
+            var pdfTraversal = new StreamPdfTraversal(stream);
+            var xrefs = await pdfTraversal.GetAggregateCrossReferencesAsync();
+
+            foreach (var record in xrefs)
             {
-                stream.Position = record.Value;
+                stream.Position = record.IndirectObjectByteOffset;
 
                 yield return await Parser.For<IndirectObject>().ParseAsync(stream);
             }
