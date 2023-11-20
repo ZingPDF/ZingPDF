@@ -20,7 +20,7 @@ namespace ZingPdf.Core.Parsing
 
             CrossReferenceTable xrefTable = await GetCrossReferenceTable(stream, trailerObjects);
 
-            var indirectObjectDereferencer = new IndirectObjectDereferencer(xrefTable);
+            var indirectObjectDereferencer = new IndirectObjectDereferencer();
 
             var documentCatalogReference = trailerDict.Get<IndirectObjectReference>("Root")
                 ?? throw new ParserException("Trailer is missing an entry for `Root`");

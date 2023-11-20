@@ -1,6 +1,5 @@
-﻿using ZingPdf.Core.Objects.ObjectGroups.Trailer;
-using ZingPdf.Core.Objects.Pages;
-using ZingPdf.Core.Objects.Primitives;
+﻿using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects
@@ -10,12 +9,7 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Get the root page tree node.
         /// </summary>
-        PageTreeNode GetRootPageTreeNode(TrailerDictionary trailerDictionary);
-
-        /// <summary>
-        /// Get a page tree node from its containing <see cref="IndirectObject"/> instance.
-        /// </summary>
-        PageTreeNode GetPageTreeNode(IndirectObject pageTreeNodeIndirectObject);
+        Task<IndirectObject> GetRootPageTreeNodeAsync(TrailerDictionary trailerDictionary);
 
         /// <summary>
         /// Get all pages.
@@ -24,13 +18,13 @@ namespace ZingPdf.Core.Objects
         IEnumerable<Page> GetPages(TrailerDictionary trailerDictionary);
 
         /// <summary>
-        /// Get the document catalog.
-        /// </summary>
-        DocumentCatalog GetDocumentCatalog(TrailerDictionary trailerDictionary);
-
-        /// <summary>
         /// Get the most recent trailer.
         /// </summary>
         Task<Trailer> GetLatestTrailerAsync();
+
+        /// <summary>
+        /// Get all cross references, made up from all tables.
+        /// </summary>
+        Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
     }
 }
