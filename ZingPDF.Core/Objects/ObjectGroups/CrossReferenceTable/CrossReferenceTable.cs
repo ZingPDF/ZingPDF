@@ -9,20 +9,12 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
     /// </summary>
     internal class CrossReferenceTable : PdfObject
     {
-        private readonly IEnumerable<CrossReferenceSection> _xrefSections;
-
         public CrossReferenceTable(IEnumerable<CrossReferenceSection> xrefSections)
         {
-            _xrefSections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
-
-            ExtractIndirectObjectLocations();
+            Sections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
         }
 
-        /// <summary>
-        /// A list of all indirect object indices and their byte offsets.
-        /// This is a list of pairs rather than a dictionary as there can be duplicate keys.
-        /// </summary>
-        public List<KeyValuePair<int, long>> IndirectObjectLocations { get; } = new();
+        public IEnumerable<CrossReferenceSection> Sections { get; }
 
         /// <summary>
         /// Given a parsed PDF, it is important to keep the xref table intact, as it contains the file update history.
@@ -34,7 +26,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         {
             foreach(IndirectObject indirectObject in objects)
             {
-                foreach (var section in _xrefSections)
+                foreach (var section in Sections)
                 {
                     for (var i = section.Index.StartIndex; i < section.Entries.Count; i++)
                     {
@@ -45,8 +37,6 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
                         }
                     }
                 }
-
-                ExtractIndirectObjectLocations();
             }
         }
 
@@ -55,27 +45,9 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             await new Keyword(Constants.Xref).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
-            foreach(var section in _xrefSections)
+            foreach(var section in Sections)
             {
                 await section.WriteAsync(stream);
-            }
-        }
-
-        /// <summary>
-        /// Reset the internal list of object locations.
-        /// </summary>
-        private void ExtractIndirectObjectLocations()
-        {
-            IndirectObjectLocations.Clear();
-
-            foreach (var section in _xrefSections)
-            {
-                for (var i = 0; i < section.Entries.Count; i++)
-                {
-                    var entry = section.Entries.ElementAt(i);
-
-                    IndirectObjectLocations.Add(new KeyValuePair<int, long>(section.Index.StartIndex + i, entry.IndirectObjectByteOffset));
-                }
             }
         }
     }
