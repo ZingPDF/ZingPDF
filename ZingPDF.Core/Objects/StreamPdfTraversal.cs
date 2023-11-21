@@ -1,5 +1,6 @@
 ﻿using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
+using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 using ZingPdf.Core.Parsing;
@@ -59,9 +60,15 @@ namespace ZingPdf.Core.Objects
             return await Parser.For<Trailer>().ParseAsync(_stream);
         }
 
-        public IEnumerable<Page> GetPages(TrailerDictionary trailerDictionary)
+        public async Task<IEnumerable<Page>> GetPagesAsync(TrailerDictionary trailerDictionary)
         {
-            throw new NotImplementedException();
+            if (trailerDictionary is null) throw new ArgumentNullException(nameof(trailerDictionary));
+
+            var rootPageTreeNodeIndirectObject = await GetRootPageTreeNodeAsync(trailerDictionary);
+
+            var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
+
+            return await GetSubPagesAsync(rootPageTreeNode);
         }
 
         public async Task<IndirectObject> GetRootPageTreeNodeAsync(TrailerDictionary trailerDictionary)
@@ -74,6 +81,32 @@ namespace ZingPdf.Core.Objects
                 await indirectObjectDereferencer.GetSingleAsync<Dictionary>(_stream, trailerDictionary.Root));
 
             return await indirectObjectDereferencer.GetAsync(_stream, documentCatalog.Pages);
+        }
+
+        /// <summary>
+        /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
+        /// </summary>
+        private async Task<IEnumerable<Page>> GetSubPagesAsync(PageTreeNode pageTreeNode)
+        {
+            IndirectObjectDereferencer indirectObjectDereferencer = new();
+
+            List<Page> pages = new();
+
+            foreach(var ior in pageTreeNode.Kids)
+            {
+                var obj = await indirectObjectDereferencer.GetAsync(_stream, (IndirectObjectReference)ior);
+
+                if (obj.Children.First() is Page page)
+                {
+                    pages.Add(page);
+                }
+                else if (obj.Children.First() is PageTreeNode ptn)
+                {
+                    pages.AddRange(await GetSubPagesAsync(ptn));
+                }
+            }
+
+            return pages;
         }
     }
 }

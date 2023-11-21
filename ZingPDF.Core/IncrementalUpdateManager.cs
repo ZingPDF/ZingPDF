@@ -10,12 +10,12 @@ namespace ZingPdf.Core
     {
         private readonly Dictionary<IndirectObjectId, IndirectObject> _entries = new();
 
-        public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject, Stream stream)
+        public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject, Stream inputStream)
         {
             if (pdfObject is null) throw new ArgumentNullException(nameof(pdfObject));
-            if (stream is null) throw new ArgumentNullException(nameof(stream));
+            if (inputStream is null) throw new ArgumentNullException(nameof(inputStream));
 
-            var pdfTraversal = new StreamPdfTraversal(stream);
+            var pdfTraversal = new StreamPdfTraversal(inputStream);
 
             // Concatenate unsaved entries with existing objects
             var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync())
@@ -48,39 +48,39 @@ namespace ZingPdf.Core
             _entries[indirectObject.Id] = indirectObject;
         }
 
-        public async Task SaveAsync(Stream stream)
+        public async Task SaveAsync(Stream inputStream, Stream outputStream)
         {
-            if (!stream.CanWrite)
-            {
-                throw new ArgumentException("Provided stream must be writable", nameof(stream));
-            }
+            if (inputStream is null) throw new ArgumentNullException(nameof(inputStream));
+            if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
+            if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
 
             if (!_entries.Any())
             {
                 return;
             }
 
-            var pdfTraversal = new StreamPdfTraversal(stream);
+            var pdfTraversal = new StreamPdfTraversal(inputStream);
 
             var latestTrailer = await pdfTraversal.GetLatestTrailerAsync();
 
-            stream.Seek(0, SeekOrigin.End);
+            outputStream.Seek(0, SeekOrigin.End);
 
             foreach (var entry in _entries)
             {
-                await entry.Value.WriteAsync(stream);
+                await entry.Value.WriteAsync(outputStream);
             }
 
             var xrefTable = GenerateCrossReferences();
-            await xrefTable.WriteAsync(stream);
+            await xrefTable.WriteAsync(outputStream);
 
+            // TODO: adjust 'Size' value if necessary
             latestTrailer.Dictionary.Prev = latestTrailer.XrefTableByteOffset;
             latestTrailer.XrefTableByteOffset = xrefTable.ByteOffset!.Value;
-            await latestTrailer.WriteAsync(stream);
+            await latestTrailer.WriteAsync(outputStream);
 
             //TODO: account for the use of features which should increase the pdf version
 
-            await stream.FlushAsync();
+            await outputStream.FlushAsync();
         }
 
         private CrossReferenceTable GenerateCrossReferences()
