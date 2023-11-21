@@ -54,7 +54,6 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
             await stream.WriteNewLineAsync();
 
             await new Keyword(Constants.Eof).WriteAsync(stream);
-            await stream.WriteNewLineAsync();
         }
     }
 }

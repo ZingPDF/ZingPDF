@@ -1,4 +1,5 @@
-﻿using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
@@ -20,7 +21,7 @@ namespace ZingPdf.Core
             var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync())
                 .Concat(_entries.Select(e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true)));
 
-            var freeIndex = xrefs.ToList().FindIndex(x => !x.InUse);
+            var freeIndex = xrefs.Skip(1).ToList().FindIndex(x => !x.InUse);
             IndirectObjectId objectId;
             if (freeIndex == -1)
             {
@@ -65,7 +66,7 @@ namespace ZingPdf.Core
 
             stream.Seek(0, SeekOrigin.End);
 
-            foreach (var entry in _entries.Skip(1))
+            foreach (var entry in _entries)
             {
                 await entry.Value.WriteAsync(stream);
             }
