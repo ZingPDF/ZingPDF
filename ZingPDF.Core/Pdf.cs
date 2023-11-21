@@ -118,7 +118,7 @@ namespace ZingPdf.Core
 
             // Copy original PDf to output.
             await _stream.CopyToAsync(outputStream);
-            await _stream.WriteNewLineAsync();
+            await outputStream.WriteNewLineAsync();
 
             await _incrementalUpdateManager.SaveAsync(outputStream);
         }
