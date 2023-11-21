@@ -15,7 +15,7 @@ namespace ZingPdf.Core.Objects
         /// Get all pages.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<Page> GetPages(TrailerDictionary trailerDictionary);
+        Task<IEnumerable<Page>> GetPagesAsync(TrailerDictionary trailerDictionary);
 
         /// <summary>
         /// Get the most recent trailer.

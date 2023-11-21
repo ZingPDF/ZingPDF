@@ -120,17 +120,34 @@ namespace ZingPdf.Core
             await _stream.CopyToAsync(outputStream);
             await outputStream.WriteNewLineAsync();
 
-            await _incrementalUpdateManager.SaveAsync(outputStream);
+            await _incrementalUpdateManager.SaveAsync(_stream, outputStream);
         }
 
-        public int GetPageCount()
+        public async Task<int> GetPageCountAsync()
         {
-            throw new NotImplementedException();
+            var pdfTraversal = new StreamPdfTraversal(_stream);
+
+            var trailer = await pdfTraversal.GetLatestTrailerAsync();
+            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary);
+
+            var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
+
+            return rootPageTreeNode.PageCount;
         }
 
-        public Page GetPage(int pageNumber)
+        public async Task<Page> GetPageAsync(int pageNumber)
         {
-            throw new NotImplementedException();
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
+            var pdfTraversal = new StreamPdfTraversal(_stream);
+
+            var trailer = await pdfTraversal.GetLatestTrailerAsync();
+
+            var pages = await pdfTraversal.GetPagesAsync(trailer.Dictionary);
+
+            if (pageNumber > pages.Count()) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
+            return pages.ElementAt(pageNumber - 1);
         }
 
         public async Task AppendPageAsync()
