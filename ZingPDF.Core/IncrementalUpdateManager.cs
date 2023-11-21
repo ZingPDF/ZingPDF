@@ -1,5 +1,4 @@
-﻿using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
