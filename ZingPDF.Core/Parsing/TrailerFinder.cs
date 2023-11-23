@@ -6,14 +6,14 @@ namespace ZingPdf.Core.Parsing
     {
         private readonly int _bufferSize = 1024;
 
-        public async Task<long?> FindAsync(Stream stream)
+        public async Task<long?> FindAsync(Stream stream, bool linearizedPdf)
         {
             if (!stream.CanSeek)
             {
                 throw new ParserException();
             }
 
-            stream.Seek(0, SeekOrigin.End);
+            stream.Seek(0, linearizedPdf ? SeekOrigin.Begin : SeekOrigin.End);
 
             byte[] buffer = new byte[_bufferSize];
 
@@ -22,22 +22,29 @@ namespace ZingPdf.Core.Parsing
             do
             {
                 // Calculate the amount left to read.
-                // This is the smaller of the buffer size and remaining data.
-                int readSize = (int)Math.Min(_bufferSize, stream.Position);
+                // When going backwards (for non-linearized PDFs), this is the smaller of the buffer size and remaining data.
+                // When going forwards this can simply be the buffer size;
+                int readSize = linearizedPdf ? _bufferSize : (int)Math.Min(_bufferSize, stream.Position);
 
                 // When reading a stream, we always go forwards.
                 // Therefore when going backwards, seek back by the read size.
                 // The stream position will be reset after reading.
-                stream.Seek(-readSize, SeekOrigin.Current);
+                if (!linearizedPdf)
+                {
+                    stream.Seek(-readSize, SeekOrigin.Current);
+                }
 
                 await stream.ReadAsync(buffer.AsMemory(0, readSize));
 
-                stream.Seek(-readSize, SeekOrigin.Current);
+                if (!linearizedPdf)
+                {
+                    stream.Seek(-readSize, SeekOrigin.Current);
+                }
 
-                content = Encoding.UTF8.GetString(buffer, 0, readSize) + content;
+                var readContent = Encoding.UTF8.GetString(buffer, 0, readSize);
+                content = linearizedPdf ? content + readContent : readContent + content;
 
                 var index = content.IndexOf(Constants.Trailer);
-
                 if (index != -1)
                 {
                     stream.Position += index;

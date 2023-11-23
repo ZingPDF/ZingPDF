@@ -16,9 +16,9 @@ namespace ZingPdf.Core.Objects
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
-        public async Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync()
+        public async Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync(bool linearizedPdf)
         {
-            var trailer = await GetLatestTrailerAsync();
+            var trailer = await GetLatestTrailerAsync(linearizedPdf);
             Dictionary<int, CrossReferenceEntry> xrefs = new();
 
             while(true)
@@ -53,40 +53,40 @@ namespace ZingPdf.Core.Objects
             return xrefs.Values;
         }
 
-        public async Task<Trailer> GetLatestTrailerAsync()
+        public async Task<Trailer> GetLatestTrailerAsync(bool linearizedPdf)
         {
-            _ = await new TrailerFinder().FindAsync(_stream);
+            _ = await new TrailerFinder().FindAsync(_stream, linearizedPdf);
 
             return await Parser.For<Trailer>().ParseAsync(_stream);
         }
 
-        public async Task<IEnumerable<Page>> GetPagesAsync(TrailerDictionary trailerDictionary)
+        public async Task<IEnumerable<Page>> GetPagesAsync(TrailerDictionary trailerDictionary, bool linearizedPdf)
         {
             if (trailerDictionary is null) throw new ArgumentNullException(nameof(trailerDictionary));
 
-            var rootPageTreeNodeIndirectObject = await GetRootPageTreeNodeAsync(trailerDictionary);
+            var rootPageTreeNodeIndirectObject = await GetRootPageTreeNodeAsync(trailerDictionary, linearizedPdf);
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
-            return await GetSubPagesAsync(rootPageTreeNode);
+            return await GetSubPagesAsync(rootPageTreeNode, linearizedPdf);
         }
 
-        public async Task<IndirectObject> GetRootPageTreeNodeAsync(TrailerDictionary trailerDictionary)
+        public async Task<IndirectObject> GetRootPageTreeNodeAsync(TrailerDictionary trailerDictionary, bool linearizedPdf)
         {
             if (trailerDictionary is null) throw new ArgumentNullException(nameof(trailerDictionary));
 
             IndirectObjectDereferencer indirectObjectDereferencer = new();
 
             var documentCatalog = DocumentCatalog.FromDictionary(
-                await indirectObjectDereferencer.GetSingleAsync<Dictionary>(_stream, trailerDictionary.Root));
+                await indirectObjectDereferencer.GetSingleAsync<Dictionary>(_stream, linearizedPdf, trailerDictionary.Root));
 
-            return await indirectObjectDereferencer.GetAsync(_stream, documentCatalog.Pages);
+            return await indirectObjectDereferencer.GetAsync(_stream, linearizedPdf, documentCatalog.Pages);
         }
 
         /// <summary>
         /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
         /// </summary>
-        private async Task<IEnumerable<Page>> GetSubPagesAsync(PageTreeNode pageTreeNode)
+        private async Task<IEnumerable<Page>> GetSubPagesAsync(PageTreeNode pageTreeNode, bool linearizedPdf)
         {
             IndirectObjectDereferencer indirectObjectDereferencer = new();
 
@@ -94,7 +94,7 @@ namespace ZingPdf.Core.Objects
 
             foreach(var ior in pageTreeNode.Kids)
             {
-                var obj = await indirectObjectDereferencer.GetAsync(_stream, (IndirectObjectReference)ior);
+                var obj = await indirectObjectDereferencer.GetAsync(_stream, linearizedPdf, (IndirectObjectReference)ior);
 
                 if (obj.Children.First() is Page page)
                 {
@@ -102,7 +102,7 @@ namespace ZingPdf.Core.Objects
                 }
                 else if (obj.Children.First() is PageTreeNode ptn)
                 {
-                    pages.AddRange(await GetSubPagesAsync(ptn));
+                    pages.AddRange(await GetSubPagesAsync(ptn, linearizedPdf));
                 }
             }
 

@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<RealNumber> ParseAsync(Stream stream)
         {
-            await stream.AdvancePastWhitepaceAsync();
+            stream.AdvancePastWhitepace();
 
             var content = await stream.ReadUpToExcludingAsync(Constants.WhitespaceCharacters);
 
