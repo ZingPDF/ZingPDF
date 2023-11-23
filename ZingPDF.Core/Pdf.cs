@@ -2,28 +2,36 @@
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
+using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
+using ZingPdf.Core.Parsing;
 
 namespace ZingPdf.Core
 {
     public class Pdf
     {
+        private static readonly double _defaultPdfVersion = 2;
+
         private readonly IncrementalUpdateManager _incrementalUpdateManager = new();
         private readonly Stream _stream;
+        private readonly LinearizationParameters? _linearizationParameters;
+        private readonly double _pdfVersion;
 
-        private Pdf(Stream stream)
+        private Pdf(Stream stream, double? pdfVersion = null, LinearizationParameters? linearizationParameters = null)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
-
-            if (!stream.CanSeek)
-            {
-                throw new ArgumentException("Stream must be seekable", nameof(stream));
-            }
+            _pdfVersion = pdfVersion ?? _defaultPdfVersion;
+            _linearizationParameters = linearizationParameters;
         }
+
+        /// <summary>
+        /// Indicates whether the PDF is linearized.
+        /// </summary>
+        public bool Linearized { get => _linearizationParameters is not null; }
 
         /// <summary>
         /// Create a new PDF. The new document will contain a single blank page by default.
@@ -77,14 +85,40 @@ namespace ZingPdf.Core
             return new(ms);
         }
 
-        public static Pdf Load(Stream stream)
+        public static async Task<Pdf> LoadAsync(Stream stream)
         {
             if (!stream.CanSeek)
             {
                 throw new ArgumentException("Stream must be seekable", nameof(stream));
             }
 
-            return new(stream);
+            stream.Position = 0;
+
+            // Read the first 1024 bytes to determine if the PDF is linearized.
+            using var tempStream = await stream.RangeAsync(0, 1024);
+
+            var pdfObjectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(tempStream);
+
+            var header = pdfObjectGroup.Get<Header>(0);
+
+            static bool isLinearizationDictionary(IndirectObject o) =>
+                o.Children.FirstOrDefault() is LinearizationParameters;
+
+            var linearizationDictionaryIndirectObject = pdfObjectGroup.Objects
+                .OfType<IndirectObject>()
+                .FirstOrDefault(isLinearizationDictionary);
+
+            var linearizationDictionary = linearizationDictionaryIndirectObject?.Children.First()! as LinearizationParameters;
+
+            //if ((linearizationDictionary?.L ?? -1) != stream.Length)
+            //{
+            //    // TODO: Figure out how to deal with invalid length
+            //    linearizationDictionary = null;
+            //}
+
+            // TODO: header version can be overridden
+
+            return new(stream, header.PdfVersion, linearizationDictionary);
         }
 
         public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions = null)
@@ -102,15 +136,15 @@ namespace ZingPdf.Core
             await _stream.CopyToAsync(outputStream);
             await outputStream.WriteNewLineAsync();
 
-            await _incrementalUpdateManager.SaveAsync(_stream, outputStream);
+            await _incrementalUpdateManager.SaveAsync(Linearized, _stream, outputStream);
         }
 
         public async Task<int> GetPageCountAsync()
         {
             var pdfTraversal = new StreamPdfTraversal(_stream);
 
-            var trailer = await pdfTraversal.GetLatestTrailerAsync();
-            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary);
+            var trailer = await pdfTraversal.GetLatestTrailerAsync(Linearized);
+            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary, Linearized);
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
@@ -123,9 +157,9 @@ namespace ZingPdf.Core
 
             var pdfTraversal = new StreamPdfTraversal(_stream);
 
-            var trailer = await pdfTraversal.GetLatestTrailerAsync();
+            var trailer = await pdfTraversal.GetLatestTrailerAsync(Linearized);
 
-            var pages = await pdfTraversal.GetPagesAsync(trailer.Dictionary);
+            var pages = await pdfTraversal.GetPagesAsync(trailer.Dictionary, Linearized);
 
             if (pageNumber > pages.Count()) throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
@@ -138,12 +172,12 @@ namespace ZingPdf.Core
         {
             var pdfTraversal = new StreamPdfTraversal(_stream);
 
-            var trailer = await pdfTraversal.GetLatestTrailerAsync();
-            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary);
+            var trailer = await pdfTraversal.GetLatestTrailerAsync(Linearized);
+            var rootPageTreeNodeIndirectObject = await pdfTraversal.GetRootPageTreeNodeAsync(trailer.Dictionary, Linearized);
 
             var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference);
 
-            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page, _stream);
+            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page, Linearized, _stream);
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
@@ -159,21 +193,31 @@ namespace ZingPdf.Core
 
         public void InsertPage(int pageNumber)
         {
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
             throw new NotImplementedException();
         }
 
         public void ReplacePage(int pageNumber, Page page)
         {
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            if (page is null) throw new ArgumentNullException(nameof(page));
+
             throw new NotImplementedException();
         }
 
         public void DeletePage(int pageNumber)
         {
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
             throw new NotImplementedException();
         }
 
-        public void SetPageRotation(Rotation rotation)
+        public void SetPageRotation(int pageNumber, Rotation rotation)
         {
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            if (rotation is null) throw new ArgumentNullException(nameof(rotation));
+
             throw new NotImplementedException();
         }
 
@@ -185,6 +229,8 @@ namespace ZingPdf.Core
             CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
             )
         {
+            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+
             throw new NotImplementedException();
         }
 

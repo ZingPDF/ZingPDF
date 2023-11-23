@@ -12,7 +12,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var streamLength = streamDict.Get<Integer>("Length")!;
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
-            await stream.AdvancePastWhitepaceAsync();
+            stream.AdvancePastWhitepace();
+
+            stream.Position += streamLength;
 
             return StreamObject.FromEncodedStream(stream, stream.Position, stream.Position + streamLength, streamDict);
         }

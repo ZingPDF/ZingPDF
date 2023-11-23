@@ -246,8 +246,13 @@ namespace ZingPdf.Core.Extensions
         /// <summary>
         /// Advance the stream to the next non-whitespace character.
         /// </summary>
-        public static Task AdvancePastWhitepaceAsync(this Stream stream)
+        public static void AdvancePastWhitepace(this Stream stream)
         {
+            if (stream.Position == stream.Length)
+            {
+                return;
+            }
+
             string? str;
             do
             {
@@ -262,7 +267,7 @@ namespace ZingPdf.Core.Extensions
             }
             while (stream.Position < stream.Length);
 
-            return Task.CompletedTask;
+            return;
         }
 
         /// <summary>
