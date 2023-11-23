@@ -10,7 +10,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
-            await stream.AdvancePastWhitepaceAsync();
+            stream.AdvancePastWhitepace();
 
             // Save this in case we need to go back.
             // An indirect object with a stream needs to use the stream parser,
@@ -47,7 +47,19 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     break;
                 }
 
-                var item = await Parser.For(type).ParseAsync(stream);
+                PdfObject item;
+                try
+                {
+                    item = await Parser.For(type).ParseAsync(stream);
+                }
+                catch
+                {
+                    // If any exception is thrown, gracefully exit.
+                    // The subobject could be invalid or not understood by this library.
+                    // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
+                    // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
+                    break;
+                }
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {

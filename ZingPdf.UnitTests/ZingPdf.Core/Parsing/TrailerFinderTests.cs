@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Parsing
 
             using var input = contentString.ToStream();
 
-            await new TrailerFinder().FindAsync(input);
+            await new TrailerFinder().FindAsync(input, linearizedPdf: false);
 
             input.Position.Should().Be(1275);
         }

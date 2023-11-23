@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<BooleanObject> ParseAsync(Stream stream)
         {
-            await stream.AdvancePastWhitepaceAsync();
+            stream.AdvancePastWhitepace();
 
             return bool.Parse(await stream.ReadUpToExcludingAsync(Constants.WhitespaceCharacters));
         }
