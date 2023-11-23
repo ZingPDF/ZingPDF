@@ -15,8 +15,10 @@ namespace ZingPdf.Core.Parsing
     internal static class Parser
     {
         private static readonly PdfObjectGroupParser _pdfObjectGroupParser = new();
+        private static readonly HeaderParser _headerParser = new();
         private static readonly IndirectObjectParser _indirectObjectParser = new();
         private static readonly KeywordParser _keywordParser = new();
+        private static readonly CommentParser _commentParser = new();
         private static readonly NameParser _nameParser = new();
         private static readonly DictionaryParser _dictionaryParser = new();
         private static readonly ArrayParser _arrayParser = new();
@@ -45,8 +47,10 @@ namespace ZingPdf.Core.Parsing
             return type switch
             {
                 Type t when t == typeof(PdfObjectGroup) => _pdfObjectGroupParser,
+                Type t when t == typeof(Header) => _headerParser,
                 Type t when t == typeof(IndirectObject) => _indirectObjectParser,
                 Type t when t == typeof(Keyword) => _keywordParser,
+                Type t when t == typeof(Comment) => _commentParser,
                 Type t when t == typeof(Name) => _nameParser,
                 Type t when t == typeof(Dictionary) => _dictionaryParser,
                 Type t when t == typeof(ArrayObject) => _arrayParser,

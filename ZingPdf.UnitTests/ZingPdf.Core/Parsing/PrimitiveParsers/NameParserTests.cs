@@ -15,11 +15,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         [InlineData("<</Type/Catalog/Pages 2 0 R", "Type")]
         [InlineData("2 0 obj\r\n<</Type/Pages/Count 3", "Type")]
         [InlineData("/Page\r\n", "Page")]
+        [InlineData("/DecodeParms<</Columns", "DecodeParms")]
         public async Task ParseBasicAsync(string content, string expected)
         {
             using var input = content.ToStream();
 
-            var output = await Parser.For<Name>().ParseAsync(input);
+            var output = await new NameParser().ParseAsync(input);
 
             output.Value.Should().Be(expected);
         }

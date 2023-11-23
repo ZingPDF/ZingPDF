@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<Integer> ParseAsync(Stream stream)
         {
-            await stream.AdvancePastWhitepaceAsync();
+            stream.AdvancePastWhitepace();
 
             var content = await stream.ReadUntilAsync(c => !c.IsInteger() && c != '-');
 

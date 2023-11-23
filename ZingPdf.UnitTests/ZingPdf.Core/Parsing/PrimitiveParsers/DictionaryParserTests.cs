@@ -96,5 +96,20 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             parentReference!.Id.Index.Should().Be(94);
             parentReference!.Id.GenerationNumber.Should().Be(0);
         }
+
+        [Fact]
+        public async Task ParseComplexDelimiters()
+        {
+            var contentString = "<<" +
+                "/DecodeParms<</Columns 5/Predictor 12>>" +
+                "/Filter/FlateDecode" +
+                "/ID[<2B551D2AFE52654494F9720283CFF1C4><3CDA8BB6D5834E41A5E2AA16C35E4C47>]" +
+                "/Index[90793 1014]/Info 90792 0 R/Length 185/Prev 14709647" +
+                "/Root 90794 0 R/Size 91807/Type/XRef/W[1 3 1]>>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+        }
     }
 }
