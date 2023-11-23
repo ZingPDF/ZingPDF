@@ -22,6 +22,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         [InlineData("[ 10 ]", 1)]
         [InlineData("[ 10 20 ]", 2)]
         [InlineData("[ 10 20 30 ]", 3)]
+        [InlineData("[<2B551D2AFE52654494F9720283CFF1C4><3CDA8BB6D5834E41A5E2AA16C35E4C47>]/Index", 2)]
         public async Task ParseCorrectCountsAsync(string content, int expectedCount)
         {
             using var input = content.ToStream();

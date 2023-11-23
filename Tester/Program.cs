@@ -21,16 +21,18 @@ static async Task ParseResaveValidate(string input, string output)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
 
-    var errors = ValidatePdf("Before", inputFileStream).ToList();
-    inputFileStream.Position = 0;
+    //var errors = ValidatePdf("Before", inputFileStream).ToList();
+    //inputFileStream.Position = 0;
 
-    var pdf = Pdf.Load(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var count = await pdf.GetPageCountAsync();
 
-    await pdf.AppendPageAsync();
+    //await pdf.AppendPageAsync();
 
-    var test = await pdf.GetPageAsync(1);
+    //var count2 = await pdf.GetPageCountAsync();
+
+    //var test = await pdf.GetPageAsync(1);
 
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
@@ -38,16 +40,16 @@ static async Task ParseResaveValidate(string input, string output)
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
 
-    outputFileStream.Position = 0;
+    //outputFileStream.Position = 0;
 
-    var errors2 = ValidatePdf("After", outputFileStream).ToList();
+    //var errors2 = ValidatePdf("After", outputFileStream).ToList();
 
-    var newErrors = errors2.Except(errors);
+    //var newErrors = errors2.Except(errors);
 
-    foreach (var error in newErrors)
-    {
-        Console.WriteLine(error);
-    }
+    //foreach (var error in newErrors)
+    //{
+    //    Console.WriteLine(error);
+    //}
 }
 
 static void LoadAndSaveUsingAbcpdf(string inputPath, string outputPath)
