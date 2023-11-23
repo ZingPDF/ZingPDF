@@ -1,5 +1,4 @@
 ﻿using MorseCode.ITask;
-using System.Net.Http.Headers;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
@@ -91,6 +90,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     case PageTreeNode.DictionaryKeys.Pages:
                         return PageTreeNode.FromDictionary(dictionary);
                 }
+            }
+
+            if (dictionary.ContainsKey(LinearizationParameters.DictionaryKeys.Linearized))
+            {
+                return LinearizationParameters.FromDictionary(dictionary);
             }
 
             return dictionary;
