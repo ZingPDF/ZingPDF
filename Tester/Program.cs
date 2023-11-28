@@ -10,7 +10,8 @@ using ZingPdf.Core;
 
 //await CreateNewPdfAndValidate("output.pdf");
 
-await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+await ParseResaveValidate("test2.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {
@@ -19,7 +20,7 @@ static async Task ParseResaveValidate(string input, string output)
     //var errors = ValidatePdf("Before", inputFileStream).ToList();
     //inputFileStream.Position = 0;
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var count = await pdf.GetPageCountAsync();
 

@@ -3,7 +3,7 @@ using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
 {
-    internal class TrailerDictionary : Dictionary
+    internal class TrailerDictionary : Dictionary, ITrailerDictionary
     {
         public static class DictionaryKeys
         {
@@ -24,29 +24,12 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
             ArrayObject? id
             )
         {
-            Size = size;
-            
-            if (prev is not null)
-            {
-                Prev = prev;
-            }
-            
+            Size = size ?? throw new ArgumentNullException(nameof(size));
+            Prev = prev;
             Root = root;
-
-            if (encrypt is not null)
-            {
-                Encrypt = encrypt;
-            }
-
-            if (info is not null)
-            {
-                Info = info;
-            }
-
-            if (id is not null)
-            {
-                ID = id;
-            }
+            Encrypt = encrypt;
+            Info = info;
+            ID = id;
         }
 
         private TrailerDictionary(Dictionary trailerDictionary) : base(trailerDictionary) { }
