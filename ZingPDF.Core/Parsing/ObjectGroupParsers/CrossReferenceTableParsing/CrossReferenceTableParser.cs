@@ -21,8 +21,8 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
             // 30 1
             // 0000025777 00000 n
 
-            // xref keyword
-            _ = Parser.For<Keyword>().ParseAsync(stream);
+            //// xref keyword
+            //var temp = await Parser.For<Keyword>().ParseAsync(stream);
 
             var sectionParser = Parser.For<CrossReferenceSection>();
 
