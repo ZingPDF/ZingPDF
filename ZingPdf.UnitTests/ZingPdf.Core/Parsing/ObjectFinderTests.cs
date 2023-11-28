@@ -4,7 +4,7 @@ using ZingPdf.Core.Extensions;
 
 namespace ZingPdf.Core.Parsing
 {
-    public class TrailerFinderTests
+    public class ObjectFinderTests
     {
         [Fact]
         public async Task FindAsyncBasicAsync()
@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Parsing
 
             using var input = contentString.ToStream();
 
-            await new TrailerFinder().FindAsync(input, linearizedPdf: false);
+            await new ObjectFinder().FindAsync(input, Constants.Trailer, forwards: false);
 
             input.Position.Should().Be(1275);
         }

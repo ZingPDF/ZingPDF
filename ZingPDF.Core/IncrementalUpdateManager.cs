@@ -9,7 +9,7 @@ namespace ZingPdf.Core
     {
         private readonly Dictionary<IndirectObjectId, IndirectObject> _entries = new();
 
-        public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject, bool linearizedPdf, Stream inputStream)
+        public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject, Stream inputStream)
         {
             if (pdfObject is null) throw new ArgumentNullException(nameof(pdfObject));
             if (inputStream is null) throw new ArgumentNullException(nameof(inputStream));
@@ -17,7 +17,7 @@ namespace ZingPdf.Core
             var pdfTraversal = new StreamPdfTraversal(inputStream);
 
             // Concatenate unsaved entries with existing objects
-            var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync(linearizedPdf))
+            var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync())
                 .Concat(_entries.Select(e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true)));
 
             var freeIndex = xrefs.Skip(1).ToList().FindIndex(x => !x.InUse);
@@ -47,7 +47,7 @@ namespace ZingPdf.Core
             _entries[indirectObject.Id] = indirectObject;
         }
 
-        public async Task SaveAsync(bool linearizedPdf, Stream inputStream, Stream outputStream)
+        public async Task SaveAsync(Stream inputStream, Stream outputStream)
         {
             if (inputStream is null) throw new ArgumentNullException(nameof(inputStream));
             if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
@@ -60,7 +60,9 @@ namespace ZingPdf.Core
 
             var pdfTraversal = new StreamPdfTraversal(inputStream);
 
-            var latestTrailer = await pdfTraversal.GetLatestTrailerAsync(linearizedPdf);
+            var latestTrailer = await pdfTraversal.GetRootTrailerAsync();
+
+            // TODO: account for files using xref streams, e.g. no existing trailer.
 
             outputStream.Seek(0, SeekOrigin.End);
 

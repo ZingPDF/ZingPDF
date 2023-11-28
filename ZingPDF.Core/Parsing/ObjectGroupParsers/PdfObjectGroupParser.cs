@@ -16,7 +16,18 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
 
                 if (type != null)
                 {
-                    items.Add(await Parser.For(type).ParseAsync(stream));
+                    try
+                    {
+                        items.Add(await Parser.For(type).ParseAsync(stream));
+                    }
+                    catch
+                    {
+                        // If any exception is thrown, gracefully exit.
+                        // The subobject could be invalid or not understood by this library.
+                        // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
+                        // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
+                        break;
+                    }
                 }
             }
 

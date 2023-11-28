@@ -2,6 +2,7 @@
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 
@@ -74,6 +75,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 
+            if (objectGroup.Objects.Count % 2 != 0)
+            {
+                throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
+            }
+
             Dictionary<Name, PdfObject> dictionary = new();
 
             for (int j = 0; j < objectGroup.Objects.Count; j += 2)
@@ -87,14 +93,18 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 {
                     case Page.DictionaryKeys.Page:
                         return Page.FromDictionary(dictionary);
+
                     case PageTreeNode.DictionaryKeys.Pages:
                         return PageTreeNode.FromDictionary(dictionary);
+
+                    case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
+                        return CrossReferenceStreamDictionary.FromDictionary(dictionary);
                 }
             }
 
-            if (dictionary.ContainsKey(LinearizationParameters.DictionaryKeys.Linearized))
+            if (dictionary.ContainsKey(LinearizationDictionary.DictionaryKeys.Linearized))
             {
-                return LinearizationParameters.FromDictionary(dictionary);
+                return LinearizationDictionary.FromDictionary(dictionary);
             }
 
             return dictionary;

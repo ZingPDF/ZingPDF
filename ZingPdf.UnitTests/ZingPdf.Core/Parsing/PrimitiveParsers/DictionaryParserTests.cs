@@ -111,5 +111,15 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             var output = await new DictionaryParser().ParseAsync(input);
         }
+
+        [Fact]
+        public async Task ParseTroublesomeDictionary()
+        {
+            var contentString = "<</Type /Pattern\r\n/PatternType 2\r\n/Matrix [.75033021 0 0 -.75033021 480.70541 838.91864]\r\n/Shading <</Function <</C0 [.165 .694 .886]\r\n/C1 [.153 .651 .878]\r\n/Domain [0 1]\r\n/FunctionType 2\r\n/N 1>>\r\n/Extend [true true]\r\n/Coords [31.9977 57.347099 31.9977 35.1842]\r\n/ShadingType 2\r\n/ColorSpace /DeviceRGB>>>>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+        }
     }
 }
