@@ -2,7 +2,7 @@
 
 namespace ZingPdf.Core.Objects
 {
-    internal class LinearizationParameters : Dictionary
+    internal class LinearizationDictionary : Dictionary
     {
         public static class DictionaryKeys
         {
@@ -16,7 +16,7 @@ namespace ZingPdf.Core.Objects
             public const string P = "P";
         }
 
-        private LinearizationParameters(Dictionary linearizationDictionary) : base(linearizationDictionary) { }
+        private LinearizationDictionary(Dictionary linearizationDictionary) : base(linearizationDictionary) { }
 
         /// <summary>
         /// A version identification for the linearized format.
@@ -78,7 +78,7 @@ namespace ZingPdf.Core.Objects
         /// </summary>
         public Integer? P { get => Get<Integer>(DictionaryKeys.P); }
 
-        public static LinearizationParameters FromDictionary(Dictionary linearizationDictionary)
+        public static LinearizationDictionary FromDictionary(Dictionary linearizationDictionary)
         {
             if (linearizationDictionary is null) throw new ArgumentNullException(nameof(linearizationDictionary));
 
