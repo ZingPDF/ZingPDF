@@ -9,7 +9,7 @@ namespace ZingPdf.Core
         [Fact]
         public async Task SimpleIncrementalUpdate()
         {
-            var pdf = await Pdf.LoadAsync(File.Open("TestFiles/minimal.pdf", FileMode.Open));
+            var pdf = Pdf.Load(File.Open("TestFiles/minimal.pdf", FileMode.Open));
 
             var outputStream = File.Open("output.pdf", FileMode.Create);
 

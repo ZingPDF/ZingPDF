@@ -23,6 +23,9 @@ namespace ZingPdf.Core.Objects.Primitives
         public void Add<T>(T item) where T : PdfObject
             => _values.Add(item);
 
+        public T? Get<T>(int index) where T : PdfObject
+            => _values[index] as T;
+
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.ArrayStart);
