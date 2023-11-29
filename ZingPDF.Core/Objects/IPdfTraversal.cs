@@ -7,24 +7,34 @@ namespace ZingPdf.Core.Objects
     internal interface IPdfTraversal
     {
         /// <summary>
+        /// Get the linearization dictionary.
+        /// </summary>
+        Task<LinearizationDictionary?> GetLinearizationDictionaryAsync();
+
+        /// <summary>
+        /// Get the root trailer. For PDFs using cross reference streams, this will return null.
+        /// </summary>
+        Task<Trailer?> GetRootTrailerAsync();
+
+        /// <summary>
+        /// Get the root trailer dictionary. This may come from the file trailer if it exists, or a cross reference stream.<para></para>
+        /// </summary>
+        Task<ITrailerDictionary> GetRootTrailerDictionaryAsync();
+
+        /// <summary>
         /// Get the root page tree node.
         /// </summary>
-        Task<IndirectObject> GetRootPageTreeNodeAsync(TrailerDictionary trailerDictionary, bool linearizedPdf);
+        Task<IndirectObject> GetRootPageTreeNodeAsync();
 
         /// <summary>
         /// Get all pages.
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<Page>> GetPagesAsync(TrailerDictionary trailerDictionary, bool linearizedPdf);
-
-        /// <summary>
-        /// Get the most recent trailer.
-        /// </summary>
-        Task<Trailer> GetLatestTrailerAsync(bool linearizedPdf);
+        Task<IEnumerable<Page>> GetPagesAsync();
 
         /// <summary>
         /// Get all cross references, made up from all tables.
         /// </summary>
-        Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync(bool linearizedPdf);
+        Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
     }
 }

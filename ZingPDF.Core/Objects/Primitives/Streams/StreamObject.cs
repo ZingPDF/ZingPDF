@@ -1,7 +1,7 @@
 ﻿using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Filters;
 
-namespace ZingPdf.Core.Objects.Primitives
+namespace ZingPdf.Core.Objects.Primitives.Streams
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.8 - Stream objects
@@ -11,14 +11,14 @@ namespace ZingPdf.Core.Objects.Primitives
         private readonly Stream _source;
         private readonly long _from;
         private readonly long _to;
-        private readonly Dictionary _streamDictionary;
 
-        private StreamObject(Stream source, long from, long to, Dictionary streamDictionary)
+        private StreamObject(Stream source, long from, long to, IStreamDictionary dictionary)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _from = from;
             _to = to;
-            _streamDictionary = streamDictionary ?? throw new ArgumentNullException(nameof(streamDictionary));
+
+            Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
         }
 
         private StreamObject(byte[] unencodedData, IEnumerable<IFilter> filters)
@@ -37,8 +37,10 @@ namespace ZingPdf.Core.Objects.Primitives
             _from = 0;
             _to = _source.Length;
 
-            _streamDictionary = BuildStreamDictionary(unencodedLength, filters);
+            Dictionary = BuildStreamDictionary(unencodedLength, filters);
         }
+
+        public IStreamDictionary Dictionary { get; }
 
         /// <summary>
         /// Used when building a PDF to create a StreamObject from byte data.
@@ -49,27 +51,30 @@ namespace ZingPdf.Core.Objects.Primitives
         /// <summary>
         /// Used when parsing a PDF from a file or other type of system stream.
         /// </summary>
-        public static StreamObject FromEncodedStream(Stream stream, long from, long to, Dictionary streamDictionary)
-            => new(stream, from, to, streamDictionary);
+        public static StreamObject FromEncodedStream(Stream stream, long from, long to, IStreamDictionary dictionary)
+            => new(stream, from, to, dictionary);
 
         public async Task<byte[]> DecodeAsync()
         {
             // TODO: stream contents may be encrypted, decrypt.
 
-            var filterNamesEntry = _streamDictionary["Filter"];
-            var filterNames = filterNamesEntry as ArrayObject ?? new[] { filterNamesEntry };
+            var relevantRange = await _source.RangeAsync(_from, _to);
+            var content = await relevantRange.ReadToEndAsync();
 
-            var allFilterParamsArray = _streamDictionary.Get<ArrayObject>("DecodeParms");
-            var singleFilterParamsDictionary = _streamDictionary.Get<Dictionary>("DecodeParms");
+            if (Dictionary.Filter is null)
+            {
+                return content;
+            }
+
+            var filterNames = Dictionary.Filter as ArrayObject ?? new[] { Dictionary.Filter };
+
+            var allFilterParamsArray = Dictionary.DecodeParms as ArrayObject;
+            var singleFilterParamsDictionary = Dictionary.DecodeParms as Dictionary;
 
             var allFilterParams = allFilterParamsArray ??
                 (singleFilterParamsDictionary != null ? new[] { singleFilterParamsDictionary } : (ArrayObject?)null);
 
-            var relevantRange = await _source.RangeAsync(_from, _to);
-
-            var content = await relevantRange.ReadToEndAsync();
-
-            for(var i = 0; i < filterNames.Count(); i++)
+            for (var i = 0; i < filterNames.Count(); i++)
             {
                 var filterName = (Name)filterNames.ElementAt(i);
                 var filterParams = (Dictionary?)allFilterParams?.ElementAtOrDefault(i);
@@ -84,7 +89,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await _streamDictionary.WriteAsync(stream);
+            await Dictionary.WriteAsync(stream);
 
             await stream.WriteNewLineAsync();
             await new Keyword(Constants.StreamStart).WriteAsync(stream);
@@ -96,7 +101,7 @@ namespace ZingPdf.Core.Objects.Primitives
             await new Keyword(Constants.StreamEnd).WriteAsync(stream);
         }
 
-        private Dictionary BuildStreamDictionary(long unencodedLength, IEnumerable<IFilter> filters)
+        private IStreamDictionary BuildStreamDictionary(long unencodedLength, IEnumerable<IFilter> filters)
         {
             var streamDictionary = new Dictionary<Name, PdfObject>()
                 {
@@ -131,8 +136,7 @@ namespace ZingPdf.Core.Objects.Primitives
                 }
             }
 
-            // TODO: add support for external file (F, FFilter, FDecodeParms
-            return streamDictionary;
+            return StreamDictionary.FromDictionary(streamDictionary);
         }
 
         private class StreamData : PdfObject

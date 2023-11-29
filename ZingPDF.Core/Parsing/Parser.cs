@@ -5,6 +5,7 @@ using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
+using ZingPdf.Core.Objects.Primitives.Streams;
 using ZingPdf.Core.Parsing.DataStructureParsers;
 using ZingPdf.Core.Parsing.ObjectGroupParsers;
 using ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing;

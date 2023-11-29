@@ -6,6 +6,7 @@ using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
+using ZingPdf.Core.Objects.Primitives.Streams;
 
 namespace ZingPdf.Core.Parsing
 {
@@ -17,7 +18,7 @@ namespace ZingPdf.Core.Parsing
         private static readonly Regex _integerPattern = new(@"^-?\d+\s*"); // 1234
         private static readonly Regex _realNumberPattern = new(@"^-?\d*\.\d+"); // 595.276000
         private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
-        private static readonly Regex _ioPattern = new(@"^[\d]+ [\d]+ obj");
+        private static readonly Regex _ioPattern = new(@"^[\d]+ [\d]+ obj"); // 1 0 obj
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
         private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
         private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
@@ -41,6 +42,7 @@ namespace ZingPdf.Core.Parsing
             { $"{Constants.Comment}", typeof(Comment) },
             { Constants.Null, typeof(Keyword) }, // TODO: should this be the null object type?
             { Constants.Eof, typeof(Keyword) },
+            { Constants.Xref, typeof(Keyword) },
             { Constants.StartXref, typeof(Keyword) },
             { Constants.ObjEnd, typeof(Keyword) },
             { Constants.StreamEnd, typeof(Keyword) },
@@ -54,7 +56,7 @@ namespace ZingPdf.Core.Parsing
             { "false", typeof(BooleanObject) },
         };
 
-        public static async Task<Type?> TryIdentifyAsync(Stream stream)
+        public static async Task<Type> TryIdentifyAsync(Stream stream)
         {
             var buffer = new byte[_bufferSize];
 
