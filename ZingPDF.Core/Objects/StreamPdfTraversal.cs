@@ -49,6 +49,8 @@ namespace ZingPdf.Core.Objects
         /// </summary>
         private async Task<IEnumerable<Page>> GetSubPagesAsync(PageTreeNode pageTreeNode)
         {
+            // TODO: check page ordering, should mimic whatever Acrobat Reader infers
+
             IndirectObjectDereferencer indirectObjectDereferencer = new();
 
             List<Page> pages = new();
@@ -253,7 +255,8 @@ namespace ZingPdf.Core.Objects
                 Dictionary<int, CrossReferenceEntry> xrefs = new();
 
                 // The offset specified after the startxref keyword will either be an xref table, or stream.
-                var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream);
+                var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream)
+                    ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
 
                 var item = await Parser.For(type).ParseAsync(_stream);
 
@@ -284,7 +287,11 @@ namespace ZingPdf.Core.Objects
                     }
 
                     var xrefData = await streamObject.DecodeAsync();
-                    var entrySize = streamDictionary.W.Cast<int>().Sum();
+                    var entrySize = streamDictionary.W.Sum(x => (x as Integer)!);
+
+                    var field1Size = streamDictionary.W.Get<Integer>(0)!;
+                    var field2Size = streamDictionary.W.Get<Integer>(1)!;
+                    var field3Size = streamDictionary.W.Get<Integer>(2)!;
 
                     foreach (var index in xrefIndices)
                     {
@@ -294,15 +301,21 @@ namespace ZingPdf.Core.Objects
 
                         for (var i = index.StartIndex; i < maxIndex; i++)
                         {
-                            // TODO: get actual values
-                            var indirectObjectByteOffset = 0;
-                            ushort indirectObjectGenerationNumber = 0;
-                            var inUse = true;
+                            var entryOffset = (i - 1) * entrySize;
+                            var entryData = xrefData[entryOffset..(entryOffset + entrySize)];
 
-                            var entry = new CrossReferenceEntry(indirectObjectByteOffset, indirectObjectGenerationNumber, inUse);
+                            // Default entry type is 1 (inUse object)
+                            var entryType = (byte)1;
 
-                            // TODO: does this actually need to use TryAdd?
-                            xrefs.TryAdd(i, entry);
+                            if (field1Size != 0)
+                            {
+                                entryType = entryData[0];
+                            }
+
+                            int field2 = ExtractField(entryData, field1Size, field2Size);
+                            int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
+
+                            xrefs[i] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0);
                         }
                     }
                 }
@@ -346,6 +359,27 @@ namespace ZingPdf.Core.Objects
 
                 return xrefs.Values;
             });
+        }
+
+        /// <summary>
+        /// Function to extract multi-byte fields
+        /// </summary>
+        /// <remarks>
+        /// The field is stored in big-endian order, where the most significant byte is at the lowest memory address.
+        /// The function iterates over each byte in the field, masks out the lower 8 bits,
+        /// and left-shifts the value by an appropriate amount based on its position in the field.
+        /// The result is accumulated to reconstruct the final field value.
+        /// </remarks>
+        private static int ExtractField(byte[] data, int startIndex, int fieldSize)
+        {
+            int fieldValue = 0;
+
+            for (var i = 0; i < fieldSize; i++)
+            {
+                fieldValue += (data[i + startIndex] & 0x00FF) << ((fieldSize - i - 1) * 8);
+            }
+
+            return fieldValue;
         }
     }
 }

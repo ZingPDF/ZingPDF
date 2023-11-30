@@ -30,7 +30,7 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
 
             Type? currentType = await TokenTypeIdentifier.TryIdentifyAsync(stream);
 
-            while (currentType != null && currentType == typeof(CrossReferenceSection))
+            while (currentType != null && currentType != typeof(CrossReferenceEntry) && currentType != typeof(Keyword))
             {
                 sections.Add(await sectionParser.ParseAsync(stream));
 

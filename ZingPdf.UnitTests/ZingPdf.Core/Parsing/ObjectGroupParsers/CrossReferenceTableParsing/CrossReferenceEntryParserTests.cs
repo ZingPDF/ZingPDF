@@ -13,8 +13,8 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
         {
             var output = await new CrossReferenceEntryParser().ParseAsync(input.ToStream());
 
-            output.IndirectObjectByteOffset.Should().Be(expectedOffset);
-            output.IndirectObjectGenerationNumber.Should().Be(expectedGenNumber);
+            output.Value1.Should().Be(expectedOffset);
+            output.Value2.Should().Be(expectedGenNumber);
             output.InUse.Should().Be(expectedInUse);
         }
     }
