@@ -27,5 +27,7 @@ namespace ZingPdf.Core.Objects.Primitives
         public static implicit operator ushort(Integer value) => (ushort)value.Value;
         public static implicit operator int(Integer value) => (int)value.Value;
         public static implicit operator long(Integer value) => value.Value;
+
+        public static implicit operator Index(Integer value) => Convert.ToInt32(value.Value);
     }
 }

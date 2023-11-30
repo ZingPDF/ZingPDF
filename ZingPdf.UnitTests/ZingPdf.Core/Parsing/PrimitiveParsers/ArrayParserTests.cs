@@ -32,5 +32,21 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             output.Should().HaveCount(expectedCount);
         }
+
+        [Fact]
+        public async Task ParseArrayOfIntegersMultiline()
+        {
+            // During parsing, the TokenTypeIdentifier must not mistake the line ending
+            // and the tokens preceding it for a cross reference section index.
+            var contentString = "[ 1 52\r\n" +
+                " 1 54 1 56 1 58 1 60 1 62 1 64 1 66 1 69 1 71 ]";
+
+            using var input = contentString.ToStream();
+
+            var output = await Parser.For<ArrayObject>()
+                .ParseAsync(input);
+
+            output.All(x => x is Integer).Should().BeTrue();
+        }
     }
 }

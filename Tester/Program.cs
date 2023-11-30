@@ -10,8 +10,8 @@ using ZingPdf.Core;
 
 //await CreateNewPdfAndValidate("output.pdf");
 
-//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-await ParseResaveValidate("test2.pdf", "output.pdf");
+await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+//await ParseResaveValidate("test2.pdf", "output.pdf");
 
 static async Task ParseResaveValidate(string input, string output)
 {

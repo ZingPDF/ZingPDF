@@ -20,14 +20,12 @@ namespace ZingPdf.Core.Parsing
         private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
         private static readonly Regex _ioPattern = new(@"^[\d]+ [\d]+ obj"); // 1 0 obj
         private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
-        private static readonly Regex _xrefSectionIndexPattern = new(@"^[0-9]+\s[0-9]+[\n\r]"); // 0 28
         private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
         private static readonly Regex _datePattern = new(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)"); // (D:20230922161207+10'00')
 
         private static readonly Dictionary<Regex, Type> _regexPatterns = new()
         {
             { _headerPattern, typeof(Header) },
-            { _xrefSectionIndexPattern, typeof(CrossReferenceSection) },
             { _xrefEntryPattern, typeof(CrossReferenceEntry) },
             { _namePattern, typeof(Name) },
             { _ioPattern, typeof(IndirectObject) },
@@ -56,7 +54,7 @@ namespace ZingPdf.Core.Parsing
             { "false", typeof(BooleanObject) },
         };
 
-        public static async Task<Type> TryIdentifyAsync(Stream stream)
+        public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
             var buffer = new byte[_bufferSize];
 
