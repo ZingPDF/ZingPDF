@@ -30,7 +30,7 @@ namespace ZingPdf.Core
             else
             {
                 var xref = xrefs.ElementAt(freeIndex);
-                objectId = new IndirectObjectId(freeIndex, xref.IndirectObjectGenerationNumber);
+                objectId = new IndirectObjectId(freeIndex, xref.Value2);
             }
 
             var indirectObject = new IndirectObject(objectId, pdfObject);
