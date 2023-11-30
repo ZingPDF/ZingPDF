@@ -69,7 +69,8 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         /// For PDF 1.5, W always contains three integers; the value of each integer shall be the number of bytes 
         /// (in the decoded stream) of the corresponding field.<para></para>
         ///     EXAMPLE [1 2 1] means that the fields are one byte, two bytes, and one byte, respectively.<para></para>
-        /// A value of zero for an element in the W array indicates that the corresponding field shall not be present in the stream, and the default value shall be used, if there is one. A value of zero shall not be used for the second element of the array. If the first element is zero, the type field shall not be present, and shall default to Type 1.
+        /// A value of zero for an element in the W array indicates that the corresponding field shall not be present in the stream, and the default value shall be used, if there is one.
+        /// A value of zero shall not be used for the second element of the array. If the first element is zero, the type field shall not be present, and shall default to Type 1.
         /// The sum of the items shall be the total length of each entry; it can be used with the Index array to determine the starting position of each subsection.
         /// Different cross-reference streams in a PDF file may use different values for W.
         /// </remarks>

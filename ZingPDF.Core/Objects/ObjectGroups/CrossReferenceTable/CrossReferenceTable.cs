@@ -32,7 +32,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
                     {
                         if (indirectObject.Id.Index == i)
                         {
-                            section.Entries.ElementAt(i).IndirectObjectByteOffset = indirectObject.ByteOffset!.Value;
+                            section.Entries.ElementAt(i).Value1 = indirectObject.ByteOffset!.Value;
                             break;
                         }
                     }
