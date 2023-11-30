@@ -4,15 +4,39 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 {
     internal class CrossReferenceEntry : PdfObject
     {
-        public CrossReferenceEntry(long indirectObjectByteOffset, ushort indirectObjectGenerationNumber, bool inUse)
+        /// <summary>
+        /// Creates a <see cref="CrossReferenceEntry"/> instance.
+        /// </summary>
+        /// <param name="value1">
+        /// For 'in use' objects, this value is the byte offset of the object.<para></para>
+        /// For 'free' objects, this value is the object number of the next free object.<para></para>
+        /// For 'compressed' objects, this value is the object number of the object stream in which the object is stored.
+        /// </param>
+        /// <param name="value2">
+        /// For 'in use' and 'free' objects, this is the object generation number.<para></para>
+        /// For 'compressed' objects, this is the index of the object within the containing object stream.
+        /// </param>
+        /// <param name="inUse">Indicates whether the entry is in use, or free to be reused</param>
+        public CrossReferenceEntry(long value1, ushort value2, bool inUse)
         {
-            IndirectObjectByteOffset = indirectObjectByteOffset;
-            IndirectObjectGenerationNumber = indirectObjectGenerationNumber;
+            Value1 = value1;
+            Value2 = value2;
             InUse = inUse;
         }
 
-        public long IndirectObjectByteOffset { get; internal set; }
-        public ushort IndirectObjectGenerationNumber { get; }
+        /// <summary>
+        /// For 'in use' objects, this value is the byte offset of the object.<para></para>
+        /// For 'free' objects, this value is the object number of the next free object.<para></para>
+        /// For 'compressed' objects, this value is the object number of the object stream in which the object is stored.
+        /// </summary>
+        public long Value1 { get; internal set; }
+
+        /// <summary>
+        /// For 'in use' and 'free' objects, this is the object generation number.<para></para>
+        /// For 'compressed' objects, this is the index of the object within the containing object stream.
+        /// </summary>
+        public ushort Value2 { get; }
+
         public bool InUse { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
@@ -24,10 +48,17 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             // gen number _________| |
             // free(f) in-use(n)_____|
 
-            await stream.WriteLeftPaddedAsync(IndirectObjectByteOffset, 10);
+            // For free entries the first number represents the object number of the next free object
+            //           0000000007 00001 f
+            //                    |     | |
+            // next free object __|     | |
+            // gen number ______________| |
+            // free(f) in-use(n)__________|
+
+            await stream.WriteLeftPaddedAsync(Value1, 10);
             await stream.WriteWhitespaceAsync();
 
-            await stream.WriteLeftPaddedAsync(IndirectObjectGenerationNumber, 5);
+            await stream.WriteLeftPaddedAsync(Value2, 5);
             await stream.WriteWhitespaceAsync();
 
             await stream.WriteTextAsync(InUse ? "n" : "f");
