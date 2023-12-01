@@ -35,6 +35,6 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Get all cross references, made up from all tables.
         /// </summary>
-        Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
+        Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
     }
 }

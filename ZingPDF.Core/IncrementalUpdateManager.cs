@@ -18,9 +18,9 @@ namespace ZingPdf.Core
 
             // Concatenate unsaved entries with existing objects
             var xrefs = (await pdfTraversal.GetAggregateCrossReferencesAsync())
-                .Concat(_entries.Select(e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true)));
+                .Concat(_entries.ToDictionary(e => e.Key.Index, e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true, compressed: false)));
 
-            var freeIndex = xrefs.Skip(1).ToList().FindIndex(x => !x.InUse);
+            var freeIndex = xrefs.Skip(1).ToList().FindIndex(x => !x.Value.InUse);
             IndirectObjectId objectId;
             if (freeIndex == -1)
             {
@@ -30,7 +30,7 @@ namespace ZingPdf.Core
             else
             {
                 var xref = xrefs.ElementAt(freeIndex);
-                objectId = new IndirectObjectId(freeIndex, xref.Value2);
+                objectId = new IndirectObjectId(freeIndex, xref.Value.Value2);
             }
 
             var indirectObject = new IndirectObject(objectId, pdfObject);
@@ -87,7 +87,7 @@ namespace ZingPdf.Core
         private CrossReferenceTable GenerateCrossReferences()
         {
             // Every cross reference table starts with the head of the linked list of free entries.
-            CrossReferenceSection? latestXrefSection = new(0, new[] { new CrossReferenceEntry(0, 65535, false) });
+            CrossReferenceSection? latestXrefSection = new(0, new[] { new CrossReferenceEntry(0, 65535, false, compressed: false) });
             List<CrossReferenceSection> xrefSections = new() { latestXrefSection };
 
             // There shall be one xref section for each contiguous block of entries
