@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.Streams;
 
@@ -9,8 +10,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<StreamObject> ParseAsync(Stream stream)
         {
-            var streamDict = await Parser.For<Dictionary>().ParseAsync(stream);
-            var streamLength = streamDict.Get<Integer>(StreamDictionary.DictionaryKeys.Length)!;
+            var dict = await Parser.For<Dictionary>().ParseAsync(stream);
+
+            var streamDict = dict as CrossReferenceStreamDictionary as IStreamDictionary ?? StreamDictionary.FromDictionary(dict);
+
+            var streamLength = streamDict.Length!;
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
@@ -23,7 +27,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 stream,
                 streamDataOffset,
                 streamDataOffset + streamLength,
-                (IStreamDictionary)streamDict
+                streamDict
                 );
         }
     }
