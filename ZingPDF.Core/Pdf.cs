@@ -58,10 +58,10 @@ namespace ZingPdf.Core
 
             var xrefTable = new CrossReferenceTable(
                 new[] { new CrossReferenceSection(0, new[] {
-                    new CrossReferenceEntry(0, 65535, inUse: false),
-                    new CrossReferenceEntry(documentCatalog.ByteOffset!.Value, 0, inUse: true),
-                    new CrossReferenceEntry(rootPageTreeNode.ByteOffset!.Value, 0, inUse: true),
-                    new CrossReferenceEntry(page.ByteOffset!.Value, 0, inUse: true),
+                    new CrossReferenceEntry(0, 65535, inUse: false, compressed : false),
+                    new CrossReferenceEntry(documentCatalog.ByteOffset!.Value, 0, inUse: true, compressed : false),
+                    new CrossReferenceEntry(rootPageTreeNode.ByteOffset!.Value, 0, inUse: true, compressed : false),
+                    new CrossReferenceEntry(page.ByteOffset!.Value, 0, inUse: true, compressed : false),
                 })
             });
 

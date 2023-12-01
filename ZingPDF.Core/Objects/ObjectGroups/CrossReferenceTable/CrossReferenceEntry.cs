@@ -17,11 +17,12 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         /// For 'compressed' objects, this is the index of the object within the containing object stream.
         /// </param>
         /// <param name="inUse">Indicates whether the entry is in use, or free to be reused</param>
-        public CrossReferenceEntry(long value1, ushort value2, bool inUse)
+        public CrossReferenceEntry(long value1, ushort value2, bool inUse, bool compressed)
         {
             Value1 = value1;
             Value2 = value2;
             InUse = inUse;
+            Compressed = compressed;
         }
 
         /// <summary>
@@ -38,6 +39,14 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         public ushort Value2 { get; }
 
         public bool InUse { get; }
+
+        /// <summary>
+        /// Indicates whether the entry refers to a compressed object.
+        /// When true, the object is contained within an object stream.<para></para>
+        /// <see cref="Value1"/> contains the object number of the stream.<para></para>
+        /// <see cref="Value2"/> contains the index of the object within the object stream.
+        /// </summary>
+        public bool Compressed { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
