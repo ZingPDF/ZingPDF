@@ -1,6 +1,5 @@
 ﻿using Nito.AsyncEx;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
@@ -26,7 +25,7 @@ namespace ZingPdf.Core.Objects
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
 
-            _linearizationParameters = SetupLazyLinearizationParameters();
+            _linearizationParameters = SetupLazyLinearizationDictionary();
             _rootTrailer = SetupLazyRootTrailer();
             _rootTrailerDictionary = SetupLazyRootTrailerDictionary();
             _rootPageTreeNode = SetupLazyRootPageTreeNode();
@@ -54,7 +53,7 @@ namespace ZingPdf.Core.Objects
 
             List<Page> pages = new();
 
-            foreach(var ior in pageTreeNode.Kids)
+            foreach (var ior in pageTreeNode.Kids)
             {
                 var obj = await indirectObjectDereferencer.GetAsync(_stream, (IndirectObjectReference)ior);
 
@@ -155,38 +154,30 @@ namespace ZingPdf.Core.Objects
             });
         }
 
-        private AsyncLazy<LinearizationDictionary?> SetupLazyLinearizationParameters()
+        private AsyncLazy<LinearizationDictionary?> SetupLazyLinearizationDictionary()
         {
             return new AsyncLazy<LinearizationDictionary?>(async () =>
             {
                 _stream.Position = 0;
 
-                // Read the first 1024 bytes to determine if the PDF is linearized.
-                using var tempStream = await _stream.RangeAsync(0, Math.Min(1024, _stream.Length));
-
-                var pdfObjectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(tempStream);
-
-                var header = pdfObjectGroup.Get<Header>(0);
-
                 static bool isLinearizationDictionary(IndirectObject o) =>
                     o.Children.FirstOrDefault() is LinearizationDictionary;
 
-                var linearizationDictionaryIndirectObject = pdfObjectGroup.Objects
-                    .OfType<IndirectObject>()
-                    .FirstOrDefault(isLinearizationDictionary);
+                List<PdfObject> items = new();
 
-                var linearizationDictionary = linearizationDictionaryIndirectObject?.Children.First()! as LinearizationDictionary;
-
-                if ((linearizationDictionary?.L ?? -1) != _stream.Length)
+                while (_stream.Position <= Math.Min(1024, _stream.Length))
                 {
-                    // An incremental update has been applied to the PDF and it is no longer considered linearized.
-                    // TODO: Here, we could read everything that was appended and analyse the objects in that update to see
-                    // whether any of them modify objects that are in the first page or that are the targets of hints.
-                    // If so, we could rebuild the PDF to restore its linearization. This might be worthwile if optimising for reading.
-                    linearizationDictionary = null;
+                    var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream);
+
+                    var item = await Parser.For(type).ParseAsync(_stream);
+
+                    if (item is IndirectObject o && isLinearizationDictionary(o))
+                    {
+                        return o.Children.First()! as LinearizationDictionary;
+                    }
                 }
 
-                return linearizationDictionary;
+                return null;
             });
         }
 
@@ -221,6 +212,8 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<Dictionary<int, CrossReferenceEntry>>(async () =>
             {
+                Dictionary<int, CrossReferenceEntry> xrefs = new();
+
                 // To aggregate all cross references
                 // - check if PDF is linearized
                 // - - presence of linearization dictionary in first 1024 bytes
@@ -237,8 +230,17 @@ namespace ZingPdf.Core.Objects
 
                 // PDF is linearized if there is a linearization dictionary, AND
                 // the length value (L) is identical to the length of the stream.
+                // A mismatch indicates the file has had at least one incremental update applied,
+                // and should be considered to not be linearized.
                 LinearizationDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
                 var isLinearized = linearizationDictionary != null && linearizationDictionary.L == _stream.Length;
+
+                if (linearizationDictionary != null)
+                {
+                    // If there's a linearization dictionary, even if there's been an update,
+                    // then there's an xref table or stream containing any objects relevant to the first page.
+                    await ParseCrossReferencesAsync(_stream, xrefs);
+                }
 
                 // First, find the startxref keyword
                 var offset = await objectFinder.FindAsync(_stream, Constants.StartXref, forwards: isLinearized)
@@ -251,113 +253,127 @@ namespace ZingPdf.Core.Objects
 
                 _stream.Position = xrefOffset;
 
-                Dictionary<int, CrossReferenceEntry> xrefs = new();
-
-                // The offset specified after the startxref keyword will either be an xref table, or stream.
-                var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream)
-                    ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
-
-                var item = await Parser.For(type).ParseAsync(_stream);
-
-                if (item is IndirectObject io
-                    && io.Children.First() is StreamObject streamObject
-                    && streamObject.Dictionary is CrossReferenceStreamDictionary streamDictionary)
-                {
-                    // Get the indices for each subsection
-                    List<CrossReferenceSectionIndex> xrefIndices = new();
-                    if (streamDictionary.Index is null)
-                    {
-                        // Index defaults to a start index of zero, and the size for the count.
-                        xrefIndices.Add(new CrossReferenceSectionIndex(0, streamDictionary.Size));
-                    }
-                    else
-                    {
-                        // Index contains a pair of integers for each subsection
-                        // representing the start index and count
-                        for (var i = 0; i < streamDictionary.Index.Count(); i += 2)
-                        {
-                            xrefIndices.Add(
-                                new CrossReferenceSectionIndex(
-                                    streamDictionary.Index.Get<Integer>(i)!,
-                                    streamDictionary.Index.Get<Integer>(i + 1)!
-                                    )
-                                );
-                        }
-                    }
-
-                    var xrefData = await streamObject.DecodeAsync();
-                    var entrySize = streamDictionary.W.Sum(x => (x as Integer)!);
-
-                    var field1Size = streamDictionary.W.Get<Integer>(0)!;
-                    var field2Size = streamDictionary.W.Get<Integer>(1)!;
-                    var field3Size = streamDictionary.W.Get<Integer>(2)!;
-
-                    for (int i = 0; i < xrefIndices.Count; i++)
-                    {
-                        CrossReferenceSectionIndex? index = xrefIndices[i];
-
-                        var sectionOffset = index.StartIndex * entrySize;
-
-                        for (var j = 0; j < index.Count; j++)
-                        {
-                            var entryOffset = (i + j) * entrySize;
-                            var entryData = xrefData[entryOffset..(entryOffset + entrySize)];
-
-                            // Default entry type is 1 ('in use' object)
-                            var entryType = (byte)1;
-
-                            if (field1Size != 0)
-                            {
-                                entryType = entryData[0];
-                            }
-
-                            int field2 = ExtractField(entryData, field1Size, field2Size);
-                            int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
-
-                            xrefs[index.StartIndex + j] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2);
-                        }
-                    }
-                }
-                else if (item is Keyword k && k == Constants.Xref)
-                {
-                    // TODO: this code assumes all xref sections are tables.
-                    // Can there be a mix of tables and streams?
-                    while (true)
-                    {
-                        var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(_stream);
-
-                        foreach (var section in xrefTable.Sections)
-                        {
-                            var maxIndex = section.Index.StartIndex + section.Entries.Count;
-
-                            for (var i = section.Index.StartIndex; i < maxIndex; i++)
-                            {
-                                var entry = section.Entries[i];
-
-                                // TODO: does this actually need to use TryAdd?
-                                xrefs.TryAdd(i, entry);
-                            }
-                        }
-
-                        var trailer = await Parser.For<Trailer>().ParseAsync(_stream);
-
-                        if (trailer.Dictionary.Prev is not null)
-                        {
-                            _stream.Position = trailer.Dictionary.Prev;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unable to find PDF cross references.");
-                }
+                await ParseCrossReferencesAsync(_stream, xrefs);
 
                 return xrefs;
             });
+        }
+
+        private static async Task ParseCrossReferencesAsync(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs)
+        {
+            // The offset specified after the startxref keyword will either be an xref table, or stream.
+            var type = await TokenTypeIdentifier.TryIdentifyAsync(stream)
+                ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
+
+            var item = await Parser.For(type).ParseAsync(stream);
+
+            if (item is IndirectObject io
+                && io.Children.First() is StreamObject streamObject
+                && streamObject.Dictionary is CrossReferenceStreamDictionary)
+            {
+                await ParseCrossReferenceStreamAsync(streamObject, xrefs);
+            }
+            else if (item is Keyword k && k == Constants.Xref)
+            {
+                await ParseCrossReferenceTableAsync(stream, xrefs);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unable to find PDF cross references.");
+            }
+        }
+
+        private static async Task ParseCrossReferenceStreamAsync(StreamObject crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
+        {
+            var streamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
+
+            // Get the indices for each subsection
+            List<CrossReferenceSectionIndex> xrefIndices = new();
+            if (streamDictionary.Index is null)
+            {
+                // Index defaults to a start index of zero, and the size for the count.
+                xrefIndices.Add(new CrossReferenceSectionIndex(0, streamDictionary.Size));
+            }
+            else
+            {
+                // Index contains a pair of integers for each subsection
+                // representing the start index and count
+                for (var i = 0; i < streamDictionary.Index.Count(); i += 2)
+                {
+                    xrefIndices.Add(
+                        new CrossReferenceSectionIndex(
+                            streamDictionary.Index.Get<Integer>(i)!,
+                            streamDictionary.Index.Get<Integer>(i + 1)!
+                            )
+                        );
+                }
+            }
+
+            var xrefData = await crossReferenceStream.DecodeAsync();
+            var entrySize = streamDictionary.W.Sum(x => (x as Integer)!);
+
+            var field1Size = streamDictionary.W.Get<Integer>(0)!;
+            var field2Size = streamDictionary.W.Get<Integer>(1)!;
+            var field3Size = streamDictionary.W.Get<Integer>(2)!;
+
+            for (int i = 0; i < xrefIndices.Count; i++)
+            {
+                CrossReferenceSectionIndex? index = xrefIndices[i];
+
+                var sectionOffset = index.StartIndex * entrySize;
+
+                for (var j = 0; j < index.Count; j++)
+                {
+                    var entryOffset = (i + j) * entrySize;
+                    var entryData = xrefData[entryOffset..(entryOffset + entrySize)];
+
+                    // Default entry type is 1 ('in use' object)
+                    var entryType = (byte)1;
+
+                    if (field1Size != 0)
+                    {
+                        entryType = entryData[0];
+                    }
+
+                    int field2 = ExtractField(entryData, field1Size, field2Size);
+                    int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
+
+                    xrefs[index.StartIndex + j] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2);
+                }
+            }
+        }
+
+        private static async Task ParseCrossReferenceTableAsync(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs)
+        {
+            // TODO: this code assumes all xref sections are tables.
+            // Can there be a mix of tables and streams?
+            while (true)
+            {
+                var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(stream);
+
+                foreach (var section in xrefTable.Sections)
+                {
+                    var maxIndex = section.Index.StartIndex + section.Entries.Count;
+
+                    for (var i = section.Index.StartIndex; i < maxIndex; i++)
+                    {
+                        var entry = section.Entries[i];
+
+                        xrefs[i] = entry;
+                    }
+                }
+
+                var trailer = await Parser.For<Trailer>().ParseAsync(stream);
+
+                if (trailer.Dictionary.Prev is not null)
+                {
+                    stream.Position = trailer.Dictionary.Prev;
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
