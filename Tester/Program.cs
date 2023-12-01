@@ -1,6 +1,8 @@
 ﻿using ZingPdf.Core.Parsing;
 using WebSupergoo.ABCpdf12;
 using ZingPdf.Core;
+using System.Text.RegularExpressions;
+using System.Text;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -17,6 +19,30 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
 //await ParseResaveValidate("test2.pdf", "output.pdf");
+
+//await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
+
+static async Task ListObjNumbers(string input)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+
+    using var reader = new StreamReader(inputFileStream);
+
+    string content = reader.ReadToEnd();
+    MatchCollection matches = Regex.Matches(content, @"([\d]+) [\d]+ obj");
+
+    var csvBuilder = new StringBuilder();
+
+    foreach (var match in matches.Cast<Match>())
+    {
+        csvBuilder.AppendLine(match.Groups[1].Value);
+    }
+
+    var csvDetailFilename = $"output.csv";
+    File.WriteAllText(csvDetailFilename, csvBuilder.ToString());
+    Console.WriteLine($"Saved as {csvDetailFilename}");
+
+}
 
 static async Task ParseResaveValidate(string input, string output)
 {
