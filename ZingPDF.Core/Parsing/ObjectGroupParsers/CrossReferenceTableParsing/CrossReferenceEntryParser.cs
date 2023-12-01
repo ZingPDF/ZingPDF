@@ -16,7 +16,7 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
             ushort genNumber = await integerParser.ParseAsync(stream);
             string inUse = await Parser.For<Keyword>().ParseAsync(stream);
 
-            return new CrossReferenceEntry(byteOffset, genNumber, inUse == "n");
+            return new CrossReferenceEntry(byteOffset, genNumber, inUse == "n", compressed: false);
         }
     }
 }

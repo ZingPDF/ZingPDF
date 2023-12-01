@@ -1,5 +1,4 @@
 ﻿using Nito.AsyncEx;
-using System.Text;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
@@ -21,7 +20,7 @@ namespace ZingPdf.Core.Objects
         private readonly AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
         private readonly AsyncLazy<IndirectObject> _rootPageTreeNode;
         private readonly AsyncLazy<IEnumerable<Page>> _pages;
-        private readonly AsyncLazy<IEnumerable<CrossReferenceEntry>> _xrefs;
+        private readonly AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
 
         public StreamPdfTraversal(Stream stream)
         {
@@ -42,7 +41,7 @@ namespace ZingPdf.Core.Objects
         public Task<ITrailerDictionary> GetRootTrailerDictionaryAsync() => _rootTrailerDictionary.Task;
         public Task<IEnumerable<Page>> GetPagesAsync() => _pages.Task;
         public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
-        public Task<IEnumerable<CrossReferenceEntry>> GetAggregateCrossReferencesAsync() => _xrefs.Task;
+        public Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync() => _xrefs.Task;
 
         /// <summary>
         /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
@@ -218,9 +217,9 @@ namespace ZingPdf.Core.Objects
             });
         }
 
-        private AsyncLazy<IEnumerable<CrossReferenceEntry>> SetupLazyXrefs()
+        private AsyncLazy<Dictionary<int, CrossReferenceEntry>> SetupLazyXrefs()
         {
-            return new AsyncLazy<IEnumerable<CrossReferenceEntry>>(async () =>
+            return new AsyncLazy<Dictionary<int, CrossReferenceEntry>>(async () =>
             {
                 // To aggregate all cross references
                 // - check if PDF is linearized
@@ -275,7 +274,7 @@ namespace ZingPdf.Core.Objects
                     {
                         // Index contains a pair of integers for each subsection
                         // representing the start index and count
-                        for (var i = 0; i < streamDictionary.Index.Count() / 2; i += 2)
+                        for (var i = 0; i < streamDictionary.Index.Count(); i += 2)
                         {
                             xrefIndices.Add(
                                 new CrossReferenceSectionIndex(
@@ -293,18 +292,18 @@ namespace ZingPdf.Core.Objects
                     var field2Size = streamDictionary.W.Get<Integer>(1)!;
                     var field3Size = streamDictionary.W.Get<Integer>(2)!;
 
-                    foreach (var index in xrefIndices)
+                    for (int i = 0; i < xrefIndices.Count; i++)
                     {
-                        var maxIndex = index.StartIndex + index.Count;
+                        CrossReferenceSectionIndex? index = xrefIndices[i];
 
                         var sectionOffset = index.StartIndex * entrySize;
 
-                        for (var i = index.StartIndex; i < maxIndex; i++)
+                        for (var j = 0; j < index.Count; j++)
                         {
-                            var entryOffset = (i - 1) * entrySize;
+                            var entryOffset = (i + j) * entrySize;
                             var entryData = xrefData[entryOffset..(entryOffset + entrySize)];
 
-                            // Default entry type is 1 (inUse object)
+                            // Default entry type is 1 ('in use' object)
                             var entryType = (byte)1;
 
                             if (field1Size != 0)
@@ -315,7 +314,7 @@ namespace ZingPdf.Core.Objects
                             int field2 = ExtractField(entryData, field1Size, field2Size);
                             int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
 
-                            xrefs[i] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0);
+                            xrefs[index.StartIndex + j] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2);
                         }
                     }
                 }
@@ -357,7 +356,7 @@ namespace ZingPdf.Core.Objects
                     throw new InvalidOperationException("Unable to find PDF cross references.");
                 }
 
-                return xrefs.Values;
+                return xrefs;
             });
         }
 

@@ -1,5 +1,7 @@
 ﻿using ZingPdf.Core.Parsing;
 using ZingPdf.Core;
+using System.Text.RegularExpressions;
+using System.Text;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -12,6 +14,30 @@ using ZingPdf.Core;
 
 await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
 //await ParseResaveValidate("test2.pdf", "output.pdf");
+
+//await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
+
+static async Task ListObjNumbers(string input)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+
+    using var reader = new StreamReader(inputFileStream);
+
+    string content = reader.ReadToEnd();
+    MatchCollection matches = Regex.Matches(content, @"([\d]+) [\d]+ obj");
+
+    var csvBuilder = new StringBuilder();
+
+    foreach (var match in matches.Cast<Match>())
+    {
+        csvBuilder.AppendLine(match.Groups[1].Value);
+    }
+
+    var csvDetailFilename = $"output.csv";
+    File.WriteAllText(csvDetailFilename, csvBuilder.ToString());
+    Console.WriteLine($"Saved as {csvDetailFilename}");
+
+}
 
 static async Task ParseResaveValidate(string input, string output)
 {

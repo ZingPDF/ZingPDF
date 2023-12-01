@@ -22,7 +22,7 @@
             // TODO: this seems awfully disconnected from the indirect object itself
             // How do we ensure the index we're adding is the same as the indirect object we're referencing.
             Index.Count++;
-            Entries.Add(new CrossReferenceEntry(byteOffset ?? 0, generationNumber, inUse: true));
+            Entries.Add(new CrossReferenceEntry(byteOffset ?? 0, generationNumber, inUse: true, compressed: false));
         }
 
         protected override async Task WriteOutputAsync(Stream stream)

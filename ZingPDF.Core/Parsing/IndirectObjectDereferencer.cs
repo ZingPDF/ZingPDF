@@ -12,7 +12,7 @@ namespace ZingPdf.Core.Parsing
         {
             var pdfTraversal = new StreamPdfTraversal(stream);
             var xrefs = await pdfTraversal.GetAggregateCrossReferencesAsync();
-            var offset = xrefs.ElementAt(reference.Id.Index).Value1;
+            var offset = xrefs[reference.Id.Index].Value1;
 
             stream.Position = offset;
 
@@ -33,7 +33,7 @@ namespace ZingPdf.Core.Parsing
 
             foreach (var record in xrefs)
             {
-                stream.Position = record.Value1;
+                stream.Position = record.Value.Value1;
 
                 yield return await Parser.For<IndirectObject>().ParseAsync(stream);
             }
