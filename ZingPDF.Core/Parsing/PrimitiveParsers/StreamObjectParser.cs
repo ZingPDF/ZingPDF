@@ -12,7 +12,10 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             var dict = await Parser.For<Dictionary>().ParseAsync(stream);
 
-            var streamDict = dict as CrossReferenceStreamDictionary as IStreamDictionary ?? StreamDictionary.FromDictionary(dict);
+            var streamDict =
+                dict as CrossReferenceStreamDictionary as IStreamDictionary
+                ?? dict as ObjectStreamDictionary as IStreamDictionary
+                ?? StreamDictionary.FromDictionary(dict);
 
             var streamLength = streamDict.Length!;
 
