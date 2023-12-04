@@ -126,6 +126,8 @@ namespace ZingPdf.Core.Objects
                     return trailer.Dictionary;
                 }
 
+                // TODO: we're doing this startxref search twice. (in GetRootTrailerAsync too)
+
                 var objectFinder = new ObjectFinder();
 
                 // First, find the startxref keyword
@@ -235,13 +237,6 @@ namespace ZingPdf.Core.Objects
                 LinearizationDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
                 var isLinearized = linearizationDictionary != null && linearizationDictionary.L == _stream.Length;
 
-                if (linearizationDictionary != null)
-                {
-                    // If there's a linearization dictionary, even if there's been an update,
-                    // then there's an xref table or stream containing any objects relevant to the first page.
-                    await ParseCrossReferencesAsync(_stream, xrefs);
-                }
-
                 // First, find the startxref keyword
                 var offset = await objectFinder.FindAsync(_stream, Constants.StartXref, forwards: isLinearized)
                     ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
@@ -253,19 +248,21 @@ namespace ZingPdf.Core.Objects
 
                 _stream.Position = xrefOffset;
 
-                await ParseCrossReferencesAsync(_stream, xrefs);
+                await ParseCrossReferencesAsync(xrefs);
 
                 return xrefs;
             });
         }
 
-        private static async Task ParseCrossReferencesAsync(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs)
+        private async Task ParseCrossReferencesAsync(Dictionary<int, CrossReferenceEntry> xrefs)
         {
+            //Console.WriteLine($"Executing ParseCrossReferencesAsync. Current xrefs count: {xrefs.Count}");
+
             // The offset specified after the startxref keyword will either be an xref table, or stream.
-            var type = await TokenTypeIdentifier.TryIdentifyAsync(stream)
+            var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream)
                 ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
 
-            var item = await Parser.For(type).ParseAsync(stream);
+            var item = await Parser.For(type).ParseAsync(_stream);
 
             if (item is IndirectObject io
                 && io.Children.First() is StreamObject streamObject
@@ -275,7 +272,7 @@ namespace ZingPdf.Core.Objects
             }
             else if (item is Keyword k && k == Constants.Xref)
             {
-                await ParseCrossReferenceTableAsync(stream, xrefs);
+                await ParseCrossReferenceTableAsync(xrefs);
             }
             else
             {
@@ -283,7 +280,7 @@ namespace ZingPdf.Core.Objects
             }
         }
 
-        private static async Task ParseCrossReferenceStreamAsync(StreamObject crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
+        private async Task ParseCrossReferenceStreamAsync(StreamObject crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
         {
             var streamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
 
@@ -341,38 +338,38 @@ namespace ZingPdf.Core.Objects
                     xrefs[index.StartIndex + j] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2);
                 }
             }
+
+            if (streamDictionary.Prev is not null)
+            {
+                _stream.Position = streamDictionary.Prev;
+
+                await ParseCrossReferencesAsync(xrefs);
+            }
         }
 
-        private static async Task ParseCrossReferenceTableAsync(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs)
+        private async Task ParseCrossReferenceTableAsync(Dictionary<int, CrossReferenceEntry> xrefs)
         {
-            // TODO: this code assumes all xref sections are tables.
-            // Can there be a mix of tables and streams?
-            while (true)
+            var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(_stream);
+
+            foreach (var section in xrefTable.Sections)
             {
-                var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(stream);
+                var maxIndex = section.Index.StartIndex + section.Entries.Count;
 
-                foreach (var section in xrefTable.Sections)
+                for (var i = section.Index.StartIndex; i < maxIndex; i++)
                 {
-                    var maxIndex = section.Index.StartIndex + section.Entries.Count;
+                    var entry = section.Entries[i];
 
-                    for (var i = section.Index.StartIndex; i < maxIndex; i++)
-                    {
-                        var entry = section.Entries[i];
-
-                        xrefs[i] = entry;
-                    }
+                    xrefs[i] = entry;
                 }
+            }
 
-                var trailer = await Parser.For<Trailer>().ParseAsync(stream);
+            var trailer = await Parser.For<Trailer>().ParseAsync(_stream);
 
-                if (trailer.Dictionary.Prev is not null)
-                {
-                    stream.Position = trailer.Dictionary.Prev;
-                }
-                else
-                {
-                    break;
-                }
+            if (trailer.Dictionary.Prev is not null)
+            {
+                _stream.Position = trailer.Dictionary.Prev;
+
+                await ParseCrossReferencesAsync(xrefs);
             }
         }
 
