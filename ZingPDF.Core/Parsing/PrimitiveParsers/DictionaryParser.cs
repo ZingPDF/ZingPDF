@@ -5,6 +5,7 @@ using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
+using ZingPdf.Core.Objects.Primitives.Streams;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
@@ -99,6 +100,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                     case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
                         return CrossReferenceStreamDictionary.FromDictionary(dictionary);
+
+                    case ObjectStreamDictionary.DictionaryKeys.ObjStm:
+                        return ObjectStreamDictionary.FromDictionary(dictionary);
                 }
             }
 

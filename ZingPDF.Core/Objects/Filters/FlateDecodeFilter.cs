@@ -5,6 +5,11 @@ namespace ZingPdf.Core.Objects.Filters
 {
     internal class FlateDecodeFilter : IFilter
     {
+        private const int _defaultPredictor = 1;
+        private const int _defaultColors = 1;
+        private const int _defaultBitsPerComponent = 8;
+        private const int _defaultColumns = 1;
+
         public FlateDecodeFilter(Dictionary? filterParams)
         {
             Params = filterParams ?? new();
@@ -21,7 +26,13 @@ namespace ZingPdf.Core.Objects.Filters
 
             decoder.CopyTo(output);
 
-            return output.ToArray();
+            return PngPredictor.Decode(
+                output.ToArray(),
+                Params.Get<Integer>("Predictor") ?? _defaultPredictor,
+                Params.Get<Integer>("Columns") ?? _defaultColumns,
+                Params.Get<Integer>("Colors") ?? _defaultColors,
+                Params.Get<Integer>("BitsPerComponent") ?? _defaultBitsPerComponent
+                );
         }
 
         public byte[] Encode(byte[] data)
