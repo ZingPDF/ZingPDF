@@ -50,11 +50,11 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count = await pdf.GetPageCountAsync();
 
-    //await pdf.AppendPageAsync();
+    await pdf.AppendPageAsync();
 
-    //var count2 = await pdf.GetPageCountAsync();
+    var count2 = await pdf.GetPageCountAsync();
 
-    //var test = await pdf.GetPageAsync(1);
+    var test = await pdf.GetPageAsync(1);
 
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
