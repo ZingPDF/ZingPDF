@@ -38,9 +38,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     if (countStart > 0 && countEnd == countStart)
                     {
                         arrayEnd = i;
-                        stream.Position = arrayStart + i;
 
-                        await stream.AdvanceBeyondNextAsync(Constants.ArrayEnd);
                         break;
                     }
                 }
@@ -48,6 +46,13 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             while (stream.Position < stream.Length && countEnd != countStart);
 
             using var arrayStream = await stream.RangeAsync(arrayStart + 1, arrayEnd + arrayStart);
+
+            stream.Position = arrayStart + arrayEnd + 1;
+
+            if (arrayStream.Length == 0)
+            {
+                return Array.Empty<ArrayObject>();
+            }
 
             var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
 

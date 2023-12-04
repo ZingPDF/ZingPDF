@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
@@ -16,6 +15,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         [InlineData("2 0 obj\r\n<</Type/Pages/Count 3", "Type")]
         [InlineData("/Page\r\n", "Page")]
         [InlineData("/DecodeParms<</Columns", "DecodeParms")]
+        [InlineData("/Lang(en)", "Lang")]
         public async Task ParseBasicAsync(string content, string expected)
         {
             using var input = content.ToStream();
