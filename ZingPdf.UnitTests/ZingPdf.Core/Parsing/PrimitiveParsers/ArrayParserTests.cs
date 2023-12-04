@@ -12,10 +12,26 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             using var input = "[]".ToStream();
 
-            var output = await Parser.For<ArrayObject>()
+            var output = await new ArrayParser()
                 .ParseAsync(input);
 
             output.Should().BeEmpty();
+            input.Position.Should().Be(input.Length);
+        }
+
+        [Fact]
+        public async Task ParseNestedArray()
+        {
+            using var input = "[[(2020-12-03_ISO_32000-2-final.pdf)90827 0 R]]".ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Should().HaveCount(1);
+            output.First().Should().BeOfType<ArrayObject>();
+            output.First().As<ArrayObject>().Should().HaveCount(2);
+
+            input.Position.Should().Be(input.Length);
         }
 
         [Theory]
@@ -27,7 +43,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             using var input = content.ToStream();
 
-            var output = await Parser.For<ArrayObject>()
+            var output = await new ArrayParser()
                 .ParseAsync(input);
 
             output.Should().HaveCount(expectedCount);
@@ -43,7 +59,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             using var input = contentString.ToStream();
 
-            var output = await Parser.For<ArrayObject>()
+            var output = await new ArrayParser()
                 .ParseAsync(input);
 
             output.All(x => x is Integer).Should().BeTrue();

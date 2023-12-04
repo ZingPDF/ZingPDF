@@ -113,9 +113,35 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseTroublesomeDictionary()
+        public async Task ParseComplexCatalogDictionary()
         {
-            var contentString = "<</Type /Pattern\r\n/PatternType 2\r\n/Matrix [.75033021 0 0 -.75033021 480.70541 838.91864]\r\n/Shading <</Function <</C0 [.165 .694 .886]\r\n/C1 [.153 .651 .878]\r\n/Domain [0 1]\r\n/FunctionType 2\r\n/N 1>>\r\n/Extend [true true]\r\n/Coords [31.9977 57.347099 31.9977 35.1842]\r\n/ShadingType 2\r\n/ColorSpace /DeviceRGB>>>>";
+            var contentString = "" +
+                "<<" +
+                "/AcroForm 90825 0 R" +
+                "/Lang(en)" +
+                "/MarkInfo<</Marked true>>" +
+                "/Metadata 3633 0 R" +
+                "/Names 90826 0 R" +
+                "/OCProperties" +
+                    "<</D" +
+                        "<</AS[" +
+                            "<</Category[/Print]/Event/Print/OCGs[90827 0 R]>>" +
+                            "<</Category[/Export]/Event/Export/OCGs[90827 0 R]>>" +
+                            "<</Category[/Zoom]/Event/View/OCGs[90827 0 R]>>" +
+                            "]" +
+                            "/OFF[90827 0 R]" +
+                            "/Order[[(2020-12-03_ISO_32000-2-final.pdf)90827 0 R]]" +
+                            "/RBGroups[]" +
+                        ">>" +
+                    "/OCGs[90827 0 R]" +
+                    ">>" +
+                "/Outlines 90840 0 R" +
+                "/PageMode/UseOutlines" +
+                "/Pages 90540 0 R" +
+                "/StructTreeRoot 4931 0 R" +
+                "/Type/Catalog" +
+                "/ViewerPreferences<</DisplayDocTitle true>>" +
+                ">>";
 
             using var input = contentString.ToStream();
 

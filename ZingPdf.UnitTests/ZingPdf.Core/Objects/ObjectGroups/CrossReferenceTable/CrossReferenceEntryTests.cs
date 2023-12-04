@@ -12,7 +12,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
         [InlineData(14278075, 0, true, "0014278075 00000 n\r\n")]
         public async Task WriteAsyncCorrectGenerationNumberFormat(long byteOffset, ushort genNumber, bool inUse, string expected)
         {
-            var xrefEntry = new CrossReferenceEntry(byteOffset, genNumber, inUse);
+            var xrefEntry = new CrossReferenceEntry(byteOffset, genNumber, inUse, compressed: false);
 
             using var ms = new MemoryStream();
 

@@ -13,7 +13,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             Constants.CarriageReturn,
             Constants.LineFeed,
             Constants.LessThan,
-            Constants.ArrayStart
+            Constants.ArrayStart,
+            Constants.LeftParenthesis
         };
 
         public async ITask<Name> ParseAsync(Stream stream)
