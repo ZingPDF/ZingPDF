@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 
 namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
@@ -21,16 +22,13 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
             // 30 1
             // 0000025777 00000 n
 
-            //// xref keyword
-            //var temp = await Parser.For<Keyword>().ParseAsync(stream);
-
             var sectionParser = Parser.For<CrossReferenceSection>();
 
             List<CrossReferenceSection> sections = new();
 
             Type? currentType = await TokenTypeIdentifier.TryIdentifyAsync(stream);
 
-            while (currentType != null && currentType != typeof(CrossReferenceEntry) && currentType != typeof(Keyword))
+            while (currentType != null && currentType != typeof(CrossReferenceEntry) && currentType != typeof(Keyword) && currentType != typeof(Trailer))
             {
                 sections.Add(await sectionParser.ParseAsync(stream));
 
