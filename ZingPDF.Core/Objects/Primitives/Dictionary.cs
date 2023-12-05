@@ -72,6 +72,11 @@ namespace ZingPdf.Core.Objects.Primitives
 
             foreach (var kvp in _dictionary)
             {
+                if (kvp.Value is null)
+                {
+                    continue;
+                }
+
                 await kvp.Key.WriteAsync(stream);
                 await stream.WriteWhitespaceAsync();
                 await kvp.Value.WriteAsync(stream);
