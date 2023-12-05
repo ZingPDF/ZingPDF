@@ -56,6 +56,10 @@ static async Task ParseResaveValidate(string input, string output)
 
     var test = await pdf.GetPageAsync(1);
 
+    
+    
+    
+    
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
     await pdf.SaveAsync(outputFileStream);
