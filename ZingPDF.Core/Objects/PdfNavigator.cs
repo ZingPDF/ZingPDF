@@ -1,5 +1,8 @@
-﻿using Nito.AsyncEx;
+﻿#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+using Nito.AsyncEx;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
@@ -10,21 +13,65 @@ using ZingPdf.Core.Parsing;
 
 namespace ZingPdf.Core.Objects
 {
-    internal class StreamPdfTraversal : IPdfTraversal
+    internal class PdfNavigator
     {
+        private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = new();
         private readonly Stream _stream;
 
-        private readonly AsyncLazy<LinearizationDictionary?> _linearizationParameters;
-        private readonly AsyncLazy<Trailer?> _rootTrailer;
-        private readonly AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
-        private readonly AsyncLazy<IndirectObject> _rootPageTreeNode;
-        private readonly AsyncLazy<IEnumerable<Page>> _pages;
-        private readonly AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
+        private AsyncLazy<LinearizationDictionary?> _linearizationParameters;
+        private AsyncLazy<Trailer?> _rootTrailer;
+        private AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
+        private AsyncLazy<IndirectObject> _rootPageTreeNode;
+        private AsyncLazy<IEnumerable<Page>> _pages;
+        private AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
 
-        public StreamPdfTraversal(Stream stream)
+
+        public PdfNavigator(Stream stream)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
 
+            SetupLazyProperties();
+        }
+
+        public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
+
+        /// <summary>
+        /// Get the latest trailer.
+        /// </summary>
+        /// <remarks>
+        /// A PDF which stores its cross reference information in streams will not have a trailer.<para></para>
+        /// In such a file, the cross reference stream dictionary contains the trailer data.<para></para>
+        /// </remarks>
+        public Task<Trailer?> GetRootTrailerAsync() => _rootTrailer.Task;
+
+        /// <summary>
+        /// Get the latest trailer dictionary.
+        /// </summary>
+        /// <remarks>
+        /// For PDFs which store their cross reference information in streams, this method will return the cross reference stream dictionary.<para></para>
+        /// </remarks>
+        public Task<ITrailerDictionary> GetRootTrailerDictionaryAsync() => _rootTrailerDictionary.Task;
+
+        public Task<IEnumerable<Page>> GetPagesAsync() => _pages.Task;
+
+        public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
+
+        /// <summary>
+        /// This class caches compute-heavy and I/O-heavy values.<para></para>
+        /// Call this method to clear the cache after file changes.
+        /// </summary>
+        public void ClearCache()
+        {
+            SetupLazyProperties();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync() => _xrefs.Task;
+
+        private void SetupLazyProperties()
+        {
             _linearizationParameters = SetupLazyLinearizationDictionary();
             _rootTrailer = SetupLazyRootTrailer();
             _rootTrailerDictionary = SetupLazyRootTrailerDictionary();
@@ -33,14 +80,73 @@ namespace ZingPdf.Core.Objects
             _xrefs = SetupLazyXrefs();
         }
 
-        // TODO: need a way to reset lazy properties after file saving
+        /// <summary>
+        /// Returns the latest Indirect Object matching the given reference.
+        /// </summary>
+        private async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
+        {
+            if (reference is null) throw new ArgumentNullException(nameof(reference));
 
-        public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
-        public Task<Trailer?> GetRootTrailerAsync() => _rootTrailer.Task;
-        public Task<ITrailerDictionary> GetRootTrailerDictionaryAsync() => _rootTrailerDictionary.Task;
-        public Task<IEnumerable<Page>> GetPagesAsync() => _pages.Task;
-        public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
-        public Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync() => _xrefs.Task;
+            if (_indirectObjectCache.TryGetValue(reference.Id, out IndirectObject? indirectObject))
+            {
+                return indirectObject;
+            }
+
+            var xrefs = await GetAggregateCrossReferencesAsync();
+
+            var xref = xrefs[reference.Id.Index];
+
+            var indirectObjectParser = Parser.For<IndirectObject>();
+
+            if (xref.Compressed)
+            {
+                // Just parsing the whole object stream for now.
+                // I started to write code to just parse the requested object.
+                // TODO: compare performance of these 2 techniques.
+
+                var objStreamIndirectObject = await DereferenceIndirectObjectAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)));
+                var objectStream = (objStreamIndirectObject.Children.First() as StreamObject)!;
+                var objectStreamDict = (objectStream.Dictionary as ObjectStreamDictionary)!;
+
+                var data = await objectStream.DecodeAsync();
+
+                //var offsets = Encoding.ASCII.GetString(data[..objectStreamDict.First]).Split(Constants.Whitespace);
+
+                //Dictionary<int, int> indexedOffsets = new();
+
+                //for(var i = 0; i < objectStreamDict.N; i += 2)
+                //{
+                //    var objectNumber = Convert.ToInt32(offsets[i]);
+                //    var byteOffset = Convert.ToInt32(offsets[i + 1]);
+
+                //    indexedOffsets.Add(objectNumber, byteOffset);
+                //}
+
+                //var objectOffset = indexedOffsets[reference.Id.Index];
+
+                using var ms = new MemoryStream(data[objectStreamDict.First..]);
+                var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ms);
+
+                indirectObject = new IndirectObject(reference.Id, allObjects.Objects[xref.Value2]);
+            }
+            else
+            {
+                _stream.Position = xref.Value1;
+
+                indirectObject = await indirectObjectParser.ParseAsync(_stream);
+            }
+
+            _indirectObjectCache.TryAdd(reference.Id, indirectObject);
+
+            return indirectObject;
+        }
+
+        /// <summary>
+        /// When you know the Indirect Object contains a single object of a specific type, 
+        /// this method provides strongly typed access to it.
+        /// </summary>
+        private async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
+            => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
 
         /// <summary>
         /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
@@ -49,13 +155,13 @@ namespace ZingPdf.Core.Objects
         {
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
-            IndirectObjectDereferencer indirectObjectDereferencer = new();
-
             List<Page> pages = new();
 
-            foreach (var ior in pageTreeNode.Kids)
+            foreach (var refObj in pageTreeNode.Kids)
             {
-                var obj = await indirectObjectDereferencer.GetAsync(_stream, (IndirectObjectReference)ior);
+                var ior = (IndirectObjectReference)refObj;
+
+                var obj = await DereferenceIndirectObjectAsync(ior);
 
                 if (obj.Children.First() is Page page)
                 {
@@ -167,7 +273,7 @@ namespace ZingPdf.Core.Objects
 
                 List<PdfObject> items = new();
 
-                while (_stream.Position <= Math.Min(1024, _stream.Length))
+                while (_stream.Position < Math.Min(1024, _stream.Length))
                 {
                     var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream);
 
@@ -187,14 +293,15 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<IndirectObject>(async () =>
             {
-                IndirectObjectDereferencer indirectObjectDereferencer = new();
-
                 var trailerDictionary = await GetRootTrailerDictionaryAsync();
 
                 var documentCatalog = DocumentCatalog.FromDictionary(
-                    await indirectObjectDereferencer.GetSingleAsync<Dictionary>(_stream, trailerDictionary.Root));
+                    await DereferenceIndirectObjectAsync<Dictionary>(trailerDictionary.Root));
 
-                return await indirectObjectDereferencer.GetAsync(_stream, documentCatalog.Pages);
+                var xrefs = await GetAggregateCrossReferencesAsync();
+                var xref = xrefs[documentCatalog.Pages.Id.Index];
+
+                return await DereferenceIndirectObjectAsync(documentCatalog.Pages);
             });
         }
 
@@ -256,8 +363,6 @@ namespace ZingPdf.Core.Objects
 
         private async Task ParseCrossReferencesAsync(Dictionary<int, CrossReferenceEntry> xrefs)
         {
-            //Console.WriteLine($"Executing ParseCrossReferencesAsync. Current xrefs count: {xrefs.Count}");
-
             // The offset specified after the startxref keyword will either be an xref table, or stream.
             var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream)
                 ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
@@ -335,7 +440,7 @@ namespace ZingPdf.Core.Objects
                     int field2 = ExtractField(entryData, field1Size, field2Size);
                     int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
 
-                    xrefs[index.StartIndex + j] = new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2);
+                    xrefs.TryAdd(index.StartIndex + j, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2));
                 }
             }
 
@@ -359,7 +464,7 @@ namespace ZingPdf.Core.Objects
                 {
                     var entry = section.Entries[i];
 
-                    xrefs[i] = entry;
+                    xrefs.TryAdd(i, entry);
                 }
             }
 
@@ -395,3 +500,5 @@ namespace ZingPdf.Core.Objects
         }
     }
 }
+
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
