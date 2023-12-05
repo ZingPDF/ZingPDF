@@ -25,7 +25,6 @@ namespace ZingPdf.Core.Objects
         private AsyncLazy<IEnumerable<Page>> _pages;
         private AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
 
-
         public PdfNavigator(Stream stream)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
@@ -255,6 +254,8 @@ namespace ZingPdf.Core.Objects
                     && io.Children.First() is StreamObject so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
+                    dict.ByteOffset = xrefOffset;
+
                     return dict;
                 }
 
