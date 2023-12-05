@@ -19,9 +19,9 @@ namespace ZingPdf.Core
     public class Pdf : IDisposable
     {
         private readonly Stream _pdfContentStream;
-        private readonly IPdfTraversal _pdfTraversal;
+        private readonly PdfNavigator _pdfNavigator;
 
-        private readonly IncrementalUpdateManager _incrementalUpdateManager = new();
+        private readonly IncrementalUpdateManager _incrementalUpdateManager;
 
         /// <summary>
         /// Private constructor for creating a PDF from a content stream.
@@ -30,7 +30,8 @@ namespace ZingPdf.Core
         {
             _pdfContentStream = contentStream ?? throw new ArgumentNullException(nameof(contentStream));
 
-            _pdfTraversal = new StreamPdfTraversal(contentStream);
+            _pdfNavigator = new PdfNavigator(contentStream);
+            _incrementalUpdateManager = new IncrementalUpdateManager(_pdfNavigator);
         }
 
         /// <summary>
@@ -134,7 +135,7 @@ namespace ZingPdf.Core
 
         public async Task<int> GetPageCountAsync()
         {
-            var rootPageTreeNodeIndirectObject = await _pdfTraversal.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
@@ -145,7 +146,8 @@ namespace ZingPdf.Core
         {
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
-            var pages = await _pdfTraversal.GetPagesAsync();
+            // TODO: check if there's a more efficient way to do this.
+            var pages = await _pdfNavigator.GetPagesAsync();
 
             if (pageNumber > pages.Count()) throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
@@ -156,7 +158,7 @@ namespace ZingPdf.Core
 
         public async Task AppendPageAsync()
         {
-            var rootPageTreeNodeIndirectObject = await _pdfTraversal.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
 
             var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference);
 
