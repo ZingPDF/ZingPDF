@@ -7,7 +7,7 @@
     {
         public bool Written { get; private set; }
 
-        public long? ByteOffset { get; private set; }
+        public long? ByteOffset { get; internal set; }
 
         public async Task WriteAsync(Stream stream)
         {
