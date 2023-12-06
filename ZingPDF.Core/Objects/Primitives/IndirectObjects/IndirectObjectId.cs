@@ -9,7 +9,7 @@
         }
 
         public int Index { get; }
-        public ushort GenerationNumber { get; }
+        public ushort GenerationNumber { get; internal set; }
 
         public IndirectObjectReference Reference { get => new(this); }
 

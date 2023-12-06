@@ -57,6 +57,8 @@ namespace ZingPdf.Core
         {
             if (indirectObjectId is null) throw new ArgumentNullException(nameof(indirectObjectId));
 
+            indirectObjectId.GenerationNumber++;
+
             _deletedObjects.Add(indirectObjectId);
         }
 
@@ -65,10 +67,6 @@ namespace ZingPdf.Core
             if (inputStream is null) throw new ArgumentNullException(nameof(inputStream));
             if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
             if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
-
-            // new - write object, write xref
-            // updated - write object, write xref
-            // deleted - only write free xref entry
 
             outputStream.Seek(0, SeekOrigin.End);
 
@@ -123,18 +121,15 @@ namespace ZingPdf.Core
             List<CrossReferenceSection> xrefSections = new() { latestXrefSection };
 
             var allEntries = 
-                _newObjects
-                .Concat(_updatedObjects.Values)
-                .Concat(_updatedObjects.Values)
-                .OrderBy(x => x.Id.Index);
+                _newObjects.Select(x => KeyValuePair.Create(x.Id, (IndirectObject?)x))
+                .Concat(_updatedObjects.Select(x => KeyValuePair.Create(x.Key, (IndirectObject?)x.Value)))
+                .Concat(_deletedObjects.Select(x => KeyValuePair.Create(x, (IndirectObject?)null)))
+                .OrderBy(x => x.Key.Index);
 
-            // There shall be one xref section for each contiguous block of entries
-            //var keys = _entries.Keys.OrderBy(k => k.Index);
-
-            for (var i = allEntries.First().Id.Index; i <= allEntries.Last().Id.Index; i++)
+            for (var i = allEntries.First().Key.Index; i <= allEntries.Last().Key.Index; i++)
             {
-                var entry = allEntries.FirstOrDefault(e => e.Id.Index == i);
-                if (entry is not null)
+                var entry = allEntries.FirstOrDefault(e => e.Key.Index == i);
+                if (entry.Key is not null)
                 {
                     if (latestXrefSection is null)
                     {
@@ -142,7 +137,15 @@ namespace ZingPdf.Core
                         xrefSections.Add(latestXrefSection);
                     }
 
-                    latestXrefSection.Add(entry.ByteOffset, entry.Id.GenerationNumber);
+                    var inUse = entry.Value is not null;
+                    var nextFreeObjectNumber = 0; // TODO
+
+                    latestXrefSection.Add(new CrossReferenceEntry(
+                        inUse ? entry.Value!.ByteOffset!.Value : nextFreeObjectNumber,
+                        entry.Key.GenerationNumber,
+                        inUse,
+                        false
+                        ));
                 }
                 else
                 {

@@ -17,12 +17,12 @@
         public CrossReferenceSectionIndex Index { get; }
         public List<CrossReferenceEntry> Entries { get; }
 
-        public void Add(long? byteOffset, ushort generationNumber)
+        public void Add(CrossReferenceEntry entry)
         {
-            // TODO: this seems awfully disconnected from the indirect object itself
-            // How do we ensure the index we're adding is the same as the indirect object we're referencing.
+            if (entry is null) throw new ArgumentNullException(nameof(entry));
+
             Index.Count++;
-            Entries.Add(new CrossReferenceEntry(byteOffset ?? 0, generationNumber, inUse: true, compressed: false));
+            Entries.Add(entry);
         }
 
         protected override async Task WriteOutputAsync(Stream stream)
