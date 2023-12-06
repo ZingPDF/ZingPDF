@@ -8,7 +8,10 @@ namespace ZingPdf.Core
     // TODO: unit tests are vital for this class
     internal class IncrementalUpdateManager
     {
-        private readonly Dictionary<IndirectObjectId, IndirectObject> _entries = new();
+        private readonly List<IndirectObject> _newObjects = new();
+        private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = new();
+        private readonly List<IndirectObjectId> _deletedObjects = new();
+
         private readonly PdfNavigator _pdfNavigator;
 
         public IncrementalUpdateManager(PdfNavigator pdfNavigator)
@@ -23,24 +26,22 @@ namespace ZingPdf.Core
 
             // Concatenate unsaved entries with existing objects
             var xrefs = (await _pdfNavigator.GetAggregateCrossReferencesAsync())
-                .Concat(_entries.ToDictionary(e => e.Key.Index, e => new CrossReferenceEntry(0, e.Key.GenerationNumber, inUse: true, compressed: false)));
+                .Concat(_newObjects.ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false)));
 
-            var freeIndex = xrefs.Skip(1).ToList().FindIndex(x => !x.Value.InUse);
-            IndirectObjectId objectId;
-            if (freeIndex == -1)
+            IndirectObjectId newObjectId;
+            var free = xrefs.FirstOrDefault(x => !x.Value.InUse);
+            if (free.Key != 0)
             {
-                freeIndex = xrefs.Count() + 1;
-                objectId = new IndirectObjectId(freeIndex, 0);
+                newObjectId = new IndirectObjectId(free.Key, free.Value.Value2);
             }
             else
             {
-                var xref = xrefs.ElementAt(freeIndex);
-                objectId = new IndirectObjectId(freeIndex, xref.Value.Value2);
+                newObjectId = new IndirectObjectId(xrefs.Count() + 1, 0);
             }
 
-            var indirectObject = new IndirectObject(objectId, pdfObject);
+            var indirectObject = new IndirectObject(newObjectId, pdfObject);
 
-            _entries[indirectObject.Id] = indirectObject;
+            _newObjects.Add(indirectObject);
 
             return indirectObject;
         }
@@ -49,7 +50,14 @@ namespace ZingPdf.Core
         {
             if (indirectObject is null) throw new ArgumentNullException(nameof(indirectObject));
 
-            _entries[indirectObject.Id] = indirectObject;
+            _updatedObjects[indirectObject.Id] = indirectObject;
+        }
+
+        public void DeleteObject(IndirectObjectId indirectObjectId)
+        {
+            if (indirectObjectId is null) throw new ArgumentNullException(nameof(indirectObjectId));
+
+            _deletedObjects.Add(indirectObjectId);
         }
 
         public async Task SaveAsync(Stream inputStream, Stream outputStream)
@@ -58,16 +66,15 @@ namespace ZingPdf.Core
             if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
             if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
 
-            if (!_entries.Any())
-            {
-                return;
-            }
+            // new - write object, write xref
+            // updated - write object, write xref
+            // deleted - only write free xref entry
 
             outputStream.Seek(0, SeekOrigin.End);
 
-            foreach (var entry in _entries)
+            foreach (var entry in _newObjects.Concat(_updatedObjects.Values))
             {
-                await entry.Value.WriteAsync(outputStream);
+                await entry.WriteAsync(outputStream);
             }
 
             var xrefTable = GenerateCrossReferences();
@@ -115,13 +122,19 @@ namespace ZingPdf.Core
             CrossReferenceSection? latestXrefSection = new(0, new[] { new CrossReferenceEntry(0, 65535, false, compressed: false) });
             List<CrossReferenceSection> xrefSections = new() { latestXrefSection };
 
-            // There shall be one xref section for each contiguous block of entries
-            var keys = _entries.Keys.OrderBy(k => k.Index);
+            var allEntries = 
+                _newObjects
+                .Concat(_updatedObjects.Values)
+                .Concat(_updatedObjects.Values)
+                .OrderBy(x => x.Id.Index);
 
-            for (var i = 1; i <= keys.Last().Index; i++)
+            // There shall be one xref section for each contiguous block of entries
+            //var keys = _entries.Keys.OrderBy(k => k.Index);
+
+            for (var i = allEntries.First().Id.Index; i <= allEntries.Last().Id.Index; i++)
             {
-                var key = keys.FirstOrDefault(k => k.Index == i);
-                if (key is not null)
+                var entry = allEntries.FirstOrDefault(e => e.Id.Index == i);
+                if (entry is not null)
                 {
                     if (latestXrefSection is null)
                     {
@@ -129,19 +142,20 @@ namespace ZingPdf.Core
                         xrefSections.Add(latestXrefSection);
                     }
 
-                    var entry = _entries[key];
-
                     latestXrefSection.Add(entry.ByteOffset, entry.Id.GenerationNumber);
                 }
                 else
                 {
+                    // End the section if next entry is non-contiguous
                     latestXrefSection = null;
                 }
             }
 
             var xrefTable = new CrossReferenceTable(xrefSections);
 
-            _entries.Clear();
+            _newObjects.Clear();
+            _updatedObjects.Clear();
+            _deletedObjects.Clear();
 
             return xrefTable;
         }
