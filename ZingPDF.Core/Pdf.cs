@@ -153,7 +153,7 @@ namespace ZingPdf.Core
 
             // TODO: make sure the page has the required 'MediaBox' property, whether inherited or explicitly specified.
 
-            return pages.ElementAt(pageNumber - 1);
+            return (pages.ElementAt(pageNumber - 1).Children.First() as Page)!;
         }
 
         public async Task AppendPageAsync()
@@ -198,12 +198,19 @@ namespace ZingPdf.Core
             throw new NotImplementedException();
         }
 
-        public void SetPageRotation(int pageNumber, Rotation rotation)
+        public async void SetPageRotation(int pageNumber, Rotation rotation)
         {
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
             if (rotation is null) throw new ArgumentNullException(nameof(rotation));
 
-            throw new NotImplementedException();
+            // TODO: check if there's a more efficient way to do this.
+            var pages = await _pdfNavigator.GetPagesAsync();
+
+            var page = pages.ElementAt(pageNumber - 1);
+
+            (page.Children.First() as Page)!.Rotate = rotation;
+
+            _incrementalUpdateManager.UpdateObject(page);
         }
 
         public void Draw(
