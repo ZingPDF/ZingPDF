@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
     {
         public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
         {
-            var items = new List<PdfObject>();
+            var items = new List<IPdfObject>();
 
             while (stream.Position < stream.Length)
             {

@@ -7,13 +7,13 @@ namespace ZingPdf.Core.Objects.Primitives
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary : PdfObject, IDictionary<Name, PdfObject>
+    public class Dictionary : PdfObject, IDictionary<Name, IPdfObject>
     {
-        private readonly IDictionary<Name, PdfObject> _dictionary = new Dictionary<Name, PdfObject>();
+        private readonly IDictionary<Name, IPdfObject> _dictionary = new Dictionary<Name, IPdfObject>();
 
-        public Dictionary(IDictionary<Name, PdfObject>? dictionary = null)
+        public Dictionary(IDictionary<Name, IPdfObject>? dictionary = null)
         {
-            _dictionary = dictionary ?? new Dictionary<Name, PdfObject>();
+            _dictionary = dictionary ?? new Dictionary<Name, IPdfObject>();
         }
 
         /// <summary>
@@ -22,46 +22,46 @@ namespace ZingPdf.Core.Objects.Primitives
         /// <remarks>
         /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
         /// </remarks>
-        public T? Get<T>(Name key) where T : PdfObject
+        public T? Get<T>(Name key) where T : class, IPdfObject
             => _dictionary.ContainsKey(key)
             ? _dictionary[key] as T
             : null;
 
-        public void Set<T>(Name key, T pdfObject) where T : PdfObject
+        public void Set<T>(Name key, T pdfObject) where T : IPdfObject
         {
             _dictionary[key] = pdfObject;
         }
 
         #region IDictionary
-        public virtual PdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }
+        public virtual IPdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }
 
-        public virtual void Add(Name key, PdfObject value) => _dictionary.Add(key, value);
+        public virtual void Add(Name key, IPdfObject value) => _dictionary.Add(key, value);
 
-        public virtual void Add(KeyValuePair<Name, PdfObject> item) => _dictionary.Add(item);
+        public virtual void Add(KeyValuePair<Name, IPdfObject> item) => _dictionary.Add(item);
 
         public virtual void Clear() => _dictionary.Clear();
 
         public virtual bool Remove(Name key) => _dictionary.Remove(key);
 
-        public virtual bool Remove(KeyValuePair<Name, PdfObject> item) => _dictionary.Remove(item);
+        public virtual bool Remove(KeyValuePair<Name, IPdfObject> item) => _dictionary.Remove(item);
 
         public ICollection<Name> Keys => _dictionary.Keys;
 
-        public ICollection<PdfObject> Values => _dictionary.Values;
+        public ICollection<IPdfObject> Values => _dictionary.Values;
 
         public int Count => _dictionary.Count;
 
         public bool IsReadOnly => _dictionary.IsReadOnly;
 
-        public bool Contains(KeyValuePair<Name, PdfObject> item) => _dictionary.Contains(item);
+        public bool Contains(KeyValuePair<Name, IPdfObject> item) => _dictionary.Contains(item);
 
         public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
 
-        public void CopyTo(KeyValuePair<Name, PdfObject>[] array, int arrayIndex) => _dictionary.CopyTo(array, arrayIndex);
+        public void CopyTo(KeyValuePair<Name, IPdfObject>[] array, int arrayIndex) => _dictionary.CopyTo(array, arrayIndex);
 
-        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out PdfObject value) => _dictionary.TryGetValue(key, out value);
+        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);
         
-        public IEnumerator<KeyValuePair<Name, PdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
+        public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
         #endregion
@@ -85,6 +85,6 @@ namespace ZingPdf.Core.Objects.Primitives
             await stream.WriteTextAsync(Constants.DictionaryEnd);
         }
 
-        public static implicit operator Dictionary(Dictionary<Name, PdfObject> value) => new(value);
+        public static implicit operator Dictionary(Dictionary<Name, IPdfObject> value) => new(value);
     }
 }

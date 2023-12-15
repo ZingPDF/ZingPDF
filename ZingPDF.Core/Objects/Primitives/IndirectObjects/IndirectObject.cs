@@ -9,14 +9,14 @@ namespace ZingPdf.Core.Objects.Primitives.IndirectObjects
     /// </summary>
     internal class IndirectObject : PdfObject
     {
-        public IndirectObject(IndirectObjectId id, params PdfObject[] children)
+        public IndirectObject(IndirectObjectId id, params IPdfObject[] children)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Children = children?.ToList() ?? throw new ArgumentNullException(nameof(children));
         }
 
         public IndirectObjectId Id { get; }
-        public List<PdfObject> Children { get; }
+        public List<IPdfObject> Children { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
