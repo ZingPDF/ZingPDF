@@ -1,6 +1,5 @@
 ﻿using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
-using ZingPdf.Core.Objects.Filters;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
