@@ -3,6 +3,7 @@ using WebSupergoo.ABCpdf12;
 using ZingPdf.Core;
 using System.Text.RegularExpressions;
 using System.Text;
+using ZingPdf.Core.Objects.DataStructures;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -18,9 +19,10 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
 //await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-//await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("test.pdf", "output.pdf");
 
 //LoadAndValidateUsingAbcpdf("Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -60,7 +62,9 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count = await pdf.GetPageCountAsync();
 
-    await pdf.AppendPageAsync();
+    pdf.SetPageRotation(1, Rotation.Degrees90);
+
+    //await pdf.AppendPageAsync();
 
     //var count2 = await pdf.GetPageCountAsync();
 
