@@ -2,7 +2,7 @@
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
-namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
+namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferences
 {
     /// <summary>
     /// ISO 32000-2:2020 7.5.4 - Cross-reference table

@@ -279,8 +279,6 @@ namespace ZingPdf.Core.Extensions
 
             await stream.CopyToAsync(ms);
 
-            //Array.Copy(stream, stream.Position, )
-
             return ms.ToArray();
         }
     }

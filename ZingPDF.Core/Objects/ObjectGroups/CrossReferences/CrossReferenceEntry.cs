@@ -1,9 +1,11 @@
 ﻿using ZingPdf.Core.Extensions;
 
-namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
+namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferences
 {
     internal class CrossReferenceEntry : PdfObject
     {
+        private static readonly CrossReferenceEntry _rootFreeEntry = new(0, 65535, inUse: false, compressed: false);
+
         /// <summary>
         /// Creates a <see cref="CrossReferenceEntry"/> instance.
         /// </summary>
@@ -73,5 +75,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
             await stream.WriteTextAsync(InUse ? "n" : "f");
             await stream.WriteNewLineAsync();
         }
+
+        public static CrossReferenceEntry RootFreeEntry => _rootFreeEntry;
     }
 }

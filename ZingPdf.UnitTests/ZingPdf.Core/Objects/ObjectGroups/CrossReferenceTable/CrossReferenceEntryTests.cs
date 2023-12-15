@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
 {

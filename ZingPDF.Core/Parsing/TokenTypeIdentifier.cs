@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
@@ -49,7 +49,7 @@ namespace ZingPdf.Core.Parsing
             { $"{Constants.LeftParenthesis}", typeof(LiteralString) },
             { $"{Constants.ArrayStart}", typeof(ArrayObject) },
             { Constants.Trailer, typeof(Trailer) },
-            { Constants.StreamStart, typeof(StreamObject) },
+            { Constants.StreamStart, typeof(IStreamObject<IStreamDictionary>) },
             { "true", typeof(BooleanObject) },
             { "false", typeof(BooleanObject) },
         };
