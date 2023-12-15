@@ -1,6 +1,6 @@
 ﻿using ZingPdf.Core.Extensions;
 
-namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
+namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferences
 {
     internal class CrossReferenceSectionIndex : PdfObject
     {

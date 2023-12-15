@@ -43,22 +43,20 @@ namespace ZingPdf.Core
                 "184\r\n" +
                 "%%EOF\r\n" +
                 "5 0 obj\r\n" +
-                "<</Type /Page/Parent 2 0 R/Resources <<>>>>\r\n" +
+                "<</Type /Page/Parent 2 0 R/Resources <<>>/MediaBox [0 0 200 200]>>\r\n" +
                 "endobj\r\n" +
                 "2 0 obj\r\n" +
                 "<</Type /Pages/Kids [3 0 R 5 0 R]/Count 2>>\r\n" +
                 "endobj\r\n" +
                 "xref\r\n" +
-                "0 1\r\n" +
-                "0000000000 65535 f\r\n" +
                 "2 1\r\n" +
-                "0000000468 00000 n\r\n" +
+                "0000000491 00000 n\r\n" +
                 "5 1\r\n" +
                 "0000000406 00000 n\r\n" +
                 "trailer\r\n" +
-                "<</Size 4/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]/Prev 184>>\r\n" +
+                "<</Size 6/Prev 184/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>\r\n" +
                 "startxref\r\n" +
-                "530\r\n" +
+                "553\r\n" +
                 "%%EOF";
 
             output.Should().Be(expectedOutput);

@@ -2,7 +2,7 @@
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.Streams;
@@ -81,7 +81,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
             }
 
-            Dictionary<Name, PdfObject> dictionary = new();
+            Dictionary<Name, IPdfObject> dictionary = new();
 
             for (int j = 0; j < objectGroup.Objects.Count; j += 2)
             {

@@ -52,7 +52,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             output.Id.Index.Should().Be(90824);
             output.Id.GenerationNumber.Should().Be(0);
             output.Children.Should().HaveCount(1);
-            output.Children.First().Should().BeOfType<StreamObject>();
+            output.Children.First().Should().BeAssignableTo<IStreamObject<IStreamDictionary>>();
         }
     }
 }

@@ -37,7 +37,7 @@ namespace ZingPdf.Core.Objects.Pages
 
         public static PageTreeNode CreateNew(ArrayObject pageReferences)
         {
-            return new(new Dictionary<Name, PdfObject>
+            return new(new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Pages) },
                 { DictionaryKeys.Kids, pageReferences },
