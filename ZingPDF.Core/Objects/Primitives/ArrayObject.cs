@@ -6,13 +6,13 @@ namespace ZingPdf.Core.Objects.Primitives
     /// <summary>
     /// ISO 32000-2:2020 7.3.6 - Array objects
     /// </summary>
-    public class ArrayObject : PdfObject, IEnumerable<PdfObject>
+    public class ArrayObject : PdfObject, IEnumerable<IPdfObject>
     {
-        private static readonly ArrayObject _empty = new(Array.Empty<PdfObject>());
+        private static readonly ArrayObject _empty = new(Array.Empty<IPdfObject>());
 
-        private readonly List<PdfObject> _values = new();
+        private readonly List<IPdfObject> _values = new();
 
-        public ArrayObject(PdfObject[] values)
+        public ArrayObject(IPdfObject[] values)
         {
             _values = values?.ToList() ?? throw new ArgumentNullException(nameof(values));
         }
@@ -32,7 +32,7 @@ namespace ZingPdf.Core.Objects.Primitives
 
             for (int i = 0; i < _values.Count; i++)
             {
-                PdfObject obj = _values[i];
+                IPdfObject obj = _values[i];
 
                 await obj.WriteAsync(stream);
 
@@ -45,11 +45,11 @@ namespace ZingPdf.Core.Objects.Primitives
             await stream.WriteCharsAsync(Constants.ArrayEnd);
         }
 
-        public IEnumerator<PdfObject> GetEnumerator() => ((IEnumerable<PdfObject>)_values).GetEnumerator();
+        public IEnumerator<IPdfObject> GetEnumerator() => ((IEnumerable<IPdfObject>)_values).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
         public static ArrayObject Empty { get => _empty; }
 
-        public static implicit operator ArrayObject(PdfObject[] items) => new(items);
+        public static implicit operator ArrayObject(IPdfObject[] items) => new(items);
     }
 }

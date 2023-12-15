@@ -24,7 +24,7 @@ namespace ZingPdf.Core.Objects
         }
 
         private Page(IndirectObjectReference parentPageTreeNode)
-            : base(new Dictionary<Name, PdfObject>
+            : base(new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
                 { DictionaryKeys.Parent, parentPageTreeNode },

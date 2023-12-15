@@ -45,7 +45,7 @@ namespace ZingPdf.Core.Parsing
                 var readContent = Encoding.ASCII.GetString(buffer, 0, readSize);
                 content = forwards ? content + readContent : readContent + content;
 
-                var index = content.IndexOf(token);
+                var index = content.LastIndexOf(token);
                 if (index != -1)
                 {
                     found = true;

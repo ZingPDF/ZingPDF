@@ -3,7 +3,8 @@
 using Nito.AsyncEx;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.ObjectGroups;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
@@ -31,6 +32,9 @@ namespace ZingPdf.Core.Objects
 
             SetupLazyProperties();
         }
+
+        public bool UsingXrefTables { get; private set; }
+        public bool UsingXrefStreams { get; private set; }
 
         public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
 
@@ -104,10 +108,10 @@ namespace ZingPdf.Core.Objects
                 // TODO: compare performance of these 2 techniques.
 
                 var objStreamIndirectObject = await DereferenceIndirectObjectAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)));
-                var objectStream = (objStreamIndirectObject.Children.First() as StreamObject)!;
-                var objectStreamDict = (objectStream.Dictionary as ObjectStreamDictionary)!;
+                var objectStream = (objStreamIndirectObject.Children.First() as IStreamObject<IStreamDictionary>)!;
+                var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
-                var data = await objectStream.DecodeAsync();
+                var data = await objectStream.GetDecompressedDataAsync();
 
                 //var offsets = Encoding.ASCII.GetString(data[..objectStreamDict.First]).Split(Constants.Whitespace);
 
@@ -123,8 +127,9 @@ namespace ZingPdf.Core.Objects
 
                 //var objectOffset = indexedOffsets[reference.Id.Index];
 
-                using var ms = new MemoryStream(data[objectStreamDict.First..]);
-                var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ms);
+                using var ss = new SubStream(data, objectStreamDictionary.First, data.Length);
+                ss.Position = 0;
+                var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ss);
 
                 indirectObject = new IndirectObject(reference.Id, allObjects.Objects[xref.Value2]);
             }
@@ -197,7 +202,7 @@ namespace ZingPdf.Core.Objects
                 var item = await Parser.For(type).ParseAsync(_stream);
 
                 if (item is IndirectObject io
-                    && io.Children.First() is StreamObject so
+                    && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
                     return null;
@@ -251,7 +256,7 @@ namespace ZingPdf.Core.Objects
                 var item = await Parser.For(type).ParseAsync(_stream);
 
                 if (item is IndirectObject io
-                    && io.Children.First() is StreamObject so
+                    && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
                     dict.ByteOffset = xrefOffset;
@@ -371,13 +376,15 @@ namespace ZingPdf.Core.Objects
             var item = await Parser.For(type).ParseAsync(_stream);
 
             if (item is IndirectObject io
-                && io.Children.First() is StreamObject streamObject
+                && io.Children.First() is IStreamObject<IStreamDictionary> streamObject
                 && streamObject.Dictionary is CrossReferenceStreamDictionary)
             {
+                UsingXrefStreams = true;
                 await ParseCrossReferenceStreamAsync(streamObject, xrefs);
             }
             else if (item is Keyword k && k == Constants.Xref)
             {
+                UsingXrefTables = true;
                 await ParseCrossReferenceTableAsync(xrefs);
             }
             else
@@ -386,38 +393,38 @@ namespace ZingPdf.Core.Objects
             }
         }
 
-        private async Task ParseCrossReferenceStreamAsync(StreamObject crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
+        private async Task ParseCrossReferenceStreamAsync(IStreamObject<IStreamDictionary> crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
         {
-            var streamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
+            var xrefStreamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
 
             // Get the indices for each subsection
             List<CrossReferenceSectionIndex> xrefIndices = new();
-            if (streamDictionary.Index is null)
+            if (xrefStreamDictionary.Index is null)
             {
                 // Index defaults to a start index of zero, and the size for the count.
-                xrefIndices.Add(new CrossReferenceSectionIndex(0, streamDictionary.Size));
+                xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStreamDictionary.Size));
             }
             else
             {
                 // Index contains a pair of integers for each subsection
                 // representing the start index and count
-                for (var i = 0; i < streamDictionary.Index.Count(); i += 2)
+                for (var i = 0; i < xrefStreamDictionary.Index.Count(); i += 2)
                 {
                     xrefIndices.Add(
                         new CrossReferenceSectionIndex(
-                            streamDictionary.Index.Get<Integer>(i)!,
-                            streamDictionary.Index.Get<Integer>(i + 1)!
+                            xrefStreamDictionary.Index.Get<Integer>(i)!,
+                            xrefStreamDictionary.Index.Get<Integer>(i + 1)!
                             )
                         );
                 }
             }
 
-            var xrefData = await crossReferenceStream.DecodeAsync();
-            var entrySize = streamDictionary.W.Sum(x => (x as Integer)!);
+            var xrefData = await (await crossReferenceStream.GetDecompressedDataAsync()).ReadToEndAsync();
+            var entrySize = xrefStreamDictionary.W.Sum(x => (x as Integer)!);
 
-            var field1Size = streamDictionary.W.Get<Integer>(0)!;
-            var field2Size = streamDictionary.W.Get<Integer>(1)!;
-            var field3Size = streamDictionary.W.Get<Integer>(2)!;
+            var field1Size = xrefStreamDictionary.W.Get<Integer>(0)!;
+            var field2Size = xrefStreamDictionary.W.Get<Integer>(1)!;
+            var field3Size = xrefStreamDictionary.W.Get<Integer>(2)!;
 
             for (int i = 0; i < xrefIndices.Count; i++)
             {
@@ -445,9 +452,9 @@ namespace ZingPdf.Core.Objects
                 }
             }
 
-            if (streamDictionary.Prev is not null)
+            if (xrefStreamDictionary.Prev is not null)
             {
-                _stream.Position = streamDictionary.Prev;
+                _stream.Position = xrefStreamDictionary.Prev;
 
                 await ParseCrossReferencesAsync(xrefs);
             }

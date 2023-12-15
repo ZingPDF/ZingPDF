@@ -1,4 +1,4 @@
-﻿namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
+﻿namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferences
 {
     internal class CrossReferenceSection : PdfObject
     {

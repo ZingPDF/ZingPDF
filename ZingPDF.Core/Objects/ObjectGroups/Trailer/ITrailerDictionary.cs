@@ -3,7 +3,7 @@ using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
 {
-    internal interface ITrailerDictionary : IPdfObject
+    internal interface ITrailerDictionary : IPdfObject, IDictionary<Name, IPdfObject>
     {
         Dictionary? Encrypt { get; }
         ArrayObject? ID { get; }

@@ -14,7 +14,7 @@ namespace ZingPdf.Core.Objects
         private DocumentCatalog(Dictionary documentCatalogDictionary) : base(documentCatalogDictionary) { }
 
         private DocumentCatalog(IndirectObjectReference pageTreeNode)
-            : base(new Dictionary<Name, PdfObject>()
+            : base(new Dictionary<Name, IPdfObject>()
             {
                 { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Catalog) },
                 { DictionaryKeys.Pages, pageTreeNode },

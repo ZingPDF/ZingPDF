@@ -58,7 +58,7 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
         /// Multiple filters shall be specified in the order in which they are to be applied.
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </summary>
-        public PdfObject? Filter { get => Get<PdfObject>(DictionaryKeys.Filter); }
+        public IPdfObject? Filter { get => Get<PdfObject>(DictionaryKeys.Filter); }
 
         /// <summary>
         /// A parameter dictionary or an array of such dictionaries, used by the filters 
@@ -73,7 +73,7 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
         /// If none of the filters have parameters, or if all their parameters have default 
         /// values, the DecodeParms entry may be omitted.
         /// </summary>
-        public PdfObject? DecodeParms { get => Get<PdfObject>(DictionaryKeys.DecodeParms); }
+        public IPdfObject? DecodeParms { get => Get<PdfObject>(DictionaryKeys.DecodeParms); }
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. 
@@ -90,14 +90,14 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
         /// found in the stream’s external file, or an array of zero, one or several such names. 
         /// The same rules apply as for Filter.
         /// </summary>
-        public PdfObject? FFilter { get => Get<PdfObject>(DictionaryKeys.FFilter); }
+        public IPdfObject? FFilter { get => Get<PdfObject>(DictionaryKeys.FFilter); }
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, 
         /// used by the filters specified by FFilter, respectively. 
         /// The same rules apply as for DecodeParms.
         /// </summary>
-        public PdfObject? FDecodeParms { get => Get<PdfObject>(DictionaryKeys.FFilter); }
+        public IPdfObject? FDecodeParms { get => Get<PdfObject>(DictionaryKeys.FFilter); }
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
@@ -109,7 +109,7 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
         public static ObjectStreamDictionary FromDictionary(Dictionary objectStreamDictionary)
         {
             if (objectStreamDictionary is null) throw new ArgumentNullException(nameof(objectStreamDictionary));
-            if (!objectStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out PdfObject? type) || (Name)type != DictionaryKeys.ObjStm)
+            if (!objectStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != DictionaryKeys.ObjStm)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(objectStreamDictionary));
             }

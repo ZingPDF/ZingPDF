@@ -12,8 +12,10 @@ using System.Text;
 
 //await CreateNewPdfAndValidate("output.pdf");
 
-await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("test2.pdf", "output.pdf");
+//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("output.pdf", "output2.pdf");
+//await ParseResaveValidate("test.pdf", "output.pdf");
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
@@ -52,19 +54,17 @@ static async Task ParseResaveValidate(string input, string output)
 
     await pdf.AppendPageAsync();
 
-    var count2 = await pdf.GetPageCountAsync();
+    //var count2 = await pdf.GetPageCountAsync();
 
-    var test = await pdf.GetPageAsync(1);
+    //var test = await pdf.GetPageAsync(1);
 
-    
-    
-    
-    
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
     await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
+
+    //await pdf.GetPageAsync(1);
 
     //outputFileStream.Position = 0;
 

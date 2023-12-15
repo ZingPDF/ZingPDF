@@ -2,7 +2,7 @@
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
@@ -59,7 +59,7 @@ namespace ZingPdf.Core
 
             var xrefTable = new CrossReferenceTable(
                 new[] { new CrossReferenceSection(0, new[] {
-                    new CrossReferenceEntry(0, 65535, inUse: false, compressed : false),
+                    CrossReferenceEntry.RootFreeEntry,
                     new CrossReferenceEntry(documentCatalog.ByteOffset!.Value, 0, inUse: true, compressed : false),
                     new CrossReferenceEntry(rootPageTreeNode.ByteOffset!.Value, 0, inUse: true, compressed : false),
                     new CrossReferenceEntry(page.ByteOffset!.Value, 0, inUse: true, compressed : false),
@@ -160,9 +160,9 @@ namespace ZingPdf.Core
         {
             var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
 
-            var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference);
+            var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
 
-            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page, _pdfContentStream);
+            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page);
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 

@@ -1,131 +1,126 @@
-﻿using ZingPdf.Core.Extensions;
+﻿using Nito.AsyncEx;
+using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Filters;
 
 namespace ZingPdf.Core.Objects.Primitives.Streams
 {
     /// <summary>
-    /// ISO 32000-2:2020 7.3.8 - Stream objects
+    /// ISO 32000-2:2020 7.3.8 - Stream objects.<para></para>
+    /// This is an abstract class.
     /// </summary>
-    internal class StreamObject : PdfObject
+    /// <remarks>
+    /// During rendering, this class will call the abstract method <see cref="GetSpecialisedDictionaryAsync"/>
+    /// to retrieve the specialised stream dictionary for the subclass. This dictionary must implement <see cref="IStreamDictionary"/>.<para></para>
+    /// This class will also call the abstract method <see cref="GetSourceDataAsync(TDictionary)"/> to generate the stream data.<para></para>
+    /// Finally, this class will produce a <see cref="StreamDictionary"/> and merge it into the specialised dictionary.
+    /// </remarks>
+    internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDictionary> where TDictionary : class, IStreamDictionary
     {
-        private readonly Stream _source;
-        private readonly long _from;
-        private readonly long _to;
+        protected readonly AsyncLazy<TDictionary> _specialisedDictionary;
+        protected readonly AsyncLazy<Stream> _sourceData;
+        protected readonly AsyncLazy<Stream> _compressedData;
 
-        private StreamObject(Stream source, long from, long to, IStreamDictionary dictionary)
+        private readonly IEnumerable<IFilter> _filters;
+
+        public TDictionary Dictionary
         {
-            _source = source ?? throw new ArgumentNullException(nameof(source));
-            _from = from;
-            _to = to;
-
-            Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
-        }
-
-        private StreamObject(byte[] unencodedData, IEnumerable<IFilter> filters)
-        {
-            filters ??= Enumerable.Empty<IFilter>();
-
-            var unencodedLength = unencodedData.Length;
-
-            byte[] encodedData = unencodedData;
-            foreach (var filter in filters)
+            get
             {
-                encodedData = filter.Encode(encodedData);
+                if (!Written)
+                {
+                    throw new InvalidOperationException("Stream dictionary property is not available until the object has been written");
+                }
+
+                return _specialisedDictionary.Task.Result;
             }
-
-            _source = new MemoryStream(encodedData);
-            _from = 0;
-            _to = _source.Length;
-
-            Dictionary = BuildStreamDictionary(unencodedLength, filters);
         }
-
-        public IStreamDictionary Dictionary { get; }
 
         /// <summary>
-        /// Used when building a PDF to create a StreamObject from byte data.
+        /// Construct a new <see cref="StreamObject{TDictionary}"/>.
         /// </summary>
-        public static StreamObject FromUnencodedData(byte[] unencodedData, IEnumerable<IFilter> filters)
-            => new(unencodedData, filters);
-
-        /// <summary>
-        /// Used when parsing a PDF from a file or other type of system stream.
-        /// </summary>
-        public static StreamObject FromEncodedStream(Stream stream, long from, long to, IStreamDictionary dictionary)
-            => new(stream, from, to, dictionary);
-
-        public async Task<byte[]> DecodeAsync()
+        protected StreamObject(IEnumerable<IFilter>? filters)
         {
-            // TODO: stream contents may be encrypted, decrypt.
+            _filters = filters ?? Array.Empty<IFilter>();
 
-            var relevantRange = await _source.RangeAsync(_from, _to);
-            var content = await relevantRange.ReadToEndAsync();
-
-            if (Dictionary.Filter is null)
-            {
-                return content;
-            }
-
-            var filterNames = Dictionary.Filter as ArrayObject ?? new[] { Dictionary.Filter };
-
-            var allFilterParamsArray = Dictionary.DecodeParms as ArrayObject;
-            var singleFilterParamsDictionary = Dictionary.DecodeParms as Dictionary;
-
-            var allFilterParams = allFilterParamsArray ??
-                (singleFilterParamsDictionary != null ? new[] { singleFilterParamsDictionary } : (ArrayObject?)null);
-
-            for (var i = 0; i < filterNames.Count(); i++)
-            {
-                var filterName = (Name)filterNames.ElementAt(i);
-                var filterParams = (Dictionary?)allFilterParams?.ElementAtOrDefault(i);
-
-                var filter = FilterFactory.Create(filterName, filterParams);
-
-                content = filter.Decode(content);
-            }
-
-            return content;
+            _specialisedDictionary = new AsyncLazy<TDictionary>(GetSpecialisedDictionaryAsync);
+            _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(await _specialisedDictionary));
+            _compressedData = new AsyncLazy<Stream>(CompressDataAsync);
         }
+
+        protected abstract Task<TDictionary> GetSpecialisedDictionaryAsync();
+        protected abstract Task<Stream> GetSourceDataAsync(TDictionary dictionary);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await Dictionary.WriteAsync(stream);
+            // Example subclass: CrossReferenceStreamObject
+            // to produce the stream data we need the xref dict
+            // so, first, produce the specialised xref dict
+            // then, produce data, providing xref dict to method
+            // then, produce stream dict, merge with xref dict
+
+            var specialisedDict = await _specialisedDictionary;
+            var streamData = await _sourceData;
+            var compressedData = await _compressedData;
+
+            var streamDict = await CreateBaseStreamDictionaryAsync(compressedData.Length, streamData.Length);
+
+            streamDict.MergeInto(specialisedDict);
+
+            await specialisedDict.WriteAsync(stream);
 
             await stream.WriteNewLineAsync();
             await new Keyword(Constants.StreamStart).WriteAsync(stream);
 
             await stream.WriteNewLineAsync();
-            await new StreamData(_source, _from, _to).WriteAsync(stream);
+            await compressedData.CopyToAsync(stream);
             await stream.WriteNewLineAsync();
 
             await new Keyword(Constants.StreamEnd).WriteAsync(stream);
         }
 
-        private IStreamDictionary BuildStreamDictionary(long unencodedLength, IEnumerable<IFilter> filters)
+        public Task<Stream> GetDecompressedDataAsync() => _sourceData.Task;
+
+        private async Task<Stream> CompressDataAsync()
         {
-            var streamDictionary = new Dictionary<Name, PdfObject>()
-                {
-                    { "Length", new Integer(_to - _from) },
-                    { "DL", new Integer(unencodedLength) },
-                };
+            var workingData = await (await _sourceData).ReadToEndAsync();
 
-            if (filters.Any())
+            foreach(var filter in _filters)
             {
-                streamDictionary.Add("Filter", new ArrayObject(filters.Select(f => f.Name).ToArray()));
+                workingData = filter.Encode(workingData);
+            }
 
-                if (filters.Any(f => f.Params != null))// && f.Params.Modified))
+            return new MemoryStream(workingData);
+        }
+
+        private Task<IStreamDictionary> CreateBaseStreamDictionaryAsync(long encodedLength, long? unencodedLength)
+        {
+            var streamDictionary = new Dictionary<Name, IPdfObject>()
+            {
+                { StreamDictionary.DictionaryKeys.Length, new Integer(encodedLength) },
+            };
+
+            if (unencodedLength is not null)
+            {
+                streamDictionary.Add(StreamDictionary.DictionaryKeys.DL, new Integer(unencodedLength.Value));
+            }
+
+            if (_filters.Any())
+            {
+                streamDictionary.Add("Filter", new ArrayObject(_filters.Select(f => f.Name).ToArray()));
+
+                if (_filters.Any(f => f.Params != null))
                 {
-                    if (filters.Count() == 1)
+                    if (_filters.Count() == 1)
                     {
-                        streamDictionary.Add("DecodeParms", filters.First().Params!);
+                        streamDictionary.Add("DecodeParms", _filters.First().Params!);
                     }
                     else
                     {
-                        streamDictionary.Add("DecodeParms", new ArrayObject(filters.Select(f =>
+                        streamDictionary.Add("DecodeParms", new ArrayObject(_filters.Select<IFilter, IPdfObject>(f =>
                         {
-                            if (f.Params != null)// && f.Params.Modified)
+                            if (f.Params != null)
                             {
-                                return (PdfObject)f.Params;
+                                return f.Params;
                             }
                             else
                             {
@@ -136,28 +131,7 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
                 }
             }
 
-            return StreamDictionary.FromDictionary(streamDictionary);
-        }
-
-        private class StreamData : PdfObject
-        {
-            private readonly Stream _source;
-            private readonly long _from;
-            private readonly long _to;
-
-            public StreamData(Stream source, long from, long to)
-            {
-                _source = source ?? throw new ArgumentNullException(nameof(source));
-                _from = from;
-                _to = to;
-            }
-
-            protected override async Task WriteOutputAsync(Stream stream)
-            {
-                var sourceRange = await _source.RangeAsync(_from, _to);
-
-                await sourceRange.CopyToAsync(stream);
-            }
+            return Task.FromResult<IStreamDictionary>(StreamDictionary.FromDictionary(streamDictionary));
         }
     }
 }

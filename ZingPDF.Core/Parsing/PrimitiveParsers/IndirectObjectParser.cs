@@ -26,7 +26,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             // obj keyword
             _ = await Parser.For<Keyword>().ParseAsync(stream);
 
-            var items = new List<PdfObject>();
+            var items = new List<IPdfObject>();
 
             do
             {
@@ -37,25 +37,25 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     continue;
                 }
 
-                if (type == typeof(StreamObject))
+                if (type == typeof(IStreamObject<IStreamDictionary>))
                 {
                     // It's difficult to reliably identify a stream, which is a dictionary followed by the stream contents.
                     // The token identifier will recognise the stream keyword, at which point we've already parsed the dictionary.
                     // Go back to the start of this object and use the Stream parser.
                     stream.Position = start;
                     items.RemoveAt(items.Count - 1);
-                    items.Add(await Parser.For<StreamObject>().ParseAsync(stream));
+                    items.Add(await Parser.For<IStreamObject<IStreamDictionary>>().ParseAsync(stream));
                     break;
                 }
 
-                PdfObject item = await Parser.For(type).ParseAsync(stream);
+                IPdfObject item = await Parser.For(type).ParseAsync(stream);
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {
                     break;
                 }
 
-                if (item is StreamObject)
+                if (item is IStreamObject<IStreamDictionary>)
                 {
                         
                     break;

@@ -38,7 +38,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
         /// The total number of entries in the PDF file's cross-reference table, as defined by the combination of the original section and all update sections.
         /// Equivalently, this value shall be 1 greater than the highest object number defined in the PDF file.
         /// </summary>
-        public Integer Size { get => Get<Integer>(DictionaryKeys.Size)!; private set => this[DictionaryKeys.Size] = value; }
+        public Integer Size { get => Get<Integer>(DictionaryKeys.Size)!; internal set => this[DictionaryKeys.Size] = value; }
 
         /// <summary>
         /// Optional, present only if the file has more than one cross-reference section;

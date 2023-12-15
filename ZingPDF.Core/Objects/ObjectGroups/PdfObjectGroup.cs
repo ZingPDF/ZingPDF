@@ -4,7 +4,7 @@ namespace ZingPdf.Core.Objects.ObjectGroups
 {
     internal class PdfObjectGroup : PdfObject
     {
-        public List<PdfObject> Objects { get; private set; } = new();
+        public List<IPdfObject> Objects { get; private set; } = new();
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -14,11 +14,11 @@ namespace ZingPdf.Core.Objects.ObjectGroups
             }
         }
 
-        public T Get<T>(int index) where T : PdfObject
+        public T Get<T>(int index) where T : IPdfObject
             => (T)Objects[index];
 
-        public static implicit operator PdfObjectGroup(List<PdfObject> items) => new() { Objects = items };
-        public static implicit operator PdfObjectGroup(PdfObject[] items) => new() { Objects = items.ToList() };
+        public static implicit operator PdfObjectGroup(List<IPdfObject> items) => new() { Objects = items };
+        public static implicit operator PdfObjectGroup(IPdfObject[] items) => new() { Objects = items.ToList() };
 
         protected void InsertNewLine() => Objects.Add(new NewLineObject());
 
