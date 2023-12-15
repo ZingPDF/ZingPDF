@@ -17,8 +17,13 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
-await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("test2.pdf", "output.pdf");
+//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("output.pdf", "output2.pdf");
+//await ParseResaveValidate("test.pdf", "output.pdf");
+
+//LoadAndValidateUsingAbcpdf("Ghostscript.pdf");
+//LoadAndValidateUsingAbcpdf("output.pdf");
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
@@ -57,19 +62,17 @@ static async Task ParseResaveValidate(string input, string output)
 
     await pdf.AppendPageAsync();
 
-    var count2 = await pdf.GetPageCountAsync();
+    //var count2 = await pdf.GetPageCountAsync();
 
-    var test = await pdf.GetPageAsync(1);
+    //var test = await pdf.GetPageAsync(1);
 
-    
-    
-    
-    
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
     await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
+
+    //await pdf.GetPageAsync(1);
 
     //outputFileStream.Position = 0;
 
@@ -89,6 +92,20 @@ static void LoadAndSaveUsingAbcpdf(string inputPath, string outputPath)
     doc.Read(inputPath);
 
     doc.Save(outputPath);
+}
+
+static void LoadAndValidateUsingAbcpdf(string inputPath)
+{
+    using var inputFileStream = new FileStream(inputPath, FileMode.Open);
+
+    var errors = ValidatePdf(inputPath, inputFileStream).ToList();
+
+    foreach (var error in errors)
+    {
+        Console.WriteLine(error);
+    }
+
+    Console.WriteLine($"Total errors: {errors.Count}");
 }
 
 static IEnumerable<string> ValidatePdf(string name, FileStream fileStream)

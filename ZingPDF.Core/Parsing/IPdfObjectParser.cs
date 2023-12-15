@@ -3,7 +3,7 @@ using ZingPdf.Core.Objects;
 
 namespace ZingPdf.Core.Parsing
 {
-    internal interface IPdfObjectParser<out T> where T : PdfObject
+    internal interface IPdfObjectParser<out T> where T : IPdfObject
     {
         /// <summary>
         /// Parses a stream into an object.
