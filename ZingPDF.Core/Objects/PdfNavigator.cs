@@ -23,7 +23,7 @@ namespace ZingPdf.Core.Objects
         private AsyncLazy<Trailer?> _rootTrailer;
         private AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
         private AsyncLazy<IndirectObject> _rootPageTreeNode;
-        private AsyncLazy<IEnumerable<Page>> _pages;
+        private AsyncLazy<IEnumerable<IndirectObject>> _pages;
         private AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
 
         public PdfNavigator(Stream stream)
@@ -55,7 +55,7 @@ namespace ZingPdf.Core.Objects
         /// </remarks>
         public Task<ITrailerDictionary> GetRootTrailerDictionaryAsync() => _rootTrailerDictionary.Task;
 
-        public Task<IEnumerable<Page>> GetPagesAsync() => _pages.Task;
+        public Task<IEnumerable<IndirectObject>> GetPagesAsync() => _pages.Task;
 
         public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
 
@@ -155,11 +155,11 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
         /// </summary>
-        private async Task<IEnumerable<Page>> GetSubPagesAsync(PageTreeNode pageTreeNode)
+        private async Task<IEnumerable<IndirectObject>> GetSubPagesAsync(PageTreeNode pageTreeNode)
         {
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
-            List<Page> pages = new();
+            List<IndirectObject> pages = new();
 
             foreach (var refObj in pageTreeNode.Kids)
             {
@@ -167,9 +167,9 @@ namespace ZingPdf.Core.Objects
 
                 var obj = await DereferenceIndirectObjectAsync(ior);
 
-                if (obj.Children.First() is Page page)
+                if (obj.Children.First() is Page)
                 {
-                    pages.Add(page);
+                    pages.Add(obj);
                 }
                 else if (obj.Children.First() is PageTreeNode ptn)
                 {
@@ -311,9 +311,9 @@ namespace ZingPdf.Core.Objects
             });
         }
 
-        private AsyncLazy<IEnumerable<Page>> SetupLazyPages()
+        private AsyncLazy<IEnumerable<IndirectObject>> SetupLazyPages()
         {
-            return new AsyncLazy<IEnumerable<Page>>(async () =>
+            return new AsyncLazy<IEnumerable<IndirectObject>>(async () =>
             {
                 var rootPageTreeNodeIndirectObject = await GetRootPageTreeNodeAsync();
 
