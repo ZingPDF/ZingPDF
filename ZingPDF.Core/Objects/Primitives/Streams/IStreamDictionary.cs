@@ -3,7 +3,7 @@
     /// <summary>
     /// ISO 32000-2:2020 - 7.3.8.2 Stream extent
     /// </summary>
-    internal interface IStreamDictionary : IPdfObject
+    internal interface IStreamDictionary : IPdfObject, IDictionary<Name, IPdfObject>
     {
         /// <summary>
         /// The number of bytes from the beginning of the line following the keyword 
@@ -20,7 +20,7 @@
         /// Multiple filters shall be specified in the order in which they are to be applied.
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </summary>
-        PdfObject? Filter { get; }
+        IPdfObject? Filter { get; }
 
         /// <summary>
         /// A parameter dictionary or an array of such dictionaries, used by the filters 
@@ -35,7 +35,7 @@
         /// If none of the filters have parameters, or if all their parameters have default 
         /// values, the DecodeParms entry may be omitted.
         /// </summary>
-        PdfObject? DecodeParms { get; }
+        IPdfObject? DecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. 
@@ -52,14 +52,14 @@
         /// found in the stream's external file, or an array of zero, one or several such names. 
         /// The same rules apply as for Filter.
         /// </summary>
-        PdfObject? FFilter { get; }
+        IPdfObject? FFilter { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, 
         /// used by the filters specified by FFilter, respectively. 
         /// The same rules apply as for DecodeParms.
         /// </summary>
-        PdfObject? FDecodeParms { get; }
+        IPdfObject? FDecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 

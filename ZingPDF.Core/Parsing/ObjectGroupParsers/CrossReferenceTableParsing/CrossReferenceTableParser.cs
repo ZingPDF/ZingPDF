@@ -1,5 +1,5 @@
 ﻿using MorseCode.ITask;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives;
 
