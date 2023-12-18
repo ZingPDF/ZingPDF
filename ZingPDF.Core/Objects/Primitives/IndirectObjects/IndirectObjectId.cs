@@ -16,7 +16,7 @@
         public override bool Equals(object? obj)
         {
             return obj is IndirectObjectId id &&
-                   Index == id.Index &&
+                Index == id.Index &&
                    GenerationNumber == id.GenerationNumber;
         }
 
@@ -26,5 +26,17 @@
         }
 
         public override string ToString() => $"{nameof(IndirectObjectId)}: {{{Index}, {GenerationNumber}}}";
+
+        public static bool operator ==(IndirectObjectId left, IndirectObjectId right)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(IndirectObjectId left, IndirectObjectId right) => !(left == right);
     }
 }

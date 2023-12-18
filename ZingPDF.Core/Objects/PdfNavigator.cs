@@ -86,7 +86,7 @@ namespace ZingPdf.Core.Objects
         /// <summary>
         /// Returns the latest Indirect Object matching the given reference.
         /// </summary>
-        private async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
+        public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
         {
             if (reference is null) throw new ArgumentNullException(nameof(reference));
 

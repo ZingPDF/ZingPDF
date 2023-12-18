@@ -54,7 +54,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count = await pdf.GetPageCountAsync();
 
-    pdf.SetPageRotation(1, Rotation.Degrees90);
+    await pdf.DeletePageAsync(1);
 
     //await pdf.AppendPageAsync();
 
