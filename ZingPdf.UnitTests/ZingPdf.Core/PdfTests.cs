@@ -54,7 +54,7 @@ namespace ZingPdf.Core
                 "5 1\r\n" +
                 "0000000406 00000 n\r\n" +
                 "trailer\r\n" +
-                "<</Size 6/Prev 184/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>\r\n" +
+                "<</Size 5/Prev 184/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>\r\n" +
                 "startxref\r\n" +
                 "553\r\n" +
                 "%%EOF";
