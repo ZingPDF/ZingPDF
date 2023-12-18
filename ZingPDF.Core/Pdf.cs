@@ -191,14 +191,26 @@ namespace ZingPdf.Core
             throw new NotImplementedException();
         }
 
-        public void DeletePage(int pageNumber)
+        public async Task DeletePageAsync(int pageNumber)
         {
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
-            throw new NotImplementedException();
+            // TODO: check if there's a more efficient way to do this.
+            var pages = await _pdfNavigator.GetPagesAsync();
+
+            var pageIndirectObject = pages.ElementAt(pageNumber - 1);
+            var page = (pageIndirectObject.Children.First() as Page)!;
+            var parentIndirectObject = await _pdfNavigator.DereferenceIndirectObjectAsync(page.Parent);
+            var parent = (parentIndirectObject.Children.First() as PageTreeNode)!;
+
+            parent.Kids = parent.Kids.Cast<IndirectObjectReference>().Where(x => x.Id != pageIndirectObject.Id).ToArray();
+            parent.PageCount--;
+
+            _incrementalUpdateManager.DeleteObject(pageIndirectObject.Id);
+            _incrementalUpdateManager.UpdateObject(new IndirectObject(parentIndirectObject.Id, parent));
         }
 
-        public async void SetPageRotation(int pageNumber, Rotation rotation)
+        public async Task SetPageRotationAsync(int pageNumber, Rotation rotation)
         {
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
             if (rotation is null) throw new ArgumentNullException(nameof(rotation));

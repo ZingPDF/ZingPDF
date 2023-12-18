@@ -1,4 +1,5 @@
 ﻿using ZingPdf.Core.Objects.DataStructures;
+using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
@@ -32,6 +33,8 @@ namespace ZingPdf.Core.Objects
             }) {}
 
         private Page(Dictionary pageDictionary) : base(pageDictionary) { }
+
+        public IndirectObjectReference Parent { get => Get<IndirectObjectReference>(DictionaryKeys.Parent)!; }
 
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.

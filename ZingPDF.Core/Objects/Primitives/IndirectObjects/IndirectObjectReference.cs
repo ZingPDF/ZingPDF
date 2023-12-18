@@ -29,10 +29,7 @@ namespace ZingPdf.Core.Objects.Primitives.IndirectObjects
             await stream.WriteCharsAsync(Constants.IndirectReference);
         }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode(); // TODO
-        }
+        public override int GetHashCode() => Id.GetHashCode();
 
         public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
     }
