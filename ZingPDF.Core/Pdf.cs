@@ -68,7 +68,7 @@ namespace ZingPdf.Core
 
             xrefTable.WriteAsync(ms).Wait();
 
-            var id = HexadecimalString.FromHexStringValue(Guid.NewGuid().ToString("N"));
+            HexadecimalString id = Guid.NewGuid().ToString("N");
 
             var trailerDictionary = TrailerDictionary.CreateNew(
                 size: 4,
@@ -142,20 +142,32 @@ namespace ZingPdf.Core
             return rootPageTreeNode.PageCount;
         }
 
+        /// <summary>
+        /// Get the <see cref="Page"/> at the specified number.<para></para>
+        /// </summary>
+        /// <param name="pageNumber">The page number to return. Pages start at number 1 for the first page.</param>
+        /// <returns>a <see cref="Page"/> instance representing the page at the specified number.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public async Task<Page> GetPageAsync(int pageNumber)
         {
-            if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            if (pageNumber < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            }
 
             // TODO: check if there's a more efficient way to do this.
             var pages = await _pdfNavigator.GetPagesAsync();
 
-            if (pageNumber > pages.Count()) throw new ArgumentOutOfRangeException(nameof(pageNumber));
-
-            // TODO: make sure the page has the required 'MediaBox' property, whether inherited or explicitly specified.
+            if (pageNumber > pages.Count())
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            }
 
             return (pages.ElementAt(pageNumber - 1).Children.First() as Page)!;
         }
 
+        // TODO: This just appends a blank page. Do we need to accept a Page object here?
+        // If so, how would a user consume it, Page creation requires knowledge of the parent.
         public async Task AppendPageAsync()
         {
             var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
@@ -176,11 +188,42 @@ namespace ZingPdf.Core
             _incrementalUpdateManager.UpdateObject(rootPageTreeNodeIndirectObject);
         }
 
-        public void InsertPage(int pageNumber)
+        public async Task InsertPageAsync(int pageNumber)
         {
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
-            throw new NotImplementedException();
+            var count = await GetPageCountAsync();
+
+            if (pageNumber > count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages. To add a page to the end of the PDF, use {nameof(AppendPageAsync)}");
+            }
+
+            // TODO: check if there's a more efficient way to do this.
+            var pages = await _pdfNavigator.GetPagesAsync();
+
+            // Find the page, find its parent, insert new page into kids property
+            var pageAtNumberIndirectObject = pages.ElementAt(pageNumber - 1);
+            var pageAtNumber = (pageAtNumberIndirectObject.Children.First() as Page)!;
+            var parentPageTreeNodeIndirectObject = await _pdfNavigator.DereferenceIndirectObjectAsync(pageAtNumber.Parent);
+            var parentPageTreeNode = (parentPageTreeNodeIndirectObject.Children.First() as PageTreeNode)!;
+
+            var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumberIndirectObject.Id.Reference);
+
+            var page = Page.CreateNew(
+                parentPageTreeNodeIndirectObject.Id.Reference,
+                new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) }
+                );
+
+            var newPageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page);
+
+            var newKids = parentPageTreeNode.Kids.ToList();
+            newKids.Insert(kidsIndex, newPageIndirectObject.Id.Reference);
+
+            parentPageTreeNode.Kids = newKids.ToArray();
+            parentPageTreeNode.PageCount++;
+
+            _incrementalUpdateManager.UpdateObject(parentPageTreeNodeIndirectObject);
         }
 
         public void ReplacePage(int pageNumber, Page page)

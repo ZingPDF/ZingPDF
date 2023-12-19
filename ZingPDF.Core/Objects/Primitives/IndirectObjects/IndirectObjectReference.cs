@@ -29,8 +29,25 @@ namespace ZingPdf.Core.Objects.Primitives.IndirectObjects
             await stream.WriteCharsAsync(Constants.IndirectReference);
         }
 
+        public override bool Equals(object? obj)
+        {
+            return obj is IndirectObjectReference ior && Id == ior.Id;
+        }
+
         public override int GetHashCode() => Id.GetHashCode();
 
         public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
+
+        public static bool operator ==(IndirectObjectReference left, IndirectObjectReference right)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(IndirectObjectReference left, IndirectObjectReference right) => !(left == right);
     }
 }
