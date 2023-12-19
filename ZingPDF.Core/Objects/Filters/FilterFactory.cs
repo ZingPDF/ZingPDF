@@ -12,6 +12,7 @@ namespace ZingPdf.Core.Objects.Filters
                 Constants.Filters.ASCIIHex => new ASCIIHexDecodeFilter(),
                 Constants.Filters.LZW => new LZWDecodeFilter(decodeParams),
                 Constants.Filters.Flate => new FlateDecodeFilter(decodeParams),
+                Constants.Filters.RunLength => new RunLengthDecodeFilter(),
                 _ => throw new InvalidOperationException("Unsupported filter"),
             };
         }
