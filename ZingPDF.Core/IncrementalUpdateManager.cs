@@ -11,6 +11,8 @@ namespace ZingPdf.Core
     // TODO: unit tests are vital for this class
     internal class IncrementalUpdateManager
     {
+        private readonly CrossReferenceGenerator _crossReferenceGenerator = new();
+
         private readonly List<IndirectObject> _newObjects = new();
         private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = new();
         private readonly List<IndirectObjectId> _deletedObjects = new();
@@ -68,13 +70,17 @@ namespace ZingPdf.Core
 
             var size = trailerDictionary.Size + _newObjects.Count;
 
+            var newOrUpdatedObjects = _updatedObjects.Values.Concat(_newObjects).ToList();
+
             if (_pdfNavigator.UsingXrefStreams)
             {
                 IndirectObjectId newObjectId = await GetFreeIndexAsync();
 
                 var xrefStreamIndirectObject = new DummyIndirectObject(newObjectId, outputStream.Position);
 
-                var xrefSections = GenerateCrossReferences(xrefStreamIndirectObject);
+                newOrUpdatedObjects.Add(xrefStreamIndirectObject);
+
+                var xrefSections = _crossReferenceGenerator.Generate(newOrUpdatedObjects, _deletedObjects);
 
                 // +1 because the new xref stream should be included in the count
                 size++;
@@ -112,7 +118,7 @@ namespace ZingPdf.Core
             }
             else
             {
-                var xrefSections = GenerateCrossReferences(null);
+                var xrefSections = _crossReferenceGenerator.Generate(newOrUpdatedObjects, _deletedObjects);
 
                 var xrefTable = new CrossReferenceTable(xrefSections);
                 await xrefTable.WriteAsync(outputStream);
@@ -166,59 +172,6 @@ namespace ZingPdf.Core
             }
 
             return newObjectId;
-        }
-
-        private List<CrossReferenceSection> GenerateCrossReferences(IndirectObject? xrefStreamIndirectObject)
-        {
-            // Every cross reference table starts with the head of the linked list of free entries.
-            //CrossReferenceSection? latestXrefSection = new(0);
-            CrossReferenceSection? latestXrefSection = null;
-            //List<CrossReferenceSection> xrefSections = new() { latestXrefSection };
-            List<CrossReferenceSection> xrefSections = new();
-
-            var allEntries =
-                //new[] { KeyValuePair.Create(new IndirectObjectId(0, 65535), (IndirectObject?)null) }
-                //.Concat(_newObjects.Select(x => KeyValuePair.Create(x.Id, (IndirectObject?)x)))
-                _newObjects.Select(x => KeyValuePair.Create(x.Id, (IndirectObject?)x))
-                .Concat(_updatedObjects.Select(x => KeyValuePair.Create(x.Key, (IndirectObject?)x.Value)))
-                .Concat(_deletedObjects.Select(x => KeyValuePair.Create(x, (IndirectObject?)null)))
-                .OrderBy(x => x.Key.Index)
-                .ToList();
-
-            if (xrefStreamIndirectObject is not null)
-            {
-                allEntries.Add(KeyValuePair.Create(xrefStreamIndirectObject.Id, (IndirectObject?)xrefStreamIndirectObject));
-            }
-
-            for (var i = allEntries.First().Key.Index; i <= allEntries.Last().Key.Index; i++)
-            {
-                var entry = allEntries.FirstOrDefault(e => e.Key.Index == i);
-                if (entry.Key is not null)
-                {
-                    if (latestXrefSection is null)
-                    {
-                        latestXrefSection = new CrossReferenceSection(i);
-                        xrefSections.Add(latestXrefSection);
-                    }
-
-                    var inUse = entry.Value is not null;
-                    var nextFreeObjectNumber = 0; // TODO
-
-                    latestXrefSection.Add(new CrossReferenceEntry(
-                        inUse ? entry.Value!.ByteOffset!.Value : nextFreeObjectNumber,
-                        entry.Key.GenerationNumber,
-                        inUse,
-                        false
-                        ));
-                }
-                else
-                {
-                    // End the section if next entry is non-contiguous
-                    latestXrefSection = null;
-                }
-            }
-
-            return xrefSections;
         }
 
         private class DummyIndirectObject : IndirectObject
