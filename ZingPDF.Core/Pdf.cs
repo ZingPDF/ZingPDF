@@ -3,6 +3,7 @@ using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
+using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Pages;
 using ZingPdf.Core.Objects.Primitives;
@@ -21,7 +22,11 @@ namespace ZingPdf.Core
         private readonly Stream _pdfInputStream;
         private readonly PdfNavigator _pdfNavigator;
 
-        private readonly IncrementalUpdateManager _incrementalUpdateManager;
+        private readonly CrossReferenceGenerator _crossReferenceGenerator = new();
+
+        private readonly List<IndirectObject> _newObjects = new();
+        private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = new();
+        private readonly List<IndirectObjectId> _deletedObjects = new();
 
         /// <summary>
         /// Private constructor for creating a PDF from a content stream.
@@ -31,7 +36,6 @@ namespace ZingPdf.Core
             _pdfInputStream = contentStream ?? throw new ArgumentNullException(nameof(contentStream));
 
             _pdfNavigator = new PdfNavigator(contentStream);
-            _incrementalUpdateManager = new IncrementalUpdateManager(_pdfNavigator);
         }
 
         /// <summary>
@@ -117,10 +121,8 @@ namespace ZingPdf.Core
 
         public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions = null)
         {
-            if (!outputStream.CanWrite)
-            {
-                throw new ArgumentException("Provided stream must be writable", nameof(outputStream));
-            }
+            if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
+            if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
 
             saveOptions ??= PdfSaveOptions.Default;
 
@@ -130,7 +132,95 @@ namespace ZingPdf.Core
             await _pdfInputStream.CopyToAsync(outputStream);
             await outputStream.WriteNewLineAsync();
 
-            await _incrementalUpdateManager.SaveAsync(_pdfInputStream, outputStream);
+            foreach (var entry in _newObjects.Concat(_updatedObjects.Values))
+            {
+                await entry.WriteAsync(outputStream);
+            }
+
+            var trailerDictionary = await _pdfNavigator.GetRootTrailerDictionaryAsync();
+
+            var size = trailerDictionary.Size + _newObjects.Count;
+
+            var newOrUpdatedObjects = _updatedObjects.Values.Concat(_newObjects).ToList();
+
+            if (_pdfNavigator.UsingXrefStreams)
+            {
+                IndirectObjectId newObjectId = await GetFreeIndexAsync();
+
+                var xrefStreamIndirectObject = new DummyIndirectObject(newObjectId, outputStream.Position);
+
+                newOrUpdatedObjects.Add(xrefStreamIndirectObject);
+
+                var xrefSections = _crossReferenceGenerator.Generate(newOrUpdatedObjects, _deletedObjects);
+
+                // +1 because the new xref stream should be included in the count
+                size++;
+
+                var xrefStreamDict = trailerDictionary as CrossReferenceStreamDictionary
+                    ?? throw new InvalidOperationException("Internal Error: {59D30CD9-D2DB-4418-B59E-033538307C68}");
+
+                var prev = trailerDictionary.ByteOffset;
+
+                var xrefStream = new CrossReferenceStream(
+                    xrefSections,
+                    null,
+                    //new[] { new FlateDecodeFilter(filterParams: null) },
+                    //new[] { new ASCIIHexDecodeFilter() },
+                    size,
+                    prev,
+                    xrefStreamDict.Root,
+                    xrefStreamDict.Encrypt,
+                    xrefStreamDict.Info,
+                    xrefStreamDict.ID
+                    );
+
+                xrefStreamIndirectObject.Children.Clear();
+                xrefStreamIndirectObject.Children.Add(xrefStream);
+
+                await xrefStreamIndirectObject.WriteAsync(outputStream);
+
+                await new Keyword(Constants.StartXref).WriteAsync(outputStream);
+                await outputStream.WriteNewLineAsync();
+
+                await new Integer(xrefStreamIndirectObject.ByteOffset!.Value).WriteAsync(outputStream);
+                await outputStream.WriteNewLineAsync();
+
+                await new Keyword(Constants.Eof).WriteAsync(outputStream);
+            }
+            else
+            {
+                var xrefSections = _crossReferenceGenerator.Generate(newOrUpdatedObjects, _deletedObjects);
+
+                var xrefTable = new CrossReferenceTable(xrefSections);
+                await xrefTable.WriteAsync(outputStream);
+
+                var latestTrailer = (await _pdfNavigator.GetRootTrailerAsync())!;
+                var prev = latestTrailer.XrefTableByteOffset;
+
+                var trailer = new Trailer(
+                    TrailerDictionary.CreateNew(
+                        size,
+                        prev,
+                        latestTrailer.Dictionary.Root,
+                        latestTrailer.Dictionary.Encrypt,
+                        latestTrailer.Dictionary.Info,
+                        latestTrailer.Dictionary.ID
+                        ),
+                    xrefTable.ByteOffset!.Value
+                    );
+
+                await trailer.WriteAsync(outputStream);
+            }
+
+            // TODO: account for the use of features which should increase the pdf version
+
+            // TODO: do we need to amend metadata to change PDF Producer?
+
+            await outputStream.FlushAsync();
+
+            _newObjects.Clear();
+            _updatedObjects.Clear();
+            _deletedObjects.Clear();
         }
 
         public async Task<int> GetPageCountAsync()
@@ -175,7 +265,7 @@ namespace ZingPdf.Core
 
             var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
 
-            var pageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page);
+            var pageIndirectObject = await AddNewObjectAsync(page);
 
             var rootPageTreeNode = PageTreeNode.FromDictionary((rootPageTreeNodeIndirectObject.Children.First() as Dictionary)!);
 
@@ -186,7 +276,7 @@ namespace ZingPdf.Core
 
             rootPageTreeNode.PageCount++;
 
-            _incrementalUpdateManager.UpdateObject(rootPageTreeNodeIndirectObject);
+            UpdateObject(rootPageTreeNodeIndirectObject);
         }
 
         public async Task InsertPageAsync(int pageNumber)
@@ -216,7 +306,7 @@ namespace ZingPdf.Core
                 new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) }
                 );
 
-            var newPageIndirectObject = await _incrementalUpdateManager.AddNewObjectAsync(page);
+            var newPageIndirectObject = await AddNewObjectAsync(page);
 
             var newKids = parentPageTreeNode.Kids.ToList();
             newKids.Insert(kidsIndex, newPageIndirectObject.Id.Reference);
@@ -224,7 +314,7 @@ namespace ZingPdf.Core
             parentPageTreeNode.Kids = newKids.ToArray();
             parentPageTreeNode.PageCount++;
 
-            _incrementalUpdateManager.UpdateObject(parentPageTreeNodeIndirectObject);
+            UpdateObject(parentPageTreeNodeIndirectObject);
         }
 
         public void ReplacePage(int pageNumber, Page page)
@@ -250,8 +340,8 @@ namespace ZingPdf.Core
             parent.Kids = parent.Kids.Cast<IndirectObjectReference>().Where(x => x.Id != pageIndirectObject.Id).ToArray();
             parent.PageCount--;
 
-            _incrementalUpdateManager.DeleteObject(pageIndirectObject.Id);
-            _incrementalUpdateManager.UpdateObject(new IndirectObject(parentIndirectObject.Id, parent));
+            DeleteObject(pageIndirectObject.Id);
+            UpdateObject(new IndirectObject(parentIndirectObject.Id, parent));
         }
 
         public async Task SetPageRotationAsync(int pageNumber, Rotation rotation)
@@ -266,7 +356,7 @@ namespace ZingPdf.Core
 
             (page.Children.First() as Page)!.Rotate = rotation;
 
-            _incrementalUpdateManager.UpdateObject(page);
+            UpdateObject(page);
         }
 
         public void Draw(
@@ -326,5 +416,67 @@ namespace ZingPdf.Core
         {
             ((IDisposable)_pdfInputStream).Dispose();
         }
+
+        #region Incremental Updates
+
+        private async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject)
+        {
+            if (pdfObject is null) throw new ArgumentNullException(nameof(pdfObject));
+
+            IndirectObjectId newObjectId = await GetFreeIndexAsync();
+
+            var indirectObject = new IndirectObject(newObjectId, pdfObject);
+
+            _newObjects.Add(indirectObject);
+
+            return indirectObject;
+        }
+
+        private void UpdateObject(IndirectObject indirectObject)
+        {
+            if (indirectObject is null) throw new ArgumentNullException(nameof(indirectObject));
+
+            _updatedObjects[indirectObject.Id] = indirectObject;
+        }
+
+        private void DeleteObject(IndirectObjectId indirectObjectId)
+        {
+            if (indirectObjectId is null) throw new ArgumentNullException(nameof(indirectObjectId));
+
+            indirectObjectId.GenerationNumber++;
+
+            _deletedObjects.Add(indirectObjectId);
+        }
+
+        private async Task<IndirectObjectId> GetFreeIndexAsync()
+        {
+            // Concatenate unsaved entries with existing objects
+            var xrefs = (await _pdfNavigator.GetAggregateCrossReferencesAsync())
+                .Concat(_newObjects.ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false)));
+
+            IndirectObjectId newObjectId;
+            var free = xrefs.FirstOrDefault(x => !x.Value.InUse);
+            if (free.Key != 0)
+            {
+                newObjectId = new IndirectObjectId(free.Key, free.Value.Value2);
+            }
+            else
+            {
+                newObjectId = new IndirectObjectId(xrefs.Count() + 1, 0);
+            }
+
+            return newObjectId;
+        }
+
+        private class DummyIndirectObject : IndirectObject
+        {
+            public DummyIndirectObject(IndirectObjectId id, long byteOffset)
+                : base(id)
+            {
+                ByteOffset = byteOffset;
+            }
+        }
+
+        #endregion Incremental Updates
     }
 }
