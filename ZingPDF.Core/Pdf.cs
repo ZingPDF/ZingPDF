@@ -130,7 +130,7 @@ namespace ZingPdf.Core
             await _pdfInputStream.CopyToAsync(outputStream);
             await outputStream.WriteNewLineAsync();
 
-            await _incrementalUpdateManager.SaveAsync(_pdfContentStream, outputStream);
+            await _incrementalUpdateManager.SaveAsync(_pdfInputStream, outputStream);
         }
 
         public async Task<int> GetPageCountAsync()
