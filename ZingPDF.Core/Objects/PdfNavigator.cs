@@ -60,15 +60,6 @@ namespace ZingPdf.Core.Objects
         public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
 
         /// <summary>
-        /// This class caches compute-heavy and I/O-heavy values.<para></para>
-        /// Call this method to clear the cache after file changes.
-        /// </summary>
-        public void ClearCache()
-        {
-            SetupLazyProperties();
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         public Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync() => _xrefs.Task;
