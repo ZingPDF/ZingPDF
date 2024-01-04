@@ -18,7 +18,7 @@ namespace ZingPdf.Core
     /// </remarks>
     public class Pdf : IDisposable
     {
-        private readonly Stream _pdfContentStream;
+        private readonly Stream _pdfInputStream;
         private readonly PdfNavigator _pdfNavigator;
 
         private readonly IncrementalUpdateManager _incrementalUpdateManager;
@@ -28,7 +28,7 @@ namespace ZingPdf.Core
         /// </summary>
         private Pdf(Stream contentStream)
         {
-            _pdfContentStream = contentStream ?? throw new ArgumentNullException(nameof(contentStream));
+            _pdfInputStream = contentStream ?? throw new ArgumentNullException(nameof(contentStream));
 
             _pdfNavigator = new PdfNavigator(contentStream);
             _incrementalUpdateManager = new IncrementalUpdateManager(_pdfNavigator);
@@ -124,10 +124,10 @@ namespace ZingPdf.Core
 
             saveOptions ??= PdfSaveOptions.Default;
 
-            _pdfContentStream.Position = 0;
+            _pdfInputStream.Position = 0;
 
             // Copy original PDf to output.
-            await _pdfContentStream.CopyToAsync(outputStream);
+            await _pdfInputStream.CopyToAsync(outputStream);
             await outputStream.WriteNewLineAsync();
 
             await _incrementalUpdateManager.SaveAsync(_pdfContentStream, outputStream);
@@ -168,6 +168,7 @@ namespace ZingPdf.Core
 
         // TODO: This just appends a blank page. Do we need to accept a Page object here?
         // If so, how would a user consume it, Page creation requires knowledge of the parent.
+        // Or maybe we accept page creation options.
         public async Task AppendPageAsync()
         {
             var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
@@ -323,7 +324,7 @@ namespace ZingPdf.Core
 
         public void Dispose()
         {
-            ((IDisposable)_pdfContentStream).Dispose();
+            ((IDisposable)_pdfInputStream).Dispose();
         }
     }
 }
