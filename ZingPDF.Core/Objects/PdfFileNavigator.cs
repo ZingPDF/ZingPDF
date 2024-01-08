@@ -14,7 +14,10 @@ using ZingPdf.Core.Parsing;
 
 namespace ZingPdf.Core.Objects
 {
-    internal class PdfNavigator
+    /// <summary>
+    /// This class provides access to elements within a PDF file.
+    /// </summary>
+    internal class PdfFileNavigator : IPdfNavigator
     {
         private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = new();
         private readonly Stream _stream;
@@ -26,7 +29,7 @@ namespace ZingPdf.Core.Objects
         private AsyncLazy<IEnumerable<IndirectObject>> _pages;
         private AsyncLazy<Dictionary<int, CrossReferenceEntry>> _xrefs;
 
-        public PdfNavigator(Stream stream)
+        public PdfFileNavigator(Stream stream)
         {
             _stream = stream ?? throw new ArgumentNullException(nameof(stream));
 

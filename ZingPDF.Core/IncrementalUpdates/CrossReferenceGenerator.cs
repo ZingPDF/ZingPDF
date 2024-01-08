@@ -1,7 +1,7 @@
 ﻿using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
-namespace ZingPdf.Core
+namespace ZingPdf.Core.IncrementalUpdates
 {
     internal class CrossReferenceGenerator
     {
