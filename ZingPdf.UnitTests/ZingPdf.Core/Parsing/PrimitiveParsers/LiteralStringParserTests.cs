@@ -199,5 +199,27 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             output.Should().BeEquivalentTo(expectedLiteralString);
         }
+
+        [Fact]
+        public async Task ParseOctalPreambleString()
+        {
+            var input = "(\\376\\377\\000U\\000s\\000a\\000g\\000e\\000\\040\\000o\\000n\\000\\040\\000R\\000e\\000d\\000H\\000a\\000t\\000\\040\\000L\\000i\\000n\\000u\\000x)\r\n" +
+                "<< /S /GoTo /D (section.23.5) >>\r\n" +
+                "(\\376\\377\\000O\\000t\\000h\\000e\\000r\\000\\040\\000C\\000a\\000n\\000o\\000n\\000\\040\\000B\\000u\\000b\\000b\\000l\\000e\\000J\\000e\\000t\\000\\040\\000\\050\\000B\\000J\\000C\\000\\051\\000\\040\\000p\\000r\\000i\\000n\\000t\\000e\\000r\\000s)\r\n" +
+                "<< /S /GoTo /D (subsection.23.5.1) >>\r\n(\\376\\377\\000H\\000i\\000s\\000t\\000o\\000r\\000y)\r\n" +
+                "<< /S /GoTo /D (subsection.23.5.2) >>\r\n" +
+                "(\\376\\377\\000C\\000o\\000n\\000f\\000i\\000g\\000u\\000r\\000i\\000n\\000g\\000\\040\\000a\\000n\\000d\\000\\040\\000b\\000u\\000i\\000l\\000d\\000i\\000n\\000g\\000\\040\\000t\\000h\\000e\\000\\040\\000B\\000J\\000C\\000\\040\\000d\\000r\\000i\\000v\\000e\\000r\\000s)\r\n" +
+                "<< /S /GoTo /D (subsubsection*.579) >>\r\n" +
+                "(\\376\\377\\000C\\000M\\000Y\\000K\\000-\\000t\\000o\\000-\\000R\\000G\\000B\\000\\040\\000c\\000o\\000l\\000o\\000r\\000\\040\\000c\\000o\\000n\\000v\\000e\\000r\\000s\\000i\\000o\\000n)\r\n" +
+                "<< /S /GoTo /D (subsubsection*.580) >>\r\n" +
+                "(\\376\\377\\000V\\000e\\000r\\000t\\000i\\000c\\000a\\000l\\000\\040\\000c\\000e\\000n\\\r\n";
+
+            var inputBytes = input.ToStream();
+
+            var output = await new LiteralStringParser().ParseAsync(inputBytes);
+
+            output.Value.Should().Be("Usage on RedHat Linux");
+            inputBytes.Position.Should().Be(150, because: "the parser should move the stream past the string-end delimiter");
+        }
     }
 }

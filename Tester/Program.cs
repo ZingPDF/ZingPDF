@@ -14,10 +14,10 @@ using ZingPdf.Core.Objects.DataStructures;
 //await CreateNewPdfAndValidate("output.pdf");
 
 //await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-await ParseResaveValidate("test.pdf", "output.pdf");
+//await ParseResaveValidate("test.pdf", "output.pdf");
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 

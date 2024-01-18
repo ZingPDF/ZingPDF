@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.DataStructures;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
@@ -66,6 +67,8 @@ namespace ZingPdf.Core.Parsing
             {
                 return null;
             }
+            
+            Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - content: {content}");
 
             stream.Position -= read;
 
@@ -73,6 +76,8 @@ namespace ZingPdf.Core.Parsing
             {
                 if (pattern.Key.IsMatch(content))
                 {
+                    Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - Identified as : {pattern.Value.Name}");
+
                     return pattern.Value;
                 }
             }
@@ -81,6 +86,8 @@ namespace ZingPdf.Core.Parsing
             {
                 if (content.StartsWith(pattern.Key))
                 {
+                    Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - Identified as : {pattern.Value.Name}");
+
                     return pattern.Value;
                 }
             }
