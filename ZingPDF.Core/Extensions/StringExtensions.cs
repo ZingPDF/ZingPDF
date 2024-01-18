@@ -99,7 +99,7 @@ namespace ZingPdf.Core.Extensions
 
         public static char ToCharFromOctal(this string input)
         {
-            return (char)Convert.ToInt32($"{input}", 8);
+            return (char)Convert.ToInt32(input, 8);
         }
 
         public static Stream ToStream(this string input) => new MemoryStream(Encoding.UTF8.GetBytes(input));
