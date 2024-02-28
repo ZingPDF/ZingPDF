@@ -15,25 +15,16 @@ namespace ZingPdf.Core.Parsing
     {
         private static readonly int _bufferSize = 1024;
         
-        private static readonly Regex _headerPattern = new(@"^\%PDF-"); // %PDF-2.0
-        private static readonly Regex _integerPattern = new(@"^-?\d+\s*"); // 1234
-        private static readonly Regex _realNumberPattern = new(@"^-?\d*\.\d+"); // 595.276000
-        private static readonly Regex _namePattern = new(@"^\s*\/.+"); // /Name
-        private static readonly Regex _ioPattern = new(@"^[\d]+ [\d]+ obj"); // 1 0 obj
-        private static readonly Regex _iorPattern = new(@"^[\d]+ [\d]+ R"); // 49 0 R
-        private static readonly Regex _xrefEntryPattern = new(@"^[0-9]+\s[0-9]+\s[fn]"); // 0000000000 65535 f
-        private static readonly Regex _datePattern = new(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)"); // (D:20230922161207+10'00')
-
         private static readonly Dictionary<Regex, Type> _regexPatterns = new()
         {
-            { _headerPattern, typeof(Header) },
-            { _xrefEntryPattern, typeof(CrossReferenceEntry) },
-            { _namePattern, typeof(Name) },
-            { _ioPattern, typeof(IndirectObject) },
-            { _iorPattern, typeof(IndirectObjectReference) },
-            { _realNumberPattern, typeof(RealNumber) },
-            { _integerPattern, typeof(Integer) },
-            { _datePattern, typeof(Date) },
+            { RegularExpressions.Header(), typeof(Header) },
+            { RegularExpressions.CrossReferenceEntry(), typeof(CrossReferenceEntry) },
+            { RegularExpressions.Name(), typeof(Name) },
+            { RegularExpressions.IndirectObject(), typeof(IndirectObject) },
+            { RegularExpressions.IndirectObjectReference(), typeof(IndirectObjectReference) },
+            { RegularExpressions.RealNumber(), typeof(RealNumber) },
+            { RegularExpressions.Integer(), typeof(Integer) },
+            { RegularExpressions.Date(), typeof(Date) },
         };
 
         private static readonly Dictionary<string, Type> _startsWithPatterns = new()
