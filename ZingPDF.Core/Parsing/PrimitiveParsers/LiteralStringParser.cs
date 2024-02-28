@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using System;
 using System.Text;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
@@ -7,7 +8,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class LiteralStringParser : IPdfObjectParser<LiteralString>
     {
-        private static readonly string[] _escapeSequences = new[] { "\\\\", "\\(", "\\)" };
+        private static readonly string[] _escapeSequences = ["\\\\", "\\(", "\\)"];
+
+        private readonly EncodingDetector _encodingDetector = new();
 
         public async ITask<LiteralString> ParseAsync(Stream stream)
         {
@@ -30,7 +33,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             var isEscapeSequence = (string input) => _escapeSequences.Contains(input);
 
-            var encoding = DetectEncoding(stream);
+            var encoding = await _encodingDetector.DetectAsync(stream);
 
             var bufferSize = 1024;
             var buffer = new byte[bufferSize];
@@ -159,88 +162,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
 
             throw new InvalidOperationException();
-        }
-
-        private static Encoding DetectEncoding(Stream stream)
-        {
-            var startPosition = stream.Position;
-
-            var firstBytes = new byte[12];
-            int read = stream.Read(firstBytes, 0, firstBytes.Length);
-
-            if (read >= 3)
-            {
-                var preambleBytes = new byte[] { firstBytes[0], firstBytes[1], firstBytes[2] };
-
-                var encoding = GetEncodingFromPreamble(preambleBytes);
-                if (encoding is not null)
-                {
-                    stream.Position = startPosition + encoding.Preamble.Length;
-                    return encoding;
-                }
-
-                // Preamble can be encoded as octal characters
-                // TODO: this code is a bit shit, be better Tommy
-                if (firstBytes[0] == Constants.ReverseSolidus)
-                {
-                    var next3Chars = Encoding.ASCII.GetString(firstBytes, 1, 3);
-                    var numbers1 = new string(next3Chars.Where(x => x.IsInteger()).ToArray());
-
-                    if (numbers1.Any())
-                    {
-                        var octalchar = numbers1.ToCharFromOctal();
-                        preambleBytes[0] = (byte)octalchar;
-
-                        next3Chars = Encoding.ASCII.GetString(firstBytes, 1 + numbers1.Length + 1, 3);
-                        var numbers2 = new string(next3Chars.Where(x => x.IsInteger()).ToArray());
-
-                        if (numbers2.Any())
-                        {
-                            octalchar = numbers2.ToCharFromOctal();
-
-                            preambleBytes[1] = (byte)octalchar;
-
-                            next3Chars = Encoding.ASCII.GetString(firstBytes, 1 + numbers2.Length + 1, 3);
-                            var numbers3 = new string(next3Chars.Where(x => x.IsInteger()).ToArray());
-
-                            if (numbers3.Any())
-                            {
-                                octalchar = numbers3.ToCharFromOctal();
-
-                                preambleBytes[2] = (byte)octalchar;
-
-                                encoding = GetEncodingFromPreamble(preambleBytes);
-                                if (encoding is not null)
-                                {
-                                    // Move stream by encoded preamble length (3 slashes, plus all the digits)
-                                    stream.Position = startPosition + 3 + numbers1.Length + numbers2.Length + numbers3.Length;
-                                    return encoding;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            stream.Position = startPosition;
-            return Encoding.Latin1; // PDFDocEncoding
-        }
-
-        private static Encoding? GetEncodingFromPreamble(byte[] bytes)
-        {
-            if (bytes[0] == Encoding.UTF8.Preamble[0]
-                    && bytes[1] == Encoding.UTF8.Preamble[1]
-                    && bytes[2] == Encoding.UTF8.Preamble[2])
-            {
-                return Encoding.UTF8;
-            }
-            else if (bytes[0] == Encoding.BigEndianUnicode.Preamble[0]
-                && bytes[1] == Encoding.BigEndianUnicode.Preamble[1])
-            {
-                return Encoding.BigEndianUnicode;
-            }
-
-            return null;
         }
     }
 }
