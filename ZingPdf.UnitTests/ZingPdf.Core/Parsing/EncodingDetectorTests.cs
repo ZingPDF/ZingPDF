@@ -20,7 +20,8 @@ namespace ZingPdf.Core.Parsing
 
             var output = await new EncodingDetector().DetectAsync(ms);
 
-            output.EncodingName.Should().Be(Encoding.UTF8.EncodingName);
+            output.StringEncoding.EncodingName.Should().Be(Encoding.UTF8.EncodingName);
+            output.IsOctal.Should().BeFalse();
         }
 
         [Fact]
@@ -37,7 +38,8 @@ namespace ZingPdf.Core.Parsing
 
             var output = await new EncodingDetector().DetectAsync(ms);
 
-            output.EncodingName.Should().Be(Encoding.UTF8.EncodingName);
+            output.StringEncoding.EncodingName.Should().Be(Encoding.UTF8.EncodingName);
+            output.IsOctal.Should().BeTrue();
         }
 
         [Fact]
@@ -54,7 +56,8 @@ namespace ZingPdf.Core.Parsing
 
             var output = await new EncodingDetector().DetectAsync(ms);
 
-            output.EncodingName.Should().Be(Encoding.BigEndianUnicode.EncodingName);
+            output.StringEncoding.EncodingName.Should().Be(Encoding.BigEndianUnicode.EncodingName);
+            output.IsOctal.Should().BeFalse();
         }
 
         [Fact]
@@ -71,7 +74,8 @@ namespace ZingPdf.Core.Parsing
 
             var output = await new EncodingDetector().DetectAsync(ms);
 
-            output.EncodingName.Should().Be(Encoding.BigEndianUnicode.EncodingName);
+            output.StringEncoding.EncodingName.Should().Be(Encoding.BigEndianUnicode.EncodingName);
+            output.IsOctal.Should().BeTrue();
         }
 
         [Fact]
@@ -82,7 +86,8 @@ namespace ZingPdf.Core.Parsing
             using var ms = new MemoryStream([.. latinContent]);
             var output = await new EncodingDetector().DetectAsync(ms);
 
-            output.EncodingName.Should().Be(Encoding.Latin1.EncodingName);
+            output.StringEncoding.EncodingName.Should().Be(Encoding.Latin1.EncodingName);
+            output.IsOctal.Should().BeFalse();
         }
     }
 }

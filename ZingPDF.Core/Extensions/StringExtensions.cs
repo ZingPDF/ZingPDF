@@ -1,6 +1,4 @@
-﻿using ICSharpCode.SharpZipLib.BZip2;
-using System.Text;
-using ZingPdf.Core.Objects;
+﻿using System.Text;
 
 namespace ZingPdf.Core.Extensions
 {
@@ -102,6 +100,9 @@ namespace ZingPdf.Core.Extensions
             return (char)Convert.ToInt32(input, 8);
         }
 
+        /// <summary>
+        /// Encodes text using UTF8 and returns as a MemoryStream.
+        /// </summary>
         public static Stream ToStream(this string input) => new MemoryStream(Encoding.UTF8.GetBytes(input));
     }
 }

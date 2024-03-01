@@ -153,7 +153,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             LiteralString expectedLiteralString = input;
 
-            using var ms = new MemoryStream(inputBytes.ToArray());
+            using var ms = new MemoryStream([..inputBytes]);
             var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Should().BeEquivalentTo(expectedLiteralString);
@@ -174,7 +174,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             LiteralString expectedLiteralString = input;
 
-            using var ms = new MemoryStream(inputBytes.ToArray());
+            using var ms = new MemoryStream([..inputBytes]);
             var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Should().BeEquivalentTo(expectedLiteralString);
@@ -202,7 +202,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseOctalPreambleString()
+        public async Task ParseMultilineUTF16BEString()
         {
             var inputBytes = new List<byte>();
 
@@ -220,8 +220,20 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             using var ms = new MemoryStream([.. inputBytes]);
             var output = await new LiteralStringParser().ParseAsync(ms);
 
-            output.Value.Should().Be("Usage on RedHat Linux");
+            output.Value.Should().Be(textInput);
             ms.Position.Should().Be(46, because: "the parser should move the stream past the string-end delimiter");
+        }
+
+        [Fact]
+        public async Task ParseFullyOctalEncodedUTF16BEString()
+        {
+            var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
+
+            using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Value.Should().Be("Artifex");
+            ms.Position.Should().Be(26, because: "the parser should move the stream past the string-end delimiter");
         }
     }
 }
