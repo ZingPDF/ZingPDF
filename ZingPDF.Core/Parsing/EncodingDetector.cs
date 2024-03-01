@@ -2,6 +2,31 @@
 
 namespace ZingPdf.Core.Parsing
 {
+    internal class EncodingResult
+    {
+        public EncodingResult(Encoding stringEncoding, bool isOctal = false)
+        {
+            StringEncoding = stringEncoding ?? throw new ArgumentNullException(nameof(stringEncoding));
+            IsOctal = isOctal;
+        }
+
+        /// <summary>
+        /// The encoding used for the string.
+        /// </summary>
+        /// <remarks>
+        /// Note: this may not be the encoding used to encode the bytes into the file.
+        /// Strings may also use octal codes to represent non-ASCII characters.
+        /// In this case, the <see cref="IsOctal"/> property will be true, 
+        /// and the string will be written to the file using ASCII encoding.
+        /// </remarks>
+        public Encoding StringEncoding { get; }
+
+        /// <summary>
+        /// True if the string has been converted to represent non-ASCII characters as octals.
+        /// </summary>
+        public bool IsOctal { get; }
+    }
+
     internal class EncodingDetector
     {
         private readonly Encoding _defaultEncoding = Encoding.Latin1;
@@ -23,7 +48,7 @@ namespace ZingPdf.Core.Parsing
         /// </remarks>
         /// <param name="stream">The stream from which to detect the encoding.</param>
         /// <param name="defaultEncoding">The encoding to return if a valid encoding cannot be detected.</param>
-        public async Task<Encoding> DetectAsync(Stream stream, Encoding? defaultEncoding = null, bool advanceStreamBeyondByteOrderMark = true)
+        public async Task<EncodingResult> DetectAsync(Stream stream, Encoding? defaultEncoding = null, bool advanceStreamBeyondByteOrderMark = true)
         {
             defaultEncoding ??= _defaultEncoding;
 
@@ -38,7 +63,7 @@ namespace ZingPdf.Core.Parsing
 
             if (read < 2)
             {
-                return defaultEncoding;
+                return new(defaultEncoding);
             }
 
             if (buffer[0] == _utf16be[0] && buffer[1] == _utf16be[1])
@@ -48,12 +73,12 @@ namespace ZingPdf.Core.Parsing
                     stream.Position += 2;
                 }
 
-                return Encoding.BigEndianUnicode;
+                return new(Encoding.BigEndianUnicode);
             }
 
             if (read < 3)
             {
-                return defaultEncoding;
+                return new(defaultEncoding);
             }
 
             if (buffer[0] == _utf8[0] && buffer[1] == _utf8[1] && buffer[2] == _utf8[2])
@@ -63,12 +88,12 @@ namespace ZingPdf.Core.Parsing
                     stream.Position += 3;
                 }
 
-                return Encoding.UTF8;
+                return new(Encoding.UTF8);
             }
 
             if (read < 8)
             {
-                return defaultEncoding;
+                return new(defaultEncoding);
             }
 
             var content = Encoding.ASCII.GetString(buffer);
@@ -80,12 +105,12 @@ namespace ZingPdf.Core.Parsing
                     stream.Position += _utf16beOctal.Length;
                 }
 
-                return Encoding.BigEndianUnicode;
+                return new(Encoding.BigEndianUnicode, isOctal: true);
             }
 
             if (read < 12)
             {
-                return defaultEncoding;
+                return new(defaultEncoding);
             }
 
             if (content.StartsWith(_utf8Octal))
@@ -95,10 +120,10 @@ namespace ZingPdf.Core.Parsing
                     stream.Position += _utf8Octal.Length;
                 }
 
-                return Encoding.UTF8;
+                return new(Encoding.UTF8, isOctal: true);
             }
 
-            return defaultEncoding;
+            return new(defaultEncoding);
         }
     }
 }
