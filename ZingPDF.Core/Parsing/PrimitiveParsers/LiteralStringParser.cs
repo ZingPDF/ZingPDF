@@ -1,5 +1,4 @@
 ﻿using MorseCode.ITask;
-using System;
 using System.Text;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
@@ -8,6 +7,17 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class LiteralStringParser : IPdfObjectParser<LiteralString>
     {
+        // Needs to be able to parse strings of various encodings.
+        // N.B. In all encodings, the opening and closing parentheses are encoded using ASCII.
+        // Examples - (café)
+        // - ASCII      0x28 0x63 0x61 0x66 0x65 0x29 ('é' cannot be represented, so I'm substituting 'e')
+        // - UTF8       0x28 0xEF 0xBB 0xBF 0x63 0x61 0x66 0xC3 0xA9 0x29 (Includes BOM (0xEF, 0xBB, 0xBF), 2 bytes are used to represent 'é')
+        // - UTF16BE    0x28 0xFE 0xFF 0x00 0x63 0x00 0x61 0x00 0x66 0x00 0xE9 0x29 (Includes BOM (0xFE, 0xFF) 2 bytes are used for all characters)
+
+        // - Octal      As above, but all characters outside of the ascii range are represented as octal codes, including the BOM.
+        //              The string itself is encoded with ASCII in the PDF file.
+        //      - e.g. (\376\377\000A\000r\000t\000i\000f\000e\000x)
+
         private static readonly string[] _escapeSequences = ["\\\\", "\\(", "\\)"];
 
         private readonly EncodingDetector _encodingDetector = new();
@@ -29,11 +39,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             // After parsing, we'll need to move the stream to the end of the string.
             // We can't do this using the string content length, as it may have characters missing.
             // We'll add the correct number of bytes to the position by calculating the byte length of these characters.
-            List<char> removedChars = new();
+            List<char> removedChars = [];
 
-            var isEscapeSequence = (string input) => _escapeSequences.Contains(input);
+            static bool isEscapeSequence(string input) => _escapeSequences.Contains(input);
 
-            var encoding = await _encodingDetector.DetectAsync(stream);
+            var encodingResult = await _encodingDetector.DetectAsync(stream);
+            var byteEncoding = encodingResult.IsOctal ? Encoding.ASCII : encodingResult.StringEncoding;
 
             var bufferSize = 1024;
             var buffer = new byte[bufferSize];
@@ -50,18 +61,25 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 // Therefore we can't use the UTF16BE interpreted content to find the closing parenthesis,
                 // which will have been decoded incorrectly. e.g. ) is [0, 41] in UTFBE, but just [41] in ASCII.
                 // In practice, the UTF16BE encoding grabs 2 bytes e.g. [41, 0] and interprets it as '⤀'.
-                content += encoding.GetString(buffer);
-                asciiContent += Encoding.ASCII.GetString(buffer).Replace("\0", "");
+                content += byteEncoding.GetString(buffer);
+                asciiContent += Encoding.ASCII.GetString(buffer);
 
-                for (; i < asciiContent.Length; i++)
+                // Used to track the position within the ascii string
+                var asciiCursor = i;
+
+                for (; i < content.Length; i++)
                 {
                     var c = content[i];
-                    var asciiChar = asciiContent[i];
 
+                    var asciiChar = asciiContent[asciiCursor];
                     if (asciiChar == Constants.RightParenthesis)
                     {
                         countEnd++;
                     }
+                    
+                    // Multibyte characters will take up multiple characters in the ascii string
+                    // This counter allows us to skip to the next character next time.
+                    asciiCursor += encodingResult.StringEncoding.GetByteCount([c]);
 
                     switch (c)
                     {
@@ -73,7 +91,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                             // - escape parentheses
                             // - escape a backslash
-                            if (i < asciiContent.Length - 1 && isEscapeSequence(content[i..(i + 2)]))
+                            if (i < content.Length - 2 && isEscapeSequence(content[i..(i + 2)]))
                             {
                                 // Simply remove the slash
                                 content = content.Remove(i, 1);
@@ -130,11 +148,18 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                     if (countStart > 0 && countEnd == countStart)
                     {
-                        stringEnd = i;
+                        var preambleLength = encodingResult.IsOctal
+                            ? encodingResult.StringEncoding.GetPreamble().Length * 4
+                            : byteEncoding.GetPreamble().Length;
+
+                        stringEnd = stringEnd = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
+                            ? asciiCursor
+                            : i;
+
                         stream.Position = stringStart
-                            + encoding.GetPreamble().Length
-                            + encoding.GetByteCount(content[..stringEnd])
-                            + encoding.GetByteCount(removedChars.ToArray());
+                            + preambleLength
+                            + byteEncoding.GetByteCount(content[..stringEnd])
+                            + byteEncoding.GetByteCount(removedChars.ToArray());
 
                         await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
                         break;
@@ -143,7 +168,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
             while (stream.Position < stream.Length && countEnd != countStart);
 
-            return new LiteralString(content[..stringEnd], EnumFromEncoding(encoding));
+            var output = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
+                ? encodingResult.StringEncoding.GetString(Encoding.ASCII.GetBytes(asciiContent[..stringEnd]))
+                : content[..stringEnd];
+
+            return new LiteralString(content[..stringEnd], EnumFromEncoding(encodingResult.StringEncoding));
         }
 
         private static LiteralStringEncoding EnumFromEncoding(Encoding encoding)
