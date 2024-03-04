@@ -39,7 +39,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             // After parsing, we'll need to move the stream to the end of the string.
             // We can't do this using the string content length, as it may have characters missing.
             // We'll add the correct number of bytes to the position by calculating the byte length of these characters.
-            List<char> removedChars = [];
+            int removedChars = 0;
 
             static bool isEscapeSequence(string input) => _escapeSequences.Contains(input);
 
@@ -93,7 +93,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
 
-                                removedChars.Add(Constants.ReverseSolidus);
+                                removedChars++;
                             }
                             // - split a string across multiple lines (ignore any end of line markers following the slash)
                             else if (i < content.Length - 1 && content[i + 1].IsEndOfLine())
@@ -102,33 +102,33 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
 
-                                removedChars.Add(Constants.ReverseSolidus);
+                                removedChars++;
 
                                 // ...and the EOL marker
                                 content = content.RemoveNextEndOfLineMarker(out var removedEOLChars);
                                 asciiContent = asciiContent.RemoveNextEndOfLineMarker(out _);
 
-                                removedChars.AddRange(removedEOLChars);
+                                removedChars += byteEncoding.GetByteCount(removedEOLChars);
                             }
                             // - represent a 3 digit octal character code \005
                             else if (i < content.Length - 4 && content[(i + 1)..(i + 4)].IsInteger())
                             {
-                                removedChars.AddRange(content[i..(i + 4)]);
-
                                 c = content[(i + 1)..(i + 4)].ToCharFromOctal();
 
                                 content = content[..i] + c + content[(i + 4)..];
                                 asciiContent = asciiContent[..i] + c + asciiContent[(i + 4)..];
+
+                                removedChars += 4 - byteEncoding.GetByteCount([c]);
                             }
                             // - represent a 2 digit octal character code \53 (equivalent to \053)
                             else if (i < content.Length - 3 && content[(i + 1)..(i + 3)].IsInteger())
                             {
-                                removedChars.AddRange(content[i..(i + 3)]);
-
                                 c = content[(i + 1)..(i + 3)].ToCharFromOctal();
 
                                 content = content[..i] + c + content[(i + 3)..];
                                 asciiContent = asciiContent[..i] + c + asciiContent[(i + 3)..];
+
+                                removedChars += 3 - byteEncoding.GetByteCount([c]);
                             }
                             // - a single slash which is not part of an escape sequence is ignored
                             else
@@ -137,7 +137,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                                 content = content.Remove(i, 1);
                                 asciiContent = asciiContent.Remove(i, 1);
 
-                                removedChars.Add(Constants.ReverseSolidus);
+                                removedChars++;
                             }
                             break;
                     }
@@ -159,7 +159,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             while (stream.Position < stream.Length && countEnd != countStart);
 
             var output = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
-                ? encodingResult.StringEncoding.GetString(Encoding.ASCII.GetBytes(asciiContent[..stringEnd]))
+                ? asciiContent[..stringEnd]
                 : content[..stringEnd];
 
             var preambleLength = encodingResult.IsOctal
@@ -169,9 +169,18 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             stream.Position = stringStart
                 + preambleLength
                 + byteEncoding.GetByteCount(output)
-                + byteEncoding.GetByteCount(removedChars.ToArray());
+                + removedChars;
 
             await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
+
+            // Octal strings are essentially double encoded, and written using ASCII
+            // - once using the intended encoding (such as UTF16BE)
+            // - then non-ascii characters are converted to octal codes
+            // We have converted the octal codes back to the target encoding, which can now be decoded.
+            if (encodingResult.IsOctal)
+            {
+                output = encodingResult.StringEncoding.GetString(Encoding.ASCII.GetBytes(output));
+            }
 
             return new LiteralString(output, EnumFromEncoding(encodingResult.StringEncoding));
         }

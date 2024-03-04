@@ -235,5 +235,20 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             output.Value.Should().Be("Artifex");
             ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
         }
+
+        [Fact]
+        public async Task ParseAnotherFullyOctalEncodedUTF16BEString()
+        {
+            var input = "(\\376\\377\\000U\\000s\\000a\\000g\\000e\\000\\040" +
+                "\\000o\\000n\\000\\040\\000R\\000e\\000d\\000H\\000a\\000t" +
+                "\\000\\040\\000L\\000i\\000n\\000u\\000x)" +
+                "\r\n<< /S /GoTo /D (section.23.5) >>";
+
+            using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Value.Should().Be("Usage on RedHat Linux");
+            ms.Position.Should().Be(124, because: "the parser should move the stream past the string-end delimiter");
+        }
     }
 }

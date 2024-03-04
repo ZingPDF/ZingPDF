@@ -23,9 +23,9 @@ namespace ZingPdf.Core.IncrementalUpdates
             _options = options ?? IncrementalUpdateOptions.Default;
         }
 
-        public List<IndirectObject> NewObjects { get; } = new();
-        public Dictionary<IndirectObjectId, IndirectObject> UpdatedObjects { get; } = new();
-        public List<IndirectObjectId> DeletedObjects { get; } = new();
+        public List<IndirectObject> NewObjects { get; } = [];
+        public Dictionary<IndirectObjectId, IndirectObject> UpdatedObjects { get; } = [];
+        public List<IndirectObjectId> DeletedObjects { get; } = [];
 
         public List<IndirectObject> NewOrUpdatedObjects { get => UpdatedObjects.Values.Concat(NewObjects).ToList(); }
 
