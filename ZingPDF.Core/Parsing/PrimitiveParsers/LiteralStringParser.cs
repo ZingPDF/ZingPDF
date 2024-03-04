@@ -76,10 +76,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     {
                         countEnd++;
                     }
-                    
-                    // Multibyte characters will take up multiple characters in the ascii string
-                    // This counter allows us to skip to the next character next time.
-                    asciiCursor += encodingResult.StringEncoding.GetByteCount([c]);
 
                     switch (c)
                     {
@@ -119,20 +115,20 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                             {
                                 removedChars.AddRange(content[i..(i + 4)]);
 
-                                var octalAsChar = content[(i + 1)..(i + 4)].ToCharFromOctal();
+                                c = content[(i + 1)..(i + 4)].ToCharFromOctal();
 
-                                content = content[..i] + octalAsChar + content[(i + 4)..];
-                                asciiContent = asciiContent[..i] + octalAsChar + asciiContent[(i + 4)..];
+                                content = content[..i] + c + content[(i + 4)..];
+                                asciiContent = asciiContent[..i] + c + asciiContent[(i + 4)..];
                             }
                             // - represent a 2 digit octal character code \53 (equivalent to \053)
                             else if (i < content.Length - 3 && content[(i + 1)..(i + 3)].IsInteger())
                             {
                                 removedChars.AddRange(content[i..(i + 3)]);
 
-                                var octalAsChar = content[(i + 1)..(i + 3)].ToCharFromOctal();
+                                c = content[(i + 1)..(i + 3)].ToCharFromOctal();
 
-                                content = content[..i] + octalAsChar + content[(i + 3)..];
-                                asciiContent = asciiContent[..i] + octalAsChar + asciiContent[(i + 3)..];
+                                content = content[..i] + c + content[(i + 3)..];
+                                asciiContent = asciiContent[..i] + c + asciiContent[(i + 3)..];
                             }
                             // - a single slash which is not part of an escape sequence is ignored
                             else
@@ -146,22 +142,16 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                             break;
                     }
 
+                    // Multibyte characters will take up multiple characters in the ascii string
+                    // This counter allows us to skip to the next character next time.
+                    asciiCursor += byteEncoding.GetByteCount([c]);
+
                     if (countStart > 0 && countEnd == countStart)
                     {
-                        var preambleLength = encodingResult.IsOctal
-                            ? encodingResult.StringEncoding.GetPreamble().Length * 4
-                            : byteEncoding.GetPreamble().Length;
-
                         stringEnd = stringEnd = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
-                            ? asciiCursor
+                            ? asciiCursor - 1
                             : i;
 
-                        stream.Position = stringStart
-                            + preambleLength
-                            + byteEncoding.GetByteCount(content[..stringEnd])
-                            + byteEncoding.GetByteCount(removedChars.ToArray());
-
-                        await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
                         break;
                     }
                 }
@@ -172,7 +162,18 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 ? encodingResult.StringEncoding.GetString(Encoding.ASCII.GetBytes(asciiContent[..stringEnd]))
                 : content[..stringEnd];
 
-            return new LiteralString(content[..stringEnd], EnumFromEncoding(encodingResult.StringEncoding));
+            var preambleLength = encodingResult.IsOctal
+                            ? encodingResult.StringEncoding.GetPreamble().Length * 4
+                            : byteEncoding.GetPreamble().Length;
+
+            stream.Position = stringStart
+                + preambleLength
+                + byteEncoding.GetByteCount(output)
+                + byteEncoding.GetByteCount(removedChars.ToArray());
+
+            await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
+
+            return new LiteralString(output, EnumFromEncoding(encodingResult.StringEncoding));
         }
 
         private static LiteralStringEncoding EnumFromEncoding(Encoding encoding)
