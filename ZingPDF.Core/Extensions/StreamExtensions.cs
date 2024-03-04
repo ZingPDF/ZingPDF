@@ -67,7 +67,7 @@ namespace ZingPdf.Core.Extensions
         /// Finds the specified value in the stream and advances its position to it.
         /// </summary>
         public static async Task AdvanceBeyondNextAsync(this Stream stream, string value)
-            => await stream.AdvanceAsync(value.ToString(), skipValue: true);
+            => await stream.AdvanceAsync(value, skipValue: true);
 
         /// <summary>
         /// Finds the specified value in the stream and advances its position to it.
