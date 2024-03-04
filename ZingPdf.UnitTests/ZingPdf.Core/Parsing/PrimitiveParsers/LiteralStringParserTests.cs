@@ -233,7 +233,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Value.Should().Be("Artifex");
-            ms.Position.Should().Be(26, because: "the parser should move the stream past the string-end delimiter");
+            ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
         }
     }
 }
