@@ -127,7 +127,7 @@ namespace ZingPdf.Core
         /// <exception cref="InvalidOperationException"></exception>
         public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions = null)
         {
-            if (outputStream is null) throw new ArgumentNullException(nameof(outputStream));
+            ArgumentNullException.ThrowIfNull(outputStream);
             if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
 
             saveOptions ??= PdfSaveOptions.Default;
@@ -141,7 +141,10 @@ namespace ZingPdf.Core
 
             var latestUpdate = _pdfNavigator.GetWorkingIncrementalUpdate();
 
-            await latestUpdate.WriteAsync(outputStream);
+            if (latestUpdate.NewOrUpdatedObjects.Count != 0 || latestUpdate.DeletedObjects.Count != 0)
+            {
+                await latestUpdate.WriteAsync(outputStream);
+            }
 
             await outputStream.FlushAsync();
         }
