@@ -62,10 +62,10 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count1 = await pdf.GetPageCountAsync();
 
-    await pdf.InsertPageAsync(2);
+    //await pdf.InsertPageAsync(2);
     //await pdf.DeletePageAsync(1);
 
-    var count2 = await pdf.GetPageCountAsync();
+    //var count2 = await pdf.GetPageCountAsync();
 
     //await pdf.AppendPageAsync();
 
