@@ -38,6 +38,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         [InlineData("[ 10 ]", 1)]
         [InlineData("[ 10 20 ]", 2)]
         [InlineData("[ 10 20 30 ]", 3)]
+        [InlineData("[90793 1014]", 2)]
+        [InlineData("[0 0 594.95996 841.91998]", 4)]
         [InlineData("[<2B551D2AFE52654494F9720283CFF1C4><3CDA8BB6D5834E41A5E2AA16C35E4C47>]/Index", 2)]
         public async Task ParseCorrectCountsAsync(string content, int expectedCount)
         {
@@ -63,6 +65,24 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 .ParseAsync(input);
 
             output.All(x => x is Integer).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ParseArrayOfHexValues()
+        {
+            var contentString = "[<81b14aafa313db63dbd6f981e49f94f4>\r\n" +
+                "<81b14aafa313db63dbd6f981e49f94f4>\r\n" +
+                "]\r\n";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Count().Should().Be(2);
+            output.All(x => x is HexadecimalString).Should().BeTrue();
+            
+            input.Position.Should().Be(74, because: "the parser should move the stream past the string-end delimiter");
         }
     }
 }
