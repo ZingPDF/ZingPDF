@@ -43,6 +43,8 @@
                 return 0;
             }
 
+            count = (int)Math.Min(count, _to - Position);
+
             return _source.Read(buffer, offset, count);
         }
 
