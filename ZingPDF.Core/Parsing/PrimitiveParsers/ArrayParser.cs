@@ -1,5 +1,7 @@
 ﻿using MorseCode.ITask;
+using System.Text;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.Primitives;
 
@@ -11,20 +13,23 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             // An array is a collection of any type of PDF object
 
-            await stream.AdvanceToNextAsync(Constants.ArrayStart);
+            await stream.AdvanceBeyondNextAsync(Constants.ArrayStart);
 
             var arrayStart = stream.Position;
 
-            // Find end of array
             var content = string.Empty;
-            int countStart = 0;
+            int countStart = 1;
             int countEnd = 0;
-            long arrayEnd = 0;
+
+            var bufferSize = 1024;
+            var buffer = new byte[bufferSize];
 
             do
             {
                 int i = content.Length;
-                content += await stream.GetAsync();
+                _ = await stream.ReadAsync(buffer.AsMemory());
+
+                content += Encoding.ASCII.GetString(buffer);
 
                 for (; i < content.Length; i++)
                 {
@@ -35,9 +40,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     if (c == Constants.ArrayStart) { countStart++; }
                     if (c == Constants.ArrayEnd) { countEnd++; }
 
-                    if (countStart > 0 && countEnd == countStart)
+                    if (countEnd == countStart)
                     {
-                        arrayEnd = i;
+                        stream.Position = arrayStart + i - 1;
 
                         break;
                     }
@@ -45,18 +50,30 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
             while (stream.Position < stream.Length && countEnd != countStart);
 
-            using var arrayStream = await stream.RangeAsync(arrayStart + 1, arrayEnd + arrayStart);
+            var arrayEnd = stream.Position;
 
-            stream.Position = arrayStart + arrayEnd + 1;
+            ArrayObject output;
 
-            if (arrayStream.Length == 0)
+            if (arrayEnd - arrayStart < 1)
             {
-                return Array.Empty<ArrayObject>();
+                output = Array.Empty<PdfObject>();
+            }
+            else
+            {
+                var arrayStream = new SubStream(stream, arrayStart, arrayEnd)
+                {
+                    Position = 0
+                };
+
+                var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
+
+                output = objectGroup.Objects.ToArray();
             }
 
-            var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
+            stream.Position = arrayEnd + 1;
+            await stream.AdvanceBeyondNextAsync(Constants.ArrayEnd);
 
-            return objectGroup.Objects.ToArray();
+            return output;
         }
     }
 }

@@ -51,6 +51,7 @@ namespace ZingPdf.Core.Parsing
             var buffer = new byte[_bufferSize];
 
             var read = await stream.ReadAsync(buffer.AsMemory(0, _bufferSize));
+            stream.Position -= read;
 
             var content = Encoding.UTF8.GetString(buffer, 0, read).TrimStart();
 
@@ -58,16 +59,17 @@ namespace ZingPdf.Core.Parsing
             {
                 return null;
             }
-            
-            Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - content: {content}");
 
-            stream.Position -= read;
+            Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
+            Logger.Log(LogLevel.Trace, content[..Math.Min(50, content.Length)]);
+
+            
 
             foreach (var pattern in _regexPatterns)
             {
                 if (pattern.Key.IsMatch(content))
                 {
-                    Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - Identified as : {pattern.Value.Name}");
+                    Logger.Log(LogLevel.Trace, $"Identified as: {pattern.Value.Name}");
 
                     return pattern.Value;
                 }
@@ -77,7 +79,7 @@ namespace ZingPdf.Core.Parsing
             {
                 if (content.StartsWith(pattern.Key))
                 {
-                    Logger.Log(LogLevel.Trace, $"TokenTypeIdentifier.TryIdentify - Identified as : {pattern.Value.Name}");
+                    Logger.Log(LogLevel.Trace, $"Identified as: {pattern.Value.Name}");
 
                     return pattern.Value;
                 }
