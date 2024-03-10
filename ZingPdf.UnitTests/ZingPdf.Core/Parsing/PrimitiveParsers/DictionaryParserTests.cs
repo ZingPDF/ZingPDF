@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Text;
 using Xunit;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
@@ -58,21 +59,24 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         [Fact]
         public async Task ParsePageDictionary()
         {
-            var contentString = "<</Type /Page\r\n" +
+            var contentString = "<<" +
+                "/Type /Page\r\n" +
                 "/Resources <</ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\r\n" +
-                "/ExtGState <</G3 3 0 R>>\r\n" +
-                "/Pattern <</P6 6 0 R\r\n" +
-                "/P7 7 0 R\r\n" +
-                "/P8 8 0 R\r\n" +
-                "/P9 9 0 R>>\r\n" +
-                "/XObject <</X11 11 0 R>>\r\n" +
-                "/Font <</F4 4 0 R\r\n" +
-                "/F5 5 0 R\r\n" +
-                "/F10 10 0 R>>>>\r\n" +
+                    "/ExtGState <</G3 3 0 R>>\r\n" +
+                    "/Pattern <</P6 6 0 R\r\n" +
+                        "/P7 7 0 R\r\n" +
+                        "/P8 8 0 R\r\n" +
+                        "/P9 9 0 R>>\r\n" +
+                    "/XObject <</X11 11 0 R>>\r\n" +
+                    "/Font <</F4 4 0 R\r\n" +
+                        "/F5 5 0 R\r\n" +
+                        "/F10 10 0 R>>" +
+                    ">>\r\n" +
                 "/MediaBox [0 0 594.95996 841.91998]\r\n" +
                 "/Contents 12 0 R\r\n" +
                 "/StructParents 0\r\n" +
-                "/Parent 94 0 R>>";
+                "/Parent 94 0 R" +
+                ">>";
 
             using var input = contentString.ToStream();
 
@@ -146,6 +150,37 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             using var input = contentString.ToStream();
 
             var output = await new DictionaryParser().ParseAsync(input);
+        }
+
+        [Fact]
+        public async Task ParseSingleArrayElement()
+        {
+            var contentString = "<</Index[90793 1014]>>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            output.Should().HaveCount(1);
+            input.Position.Should().Be(22, because: "the parser should move the stream past the string-end delimiter");
+        }
+
+        [Fact]
+        public async Task ParseSimplePageDictionary()
+        {
+            var contentString = "<<\r\n" +
+                "/Type /Page\r\n" +
+                "/MediaBox [0 0 594.95996 841.91998]\r\n" +
+                ">>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            output.Get<Name>("Type")!.Value.Should().Be("Page");
+            output.Get<ArrayObject>("MediaBox").Should().HaveCount(4);
+
+            input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
         }
     }
 }

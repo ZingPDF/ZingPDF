@@ -29,6 +29,10 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
                         break;
                     }
                 }
+                else
+                {
+                    stream.Position += 1;
+                }
             }
 
             return items.ToArray();

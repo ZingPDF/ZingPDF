@@ -127,6 +127,11 @@ namespace ZingPdf.Core.Extensions
             {
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
 
+                if (read == 0)
+                {
+                    break;
+                }
+
                 content += _defaultEncoding.GetString(buffer, 0, read);
 
                 var index = content.IndexOfAny(c);
