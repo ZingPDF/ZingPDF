@@ -20,7 +20,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
             // A dictionary is a key-value collection, where the key is always a 'Name' object
-            // and the valuie can be any type of PDF object
+            // and the value can be any type of PDF object
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
@@ -62,7 +62,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     }
                 }
 
-                if (countStart > 0 && countEnd == countStart)
+                if (countEnd == countStart)
                 {
                     stream.Position = dictStart + i - 1;
 
@@ -70,9 +70,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 }
             }
 
-            using var dictStream = await stream.RangeAsync(dictStart, stream.Position);
+            var dictEnd = stream.Position;
 
-            stream.Position += Constants.DictionaryEnd.Length;
+            var dictStream = new SubStream(stream, dictStart, dictEnd - 1)
+            {
+                Position = 0
+            };
 
             var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 
@@ -81,7 +84,10 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
             }
 
-            Dictionary<Name, IPdfObject> dictionary = new();
+            stream.Position = dictEnd;
+            await stream.AdvanceBeyondNextAsync(Constants.DictionaryEnd);
+
+            Dictionary<Name, IPdfObject> dictionary = [];
 
             for (int j = 0; j < objectGroup.Objects.Count; j += 2)
             {
