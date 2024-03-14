@@ -1,5 +1,5 @@
 ﻿using MorseCode.ITask;
-using ZingPdf.Core.Extensions;
+using System.Text;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
@@ -24,35 +24,56 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
-            await stream.AdvanceBeyondNextAsync(Constants.DictionaryStart);
-
             var dictStart = stream.Position;
+            var dictEnd = 0L;
 
             // Find end of dictionary
             var content = string.Empty;
-            int countStart = 1;
+            int countStart = 0;
             int countEnd = 0;
+
+            var bufferSize = 1024;
+            var buffer = new byte[bufferSize];
 
             while (stream.Position < stream.Length)
             {
                 int i = content.Length;
-                content += await stream.GetAsync();
+                var read = await stream.ReadAsync(buffer.AsMemory());
+
+                content += Encoding.ASCII.GetString(buffer, 0, read);
 
                 for (; i < content.Length - 1; i++)
                 {
                     // TODO: consider if objects can contain escaped dictionary delimiters which may break this logic, write tests
 
-                    var c = content[i..(i + Constants.DictionaryEnd.Length)];
+                    var c = content[i..(i + 2)];
 
                     if (c == Constants.DictionaryStart)
                     {
                         countStart++;
+                        
+                        if (countStart == 1)
+                        {
+                            dictStart = i + 2;
+                        }
+
                         i++; // increment so that nested dictionaries don't cause false positives <<<<
                     }
 
                     if (c == Constants.DictionaryEnd)
                     {
                         countEnd++;
+
+                        if (countEnd == countStart)
+                        {
+                            // TODO: this is used to build a substream, and move past the array
+                            //      but i is a character count, not a byte count. Use the proper byte length of the content.
+
+                            dictEnd = i;
+
+                            break;
+                        }
+
                         i++; // increment so that nested dictionaries don't cause false positives >>>>
                     }
 
@@ -61,63 +82,60 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                         break;
                     }
                 }
+            }
 
-                if (countEnd == countStart)
+            Dictionary output = [];
+
+            if (dictEnd - dictStart > 1)
+            {
+                var dictStream = new SubStream(stream, dictStart, dictEnd)
                 {
-                    stream.Position = dictStart + i - 1;
+                    Position = 0
+                };
 
-                    break;
-                }
-            }
+                var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 
-            var dictEnd = stream.Position;
-
-            var dictStream = new SubStream(stream, dictStart, dictEnd - 1)
-            {
-                Position = 0
-            };
-
-            var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
-
-            if (objectGroup.Objects.Count % 2 != 0)
-            {
-                throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
-            }
-
-            stream.Position = dictEnd;
-            await stream.AdvanceBeyondNextAsync(Constants.DictionaryEnd);
-
-            Dictionary<Name, IPdfObject> dictionary = [];
-
-            for (int j = 0; j < objectGroup.Objects.Count; j += 2)
-            {
-                dictionary.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
-            }
-
-            if (dictionary.ContainsKey(Constants.DictionaryKeys.Type))
-            {
-                switch ((Name)dictionary[Constants.DictionaryKeys.Type])
+                if (objectGroup.Objects.Count % 2 != 0)
                 {
-                    case Page.DictionaryKeys.Page:
-                        return Page.FromDictionary(dictionary);
-
-                    case PageTreeNode.DictionaryKeys.Pages:
-                        return PageTreeNode.FromDictionary(dictionary);
-
-                    case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
-                        return CrossReferenceStreamDictionary.FromDictionary(dictionary);
-
-                    case ObjectStreamDictionary.DictionaryKeys.ObjStm:
-                        return ObjectStreamDictionary.FromDictionary(dictionary);
+                    throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
                 }
-            }
 
-            if (dictionary.ContainsKey(LinearizationDictionary.DictionaryKeys.Linearized))
-            {
-                return LinearizationDictionary.FromDictionary(dictionary);
-            }
+                for (int j = 0; j < objectGroup.Objects.Count; j += 2)
+                {
+                    output.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
+                }
 
-            return dictionary;
+                if (output.ContainsKey(Constants.DictionaryKeys.Type))
+                {
+                    switch ((Name)output[Constants.DictionaryKeys.Type])
+                    {
+                        case Page.DictionaryKeys.Page:
+                            output = Page.FromDictionary(output);
+                            break;
+
+                        case PageTreeNode.DictionaryKeys.Pages:
+                            output = PageTreeNode.FromDictionary(output);
+                            break;
+
+                        case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
+                            output = CrossReferenceStreamDictionary.FromDictionary(output);
+                            break;
+
+                        case ObjectStreamDictionary.DictionaryKeys.ObjStm:
+                            output = ObjectStreamDictionary.FromDictionary(output);
+                            break;
+                    }
+                }
+
+                if (output.ContainsKey(LinearizationDictionary.DictionaryKeys.Linearized))
+                {
+                    output = LinearizationDictionary.FromDictionary(output);
+                }
+            } 
+
+            stream.Position = dictEnd + 2;
+
+            return output;
         }
     }
 }

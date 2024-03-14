@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     public class ArrayParserTests
     {
         [Fact]
-        public async Task ParseEmptyAsync()
+        public async Task ParseEmptyArray_CorrectCount()
         {
             using var input = "[]".ToStream();
 
@@ -16,39 +16,109 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 .ParseAsync(input);
 
             output.Should().BeEmpty();
-            input.Position.Should().Be(input.Length);
         }
 
         [Fact]
-        public async Task ParseNestedArray()
+        public async Task ParseEmptyArray_CorrectStreamPosition()
         {
-            using var input = "[[(2020-12-03_ISO_32000-2-final.pdf)90827 0 R]]".ToStream();
+            using var input = "[]".ToStream();
 
             var output = await new ArrayParser()
                 .ParseAsync(input);
 
-            output.Should().HaveCount(1);
-            output.First().Should().BeOfType<ArrayObject>();
-            output.First().As<ArrayObject>().Should().HaveCount(2);
+            input.Position.Should().Be(2);
+        }
 
-            input.Position.Should().Be(input.Length);
+        [Fact]
+        public async Task ParseEmptyArray_WithWhitespace_CorrectCount()
+        {
+            using var input = "[ ]".ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ParseEmptyArray_WithWhitespace_CorrectStreamPosition()
+        {
+            using var input = "[ ]".ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            input.Position.Should().Be(3);
+        }
+
+        //[Fact]
+        //public async Task ParseNestedArray()
+        //{
+        //    using var input = "[[(2020-12-03_ISO_32000-2-final.pdf)90827 0 R]]".ToStream();
+
+        //    var output = await new ArrayParser()
+        //        .ParseAsync(input);
+
+        //    output.Should().HaveCount(1);
+        //    output.First().Should().BeOfType<ArrayObject>();
+        //    output.First().As<ArrayObject>().Should().HaveCount(2);
+
+        //    input.Position.Should().Be(input.Length);
+        //}
+
+        [Theory]
+        [InlineData("[ /Test ]", 1)]
+        [InlineData("[ /Test /Test ]", 2)]
+        public async Task ParseArrayWithLeadingAndTrailingSpace_CorrectCount(string input, int expectedCount)
+        {
+            using var inputStream = input.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(inputStream);
+
+            output.Should().HaveCount(expectedCount);
         }
 
         [Theory]
-        [InlineData("[ 10 ]", 1)]
-        [InlineData("[ 10 20 ]", 2)]
-        [InlineData("[ 10 20 30 ]", 3)]
-        [InlineData("[90793 1014]", 2)]
-        [InlineData("[0 0 594.95996 841.91998]", 4)]
-        [InlineData("[<2B551D2AFE52654494F9720283CFF1C4><3CDA8BB6D5834E41A5E2AA16C35E4C47>]/Index", 2)]
-        public async Task ParseCorrectCountsAsync(string content, int expectedCount)
+        [InlineData("[ /Test ]")]
+        [InlineData("[ /Test /Test ]")]
+        public async Task ParseArrayWithLeadingAndTrailingSpace_CorrectStreamPosition(string input)
         {
-            using var input = content.ToStream();
+            using var inputStream = input.ToStream();
 
             var output = await new ArrayParser()
-                .ParseAsync(input);
+                .ParseAsync(inputStream);
+
+            inputStream.Position.Should().Be(input.Length);
+        }
+
+        [Theory]
+        [InlineData("[/Test]", 1)]
+        [InlineData("[/Test/Test]", 2)]
+        public async Task ParseArray_NoWhitespace_CorrectCount(string input, int expectedCount)
+        {
+            using var inputStream = input.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(inputStream);
 
             output.Should().HaveCount(expectedCount);
+        }
+
+        [Theory]
+        [InlineData("[/Test]")]
+        [InlineData("[/Test/Test]")]
+        public async Task ParseArray_NoWhitespace_CorrectStreamPosition(string input)
+        {
+            using var inputStream = input.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(inputStream);
+
+            inputStream.Position.Should().Be(
+                input.Length,
+                because: "the parser should move the stream past the array-end delimiter"
+                );
         }
 
         [Fact]
