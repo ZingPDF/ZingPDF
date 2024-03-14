@@ -18,11 +18,16 @@
         private readonly long _from;
         private readonly long _to;
 
-        public SubStream(Stream source, long from, long to)
+        public SubStream(Stream source, long from, long to, bool setToStart = true)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _from = from;
             _to = to;
+
+            if (setToStart)
+            {
+                Position = 0;
+            }
         }
 
         public override bool CanRead => _source.CanRead;
@@ -43,7 +48,7 @@
                 return 0;
             }
 
-            count = (int)Math.Min(count, _to - Position);
+            count = (int)Math.Min(count, _to - _from - Position);
 
             return _source.Read(buffer, offset, count);
         }
