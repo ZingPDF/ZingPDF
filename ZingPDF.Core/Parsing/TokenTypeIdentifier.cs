@@ -63,8 +63,6 @@ namespace ZingPdf.Core.Parsing
             Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
             Logger.Log(LogLevel.Trace, content[..Math.Min(50, content.Length)]);
 
-            
-
             foreach (var pattern in _regexPatterns)
             {
                 if (pattern.Key.IsMatch(content))

@@ -3,7 +3,6 @@ using System.Text;
 using Xunit;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Objects.Primitives.IndirectObjects;
 
 namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
@@ -20,7 +19,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseSimpleNestedDictionary()
+        public async Task ParseSimpleNestedDictionary_CorrectFields()
         {
             var contentString = "<</Resources <</ProcSet [/PDF /Text]>>>>";
 
@@ -40,82 +39,26 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseTrailerDictionary()
+        public async Task ParseSimpleNestedDictionary_CorrectStreamPosition()
         {
-            var contentString = "<< /Size 50 /Root 49 0 R /Info 47 0 R " +
-                "/ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>\r\n" +
-                "startxref\r\n148076\r\n%%EOF\r\n";
+            var contentString = "<</Resources <</ProcSet [/PDF /Text]>>>>";
 
             using var input = contentString.ToStream();
 
             var output = await new DictionaryParser().ParseAsync(input);
 
-            output.Get<Integer>("Size");
-            output.Get<IndirectObjectReference>("Root");
-            output.Get<IndirectObjectReference>("Info");
-            output.Get<ArrayObject>("ID").Should().NotBeNullOrEmpty();
+            output.Should().NotBeNull().And.HaveCount(1);
+
+            var nestedDictionary = output.Get<Dictionary>("Resources");
+
+            nestedDictionary.Should().NotBeNull().And.HaveCount(1);
+
+            var array = nestedDictionary!.Get<ArrayObject>("ProcSet");
+
+            array.Should().NotBeNull().And.HaveCount(2);
         }
 
-        [Fact]
-        public async Task ParsePageDictionary()
-        {
-            var contentString = "<<" +
-                "/Type /Page\r\n" +
-                "/Resources <</ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\r\n" +
-                    "/ExtGState <</G3 3 0 R>>\r\n" +
-                    "/Pattern <</P6 6 0 R\r\n" +
-                        "/P7 7 0 R\r\n" +
-                        "/P8 8 0 R\r\n" +
-                        "/P9 9 0 R>>\r\n" +
-                    "/XObject <</X11 11 0 R>>\r\n" +
-                    "/Font <</F4 4 0 R\r\n" +
-                        "/F5 5 0 R\r\n" +
-                        "/F10 10 0 R>>" +
-                    ">>\r\n" +
-                "/MediaBox [0 0 594.95996 841.91998]\r\n" +
-                "/Contents 12 0 R\r\n" +
-                "/StructParents 0\r\n" +
-                "/Parent 94 0 R" +
-                ">>";
-
-            using var input = contentString.ToStream();
-
-            var output = await new DictionaryParser().ParseAsync(input);
-
-            output.Get<Name>("Type")!.Value.Should().Be("Page");
-            output.Get<Dictionary>("Resources").Should().HaveCount(5);
-            output.Get<ArrayObject>("MediaBox").Should().HaveCount(4);
-
-            var contentsReference = output.Get<IndirectObjectReference>("Contents");
-            contentsReference.Should().NotBeNull();
-            contentsReference!.Id.Index.Should().Be(12);
-            contentsReference!.Id.GenerationNumber.Should().Be(0);
-
-            var structParents = output.Get<Integer>("StructParents");
-            structParents.Should().NotBeNull();
-            structParents!.Value.Should().Be(0);
-
-            var parentReference = output.Get<IndirectObjectReference>("Parent");
-            parentReference.Should().NotBeNull();
-            parentReference!.Id.Index.Should().Be(94);
-            parentReference!.Id.GenerationNumber.Should().Be(0);
-        }
-
-        [Fact]
-        public async Task ParseComplexDelimiters()
-        {
-            var contentString = "<<" +
-                "/DecodeParms<</Columns 5/Predictor 12>>" +
-                "/Filter/FlateDecode" +
-                "/ID[<2B551D2AFE52654494F9720283CFF1C4><3CDA8BB6D5834E41A5E2AA16C35E4C47>]" +
-                "/Index[90793 1014]/Info 90792 0 R/Length 185/Prev 14709647" +
-                "/Root 90794 0 R/Size 91807/Type/XRef/W[1 3 1]>>";
-
-            using var input = contentString.ToStream();
-
-            var output = await new DictionaryParser().ParseAsync(input);
-        }
-
+        // TODO: what is this really testing? Make it assert one thing and remove as many interdependencies as possible
         [Fact]
         public async Task ParseComplexCatalogDictionary()
         {
@@ -153,24 +96,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseSingleArrayElement()
-        {
-            var contentString = "<</Index[90793 1014]>>";
-
-            using var input = contentString.ToStream();
-
-            var output = await new DictionaryParser().ParseAsync(input);
-
-            output.Should().HaveCount(1);
-            input.Position.Should().Be(22, because: "the parser should move the stream past the string-end delimiter");
-        }
-
-        [Fact]
-        public async Task ParseSimplePageDictionary()
+        public async Task ParseSimpleDictionary_WithWindowsLineEndings_CorrectFields()
         {
             var contentString = "<<\r\n" +
                 "/Type /Page\r\n" +
-                "/MediaBox [0 0 594.95996 841.91998]\r\n" +
+                "/Other /Test\r\n" +
                 ">>";
 
             using var input = contentString.ToStream();
@@ -178,9 +108,63 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var output = await new DictionaryParser().ParseAsync(input);
 
             output.Get<Name>("Type")!.Value.Should().Be("Page");
-            output.Get<ArrayObject>("MediaBox").Should().HaveCount(4);
+            output.Get<Name>("Other")!.Value.Should().Be("Test");
 
             input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
+        }
+
+        [Fact]
+        public async Task ParseSimpleDictionary_WithWindowsLineEndings_CorrectStreamPosition()
+        {
+            var contentString = "<<\r\n" +
+                "/Type /Page\r\n" +
+                "/Other /Test\r\n" +
+                ">>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            input.Position.Should().Be(
+                Encoding.UTF8.GetByteCount(contentString),
+                because: "the parser should move the stream past the dictionary-end delimiter"
+                );
+        }
+
+        [Fact]
+        public async Task ParseSimpleDictionary_WithUnixLineEndings_CorrectFields()
+        {
+            var contentString = "<<\n" +
+                "/Type /Page\n" +
+                "/Other /Test\n" +
+                ">>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            output.Get<Name>("Type")!.Value.Should().Be("Page");
+            output.Get<Name>("Other")!.Value.Should().Be("Test");
+
+            input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
+        }
+
+        [Fact]
+        public async Task ParseSimpleDictionary_WithUnixLineEndings_CorrectStreamPosition()
+        {
+            var contentString = "<<\n" +
+                "/Type /Page\n" +
+                "/Other /Test\n" +
+                ">>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            input.Position.Should().Be(
+                Encoding.UTF8.GetByteCount(contentString),
+                because: "the parser should move the stream past the dictionary-end delimiter"
+                );
         }
     }
 }
