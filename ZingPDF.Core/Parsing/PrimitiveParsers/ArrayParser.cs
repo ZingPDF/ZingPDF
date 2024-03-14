@@ -1,6 +1,5 @@
 ﻿using MorseCode.ITask;
 using System.Text;
-using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.Primitives;
@@ -13,12 +12,11 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             // An array is a collection of any type of PDF object
 
-            await stream.AdvanceBeyondNextAsync(Constants.ArrayStart);
-
-            var arrayStart = stream.Position;
+            var arrayStart = 0L;
+            var arrayEnd = 0L;
 
             var content = string.Empty;
-            int countStart = 1;
+            int countStart = 0;
             int countEnd = 0;
 
             var bufferSize = 1024;
@@ -27,9 +25,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             do
             {
                 int i = content.Length;
-                _ = await stream.ReadAsync(buffer.AsMemory());
+                var read = await stream.ReadAsync(buffer.AsMemory());
 
-                content += Encoding.ASCII.GetString(buffer);
+                content += Encoding.ASCII.GetString(buffer, 0, read);
 
                 for (; i < content.Length; i++)
                 {
@@ -37,33 +35,43 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                     char c = content[i];
 
-                    if (c == Constants.ArrayStart) { countStart++; }
-                    if (c == Constants.ArrayEnd) { countEnd++; }
-
-                    if (countEnd == countStart)
+                    if (c == Constants.ArrayStart)
                     {
-                        stream.Position = arrayStart + i - 1;
+                        countStart++;
 
-                        break;
+                        if (countStart == 1)
+                        {
+                            arrayStart = i + 1;
+                        }
+                    }
+
+                    if (c == Constants.ArrayEnd)
+                    {
+                        countEnd++;
+
+                        if (countEnd == countStart)
+                        {
+                            // TODO: this is used to build a substream, and move past the array
+                            //      but i is a character count, not a byte count. Use the proper byte length of the content.
+
+                            arrayEnd = i;
+
+                            break;
+                        }
                     }
                 }
             }
             while (stream.Position < stream.Length && countEnd != countStart);
 
-            var arrayEnd = stream.Position;
-
             ArrayObject output;
 
-            if (arrayEnd - arrayStart < 1)
+            if (arrayEnd - arrayStart <= 1)
             {
                 output = Array.Empty<PdfObject>();
             }
             else
             {
-                var arrayStream = new SubStream(stream, arrayStart, arrayEnd)
-                {
-                    Position = 0
-                };
+                var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
                 var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
 
@@ -71,7 +79,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
 
             stream.Position = arrayEnd + 1;
-            await stream.AdvanceBeyondNextAsync(Constants.ArrayEnd);
 
             return output;
         }
