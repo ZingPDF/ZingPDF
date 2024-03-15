@@ -10,7 +10,6 @@
     /// without duplicating the byte data, and without writing it to memory.<para></para>
     /// This class is not thread safe. Operations on this stream affect the underlying source stream.
     /// Likewise, operations on the source stream will affect instances of this class.
-    /// It is good practice to deliberately set the position on this stream before using it. 
     /// </remarks>
     internal class SubStream : Stream
     {
