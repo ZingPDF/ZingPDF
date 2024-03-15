@@ -25,6 +25,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
+            Console.WriteLine($"Parsing Dictionary at offset: {stream.Position}");
+
             var initialStreamPosition = stream.Position;
             var dictStart = 0L;
             var dictEnd = 0L;
@@ -136,6 +138,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             } 
 
             stream.Position = dictEnd + 2;
+
+            Console.WriteLine($"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;
         }

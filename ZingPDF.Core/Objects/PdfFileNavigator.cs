@@ -19,8 +19,15 @@ namespace ZingPdf.Core.Objects
     /// </summary>
     internal class PdfFileNavigator : IPdfNavigator
     {
-        private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = new();
+        private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = [];
         private readonly Stream _stream;
+
+        /// <summary>
+        /// Contains the object at the offset specified by startxref.
+        /// It could be a cross-reference stream (indirect object containing a dictionary and stream)
+        /// or an xref keyword followed by the cross reference table.
+        /// </summary>
+        private AsyncLazy<IPdfObject> _xrefObject;
 
         private AsyncLazy<LinearizationDictionary?> _linearizationParameters;
         private AsyncLazy<Trailer?> _rootTrailer;
@@ -69,6 +76,8 @@ namespace ZingPdf.Core.Objects
 
         private void SetupLazyProperties()
         {
+            _xrefObject = SetupLazyXrefObject();
+
             _linearizationParameters = SetupLazyLinearizationDictionary();
             _rootTrailer = SetupLazyRootTrailer();
             _rootTrailerDictionary = SetupLazyRootTrailerDictionary();
@@ -153,7 +162,7 @@ namespace ZingPdf.Core.Objects
         {
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
-            List<IndirectObject> pages = new();
+            List<IndirectObject> pages = [];
 
             foreach (var refObj in pageTreeNode.Kids)
             {
@@ -180,29 +189,16 @@ namespace ZingPdf.Core.Objects
             {
                 var objectFinder = new ObjectFinder();
 
-                // First, find the startxref keyword
-                var offset = await objectFinder.FindAsync(_stream, Constants.StartXref, forwards: false)
-                    ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
+                var xrefObject = await _xrefObject;
 
-                _stream.Position = offset;
-
-                _ = await Parser.For<Keyword>().ParseAsync(_stream);
-                var xrefOffset = await Parser.For<Integer>().ParseAsync(_stream);
-
-                _stream.Position = xrefOffset;
-
-                var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream);
-
-                var item = await Parser.For(type).ParseAsync(_stream);
-
-                if (item is IndirectObject io
+                if (xrefObject is IndirectObject io
                     && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
                     return null;
                 }
 
-                if (item is Keyword k && k == Constants.Xref)
+                if (xrefObject is Keyword k && k == Constants.Xref)
                 {
                     var trailerOffset = await objectFinder.FindAsync(_stream, Constants.Trailer, forwards: false);
 
@@ -220,18 +216,10 @@ namespace ZingPdf.Core.Objects
             });
         }
 
-        private AsyncLazy<ITrailerDictionary> SetupLazyRootTrailerDictionary()
+        private AsyncLazy<IPdfObject> SetupLazyXrefObject()
         {
-            return new AsyncLazy<ITrailerDictionary>(async () =>
+            return new AsyncLazy<IPdfObject>(async () =>
             {
-                var trailer = await GetRootTrailerAsync();
-                if (trailer is not null)
-                {
-                    return trailer.Dictionary;
-                }
-
-                // TODO: we're doing this startxref search twice. (in GetRootTrailerAsync too)
-
                 var objectFinder = new ObjectFinder();
 
                 // First, find the startxref keyword
@@ -249,11 +237,28 @@ namespace ZingPdf.Core.Objects
 
                 var item = await Parser.For(type).ParseAsync(_stream);
 
-                if (item is IndirectObject io
+                return item;
+            });
+        }
+
+        private AsyncLazy<ITrailerDictionary> SetupLazyRootTrailerDictionary()
+        {
+            return new AsyncLazy<ITrailerDictionary>(async () =>
+            {
+                var trailer = await GetRootTrailerAsync();
+                if (trailer is not null)
+                {
+                    return trailer.Dictionary;
+                }
+
+                var xrefObject = await _xrefObject;
+
+                if (xrefObject is IndirectObject io
                     && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
-                    dict.ByteOffset = xrefOffset;
+                    // TODO: when this breaks, uncomment code and add a descriptive comment
+                    //dict.ByteOffset = xrefOffset;
 
                     return dict;
                 }
@@ -271,11 +276,18 @@ namespace ZingPdf.Core.Objects
                 static bool isLinearizationDictionary(IndirectObject o) =>
                     o.Children.FirstOrDefault() is LinearizationDictionary;
 
-                List<PdfObject> items = new();
+                List<PdfObject> items = [];
 
-                while (_stream.Position < Math.Min(1024, _stream.Length))
+                var limit = Math.Min(1024, _stream.Length);
+
+                while (_stream.Position < limit)
                 {
                     var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream);
+                    if (type is null)
+                    {
+                        // TODO: is this a valid scenario?
+                        break;
+                    }
 
                     var item = await Parser.For(type).ParseAsync(_stream);
 
@@ -321,7 +333,7 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<Dictionary<int, CrossReferenceEntry>>(async () =>
             {
-                Dictionary<int, CrossReferenceEntry> xrefs = new();
+                Dictionary<int, CrossReferenceEntry> xrefs = [];
 
                 // To aggregate all cross references
                 // - check if PDF is linearized
