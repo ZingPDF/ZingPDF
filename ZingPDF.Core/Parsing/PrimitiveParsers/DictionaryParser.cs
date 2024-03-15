@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
@@ -24,7 +25,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
-            var dictStart = stream.Position;
+            var initialStreamPosition = stream.Position;
+            var dictStart = 0L;
             var dictEnd = 0L;
 
             // Find end of dictionary
@@ -54,7 +56,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                         
                         if (countStart == 1)
                         {
-                            dictStart = i + 2;
+                            dictStart = initialStreamPosition + i + 2;
                         }
 
                         i++; // increment so that nested dictionaries don't cause false positives <<<<
@@ -69,7 +71,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                             // TODO: this is used to build a substream, and move past the array
                             //      but i is a character count, not a byte count. Use the proper byte length of the content.
 
-                            dictEnd = i;
+                            dictEnd = initialStreamPosition + i;
 
                             break;
                         }
@@ -88,10 +90,10 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             if (dictEnd - dictStart > 1)
             {
-                var dictStream = new SubStream(stream, dictStart, dictEnd)
-                {
-                    Position = 0
-                };
+                var dictStream = new SubStream(stream, dictStart, dictEnd);
+
+                var test = await dictStream.GetAsync();
+                dictStream.Position = 0;
 
                 var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 

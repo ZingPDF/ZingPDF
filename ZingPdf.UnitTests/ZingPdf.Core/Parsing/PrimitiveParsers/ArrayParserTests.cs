@@ -152,7 +152,94 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             output.Count().Should().Be(2);
             output.All(x => x is HexadecimalString).Should().BeTrue();
             
-            input.Position.Should().Be(74, because: "the parser should move the stream past the string-end delimiter");
+            input.Position.Should().Be(74, because: "the parser should move the stream past the array-end delimiter");
+        }
+
+        [Fact]
+        public async Task ParseEmptyNestedArray_WithWhitespace_CorrectCounts()
+        {
+            var contentString = "[ [ ] ]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Should().HaveCount(1);
+            output.Get<ArrayObject>(0).Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ParseEmptyNestedArray_WithWhitespace_CorrectStreamPosition()
+        {
+            var contentString = "[ [ ] ]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            input.Position.Should().Be(7, because: "the parser should move the stream past the array-end delimiter");
+        }
+
+        [Fact]
+        public async Task ParseEmptyNestedArray_CorrectCounts()
+        {
+            var contentString = "[[]]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Should().HaveCount(1);
+            output.Get<ArrayObject>(0).Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ParseEmptyNestedArray_CorrectStreamPosition()
+        {
+            var contentString = "[[]]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            input.Position.Should().Be(
+                contentString.Length,
+                because: "the parser should move the stream past the array-end delimiter"
+                );
+        }
+
+        [Fact]
+        public async Task ParseSimpleNestedArray_CorrectCounts()
+        {
+            var contentString = "[/Test[]]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            output.Should().HaveCount(2);
+            output.Get<ArrayObject>(1).Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ParseSimpleNestedArray_CorrectStreamPosition()
+        {
+            var contentString = "[/Test[]]";
+
+            using var input = contentString.ToStream();
+
+            var output = await new ArrayParser()
+                .ParseAsync(input);
+
+            input.Position.Should().Be(
+                contentString.Length,
+                because: "the parser should move the stream past the array-end delimiter"
+                );
         }
     }
 }
