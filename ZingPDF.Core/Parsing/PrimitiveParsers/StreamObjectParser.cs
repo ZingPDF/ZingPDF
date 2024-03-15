@@ -21,6 +21,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
         public async ITask<IStreamObject<IStreamDictionary>> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing IStreamObject<IStreamDictionary> from {stream.GetType().Name} at offset: {stream.Position}.");
+
             var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
 
             var streamDict =

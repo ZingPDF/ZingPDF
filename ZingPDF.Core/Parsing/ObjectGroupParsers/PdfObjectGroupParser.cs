@@ -8,6 +8,8 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
     {
         public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
+
             var items = new List<IPdfObject>();
 
             while (stream.Position < stream.Length)
@@ -23,7 +25,7 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
                     catch
                     {
                         // If any exception is thrown, gracefully exit.
-                        // The subobject could be invalid or not understood by this library.
+                        // The sub-object could be invalid or not understood by this library.
                         // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
                         // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
                         break;
