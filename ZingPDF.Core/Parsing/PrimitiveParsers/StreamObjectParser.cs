@@ -8,9 +8,20 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class StreamObjectParser : IPdfObjectParser<IStreamObject<IStreamDictionary>>
     {
+        private readonly Dictionary? _dict;
+
+        public StreamObjectParser()
+        {
+        }
+
+        public StreamObjectParser(Dictionary dict)
+        {
+            _dict = dict ?? throw new ArgumentNullException(nameof(dict));
+        }
+
         public async ITask<IStreamObject<IStreamDictionary>> ParseAsync(Stream stream)
         {
-            var dict = await Parser.For<Dictionary>().ParseAsync(stream);
+            var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
 
             var streamDict =
                 dict as CrossReferenceStreamDictionary as IStreamDictionary
