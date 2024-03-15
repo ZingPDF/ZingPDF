@@ -11,6 +11,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
+
             stream.AdvancePastWhitepace();
 
             var integerParser = Parser.For<Integer>();
