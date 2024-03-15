@@ -10,6 +10,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<ArrayObject> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
+
             // An array is a collection of any type of PDF object
 
             var initialStreamPosition = stream.Position;
@@ -62,7 +64,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                     }
                 }
             }
-            while (stream.Position < stream.Length && countEnd != countStart);
+            while (countStart != countEnd && stream.Position < stream.Length);
 
             ArrayObject output;
 
