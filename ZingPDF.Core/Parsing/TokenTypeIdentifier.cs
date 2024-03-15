@@ -60,8 +60,8 @@ namespace ZingPdf.Core.Parsing
                 return null;
             }
 
-            Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
-            Logger.Log(LogLevel.Trace, content[..Math.Min(50, content.Length)]);
+            //Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
+            //Logger.Log(LogLevel.Trace, content[..Math.Min(50, content.Length)]);
 
             foreach (var pattern in _regexPatterns)
             {
@@ -83,6 +83,7 @@ namespace ZingPdf.Core.Parsing
                 }
             }
 
+            // TODO: consider returning null here.
             throw new ParserException("Unable to identify token from stream");
         }
     }

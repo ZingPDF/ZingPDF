@@ -13,11 +13,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             stream.AdvancePastWhitepace();
 
-            // Save this in case we need to go back.
-            // An indirect object with a stream needs to use the stream parser,
-            // but we only know this after we've parsed the stream dictionary.
-            var start = stream.Position;
-
             var integerParser = Parser.For<Integer>();
 
             var id = await integerParser.ParseAsync(stream);
@@ -41,10 +36,10 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 {
                     // It's difficult to reliably identify a stream, which is a dictionary followed by the stream contents.
                     // The token identifier will recognise the stream keyword, at which point we've already parsed the dictionary.
-                    // Go back to the start of this object and use the Stream parser.
-                    stream.Position = start;
+                    var streamDict = (items.Last() as Dictionary)!;
                     items.RemoveAt(items.Count - 1);
-                    items.Add(await Parser.For<IStreamObject<IStreamDictionary>>().ParseAsync(stream));
+
+                    items.Add(await new StreamObjectParser(streamDict).ParseAsync(stream));
                     break;
                 }
 
@@ -57,7 +52,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                 if (item is IStreamObject<IStreamDictionary>)
                 {
-                        
+                    // TODO: is this reachable?
                     break;
                 }
 
@@ -66,7 +61,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
             while (stream.Position < stream.Length);
 
-            return new IndirectObject(new IndirectObjectId(id, genNumber), items.ToArray());
+            return new IndirectObject(new IndirectObjectId(id, genNumber), [.. items]);
         }
     }
 }
