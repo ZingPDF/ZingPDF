@@ -8,7 +8,7 @@ namespace ZingPdf.Core.Objects.Primitives.Streams
     internal class SubStreamObject : ParsedStreamObject<IStreamDictionary>
     {
         public SubStreamObject(Stream stream, long from, long to, IStreamDictionary dictionary)
-            : base(dictionary, new SubStream(stream, from, to))
+            : base(dictionary, new SubStream(stream, from, to, setToStart: false))
         {
         }
     }

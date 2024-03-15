@@ -204,51 +204,6 @@ namespace ZingPdf.Core.Extensions
         }
 
         /// <summary>
-        /// Makes a new <see cref="Stream"/> from the specified range of byte offsets. 
-        /// </summary>
-        public static async Task<Stream> RangeAsync(this Stream stream, long from, long to)
-        {
-            if (to > stream.Length) throw new ArgumentOutOfRangeException(nameof(to));
-
-            var originalPosition = stream.Position;
-
-            var bufferSize = 1024;
-            var buffer = new byte[bufferSize];
-
-            stream.Position = from;
-
-            var ms = new MemoryStream();
-
-            if (from == to)
-            {
-                return ms;
-            }
-
-            if (from == 0 && to == stream.Length)
-            {
-                await stream.CopyToAsync(ms);
-                stream.Position = originalPosition;
-                ms.Position = 0;
-
-                return ms;
-            }
-
-            do
-            {
-                var amountToRead = Math.Min(bufferSize, (int)Math.Min(to - stream.Position, stream.Length));
-                var read = await stream.ReadAsync(buffer.AsMemory(0, amountToRead));
-
-                await ms.WriteAsync(buffer.AsMemory(0, read));
-            }
-            while (stream.Position != to);
-
-            stream.Position = originalPosition;
-            ms.Position = 0;
-
-            return ms;
-        }
-
-        /// <summary>
         /// Advance the stream to the next non-whitespace character.
         /// </summary>
         public static void AdvancePastWhitepace(this Stream stream)
