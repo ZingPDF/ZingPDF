@@ -19,9 +19,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseSimpleNestedDictionary_CorrectFields()
+        public async Task ParseSimpleNestedDictionary_CorrectCounts()
         {
-            var contentString = "<</Resources <</ProcSet [/PDF /Text]>>>>";
+            var contentString = "<</Resources <<>>>>";
 
             using var input = contentString.ToStream();
 
@@ -31,17 +31,28 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             var nestedDictionary = output.Get<Dictionary>("Resources");
 
-            nestedDictionary.Should().NotBeNull().And.HaveCount(1);
-
-            var array = nestedDictionary!.Get<ArrayObject>("ProcSet");
-
-            array.Should().NotBeNull().And.HaveCount(2);
+            nestedDictionary.Should().NotBeNull().And.BeEmpty();
         }
 
         [Fact]
         public async Task ParseSimpleNestedDictionary_CorrectStreamPosition()
         {
-            var contentString = "<</Resources <</ProcSet [/PDF /Text]>>>>";
+            var contentString = "<</Resources <<>>>>";
+
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            input.Position.Should().Be(
+                contentString.Length,
+                because: "the parser should move the stream past the dictionary-end delimiter"
+                );
+        }
+
+        [Fact]
+        public async Task ParseSimpleNestedDictionary_WithWhitespace_CorrectCounts()
+        {
+            var contentString = "<< /Resources << >> >>";
 
             using var input = contentString.ToStream();
 
@@ -51,11 +62,22 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             var nestedDictionary = output.Get<Dictionary>("Resources");
 
-            nestedDictionary.Should().NotBeNull().And.HaveCount(1);
+            nestedDictionary.Should().NotBeNull().And.BeEmpty();
+        }
 
-            var array = nestedDictionary!.Get<ArrayObject>("ProcSet");
+        [Fact]
+        public async Task ParseSimpleNestedDictionary_WithWhitepsace_CorrectStreamPosition()
+        {
+            var contentString = "<< /Resources << >> >>";
 
-            array.Should().NotBeNull().And.HaveCount(2);
+            using var input = contentString.ToStream();
+
+            var output = await new DictionaryParser().ParseAsync(input);
+
+            input.Position.Should().Be(
+                contentString.Length,
+                because: "the parser should move the stream past the dictionary-end delimiter"
+                );
         }
 
         // TODO: what is this really testing? Make it assert one thing and remove as many interdependencies as possible
