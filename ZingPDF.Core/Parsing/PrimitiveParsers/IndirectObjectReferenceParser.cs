@@ -8,6 +8,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<IndirectObjectReference> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing IndirectObjectReference from {stream.GetType().Name} at offset: {stream.Position}.");
+
             var content = await stream.ReadUpToIncludingAsync(Constants.IndirectReference);
 
             content = content.TrimStart();

@@ -20,12 +20,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
+            Console.WriteLine($"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
+
             // A dictionary is a key-value collection, where the key is always a 'Name' object
             // and the value can be any type of PDF object
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
-
-            Console.WriteLine($"Parsing Dictionary at offset: {stream.Position}");
 
             var initialStreamPosition = stream.Position;
             var dictStart = 0L;
@@ -39,7 +39,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var bufferSize = 1024;
             var buffer = new byte[bufferSize];
 
-            while (stream.Position < stream.Length)
+            do
             {
                 int i = content.Length;
                 var read = await stream.ReadAsync(buffer.AsMemory());
@@ -86,6 +86,12 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                         break;
                     }
                 }
+            }
+            while (countStart != countEnd && stream.Position < stream.Length);
+            
+            if (countStart != countEnd)
+            {
+                throw new ParserException($"Unable to find end of dictionary. PDF may be corrupt.");
             }
 
             Dictionary output = [];
