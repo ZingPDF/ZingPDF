@@ -12,6 +12,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             // An array is a collection of any type of PDF object
 
+            var initialStreamPosition = stream.Position;
             var arrayStart = 0L;
             var arrayEnd = 0L;
 
@@ -41,7 +42,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
                         if (countStart == 1)
                         {
-                            arrayStart = i + 1;
+                            arrayStart = initialStreamPosition + i + 1;
                         }
                     }
 
@@ -54,7 +55,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                             // TODO: this is used to build a substream, and move past the array
                             //      but i is a character count, not a byte count. Use the proper byte length of the content.
 
-                            arrayEnd = i;
+                            arrayEnd = initialStreamPosition + i;
 
                             break;
                         }
