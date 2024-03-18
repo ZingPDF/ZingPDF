@@ -23,8 +23,7 @@ namespace ZingPdf.Core.Objects.Primitives
         /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
         /// </remarks>
         public T? Get<T>(Name key) where T : class, IPdfObject
-            => _dictionary.ContainsKey(key)
-            ? _dictionary[key] as T
+            => _dictionary.TryGetValue(key, out IPdfObject? value) ? value as T
             : null;
 
         public void Set<T>(Name key, T pdfObject) where T : IPdfObject
