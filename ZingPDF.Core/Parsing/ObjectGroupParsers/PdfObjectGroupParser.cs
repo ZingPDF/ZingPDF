@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 
@@ -8,7 +9,7 @@ namespace ZingPdf.Core.Parsing.ObjectGroupParsers
     {
         public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
         {
-            Console.WriteLine($"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
 
             var items = new List<IPdfObject>();
 

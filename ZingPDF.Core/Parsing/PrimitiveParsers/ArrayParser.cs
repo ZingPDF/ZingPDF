@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.Primitives;
@@ -10,7 +11,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<ArrayObject> ParseAsync(Stream stream)
         {
-            Console.WriteLine($"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(Logging.LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             // An array is a collection of any type of PDF object
 
@@ -82,6 +83,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             }
 
             stream.Position = arrayEnd + 1;
+
+            Logger.Log(LogLevel.Trace, $"Parsed ArrayObject between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;
         }

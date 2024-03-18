@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
@@ -20,7 +21,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
-            Console.WriteLine($"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
 
             // A dictionary is a key-value collection, where the key is always a 'Name' object
             // and the value can be any type of PDF object
@@ -45,6 +46,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 var read = await stream.ReadAsync(buffer.AsMemory());
 
                 content += Encoding.ASCII.GetString(buffer, 0, read);
+
+                Logger.Log(LogLevel.Trace, content[..Math.Min(100, read)]);
 
                 for (; i < content.Length - 1; i++)
                 {
@@ -145,7 +148,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             stream.Position = dictEnd + 2;
 
-            Console.WriteLine($"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
+            Logger.Log(LogLevel.Trace, $"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;
         }

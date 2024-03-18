@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.Streams;
@@ -21,7 +22,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
         public async ITask<IStreamObject<IStreamDictionary>> ParseAsync(Stream stream)
         {
-            Console.WriteLine($"Parsing IStreamObject<IStreamDictionary> from {stream.GetType().Name} at offset: {stream.Position}.");
+            var initialStreamPosition = stream.Position;
+
+            Logger.Log(Logging.LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
             var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
 
@@ -38,6 +41,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var streamDataOffset = stream.Position;
 
             stream.Position += streamLength;
+
+            Logger.Log(Logging.LogLevel.Trace, $"Finished parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
             return new SubStreamObject(
                 stream,
