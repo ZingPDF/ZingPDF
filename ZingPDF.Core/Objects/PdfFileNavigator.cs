@@ -2,6 +2,7 @@
 
 using Nito.AsyncEx;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects.ObjectGroups;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
@@ -91,7 +92,7 @@ namespace ZingPdf.Core.Objects
         /// </summary>
         public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
         {
-            if (reference is null) throw new ArgumentNullException(nameof(reference));
+            ArgumentNullException.ThrowIfNull(reference);
 
             if (_indirectObjectCache.TryGetValue(reference.Id, out IndirectObject? indirectObject))
             {
@@ -187,7 +188,7 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<Trailer?>(async () =>
             {
-                var objectFinder = new ObjectFinder();
+                Logger.Log(LogLevel.Trace, $"Searching for root trailer");
 
                 var xrefObject = await _xrefObject;
 
@@ -195,11 +196,15 @@ namespace ZingPdf.Core.Objects
                     && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
+                    Logger.Log(LogLevel.Trace, $"Cross reference stream found instead of trailer");
+
                     return null;
                 }
 
                 if (xrefObject is Keyword k && k == Constants.Xref)
                 {
+                    var objectFinder = new ObjectFinder();
+
                     var trailerOffset = await objectFinder.FindAsync(_stream, Constants.Trailer, forwards: false);
 
                     if (trailerOffset is not null)
@@ -245,9 +250,13 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<ITrailerDictionary>(async () =>
             {
+                Logger.Log(LogLevel.Trace, $"Searching for root trailer dictionary");
+
                 var trailer = await GetRootTrailerAsync();
                 if (trailer is not null)
                 {
+                    Logger.Log(LogLevel.Trace, $"Found trailer, returning dictionary");
+
                     return trailer.Dictionary;
                 }
 
@@ -257,6 +266,8 @@ namespace ZingPdf.Core.Objects
                     && io.Children.First() is IStreamObject<IStreamDictionary> so
                     && so.Dictionary is CrossReferenceStreamDictionary dict)
                 {
+                    Logger.Log(LogLevel.Trace, $"Found cross reference stream dictionary");
+
                     // TODO: when this breaks, uncomment code and add a descriptive comment
                     //dict.ByteOffset = xrefOffset;
 
@@ -271,6 +282,8 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<LinearizationDictionary?>(async () =>
             {
+                Logger.Log(LogLevel.Trace, $"Searching for linearisation dictionary");
+
                 _stream.Position = 0;
 
                 static bool isLinearizationDictionary(IndirectObject o) =>
@@ -293,9 +306,13 @@ namespace ZingPdf.Core.Objects
 
                     if (item is IndirectObject o && isLinearizationDictionary(o))
                     {
+                        Logger.Log(LogLevel.Trace, $"Found linearisation dictionary");
+
                         return o.Children.First()! as LinearizationDictionary;
                     }
                 }
+
+                Logger.Log(LogLevel.Trace, $"No linearisation dictionary found");
 
                 return null;
             });
@@ -305,6 +322,8 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<IndirectObject>(async () =>
             {
+                Logger.Log(LogLevel.Trace, $"Searching for root page tree node");
+
                 var trailerDictionary = await GetRootTrailerDictionaryAsync();
 
                 var documentCatalog = DocumentCatalog.FromDictionary(
@@ -333,6 +352,8 @@ namespace ZingPdf.Core.Objects
         {
             return new AsyncLazy<Dictionary<int, CrossReferenceEntry>>(async () =>
             {
+                Logger.Log(LogLevel.Trace, $"Aggregating cross references");
+
                 Dictionary<int, CrossReferenceEntry> xrefs = [];
 
                 // To aggregate all cross references
@@ -355,6 +376,11 @@ namespace ZingPdf.Core.Objects
                 // and should be considered to not be linearized.
                 LinearizationDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
                 var isLinearized = linearizationDictionary != null && linearizationDictionary.L == _stream.Length;
+
+                if (linearizationDictionary != null && !isLinearized)
+                {
+                    Logger.Log(LogLevel.Trace, "Treating file as non-linearised, as it has been updated since linearisation.");
+                }
 
                 // First, find the startxref keyword
                 var offset = await objectFinder.FindAsync(_stream, Constants.StartXref, forwards: isLinearized)
