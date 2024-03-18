@@ -51,7 +51,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             do
             {
-                _ = await stream.ReadAsync(buffer.AsMemory());
+                var bytesRead = await stream.ReadAsync(buffer.AsMemory());
 
                 int i = content.Length;
 
@@ -61,8 +61,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
                 // Therefore we can't use the UTF16BE interpreted content to find the closing parenthesis,
                 // which will have been decoded incorrectly. e.g. ) is [0, 41] in UTFBE, but just [41] in ASCII.
                 // In practice, the UTF16BE encoding grabs 2 bytes e.g. [41, 0] and interprets it as '⤀'.
-                content += byteEncoding.GetString(buffer);
-                asciiContent += Encoding.ASCII.GetString(buffer);
+                content += byteEncoding.GetString(buffer, 0, bytesRead);
+                asciiContent += Encoding.ASCII.GetString(buffer, 0, bytesRead);
 
                 // Used to track the position within the ascii string
                 var asciiCursor = i;
