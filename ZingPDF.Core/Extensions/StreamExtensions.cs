@@ -74,33 +74,38 @@ namespace ZingPdf.Core.Extensions
         /// </summary>
         private static async Task AdvanceAsync(this Stream stream, string value, bool skipValue)
         {
-            var bufferSize = value.Length;
+            var bufferSize = Math.Max(value.Length, 128);
+            var valueBytes = _defaultEncoding.GetBytes(value);
 
-            byte[] buffer = new byte[bufferSize];
-            do
+            var matchIndex = 0;
+
+            var buffer = new byte[bufferSize];
+
+            var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
+            if (bytesRead == 0)
             {
-                var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
-
-                string content = _defaultEncoding.GetString(buffer, 0, bufferSize);
-
-                if (content == value)
-                {
-                    if (!skipValue)
-                    {
-                        stream.Position -= bufferSize;
-                    }
-
-                    break;
-                }
-                else
-                {
-                    if (read > 1)
-                    {
-                        stream.Position -= read - 1;
-                    }
-                }
+                return;
             }
-            while (stream.Position <= stream.Length - value.Length);
+
+            for (int i = 0; i < bytesRead; i++)
+            {
+                if (buffer[i] == valueBytes[matchIndex])
+                {
+                    matchIndex++;
+                    if (matchIndex == valueBytes.Length)
+                    {
+                        if (skipValue)
+                        {
+                            stream.Position -= bytesRead - i - 1;
+                        }
+                        else
+                        {
+                            stream.Position -= bytesRead - i;
+                        }
+                        break;
+                    }
+                }
+            }     
         }
 
         /// <summary>

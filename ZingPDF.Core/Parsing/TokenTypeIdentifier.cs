@@ -13,7 +13,7 @@ namespace ZingPdf.Core.Parsing
 {
     internal static class TokenTypeIdentifier
     {
-        private static readonly int _bufferSize = 1024;
+        private static readonly int _bufferSize = 256;
         
         private static readonly Dictionary<Regex, Type> _regexPatterns = new()
         {
