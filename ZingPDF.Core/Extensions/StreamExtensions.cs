@@ -12,8 +12,8 @@ namespace ZingPdf.Core.Extensions
 
         public static async Task WriteTextAsync(this Stream stream, string text, Encoding encoding)
         {
-            if (stream is null) throw new ArgumentNullException(nameof(stream));
-            if (text is null) throw new ArgumentNullException(nameof(text));
+            ArgumentNullException.ThrowIfNull(stream);
+            ArgumentNullException.ThrowIfNull(text);
 
             await stream.WriteAsync(encoding.GetBytes(text));
         }
