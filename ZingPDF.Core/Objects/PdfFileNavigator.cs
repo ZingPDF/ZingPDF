@@ -94,55 +94,75 @@ namespace ZingPdf.Core.Objects
         {
             ArgumentNullException.ThrowIfNull(reference);
 
+            var indirectObject = await GetOrAddAsync(reference, async () =>
+            {
+                var xrefs = await GetAggregateCrossReferencesAsync();
+
+                var xref = xrefs[reference.Id.Index];
+
+                var indirectObjectParser = Parser.For<IndirectObject>();
+
+                if (xref.Compressed)
+                {
+                    Logger.Log(LogLevel.Trace, $"{reference} is compressed within object stream {xref.Value1}");
+
+                    // Just parsing the whole object stream for now.
+                    // I started to write code to just parse the requested object.
+                    // TODO: compare performance of these 2 techniques.
+
+                    var objStreamIndirectObject = await DereferenceIndirectObjectAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)));
+                    var objectStream = (objStreamIndirectObject.Children.First() as IStreamObject<IStreamDictionary>)!;
+                    var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
+
+                    var data = await objectStream.GetDecompressedDataAsync();
+
+                    //var offsets = Encoding.ASCII.GetString(data[..objectStreamDict.First]).Split(Constants.Whitespace);
+
+                    //Dictionary<int, int> indexedOffsets = new();
+
+                    //for(var i = 0; i < objectStreamDict.N; i += 2)
+                    //{
+                    //    var objectNumber = Convert.ToInt32(offsets[i]);
+                    //    var byteOffset = Convert.ToInt32(offsets[i + 1]);
+
+                    //    indexedOffsets.Add(objectNumber, byteOffset);
+                    //}
+
+                    //var objectOffset = indexedOffsets[reference.Id.Index];
+
+                    using var ss = new SubStream(data, objectStreamDictionary.First, data.Length);
+                    ss.Position = 0;
+                    var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ss);
+
+                    return new IndirectObject(reference.Id, allObjects.Objects[xref.Value2]);
+                }
+                else
+                {
+                    _stream.Position = xref.Value1;
+
+                    return await indirectObjectParser.ParseAsync(_stream);
+                }
+
+            });
+
+            return indirectObject;
+        }
+
+        private async Task<IndirectObject> GetOrAddAsync(
+            IndirectObjectReference reference,
+            Func<Task<IndirectObject>> ioRetreiver
+            )
+        {
             if (_indirectObjectCache.TryGetValue(reference.Id, out IndirectObject? indirectObject))
             {
+                Logger.Log(LogLevel.Trace, $"{reference} returned from cache");
+
                 return indirectObject;
             }
 
-            var xrefs = await GetAggregateCrossReferencesAsync();
+            Logger.Log(LogLevel.Trace, $"Cache miss: {reference}");
 
-            var xref = xrefs[reference.Id.Index];
-
-            var indirectObjectParser = Parser.For<IndirectObject>();
-
-            if (xref.Compressed)
-            {
-                // Just parsing the whole object stream for now.
-                // I started to write code to just parse the requested object.
-                // TODO: compare performance of these 2 techniques.
-
-                var objStreamIndirectObject = await DereferenceIndirectObjectAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)));
-                var objectStream = (objStreamIndirectObject.Children.First() as IStreamObject<IStreamDictionary>)!;
-                var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
-
-                var data = await objectStream.GetDecompressedDataAsync();
-
-                //var offsets = Encoding.ASCII.GetString(data[..objectStreamDict.First]).Split(Constants.Whitespace);
-
-                //Dictionary<int, int> indexedOffsets = new();
-
-                //for(var i = 0; i < objectStreamDict.N; i += 2)
-                //{
-                //    var objectNumber = Convert.ToInt32(offsets[i]);
-                //    var byteOffset = Convert.ToInt32(offsets[i + 1]);
-
-                //    indexedOffsets.Add(objectNumber, byteOffset);
-                //}
-
-                //var objectOffset = indexedOffsets[reference.Id.Index];
-
-                using var ss = new SubStream(data, objectStreamDictionary.First, data.Length);
-                ss.Position = 0;
-                var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ss);
-
-                indirectObject = new IndirectObject(reference.Id, allObjects.Objects[xref.Value2]);
-            }
-            else
-            {
-                _stream.Position = xref.Value1;
-
-                indirectObject = await indirectObjectParser.ParseAsync(_stream);
-            }
+            indirectObject = await ioRetreiver();
 
             _indirectObjectCache.TryAdd(reference.Id, indirectObject);
 
