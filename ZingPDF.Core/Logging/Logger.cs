@@ -1,7 +1,6 @@
-﻿using ZingPdf.Core.Logging;
-
-namespace ZingPdf.Core
+﻿namespace ZingPdf.Core.Logging
 {
+    // TODO: For performance reasons, all calls to this logger might need to be compiled out, maybe with a compiler directive
     public static class Logger
     {
         private static readonly FileLogger _logger = new("debug-log", LogLevel.Trace);
@@ -10,7 +9,10 @@ namespace ZingPdf.Core
 
         public static void Log(LogLevel level, string message)
         {
-            _logger.Log(level, message);
+#if !RELEASE
+            //_logger.Log(level, message);
+            Console.WriteLine(message);
+#endif
         }
     }
 }
