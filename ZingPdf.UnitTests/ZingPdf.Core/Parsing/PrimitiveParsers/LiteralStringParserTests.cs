@@ -23,7 +23,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseEmptyString()
+        public async Task ParseEmptyString_CorrectContent()
         {
             var content = "()";
             using var input = content.ToStream();
@@ -33,6 +33,22 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var output = await new LiteralStringParser().ParseAsync(input);
 
             output.Should().BeEquivalentTo(expectedLiteralString);
+        }
+
+        [Fact]
+        public async Task ParseEmptyString_CorrectStreamPosition()
+        {
+            var content = "()";
+            using var input = content.ToStream();
+
+            LiteralString expectedLiteralString = "";
+
+            _ = await new LiteralStringParser().ParseAsync(input);
+
+            input.Position.Should().Be(
+                content.Length,
+                because: "the parser should move the stream past the string-end delimiter"
+                );
         }
 
         [Theory]
@@ -160,7 +176,28 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseHandlesComplexUTF16BEEncodedString()
+        public async Task ParseHandlesComplexUTF16BEEncodedString_CorrectContent()
+        {
+            var inputBytes = new List<byte>();
+            var input = "https://learn.something.new.com/en-gb/file.pdf";
+
+            var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
+
+            inputBytes.Add((byte)Constants.LeftParenthesis);
+            inputBytes.AddRange(encoding.GetPreamble());
+            inputBytes.AddRange(encoding.GetBytes(input));
+            inputBytes.Add((byte)Constants.RightParenthesis);
+
+            LiteralString expectedLiteralString = input;
+
+            using var ms = new MemoryStream([..inputBytes]);
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Should().BeEquivalentTo(expectedLiteralString);
+        }
+
+        [Fact]
+        public async Task ParseHandlesComplexUTF16BEEncodedString_CorrectStreamPosition()
         {
             var inputBytes = new List<byte>();
             var input = "https://learn.something.new.com/en-gb/file.pdf";
@@ -174,10 +211,9 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             LiteralString expectedLiteralString = input;
 
-            using var ms = new MemoryStream([..inputBytes]);
-            var output = await new LiteralStringParser().ParseAsync(ms);
+            using var ms = new MemoryStream([.. inputBytes]);
+            _ = await new LiteralStringParser().ParseAsync(ms);
 
-            output.Should().BeEquivalentTo(expectedLiteralString);
             ms.Position.Should().Be(96, because: "parsing needs to continue from the end of the literal string");
         }
 
@@ -202,7 +238,26 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         }
 
         [Fact]
-        public async Task ParseMultilineUTF16BEString()
+        public async Task ParseMultilineUTF16BEString_CorrectContent()
+        {
+            var inputBytes = new List<byte>();
+
+            var textInput = "Usage on RedHat Linux";
+            var encoding = Encoding.BigEndianUnicode;
+
+            inputBytes.Add((byte)Constants.LeftParenthesis);
+            inputBytes.AddRange(encoding.GetPreamble());
+            inputBytes.AddRange(encoding.GetBytes(textInput));
+            inputBytes.Add((byte)Constants.RightParenthesis);
+
+            using var ms = new MemoryStream([.. inputBytes]);
+            var output = await new LiteralStringParser().ParseAsync(ms);
+
+            output.Value.Should().Be(textInput);
+        }
+
+        [Fact]
+        public async Task ParseMultilineUTF16BEString_CorrectStreamPosition()
         {
             var inputBytes = new List<byte>();
 
@@ -218,14 +273,13 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             inputBytes.AddRange(Encoding.ASCII.GetBytes("\r\n<< /S /GoTo /D (section.23.5) >>\r\n"));
 
             using var ms = new MemoryStream([.. inputBytes]);
-            var output = await new LiteralStringParser().ParseAsync(ms);
+            _ = await new LiteralStringParser().ParseAsync(ms);
 
-            output.Value.Should().Be(textInput);
             ms.Position.Should().Be(46, because: "the parser should move the stream past the string-end delimiter");
         }
 
         [Fact]
-        public async Task ParseFullyOctalEncodedUTF16BEString()
+        public async Task ParseFullyOctalEncodedUTF16BEString_CorrectContent()
         {
             var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
 
@@ -233,11 +287,21 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Value.Should().Be("Artifex");
+        }
+
+        [Fact]
+        public async Task ParseFullyOctalEncodedUTF16BEString_CorrectStreamPosition()
+        {
+            var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
+
+            using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
+            _ = await new LiteralStringParser().ParseAsync(ms);
+
             ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
         }
 
         [Fact]
-        public async Task ParseAnotherFullyOctalEncodedUTF16BEString()
+        public async Task ParseAnotherFullyOctalEncodedUTF16BEString_CorrectContent()
         {
             var input = "(\\376\\377\\000U\\000s\\000a\\000g\\000e\\000\\040" +
                 "\\000o\\000n\\000\\040\\000R\\000e\\000d\\000H\\000a\\000t" +
@@ -248,6 +312,19 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             var output = await new LiteralStringParser().ParseAsync(ms);
 
             output.Value.Should().Be("Usage on RedHat Linux");
+        }
+
+        [Fact]
+        public async Task ParseAnotherFullyOctalEncodedUTF16BEString_CorrectStreamPosition()
+        {
+            var input = "(\\376\\377\\000U\\000s\\000a\\000g\\000e\\000\\040" +
+                "\\000o\\000n\\000\\040\\000R\\000e\\000d\\000H\\000a\\000t" +
+                "\\000\\040\\000L\\000i\\000n\\000u\\000x)" +
+                "\r\n<< /S /GoTo /D (section.23.5) >>";
+
+            using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
+            _ = await new LiteralStringParser().ParseAsync(ms);
+
             ms.Position.Should().Be(124, because: "the parser should move the stream past the string-end delimiter");
         }
     }
