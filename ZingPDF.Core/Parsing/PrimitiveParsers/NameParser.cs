@@ -6,8 +6,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 {
     internal class NameParser : IPdfObjectParser<Name>
     {
-        private readonly char[] _nameDelimiters = new[]
-        {
+        private readonly char[] _nameDelimiters =
+        [
             Constants.Solidus,
             Constants.Space,
             Constants.CarriageReturn,
@@ -15,7 +15,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             Constants.LessThan,
             Constants.ArrayStart,
             Constants.LeftParenthesis
-        };
+        ];
 
         public async ITask<Name> ParseAsync(Stream stream)
         {
