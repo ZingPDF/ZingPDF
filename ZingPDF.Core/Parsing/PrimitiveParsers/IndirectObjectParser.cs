@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.Primitives;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
@@ -11,7 +12,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
-            Console.WriteLine($"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(Logging.LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             stream.AdvancePastWhitepace();
 
