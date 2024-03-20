@@ -1,4 +1,5 @@
-﻿using ZingPdf.Core.Objects;
+﻿using ZingPdf.Core.Extensions;
+using ZingPdf.Core.Objects;
 using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
 using ZingPdf.Core.Objects.ObjectGroups.Trailer;
 using ZingPdf.Core.Objects.Primitives.IndirectObjects;
@@ -59,10 +60,14 @@ namespace ZingPdf.Core.IncrementalUpdates
             var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
             // Concatenate unsaved entries with existing objects
-            // TODO: ensure updated objects overwrite old versions
-            return (await _pdfFileNavigator.GetAggregateCrossReferencesAsync())
-                .Concat(latestIncrementalUpdate.NewOrUpdatedObjects.ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false)))
-                .ToDictionary(x => x.Key, x => x.Value);
+            var updateDictionary = latestIncrementalUpdate.NewOrUpdatedObjects
+                .ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false));
+
+            var existingXrefs = await _pdfFileNavigator.GetAggregateCrossReferencesAsync();
+
+            updateDictionary.MergeInto(await _pdfFileNavigator.GetAggregateCrossReferencesAsync());
+
+            return existingXrefs;
         }
 
         public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync()
