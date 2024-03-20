@@ -103,9 +103,6 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
             {
                 var dictStream = new SubStream(stream, dictStart, dictEnd);
 
-                var test = await dictStream.GetAsync();
-                dictStream.Position = 0;
-
                 var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
 
                 if (objectGroup.Objects.Count % 2 != 0)

@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 using Nito.AsyncEx;
+using System.Text;
 using ZingPdf.Core.Extensions;
 using ZingPdf.Core.Logging;
 using ZingPdf.Core.Objects.ObjectGroups;
@@ -106,35 +107,39 @@ namespace ZingPdf.Core.Objects
                 {
                     Logger.Log(LogLevel.Trace, $"{reference} is compressed within object stream {xref.Value1}");
 
-                    // Just parsing the whole object stream for now.
-                    // I started to write code to just parse the requested object.
-                    // TODO: compare performance of these 2 techniques.
+                    // TODO: must support the `Extends` property
 
                     var objStreamIndirectObject = await DereferenceIndirectObjectAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)));
                     var objectStream = (objStreamIndirectObject.Children.First() as IStreamObject<IStreamDictionary>)!;
                     var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
-                    var data = await objectStream.GetDecompressedDataAsync();
+                    // TODO: cache decompressed stream data?
+                    // Decompress stream, read bytes up to first object.
+                    // These bytes contain pairs of integers, identifying each object number and byte offset.          
+                    Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
+                    var decompressedData = new byte[objectStreamDictionary.First];
+                    await decompressedObjectStream.ReadExactlyAsync(decompressedData, 0, objectStreamDictionary.First);
 
-                    //var offsets = Encoding.ASCII.GetString(data[..objectStreamDict.First]).Split(Constants.Whitespace);
+                    // Decode integer pairs
+                    var offsets = Encoding.ASCII.GetString(decompressedData).Split([Constants.Whitespace, ..Constants.EndOfLineCharacters]);
 
-                    //Dictionary<int, int> indexedOffsets = new();
+                    var indexedOffsets = new int[objectStreamDictionary.N];
 
-                    //for(var i = 0; i < objectStreamDict.N; i += 2)
-                    //{
-                    //    var objectNumber = Convert.ToInt32(offsets[i]);
-                    //    var byteOffset = Convert.ToInt32(offsets[i + 1]);
+                    for (var i = 0; i < objectStreamDictionary.N; i++)
+                    {
+                        var byteOffset = Convert.ToInt32(offsets[i * 2 + 1]);
 
-                    //    indexedOffsets.Add(objectNumber, byteOffset);
-                    //}
+                        indexedOffsets[i] = byteOffset;
+                    }
 
-                    //var objectOffset = indexedOffsets[reference.Id.Index];
+                    var objectOffset = indexedOffsets[xref.Value2];
 
-                    using var ss = new SubStream(data, objectStreamDictionary.First, data.Length);
-                    ss.Position = 0;
-                    var allObjects = await Parser.For<PdfObjectGroup>().ParseAsync(ss);
+                    // The byte offset of an object is relative to the first object.
+                    decompressedObjectStream.Position = objectStreamDictionary.First + objectOffset;
 
-                    return new IndirectObject(reference.Id, allObjects.Objects[xref.Value2]);
+                    var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
+
+                    return new IndirectObject(reference.Id, await Parser.For(type).ParseAsync(decompressedObjectStream));
                 }
                 else
                 {
