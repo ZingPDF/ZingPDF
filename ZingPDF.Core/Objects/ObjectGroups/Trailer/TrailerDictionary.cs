@@ -104,8 +104,8 @@ namespace ZingPdf.Core.Objects.ObjectGroups.Trailer
             ArrayObject? id
             )
         {
-            if (size is null) throw new ArgumentNullException(nameof(size));
-            if (root is null) throw new ArgumentNullException(nameof(root));
+            ArgumentNullException.ThrowIfNull(size);
+            ArgumentNullException.ThrowIfNull(root);
 
             return new(size, prev, root, encrypt, info, id);
         }
