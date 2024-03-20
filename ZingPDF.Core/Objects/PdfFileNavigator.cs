@@ -293,9 +293,6 @@ namespace ZingPdf.Core.Objects
                 {
                     Logger.Log(LogLevel.Trace, $"Found cross reference stream dictionary");
 
-                    // TODO: when this breaks, uncomment code and add a descriptive comment
-                    //dict.ByteOffset = xrefOffset;
-
                     return dict;
                 }
 

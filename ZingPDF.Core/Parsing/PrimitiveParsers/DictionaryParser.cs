@@ -145,6 +145,8 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             stream.Position = dictEnd + 2;
 
+            output.ByteOffset = initialStreamPosition;
+
             Logger.Log(LogLevel.Trace, $"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;

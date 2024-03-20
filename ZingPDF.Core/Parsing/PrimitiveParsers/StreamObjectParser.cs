@@ -24,7 +24,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
         {
             var initialStreamPosition = stream.Position;
 
-            Logger.Log(Logging.LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
+            Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
             var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
 
@@ -42,7 +42,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
 
             stream.Position += streamLength;
 
-            Logger.Log(Logging.LogLevel.Trace, $"Finished parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
+            Logger.Log(LogLevel.Trace, $"Finished parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
             return new SubStreamObject(
                 stream,
