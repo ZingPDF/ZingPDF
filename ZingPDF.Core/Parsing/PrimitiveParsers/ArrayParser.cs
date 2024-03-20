@@ -11,7 +11,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<ArrayObject> ParseAsync(Stream stream)
         {
-            Logger.Log(Logging.LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             // An array is a collection of any type of PDF object
 
