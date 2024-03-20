@@ -19,7 +19,7 @@ namespace ZingPdf.Core.IncrementalUpdates
             _pdfFileNavigator = pdfFileNavigator ?? throw new ArgumentNullException(nameof(pdfFileNavigator));
         }
 
-        public List<IncrementalUpdate> Updates { get; } = new();
+        public List<IncrementalUpdate> Updates { get; } = [];
 
         public IncrementalUpdate GetWorkingIncrementalUpdate()
         {
@@ -93,20 +93,28 @@ namespace ZingPdf.Core.IncrementalUpdates
             return await DereferenceIndirectObjectAsync(rootPageTreeNode.Id.Reference);
         }
 
+        /// <summary>
+        /// Gets the latest trailer which has been written to the file.
+        /// </summary>
         public async Task<Trailer?> GetRootTrailerAsync()
         {
             var workingUpdate = GetWorkingIncrementalUpdate();
 
-            return workingUpdate.Trailer
+            return Updates.LastOrDefault(u => u.Written)?.Trailer
                 ?? await _pdfFileNavigator.GetRootTrailerAsync();
         }
 
+        /// <summary>
+        /// Gets the latest trailer dictionary which has been written to the file.
+        /// </summary>
         public async Task<ITrailerDictionary> GetRootTrailerDictionaryAsync()
         {
             var workingUpdate = GetWorkingIncrementalUpdate();
 
-            return workingUpdate.TrailerDictionary
-                ?? workingUpdate.Trailer?.Dictionary
+            var lastWrittenUpdate = Updates.LastOrDefault(u => u.Written);
+
+            return lastWrittenUpdate?.TrailerDictionary
+                ?? lastWrittenUpdate?.Trailer?.Dictionary
                 ?? await _pdfFileNavigator.GetRootTrailerDictionaryAsync();
 
         }

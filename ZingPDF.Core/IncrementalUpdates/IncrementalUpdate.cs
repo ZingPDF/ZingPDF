@@ -29,7 +29,14 @@ namespace ZingPdf.Core.IncrementalUpdates
 
         public List<IndirectObject> NewOrUpdatedObjects { get => UpdatedObjects.Values.Concat(NewObjects).ToList(); }
 
+        /// <summary>
+        /// This will be null until the update is written to the file.
+        /// </summary>
         public Trailer? Trailer { get; private set; }
+
+        /// <summary>
+        /// This will be null until the update is written to the file.
+        /// </summary>
         public ITrailerDictionary? TrailerDictionary { get; private set; }
 
         protected override async Task WriteOutputAsync(Stream stream)
@@ -44,9 +51,10 @@ namespace ZingPdf.Core.IncrementalUpdates
                 await entry.WriteAsync(stream);
             }
 
-            TrailerDictionary = await _pdfNavigator.GetRootTrailerDictionaryAsync();
+            Trailer? latestTrailer = await _pdfNavigator.GetRootTrailerAsync();
+            ITrailerDictionary latestTrailerDictionary = latestTrailer?.Dictionary ?? await _pdfNavigator.GetRootTrailerDictionaryAsync();
 
-            var size = TrailerDictionary.Size + NewObjects.Count;
+            var size = latestTrailerDictionary.Size + NewObjects.Count;
 
             if (_options.RenderCrossReferencesAsStream)
             {
@@ -66,10 +74,10 @@ namespace ZingPdf.Core.IncrementalUpdates
                 // +1 because the new xref stream should be included in the count
                 size++;
 
-                var xrefStreamDict = TrailerDictionary as CrossReferenceStreamDictionary
+                var latestXrefStreamDict = latestTrailerDictionary as CrossReferenceStreamDictionary
                     ?? throw new InvalidOperationException("Internal Error: {59D30CD9-D2DB-4418-B59E-033538307C68}");
 
-                var prev = TrailerDictionary.ByteOffset;
+                var prev = latestTrailerDictionary.ByteOffset;
 
                 var xrefStream = new CrossReferenceStream(
                     xrefSections,
@@ -78,10 +86,10 @@ namespace ZingPdf.Core.IncrementalUpdates
                     //new[] { new ASCIIHexDecodeFilter() },
                     size,
                     prev,
-                    xrefStreamDict.Root,
-                    xrefStreamDict.Encrypt,
-                    xrefStreamDict.Info,
-                    xrefStreamDict.ID
+                    latestXrefStreamDict.Root,
+                    latestXrefStreamDict.Encrypt,
+                    latestXrefStreamDict.Info,
+                    latestXrefStreamDict.ID
                     );
 
                 xrefStreamIndirectObject.Children.Clear();
@@ -96,6 +104,8 @@ namespace ZingPdf.Core.IncrementalUpdates
                 await stream.WriteNewLineAsync();
 
                 await new Keyword(Constants.Eof).WriteAsync(stream);
+
+                TrailerDictionary = xrefStream.Dictionary;
             }
             else
             {
@@ -104,17 +114,25 @@ namespace ZingPdf.Core.IncrementalUpdates
                 var xrefTable = new CrossReferenceTable(xrefSections);
                 await xrefTable.WriteAsync(stream);
 
-                var latestTrailer = (await _pdfNavigator.GetRootTrailerAsync())!;
-                var prev = latestTrailer.XrefTableByteOffset;
+                long previousXrefOffset;
+
+                if (latestTrailer is null)
+                {
+                    previousXrefOffset = latestTrailerDictionary.ByteOffset!.Value;
+                }
+                else
+                {
+                    previousXrefOffset = latestTrailer.XrefTableByteOffset;
+                }
 
                 Trailer = new Trailer(
                     Objects.ObjectGroups.Trailer.TrailerDictionary.CreateNew(
                         size,
-                        prev,
-                        latestTrailer.Dictionary.Root,
-                        latestTrailer.Dictionary.Encrypt,
-                        latestTrailer.Dictionary.Info,
-                        latestTrailer.Dictionary.ID
+                        previousXrefOffset,
+                        latestTrailerDictionary.Root,
+                        latestTrailerDictionary.Encrypt,
+                        latestTrailerDictionary.Info,
+                        latestTrailerDictionary.ID
                         ),
                     xrefTable.ByteOffset!.Value
                     );
