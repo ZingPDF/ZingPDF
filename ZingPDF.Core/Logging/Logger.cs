@@ -11,7 +11,7 @@
         {
 #if !RELEASE
             //_logger.Log(level, message);
-            //Console.WriteLine(message);
+            Console.WriteLine(message);
 #endif
         }
     }

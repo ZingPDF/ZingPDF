@@ -12,7 +12,7 @@ namespace ZingPdf.Core.Parsing.PrimitiveParsers
     {
         public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
-            Logger.Log(Logging.LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            Logger.Log(LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             stream.AdvancePastWhitepace();
 
