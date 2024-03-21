@@ -1,8 +1,6 @@
-﻿using ZingPdf.Core.Parsing;
-using ZingPdf.Core;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Text;
-using ZingPdf.Core.Objects.DataStructures;
+using ZingPDF.Parsing;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -85,20 +83,3 @@ static async Task ParseResaveValidate(string input, string output)
     //}
 }
 
-static async Task CreateNewPdfAndValidate(string outputPath)
-{
-    using var outputFileStream = new FileStream(outputPath, FileMode.Create);
-    var pdf = Pdf.Create();
-
-    await pdf.AppendPageAsync();
-
-    await pdf.SaveAsync(outputFileStream);
-
-    outputFileStream.Position = 0;
-
-    var errors = ValidatePdf("file", outputFileStream).ToList();
-    foreach (var error in errors)
-    {
-        Console.WriteLine(error);
-    }
-}
