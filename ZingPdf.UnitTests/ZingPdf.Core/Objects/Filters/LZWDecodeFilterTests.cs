@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 
-namespace ZingPdf.Core.Objects.Filters
+namespace ZingPDF.Objects.Filters
 {
     public class LZWDecodeFilterTests
     {

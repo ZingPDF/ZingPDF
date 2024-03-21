@@ -1,10 +1,10 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.Primitives;
-using ZingPdf.Core.Objects.Primitives.IndirectObjects;
+using ZingPDF.Extensions;
+using ZingPDF.Objects.Primitives;
+using ZingPDF.Objects.Primitives.IndirectObjects;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPDF.Parsing
 {
     public class TokenTypeIdentifierTests
     {

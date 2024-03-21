@@ -1,9 +1,7 @@
-﻿using ZingPdf.Core.Parsing;
-using WebSupergoo.ABCpdf12;
-using ZingPdf.Core;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Text;
-using ZingPdf.Core.Objects.DataStructures;
+using WebSupergoo.ABCpdf12;
+using ZingPDF.Parsing;
 
 //XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -136,20 +134,20 @@ static IEnumerable<string> ValidatePdf(string name, FileStream fileStream)
     Console.WriteLine($"Validated {name} with ABCpdf");
 }
 
-static async Task CreateNewPdfAndValidate(string outputPath)
-{
-    using var outputFileStream = new FileStream(outputPath, FileMode.Create);
-    var pdf = Pdf.Create();
+//static async Task CreateNewPdfAndValidate(string outputPath)
+//{
+//    using var outputFileStream = new FileStream(outputPath, FileMode.Create);
+//    var pdf = Pdf.Create();
 
-    await pdf.AppendPageAsync();
+//    await pdf.AppendPageAsync();
 
-    await pdf.SaveAsync(outputFileStream);
+//    await pdf.SaveAsync(outputFileStream);
 
-    outputFileStream.Position = 0;
+//    outputFileStream.Position = 0;
 
-    var errors = ValidatePdf("file", outputFileStream).ToList();
-    foreach (var error in errors)
-    {
-        Console.WriteLine(error);
-    }
-}
+//    var errors = ValidatePdf("file", outputFileStream).ToList();
+//    foreach (var error in errors)
+//    {
+//        Console.WriteLine(error);
+//    }
+//}

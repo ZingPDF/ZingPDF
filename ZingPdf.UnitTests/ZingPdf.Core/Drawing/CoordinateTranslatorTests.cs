@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace ZingPdf.Core.Drawing
+namespace ZingPDF.Drawing
 {
     public class CoordinateTranslatorTests
     {
