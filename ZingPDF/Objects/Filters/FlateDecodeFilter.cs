@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Drawing;
+using System.IO.Compression;
 using ZingPDF.Objects.Filters.FilterUtils;
 using ZingPDF.Objects.Primitives;
 
@@ -6,9 +7,6 @@ namespace ZingPDF.Objects.Filters
 {
     internal class FlateDecodeFilter : IFilter
     {
-        private const byte _deflate32KbWindow = 120;
-        private const byte _checksumBits = 1;
-
         private const int _defaultPredictor = 1;
         private const int _defaultColors = 1;
         private const int _defaultBitsPerComponent = 8;
@@ -24,6 +22,9 @@ namespace ZingPDF.Objects.Filters
 
         public byte[] Decode(byte[] data)
         {
+            // During decompression, we don't need any info from the zlib header,
+            // so we can skip it entirely, and just use DeflateStream.
+
             using var output = new MemoryStream();
             using var input = new MemoryStream(data[2..]);
             using var decoder = new DeflateStream(input, CompressionMode.Decompress);
@@ -42,27 +43,44 @@ namespace ZingPDF.Objects.Filters
         public byte[] Encode(byte[] data)
         {
             // TODO: Do we need to consider implementing PNG predictor for compression?
+            //byte[] predictedData = PngPredictor.Encode(data, predictor, colors, bitsPerComponent, columns);
 
-            using var output = new MemoryStream();
-            using var input = new MemoryStream(data);
-            using var encoder = new DeflateStream(output, CompressionMode.Compress);
+            // PDF specifies zlib/deflate as the compression algorithm.
+            // Zlib is just a metadata wrapper around deflate, so there's no need to use a zlib library.
+            // DeflateStream is included in .NET, so we're using this to compress the data.
+            // Then we're manually adding the zlib header and footer.
 
-            // Write ZLib header.
-            output.WriteByte(_deflate32KbWindow);
-            output.WriteByte(_checksumBits);
+            using var memoryStream = new MemoryStream();
 
-            input.CopyTo(encoder);
-            encoder.Flush();
+            // Add zlib header (CMF and FLG bytes)
+            memoryStream.WriteByte(0x78); // CMF
+            memoryStream.WriteByte(0xDA); // FLG
 
-            // Write checksum
-            var checksum = Adler32Checksum.Calculate(data);
+            using (var deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress, true))
+            {
+                deflateStream.Write(data, 0, data.Length);
+            }
 
-            output.WriteByte((byte)(checksum >> 24));
-            output.WriteByte((byte)(checksum >> 16));
-            output.WriteByte((byte)(checksum >> 8));
-            output.WriteByte((byte)(checksum >> 0));
+            // Add zlib footer (Adler-32 checksum)
+            var adler32 = Adler32(data);
+            memoryStream.WriteByte((byte)(adler32 >> 24));
+            memoryStream.WriteByte((byte)(adler32 >> 16));
+            memoryStream.WriteByte((byte)(adler32 >> 8));
+            memoryStream.WriteByte((byte)adler32);
 
-            return output.ToArray();
+            return memoryStream.ToArray();
+        }
+
+        private static uint Adler32(byte[] data)
+        {
+            const uint Modulus = 65521;
+            uint s1 = 1, s2 = 0;
+            foreach (byte b in data)
+            {
+                s1 = (s1 + b) % Modulus;
+                s2 = (s2 + s1) % Modulus;
+            }
+            return (s2 << 16) + s1;
         }
     }
 }
