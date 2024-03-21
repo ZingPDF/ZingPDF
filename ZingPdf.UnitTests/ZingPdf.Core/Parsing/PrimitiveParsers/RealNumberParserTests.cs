@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Extensions;
+using ZingPDF.Extensions;
 
-namespace ZingPdf.Core.Parsing.PrimitiveParsers
+namespace ZingPDF.Parsing.PrimitiveParsers
 {
     public class RealNumberParserTests
     {

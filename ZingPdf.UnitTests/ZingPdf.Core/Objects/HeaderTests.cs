@@ -2,7 +2,7 @@
 //using System.Text;
 //using Xunit;
 
-//namespace ZingPdf.Core.Objects
+//namespace ZingPDF.Objects
 //{
 //    /// <summary>
 //    /// ISO 32000-2:2020 7.5.2

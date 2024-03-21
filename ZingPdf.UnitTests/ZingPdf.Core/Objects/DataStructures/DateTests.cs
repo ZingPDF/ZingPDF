@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using System.Globalization;
 using Xunit;
-using ZingPdf.Core.Extensions;
+using ZingPDF.Extensions;
 
-namespace ZingPdf.Core.Objects.DataStructures
+namespace ZingPDF.Objects.DataStructures
 {
     public class DateTests
     {

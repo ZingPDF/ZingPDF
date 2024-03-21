@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.Primitives;
+using ZingPDF.Extensions;
+using ZingPDF.Objects.Primitives;
 
-namespace ZingPdf.Core.Parsing.PrimitiveParsers
+namespace ZingPDF.Parsing.PrimitiveParsers
 {
     public class ArrayParserTests
     {

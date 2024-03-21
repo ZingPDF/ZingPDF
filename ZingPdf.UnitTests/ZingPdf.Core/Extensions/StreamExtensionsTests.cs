@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 
-namespace ZingPdf.Core.Extensions
+namespace ZingPDF.Extensions
 {
     public class StreamExtensionsTests
     {

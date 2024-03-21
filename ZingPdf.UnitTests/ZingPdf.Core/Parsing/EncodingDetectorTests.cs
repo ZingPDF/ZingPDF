@@ -2,7 +2,7 @@
 using System.Text;
 using Xunit;
 
-namespace ZingPdf.Core.Parsing
+namespace ZingPDF.Parsing
 {
     public class EncodingDetectorTests
     {

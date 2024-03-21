@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Drawing;
+using ZingPDF.Drawing;
 
-namespace ZingPdf.Core.Drawing
+namespace ZingPDF.Drawing
 {
     public class CalculationsTests
     {
