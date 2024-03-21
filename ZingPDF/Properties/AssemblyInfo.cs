@@ -1,4 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("ZingPDF.Parsing")]
-[assembly: InternalsVisibleTo("ZingPdf.UnitTests")]
+[assembly: InternalsVisibleTo("ZingPDF.UnitTests")]
