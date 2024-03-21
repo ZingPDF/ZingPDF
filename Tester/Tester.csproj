@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZingPdf.Core\ZingPdf.Core.csproj" />
+    <ProjectReference Include="..\ZingPDF.Parsing\ZingPDF.Parsing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

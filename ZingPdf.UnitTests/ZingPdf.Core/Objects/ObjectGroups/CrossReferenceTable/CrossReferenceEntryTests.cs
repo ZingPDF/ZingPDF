@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Extensions;
-using ZingPdf.Core.Objects.ObjectGroups.CrossReferences;
+using ZingPDF.Extensions;
+using ZingPDF.Objects.ObjectGroups.CrossReferences;
 
-namespace ZingPdf.Core.Objects.ObjectGroups.CrossReferenceTable
+namespace ZingPDF.Objects.ObjectGroups.CrossReferenceTable
 {
     public class CrossReferenceEntryTests
     {

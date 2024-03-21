@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Xunit;
-using ZingPdf.Core.Extensions;
+using ZingPDF.Extensions;
 
-namespace ZingPdf.Core.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
+namespace ZingPDF.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
 {
     public class CrossReferenceEntryParserTests
     {
