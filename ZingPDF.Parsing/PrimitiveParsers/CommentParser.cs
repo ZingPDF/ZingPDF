@@ -9,7 +9,7 @@ namespace ZingPDF.Parsing.PrimitiveParsers
     {
         public async ITask<Comment> ParseAsync(Stream stream)
         {
-            await stream.AdvanceBeyondNextAsync(Constants.Comment);
+            await stream.AdvanceBeyondNextAsync(Constants.Percent);
 
             var value = await stream.ReadUpToExcludingAsync(Constants.EndOfLineCharacters);
 

@@ -13,7 +13,7 @@ namespace ZingPDF.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteTextAsync($"{Constants.Comment}{Value}");
+            await stream.WriteTextAsync($"{Constants.Percent}{Value}");
         }
 
         public static implicit operator Comment(string value) => new(value);
