@@ -20,11 +20,11 @@ namespace ZingPDF.Objects
         protected override async Task WriteOutputAsync(Stream stream)
         {
             // Write PDF version number
-            await stream.WriteTextAsync($"{Constants.Comment}{Constants.PdfVersionPrefix}{PdfVersion:0.0}");
+            await stream.WriteTextAsync($"{Constants.Percent}{Constants.PdfVersionPrefix}{PdfVersion:0.0}");
             await stream.WriteNewLineAsync();
 
             // Write binary bytes to cater for readers which try to detect whether file contains binary data
-            await stream.WriteCharsAsync(Constants.Comment);
+            await stream.WriteCharsAsync(Constants.Percent);
             await stream.WriteAsync(Constants.BinaryCharacters);
 
             await stream.WriteNewLineAsync();

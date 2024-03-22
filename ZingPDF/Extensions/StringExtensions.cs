@@ -104,5 +104,26 @@ namespace ZingPDF.Extensions
         /// Encodes text using UTF8 and returns as a MemoryStream.
         /// </summary>
         public static Stream ToStream(this string input) => new MemoryStream(Encoding.UTF8.GetBytes(input));
+
+        /// <summary>
+        /// Replace 2-digit hex codes with their UTF8 equivalents.
+        /// </summary>
+        public static string ReplaceHexCodes(this string input)
+        {
+            // Replace each matched hex code with its UTF-8 equivalent
+            string result = RegularExpressions.TwoDigitHexCode().Replace(input, match =>
+            {
+                // Extract the hex code without the #
+                string hex = match.Groups[1].Value;
+
+                // Convert the hex code to its integer equivalent
+                int intValue = Convert.ToInt32(hex, 16);
+
+                // Convert the integer to a UTF-8 character and return it as a string
+                return Convert.ToChar(intValue).ToString();
+            });
+
+            return result;
+        }
     }
 }
