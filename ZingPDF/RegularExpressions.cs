@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace ZingPDF.Parsing
+namespace ZingPDF
 {
     internal partial class RegularExpressions
     {
@@ -27,5 +27,8 @@ namespace ZingPDF.Parsing
 
         [GeneratedRegex(@"^\(D:\d{4,14}[+\-Z]\d{2}'?\d{2}'?\)")]  // (D:20230922161207+10'00')
         public static partial Regex Date();
+
+        [GeneratedRegex(@"#([0-9A-Fa-f]{2})")]
+        public static partial Regex TwoDigitHexCode();
     }
 }

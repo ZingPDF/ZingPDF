@@ -18,7 +18,7 @@ namespace ZingPDF.Objects.DataStructures
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.ArrayStart);
+            await stream.WriteCharsAsync(Constants.LeftSquareBracket);
 
             await stream.WriteIntAsync(_lowerLeft.X);
             await stream.WriteWhitespaceAsync();
@@ -31,7 +31,7 @@ namespace ZingPDF.Objects.DataStructures
 
             await stream.WriteIntAsync(_upperRight.Y);
 
-            await stream.WriteCharsAsync(Constants.ArrayEnd);
+            await stream.WriteCharsAsync(Constants.RightSquareBracket);
         }
     }
 

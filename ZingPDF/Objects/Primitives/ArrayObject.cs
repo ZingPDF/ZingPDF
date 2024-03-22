@@ -29,7 +29,7 @@ namespace ZingPDF.Objects.Primitives
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.ArrayStart);
+            await stream.WriteCharsAsync(Constants.LeftSquareBracket);
 
             for (int i = 0; i < _values.Count; i++)
             {
@@ -43,7 +43,7 @@ namespace ZingPDF.Objects.Primitives
                 }
             }
 
-            await stream.WriteCharsAsync(Constants.ArrayEnd);
+            await stream.WriteCharsAsync(Constants.RightSquareBracket);
         }
 
         public IEnumerator<IPdfObject> GetEnumerator() => ((IEnumerable<IPdfObject>)_values).GetEnumerator();
