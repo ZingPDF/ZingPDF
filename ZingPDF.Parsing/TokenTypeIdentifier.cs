@@ -30,7 +30,7 @@ namespace ZingPDF.Parsing
 
         private static readonly Dictionary<string, Type> _startsWithPatterns = new()
         {
-            { $"{Constants.Comment}", typeof(Comment) },
+            { $"{Constants.Percent}", typeof(Comment) },
             { Constants.Null, typeof(Keyword) }, // TODO: should this be the null object type?
             { Constants.Eof, typeof(Keyword) },
             { Constants.Xref, typeof(Keyword) },
@@ -40,7 +40,7 @@ namespace ZingPDF.Parsing
             { Constants.DictionaryStart, typeof(Dictionary) },
             { $"{Constants.LessThan}", typeof(HexadecimalString) }, // This check must always come after the DictionaryStart check.
             { $"{Constants.LeftParenthesis}", typeof(LiteralString) },
-            { $"{Constants.ArrayStart}", typeof(ArrayObject) },
+            { $"{Constants.LeftSquareBracket}", typeof(ArrayObject) },
             { Constants.Trailer, typeof(Trailer) },
             { Constants.StreamStart, typeof(IStreamObject<IStreamDictionary>) },
             { "true", typeof(BooleanObject) },

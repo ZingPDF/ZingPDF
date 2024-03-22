@@ -40,7 +40,7 @@ namespace ZingPDF.Parsing.PrimitiveParsers
 
                     char c = content[i];
 
-                    if (c == Constants.ArrayStart)
+                    if (c == Constants.LeftSquareBracket)
                     {
                         countStart++;
 
@@ -50,7 +50,7 @@ namespace ZingPDF.Parsing.PrimitiveParsers
                         }
                     }
 
-                    if (c == Constants.ArrayEnd)
+                    if (c == Constants.RightSquareBracket)
                     {
                         countEnd++;
 
