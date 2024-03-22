@@ -6,9 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\External\MorseCode.ITask\MorseCode.ITask.csproj" />
-    <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
-  </ItemGroup>
-
 </Project>
