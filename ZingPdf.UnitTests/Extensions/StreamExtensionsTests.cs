@@ -39,7 +39,7 @@ public class StreamExtensionsTests
             Constants.CarriageReturn,
             Constants.LineFeed,
             Constants.LessThan,
-            Constants.ArrayStart,
+            Constants.LeftSquareBracket,
             Constants.LeftParenthesis
         ];
 
