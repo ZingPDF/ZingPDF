@@ -77,7 +77,7 @@ namespace ZingPDF.Parsing.IncrementalUpdates
                 var latestXrefStreamDict = latestTrailerDictionary as CrossReferenceStreamDictionary
                     ?? throw new InvalidOperationException("Internal Error: {59D30CD9-D2DB-4418-B59E-033538307C68}");
 
-                var prev = latestTrailerDictionary.ByteOffset;
+                var prev = await _pdfNavigator.GetStartXrefAsync();
 
                 var xrefStream = new CrossReferenceStream(
                     xrefSections,
@@ -100,7 +100,7 @@ namespace ZingPDF.Parsing.IncrementalUpdates
                 await new Keyword(Constants.StartXref).WriteAsync(stream);
                 await stream.WriteNewLineAsync();
 
-                await new Integer(stream.Length + xrefStreamIndirectObject.ByteOffset!.Value).WriteAsync(stream);
+                await new Integer(xrefStreamIndirectObject.ByteOffset!.Value).WriteAsync(stream);
                 await stream.WriteNewLineAsync();
 
                 await new Keyword(Constants.Eof).WriteAsync(stream);
