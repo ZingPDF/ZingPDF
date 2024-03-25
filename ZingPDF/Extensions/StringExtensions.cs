@@ -74,21 +74,21 @@ namespace ZingPDF.Extensions
             var index = input.IndexOf($"{Constants.CarriageReturn}{Constants.LineFeed}");
             if (index != -1)
             {
-                removedChars = new[] { Constants.CarriageReturn, Constants.LineFeed };
+                removedChars = [Constants.CarriageReturn, Constants.LineFeed];
                 return input.Remove(index, 2);
             }
 
             index = input.IndexOf(Constants.LineFeed);
             if (index != -1)
             {
-                removedChars = new[] { Constants.LineFeed };
+                removedChars = [Constants.LineFeed];
                 return input.Remove(index + 1, 1);
             }
 
             index = input.IndexOf(Constants.CarriageReturn);
             if (index != -1)
             {
-                removedChars = new[] { Constants.CarriageReturn };
+                removedChars = [Constants.CarriageReturn];
                 return input.Remove(index + 1, 1);
             }
 
