@@ -43,7 +43,7 @@ internal static class StreamExtensions
     /// Write a new line character to the stream.
     /// </summary>
     public static async Task WriteNewLineAsync(this Stream stream)
-        => await stream.WriteCharsAsync(Constants.EndOfLineCharacters);
+        => await stream.WriteCharsAsync(Constants.LineFeed);
 
     /// <summary>
     /// Finds the specified value in the stream and advances its position to it.

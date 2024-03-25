@@ -30,6 +30,11 @@ internal class PdfFileNavigator : IPdfNavigator
     /// </summary>
     private AsyncLazy<IPdfObject> _xrefObject;
 
+    /// <summary>
+    /// The position of the root xref table or stream.
+    /// </summary>
+    private AsyncLazy<int> _startXref;
+
     private AsyncLazy<LinearizationDictionary?> _linearizationParameters;
     private AsyncLazy<Trailer?> _rootTrailer;
     private AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
@@ -46,6 +51,8 @@ internal class PdfFileNavigator : IPdfNavigator
 
     public bool UsingXrefTables { get; private set; }
     public bool UsingXrefStreams { get; private set; }
+
+    public Task<int> GetStartXrefAsync() => _startXref.Task;
 
     public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
 
@@ -78,6 +85,7 @@ internal class PdfFileNavigator : IPdfNavigator
     private void SetupLazyProperties()
     {
         _xrefObject = SetupLazyXrefObject();
+        _startXref = SetupLazyStartXref();
 
         _linearizationParameters = SetupLazyLinearizationDictionary();
         _rootTrailer = SetupLazyRootTrailer();
@@ -245,9 +253,9 @@ internal class PdfFileNavigator : IPdfNavigator
         });
     }
 
-    private AsyncLazy<IPdfObject> SetupLazyXrefObject()
+    private AsyncLazy<int> SetupLazyStartXref()
     {
-        return new AsyncLazy<IPdfObject>(async () =>
+        return new AsyncLazy<int>(async () =>
         {
             var objectFinder = new ObjectFinder();
 
@@ -258,7 +266,15 @@ internal class PdfFileNavigator : IPdfNavigator
             _stream.Position = offset;
 
             _ = await Parser.For<Keyword>().ParseAsync(_stream);
-            var xrefOffset = await Parser.For<Integer>().ParseAsync(_stream);
+            return await Parser.For<Integer>().ParseAsync(_stream);
+        });
+    }
+
+    private AsyncLazy<IPdfObject> SetupLazyXrefObject()
+    {
+        return new AsyncLazy<IPdfObject>(async () =>
+        {
+            var xrefOffset = await GetStartXrefAsync();
 
             _stream.Position = xrefOffset;
 

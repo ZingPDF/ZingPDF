@@ -26,7 +26,7 @@ internal class EditablePdfNavigator : IPdfNavigator
         var latestIncrementalUpdate = Updates.SingleOrDefault(x => !x.Written);
         if (latestIncrementalUpdate is null)
         {
-            latestIncrementalUpdate = new IncrementalUpdate(this);
+            latestIncrementalUpdate = new IncrementalUpdate(this, new IncrementalUpdateOptions { RenderCrossReferencesAsStream = true });
             Updates.Add(latestIncrementalUpdate);
         }
 
@@ -35,6 +35,12 @@ internal class EditablePdfNavigator : IPdfNavigator
 
     public bool UsingXrefStreams => _pdfFileNavigator.UsingXrefStreams;
     public bool UsingXrefTables => _pdfFileNavigator.UsingXrefTables;
+
+    public Task<int> GetStartXrefAsync()
+    {
+        // TODO: This is the file startxref value, determine how to get this for updated file
+        return _pdfFileNavigator.GetStartXrefAsync();
+    }
 
     public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
     {
@@ -139,7 +145,7 @@ internal class EditablePdfNavigator : IPdfNavigator
 
     public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject)
     {
-        if (pdfObject is null) throw new ArgumentNullException(nameof(pdfObject));
+        ArgumentNullException.ThrowIfNull(pdfObject);
 
         IndirectObjectId newObjectId = await GetFreeIndexAsync();
 
@@ -154,7 +160,7 @@ internal class EditablePdfNavigator : IPdfNavigator
 
     public void UpdateObject(IndirectObject indirectObject)
     {
-        if (indirectObject is null) throw new ArgumentNullException(nameof(indirectObject));
+        ArgumentNullException.ThrowIfNull(indirectObject);
 
         var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
@@ -163,7 +169,7 @@ internal class EditablePdfNavigator : IPdfNavigator
 
     public void DeleteObject(IndirectObjectId indirectObjectId)
     {
-        if (indirectObjectId is null) throw new ArgumentNullException(nameof(indirectObjectId));
+        ArgumentNullException.ThrowIfNull(indirectObjectId);
 
         indirectObjectId.GenerationNumber++;
 
