@@ -10,6 +10,8 @@ namespace ZingPDF.Parsing
         bool UsingXrefStreams { get; }
         bool UsingXrefTables { get; }
 
+        Task<int> GetStartXrefAsync();
+
         Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference);
         Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
         Task<LinearizationDictionary?> GetLinearizationDictionaryAsync();
