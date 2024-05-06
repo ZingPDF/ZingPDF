@@ -11,8 +11,8 @@ using ZingPDF.Parsing;
 
 //await CreateNewPdfAndValidate("output.pdf");
 
-//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
 //await ParseResaveValidate("test.pdf", "output.pdf");
@@ -53,7 +53,7 @@ static async Task ParseResaveValidate(string input, string output)
     var count1 = await pdf.GetPageCountAsync();
 
     await pdf.InsertPageAsync(2);
-    await pdf.DeletePageAsync(1);
+    // pdf.DeletePageAsync(1);
 
     var count2 = await pdf.GetPageCountAsync();
 
@@ -79,7 +79,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     //foreach (var error in newErrors)
     //{
-    //    Console.WriteLine(error);
+    //   Console.WriteLine(error);
     //}
 }
 

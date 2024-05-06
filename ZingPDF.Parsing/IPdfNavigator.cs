@@ -12,7 +12,17 @@ namespace ZingPDF.Parsing
 
         Task<int> GetStartXrefAsync();
 
+        /// <summary>
+        /// Returns the latest Indirect Object matching the given reference.
+        /// </summary>
         Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference);
+
+        /// <summary>
+        /// When you know the Indirect Object contains a single object of a specific type, 
+        /// this method provides strongly typed access to it.
+        /// </summary>
+        Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject;
+
         Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
         Task<LinearizationDictionary?> GetLinearizationDictionaryAsync();
         Task<IEnumerable<IndirectObject>> GetPagesAsync();
