@@ -95,9 +95,6 @@ internal class PdfFileNavigator : IPdfNavigator
         _xrefs = SetupLazyXrefs();
     }
 
-    /// <summary>
-    /// Returns the latest Indirect Object matching the given reference.
-    /// </summary>
     public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
     {
         ArgumentNullException.ThrowIfNull(reference);
@@ -160,6 +157,9 @@ internal class PdfFileNavigator : IPdfNavigator
         return indirectObject;
     }
 
+    public async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
+        => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
+
     private async Task<IndirectObject> GetOrAddAsync(
         IndirectObjectReference reference,
         Func<Task<IndirectObject>> ioRetreiver
@@ -180,13 +180,6 @@ internal class PdfFileNavigator : IPdfNavigator
 
         return indirectObject;
     }
-
-    /// <summary>
-    /// When you know the Indirect Object contains a single object of a specific type, 
-    /// this method provides strongly typed access to it.
-    /// </summary>
-    private async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
-        => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
 
     /// <summary>
     /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
