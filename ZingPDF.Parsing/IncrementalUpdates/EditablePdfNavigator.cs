@@ -61,6 +61,9 @@ internal class EditablePdfNavigator : IPdfNavigator
         return await _pdfFileNavigator.DereferenceIndirectObjectAsync(reference);
     }
 
+    public async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
+        => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
+
     public async Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync()
     {
         var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
