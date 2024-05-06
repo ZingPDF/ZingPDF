@@ -1,6 +1,4 @@
-﻿using ZingPDF.Objects;
-using ZingPDF;
-using ZingPDF.Objects.DataStructures;
+﻿using ZingPDF.Objects.DataStructures;
 using ZingPDF.Objects.Primitives;
 using ZingPDF.Objects.Primitives.IndirectObjects;
 
@@ -41,14 +39,21 @@ namespace ZingPDF.Objects.Pages
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.
         /// </summary>
-        // TODO: this is a required field, but its value can be inherited from an ancestor, check if we need to do anything to achieve this.
-        public Rectangle? MediaBox { get => Get<Rectangle>(DictionaryKeys.MediaBox); set => this[DictionaryKeys.MediaBox] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rectangle? MediaBox
+        {
+            get => Get<Rectangle>(DictionaryKeys.MediaBox);
+            set => this[DictionaryKeys.MediaBox] = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <summary>
         /// Defines the visible region of default user space.
         /// Contents will be clipped to this rectangle.
         /// </summary>
-        public Rectangle? CropBox { get => Get<Rectangle>(DictionaryKeys.CropBox); set => this[DictionaryKeys.CropBox] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rectangle? CropBox
+        {
+            get => Get<Rectangle>(DictionaryKeys.CropBox);
+            set => this[DictionaryKeys.CropBox] = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <summary>
         /// Defines a clipping rectangle for output in a production environment.
@@ -83,7 +88,7 @@ namespace ZingPDF.Objects.Pages
         /// <exception cref="ArgumentNullException"></exception>
         internal static Page CreateNew(IndirectObjectReference parent, PageCreationOptions? options = null)
         {
-            if (parent is null) throw new ArgumentNullException(nameof(parent));
+            ArgumentNullException.ThrowIfNull(parent);
 
             options ??= new PageCreationOptions();
 
@@ -104,17 +109,19 @@ namespace ZingPDF.Objects.Pages
         /// <returns></returns>
         internal static Page FromDictionary(Dictionary pageDictionary)
         {
-            if (pageDictionary is null) throw new ArgumentNullException(nameof(pageDictionary));
+            ArgumentNullException.ThrowIfNull(pageDictionary);
 
             return new Page(pageDictionary);
         }
 
-        internal class PageCreationOptions
+        public class PageCreationOptions
         {
             /// <summary>
             /// Represents the overall size of the page.
             /// </summary>
             public Rectangle? MediaBox { get; set; }
+
+            public static PageCreationOptions Default = new();
         }
     }
 }
