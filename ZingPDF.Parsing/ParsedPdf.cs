@@ -94,6 +94,10 @@ public class Pdf : IDisposable
         await outputStream.FlushAsync();
     }
 
+    /// <summary>
+    /// Get the total number of pages in the PDF.
+    /// </summary>
+    /// <returns>An integer value equal to the total number of pages in the PDF.</returns>
     public async Task<int> GetPageCountAsync()
     {
         var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
@@ -121,9 +125,9 @@ public class Pdf : IDisposable
         return (pages.ElementAt(pageNumber - 1).Children.First() as Page)!;
     }
 
-    // TODO: This just appends a blank page. Do we need to accept a Page object here?
-    // If so, how would a user consume it, Page creation requires knowledge of the parent.
-    // Or maybe we accept page creation options.
+    /// <summary>
+    /// Append a blank page to the end of the document.
+    /// </summary>
     public async Task AppendPageAsync()
     {
         var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
@@ -144,9 +148,17 @@ public class Pdf : IDisposable
         _pdfNavigator.UpdateObject(rootPageTreeNodeIndirectObject);
     }
 
-    public async Task InsertPageAsync(int pageNumber)
+    /// <summary>
+    /// Insert a blank page at the specified page number.
+    /// </summary>
+    /// <param name="pageNumber">The page number at which to insert the page.<para></para>
+    /// Pages start at number 1 for the first page.</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public async Task InsertPageAsync(int pageNumber, Page.PageCreationOptions? pageCreationOptions = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
+
+        pageCreationOptions ??= Page.PageCreationOptions.Default;
 
         var count = await GetPageCountAsync();
 
@@ -166,9 +178,17 @@ public class Pdf : IDisposable
 
         var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumberIndirectObject.Id.Reference);
 
+        // Ensure page has all required properties.
+        // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
+        // TODO: if linearized, required properties may need to be set on all pages. (7.7.3.4 Inheritance of page attributes)
+        if (pageCreationOptions.MediaBox is null && !await AncestorHasMediaBox(parentPageTreeNode))
+        {
+            throw new Exception("This PDF does not have a default page size, you must therefore provide a PageCreationOptions.MediaBox property or ensure an ancestor has a value for this property."); // TODO: proper exception
+        }
+
         var page = Page.CreateNew(
             parentPageTreeNodeIndirectObject.Id.Reference,
-            new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) }
+            pageCreationOptions
             );
 
         var newPageIndirectObject = await _pdfNavigator.AddNewObjectAsync(page);
@@ -180,14 +200,6 @@ public class Pdf : IDisposable
         parentPageTreeNode.PageCount++;
 
         _pdfNavigator.UpdateObject(parentPageTreeNodeIndirectObject);
-    }
-
-    public void ReplacePage(int pageNumber, Page page)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-        ArgumentNullException.ThrowIfNull(page);
-
-        throw new NotImplementedException();
     }
 
     public async Task DeletePageAsync(int pageNumber)
@@ -289,5 +301,35 @@ public class Pdf : IDisposable
         {
             ((IDisposable)_pdfInputStream).Dispose();
         }
+    }
+    
+    // TODO: move to testable class
+    /// <summary>
+    /// Recursively walk up the page tree to check for the presence of a MediaBox property.
+    /// </summary>
+    private async Task<bool> AncestorHasMediaBox(PageTreeNode parentPageTreeNode)
+    {
+        if (parentPageTreeNode.MediaBox is not null)
+        {
+            return true;
+        }
+
+        if (parentPageTreeNode.Parent is null)
+        {
+            return false;
+        }
+
+        var parent = await _pdfNavigator.DereferenceIndirectObjectAsync<PageTreeNode>(parentPageTreeNode.Parent);
+        if (parent == null)
+        {
+            return false;
+        }
+
+        if (await AncestorHasMediaBox(parent))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

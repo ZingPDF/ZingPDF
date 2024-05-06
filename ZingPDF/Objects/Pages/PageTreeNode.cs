@@ -1,4 +1,4 @@
-﻿using ZingPDF.Objects;
+﻿using ZingPDF.Objects.DataStructures;
 using ZingPDF.Objects.Primitives;
 using ZingPDF.Objects.Primitives.IndirectObjects;
 
@@ -30,9 +30,22 @@ namespace ZingPDF.Objects.Pages
             get => Get<ArrayObject>(DictionaryKeys.Kids)!;
             set
             {
-                this[DictionaryKeys.Kids] = new ArrayObject(value.ToArray());
+                this[DictionaryKeys.Kids] = new ArrayObject([..value]);
             }
         }
+
+        #region Inheritable properties
+
+        /// <summary>
+        /// The boundaries of the physical medium on which the page shall be displayed or printed.
+        /// </summary>
+        public Rectangle? MediaBox
+        {
+            get => Get<Rectangle>(Page.DictionaryKeys.MediaBox);
+            set => this[Page.DictionaryKeys.MediaBox] = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        #endregion
 
         public Integer PageCount { get => Get<Integer>(DictionaryKeys.Count)!; set => this[DictionaryKeys.Count] = value; }
 
