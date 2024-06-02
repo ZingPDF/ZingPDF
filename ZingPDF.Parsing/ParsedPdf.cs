@@ -128,11 +128,13 @@ public class Pdf : IDisposable
     /// <summary>
     /// Append a blank page to the end of the document.
     /// </summary>
-    public async Task AppendPageAsync()
+    public async Task AppendPageAsync(Page.PageCreationOptions? pageCreationOptions = null)
     {
+        pageCreationOptions ??= Page.PageCreationOptions.Default;
+
         var rootPageTreeNodeIndirectObject = await _pdfNavigator.GetRootPageTreeNodeAsync();
 
-        var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
+        var page = Page.CreateNew(rootPageTreeNodeIndirectObject.Id.Reference, pageCreationOptions);
 
         var pageIndirectObject = await _pdfNavigator.AddNewObjectAsync(page);
 
