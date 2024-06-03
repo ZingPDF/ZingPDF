@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using ZingPDF.Parsing;
+using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.ObjectModel.CommonDataStructures;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -52,7 +54,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count1 = await pdf.GetPageCountAsync();
 
-    await pdf.InsertPageAsync(2);
+    await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     // pdf.DeletePageAsync(1);
 
     var count2 = await pdf.GetPageCountAsync();

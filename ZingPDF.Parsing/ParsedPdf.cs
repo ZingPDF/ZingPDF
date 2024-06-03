@@ -200,6 +200,8 @@ public class Pdf : IDisposable
         parentPageTreeNode.Kids = newKids.ToArray();
         parentPageTreeNode.PageCount++;
 
+        await IncrementPageCountAsync(parentPageTreeNode);
+
         _pdfNavigator.UpdateObject(parentPageTreeNodeIndirectObject);
     }
 
@@ -304,7 +306,7 @@ public class Pdf : IDisposable
         }
     }
     
-    // TODO: move to testable class
+    // TODO: move to testable class?
     /// <summary>
     /// Recursively walk up the page tree to check for the presence of a MediaBox property.
     /// </summary>
@@ -332,5 +334,26 @@ public class Pdf : IDisposable
         }
 
         return false;
+    }
+
+    // TODO: move to testable class?
+    /// <summary>
+    /// Recursively increment the page count of this page tree node and all its ancestors
+    /// </summary>
+    private async Task IncrementPageCountAsync(PageTreeNode pageTreeNode)
+    {
+        if (pageTreeNode.Parent is null)
+        {
+            return;
+        }
+
+        var parentPageTreeNodeIndirectObject = await _pdfNavigator.DereferenceIndirectObjectAsync(pageTreeNode.Parent);
+        var parentPageTreeNode = (parentPageTreeNodeIndirectObject.Children.First() as PageTreeNode)!;
+
+        parentPageTreeNode.PageCount++;
+
+        _pdfNavigator.UpdateObject(parentPageTreeNodeIndirectObject);
+
+        await IncrementPageCountAsync(parentPageTreeNode);
     }
 }
