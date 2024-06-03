@@ -1,10 +1,10 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
-using ZingPDF.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Objects.Primitives.Streams;
 using ZingPDF.Logging;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Parsing;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Objects.Primitives.Streams;
 
 namespace ZingPDF.Parsing.PrimitiveParsers
 {

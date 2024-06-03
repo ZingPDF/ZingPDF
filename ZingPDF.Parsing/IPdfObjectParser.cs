@@ -1,5 +1,5 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.Objects;
+using ZingPDF.ObjectModel;
 
 namespace ZingPDF.Parsing
 {

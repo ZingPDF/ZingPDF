@@ -1,5 +1,5 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.Objects.ObjectGroups.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
 
 namespace ZingPDF.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
 {

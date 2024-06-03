@@ -1,6 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
-using ZingPDF.Objects.Primitives;
+using ZingPDF.ObjectModel.Objects;
 
 namespace ZingPDF.Parsing.PrimitiveParsers
 {

@@ -1,7 +1,8 @@
-﻿using ZingPDF.Objects;
-using ZingPDF.Objects.ObjectGroups.CrossReferences;
-using ZingPDF.Objects.ObjectGroups.Trailer;
-using ZingPDF.Objects.Primitives.IndirectObjects;
+﻿using ZingPDF.Linearization;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.Trailer;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing
 {
@@ -24,7 +25,7 @@ namespace ZingPDF.Parsing
         Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject;
 
         Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync();
-        Task<LinearizationDictionary?> GetLinearizationDictionaryAsync();
+        Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync();
         Task<IEnumerable<IndirectObject>> GetPagesAsync();
         Task<IndirectObject> GetRootPageTreeNodeAsync();
         Task<Trailer?> GetRootTrailerAsync();
