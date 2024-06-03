@@ -1,7 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Globalization;
 using ZingPDF.Extensions;
-using ZingPDF.Objects.DataStructures;
+using ZingPDF.ObjectModel.CommonDataStructures;
 
 namespace ZingPDF.Parsing.DataStructureParsers
 {
