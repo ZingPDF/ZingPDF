@@ -1,4 +1,5 @@
-﻿using ZingPDF.Parsing;
+﻿using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Parsing;
 
 namespace ZingPDF.Objects.Primitives.Streams
 {

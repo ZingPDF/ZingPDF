@@ -16,8 +16,8 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
-await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
+await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
 //await ParseResaveValidate("test.pdf", "output.pdf");
