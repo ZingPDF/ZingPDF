@@ -1,10 +1,9 @@
-﻿using ZingPDF.Objects.Pages;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Objects.Primitives.IndirectObjects;
-using ZingPDF.Drawing;
-using ZingPDF.Objects;
-using ZingPDF.Objects.DataStructures;
+﻿using ZingPDF.Drawing;
 using ZingPDF.Parsing.IncrementalUpdates;
+using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.ObjectModel.CommonDataStructures;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing;
 

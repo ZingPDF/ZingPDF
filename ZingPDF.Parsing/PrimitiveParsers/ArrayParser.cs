@@ -1,10 +1,10 @@
 ﻿using MorseCode.ITask;
 using System.Text;
-using ZingPDF.Objects.ObjectGroups;
 using ZingPDF.Logging;
-using ZingPDF.Objects;
-using ZingPDF.Objects.Primitives;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.Objects;
 using ZingPDF.Parsing;
+using ZingPDF.Parsing.ObjectGroupParsers;
 
 namespace ZingPDF.Parsing.PrimitiveParsers
 {

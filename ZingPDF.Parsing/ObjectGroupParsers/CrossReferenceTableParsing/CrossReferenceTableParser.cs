@@ -1,7 +1,7 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.Objects.ObjectGroups.CrossReferences;
-using ZingPDF.Objects.ObjectGroups.Trailer;
-using ZingPDF.Objects.Primitives;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.Trailer;
+using ZingPDF.ObjectModel.Objects;
 
 namespace ZingPDF.Parsing.ObjectGroupParsers.CrossReferenceTableParsing
 {
