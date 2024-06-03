@@ -1,10 +1,10 @@
-﻿using ZingPDF.Objects.ObjectGroups.CrossReferences;
-using ZingPDF.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Objects.ObjectGroups.Trailer;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Extensions;
-using ZingPDF.Objects.Primitives.IndirectObjects;
-using ZingPDF.Objects;
+﻿using ZingPDF.Extensions;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.FileStructure.Trailer;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing.IncrementalUpdates
 {
@@ -126,7 +126,7 @@ namespace ZingPDF.Parsing.IncrementalUpdates
                 }
 
                 Trailer = new Trailer(
-                    Objects.ObjectGroups.Trailer.TrailerDictionary.CreateNew(
+                    ObjectModel.FileStructure.Trailer.TrailerDictionary.CreateNew(
                         size,
                         previousXrefOffset,
                         latestTrailerDictionary.Root,

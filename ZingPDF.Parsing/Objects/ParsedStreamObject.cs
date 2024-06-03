@@ -1,5 +1,8 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.Objects.Filters;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.Filters;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.Streams;
 
 namespace ZingPDF.Objects.Primitives.Streams
 {

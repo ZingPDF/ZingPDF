@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Objects.Primitives.IndirectObjects;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing;
 

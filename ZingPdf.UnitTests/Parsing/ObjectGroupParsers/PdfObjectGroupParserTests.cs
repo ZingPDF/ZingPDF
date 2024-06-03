@@ -2,7 +2,7 @@
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
-using ZingPDF.Objects.Primitives;
+using ZingPDF.ObjectModel.Objects;
 
 namespace ZingPDF.Parsing.ObjectGroupParsers;
 

@@ -3,15 +3,17 @@
 using Nito.AsyncEx;
 using System.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Linearization;
 using ZingPDF.Logging;
-using ZingPDF.Objects;
-using ZingPDF.Objects.ObjectGroups.CrossReferences;
-using ZingPDF.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Objects.ObjectGroups.Trailer;
-using ZingPDF.Objects.Pages;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Objects.Primitives.IndirectObjects;
-using ZingPDF.Objects.Primitives.Streams;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.DocumentStructure;
+using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.FileStructure.Trailer;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
+using ZingPDF.ObjectModel.Objects.Streams;
 
 namespace ZingPDF.Parsing;
 
@@ -35,7 +37,7 @@ internal class PdfFileNavigator : IPdfNavigator
     /// </summary>
     private AsyncLazy<int> _startXref;
 
-    private AsyncLazy<LinearizationDictionary?> _linearizationParameters;
+    private AsyncLazy<LinearizationParameterDictionary?> _linearizationParameters;
     private AsyncLazy<Trailer?> _rootTrailer;
     private AsyncLazy<ITrailerDictionary> _rootTrailerDictionary;
     private AsyncLazy<IndirectObject> _rootPageTreeNode;
@@ -54,7 +56,7 @@ internal class PdfFileNavigator : IPdfNavigator
 
     public Task<int> GetStartXrefAsync() => _startXref.Task;
 
-    public Task<LinearizationDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
+    public Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync() => _linearizationParameters.Task;
 
     /// <summary>
     /// Get the latest trailer.
@@ -308,16 +310,16 @@ internal class PdfFileNavigator : IPdfNavigator
         });
     }
 
-    private AsyncLazy<LinearizationDictionary?> SetupLazyLinearizationDictionary()
+    private AsyncLazy<LinearizationParameterDictionary?> SetupLazyLinearizationDictionary()
     {
-        return new AsyncLazy<LinearizationDictionary?>(async () =>
+        return new AsyncLazy<LinearizationParameterDictionary?>(async () =>
         {
             Logger.Log(LogLevel.Trace, $"Searching for linearisation dictionary");
 
             _stream.Position = 0;
 
             static bool isLinearizationDictionary(IndirectObject o) =>
-                o.Children.FirstOrDefault() is LinearizationDictionary;
+                o.Children.FirstOrDefault() is LinearizationParameterDictionary;
 
             List<PdfObject> items = [];
 
@@ -338,7 +340,7 @@ internal class PdfFileNavigator : IPdfNavigator
                 {
                     Logger.Log(LogLevel.Trace, $"Found linearisation dictionary");
 
-                    return o.Children.First()! as LinearizationDictionary;
+                    return o.Children.First()! as LinearizationParameterDictionary;
                 }
             }
 
@@ -356,7 +358,7 @@ internal class PdfFileNavigator : IPdfNavigator
 
             var trailerDictionary = await GetRootTrailerDictionaryAsync();
 
-            var documentCatalog = DocumentCatalog.FromDictionary(
+            var documentCatalog = DocumentCatalogDictionary.FromDictionary(
                 await DereferenceIndirectObjectAsync<Dictionary>(trailerDictionary.Root));
 
             var xrefs = await GetAggregateCrossReferencesAsync();
@@ -404,7 +406,7 @@ internal class PdfFileNavigator : IPdfNavigator
             // the length value (L) is identical to the length of the stream.
             // A mismatch indicates the file has had at least one incremental update applied,
             // and should be considered to not be linearized.
-            LinearizationDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
+            LinearizationParameterDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
             var isLinearized = linearizationDictionary != null && linearizationDictionary.L == _stream.Length;
 
             if (linearizationDictionary != null && !isLinearized)

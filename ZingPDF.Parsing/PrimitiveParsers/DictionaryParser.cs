@@ -1,12 +1,12 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPDF.Linearization;
 using ZingPDF.Logging;
-using ZingPDF.Objects;
-using ZingPDF.Objects.ObjectGroups;
-using ZingPDF.Objects.ObjectGroups.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Objects.Pages;
-using ZingPDF.Objects.Primitives;
-using ZingPDF.Objects.Primitives.Streams;
+using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Parsing.ObjectGroupParsers;
 
 namespace ZingPDF.Parsing.PrimitiveParsers
 {
@@ -136,9 +136,9 @@ namespace ZingPDF.Parsing.PrimitiveParsers
                     }
                 }
 
-                if (output.ContainsKey(LinearizationDictionary.DictionaryKeys.Linearized))
+                if (output.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))
                 {
-                    output = LinearizationDictionary.FromDictionary(output);
+                    output = LinearizationParameterDictionary.FromDictionary(output);
                 }
             }
 
