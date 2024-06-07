@@ -358,8 +358,7 @@ internal class PdfFileNavigator : IPdfNavigator
 
             var trailerDictionary = await GetRootTrailerDictionaryAsync();
 
-            var documentCatalog = DocumentCatalogDictionary.FromDictionary(
-                await DereferenceIndirectObjectAsync<Dictionary>(trailerDictionary.Root));
+            var documentCatalog = await DereferenceIndirectObjectAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
 
             var xrefs = await GetAggregateCrossReferencesAsync();
             var xref = xrefs[documentCatalog.Pages.Id.Index];
