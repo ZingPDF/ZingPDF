@@ -1,7 +1,9 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPDF.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
+using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.ObjectModel.Objects;
@@ -118,6 +120,10 @@ namespace ZingPDF.Parsing.PrimitiveParsers
                 {
                     switch ((Name)output[Constants.DictionaryKeys.Type])
                     {
+                        case DocumentCatalogDictionary.DictionaryKeys.Catalog:
+                            output = DocumentCatalogDictionary.FromDictionary(output);
+                            break;
+
                         case Page.DictionaryKeys.Page:
                             output = Page.FromDictionary(output);
                             break;
@@ -134,6 +140,11 @@ namespace ZingPDF.Parsing.PrimitiveParsers
                             output = ObjectStreamDictionary.FromDictionary(output);
                             break;
                     }
+                }
+
+                if (output.ContainsKey(InteractiveFormDictionary.DictionaryKeys.Fields))
+                {
+                    output = InteractiveFormDictionary.FromDictionary(output);
                 }
 
                 if (output.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))

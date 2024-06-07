@@ -4,6 +4,9 @@ using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.Forms
 {
+    /// <summary>
+    /// ISO 32000-2:2020 12.7.4 - Field dictionaries
+    /// </summary>
     internal class FieldDictionary : Dictionary
     {
         public static class DictionaryKeys
@@ -16,6 +19,8 @@ namespace ZingPDF.Forms
             public const string TM = "TM";
             public const string Ff = "Ff";
             public const string V = "V";
+            public const string DV = "DV";
+            public const string AA = "AA";
         }
 
         /// <summary>
@@ -88,6 +93,19 @@ namespace ZingPDF.Forms
         /// </summary>
         public IPdfObject? V { get => Get<IPdfObject>(DictionaryKeys.V); }
 
+        /// <summary>
+        /// (Optional; inheritable)<para></para>
+        /// The default value to which the field reverts when a reset-form action is executed 
+        /// (see 12.7.6.3, "Reset-form action"). The format of this value is the same as that of V.
+        /// </summary>
+        public IPdfObject? DV { get => Get<IPdfObject>(DictionaryKeys.DV); }
 
+        /// <summary>
+        /// (Optional; PDF 1.2)<para></para>
+        /// An additional-actions dictionary defining the field’s behaviour in response to various 
+        /// trigger events (see 12.6.3, "Trigger events"). This entry has exactly the same meaning 
+        /// as the AA entry in an annotation dictionary (see 12.5.2, "Annotation dictionaries").
+        /// </summary>
+        public Dictionary? AA { get => Get<Dictionary>(DictionaryKeys.AA); }
     }
 }

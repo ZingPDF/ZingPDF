@@ -8,7 +8,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure
     /// </summary>
     internal class DocumentCatalogDictionary : Dictionary
     {
-        private static class DictionaryKeys
+        public static class DictionaryKeys
         {
             public const string Catalog = "Catalog";
             public const string Pages = "Pages";
