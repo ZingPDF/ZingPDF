@@ -2,6 +2,7 @@
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.ObjectModel.Objects;
+using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing.PrimitiveParsers;
 
