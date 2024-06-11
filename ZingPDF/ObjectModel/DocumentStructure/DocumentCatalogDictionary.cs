@@ -6,7 +6,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure
     /// <summary>
     /// ISO 32000-2:2020 7.7.2 - Document catalog dictionary
     /// </summary>
-    internal class DocumentCatalogDictionary : Dictionary
+    public class DocumentCatalogDictionary : Dictionary
     {
         public static class DictionaryKeys
         {

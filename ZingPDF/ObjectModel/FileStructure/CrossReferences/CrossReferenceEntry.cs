@@ -2,7 +2,7 @@
 
 namespace ZingPDF.ObjectModel.FileStructure.CrossReferences
 {
-    internal class CrossReferenceEntry : PdfObject
+    public class CrossReferenceEntry : PdfObject
     {
         private static readonly CrossReferenceEntry _rootFreeEntry = new(0, 65535, inUse: false, compressed: false);
 
