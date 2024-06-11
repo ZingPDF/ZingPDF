@@ -3,11 +3,11 @@
 namespace ZingPDF.ObjectModel.Objects.IndirectObjects
 {
     /// <summary>
-    /// ISO 32000-2:2020 7.3.10 - Indirect objects
+    /// ISO 32000-2:2020 7.3.10 - Indirect objects<para></para>
     /// 
     /// Wraps any object with an identifier so that it may be referenced by other objects.
     /// </summary>
-    internal class IndirectObject : PdfObject
+    public class IndirectObject : PdfObject
     {
         public IndirectObject(IndirectObjectId id, params IPdfObject[] children)
         {
