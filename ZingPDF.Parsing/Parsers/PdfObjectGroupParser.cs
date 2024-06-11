@@ -1,0 +1,43 @@
+﻿using MorseCode.ITask;
+using ZingPDF.Logging;
+using ZingPDF.ObjectModel;
+
+namespace ZingPDF.Parsing.Parsers
+{
+    internal class PdfObjectGroupParser : IPdfObjectParser<PdfObjectGroup>
+    {
+        public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
+        {
+            Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
+
+            var items = new List<IPdfObject>();
+
+            while (stream.Position < stream.Length)
+            {
+                var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
+
+                if (type != null)
+                {
+                    try
+                    {
+                        items.Add(await Parser.For(type).ParseAsync(stream));
+                    }
+                    catch
+                    {
+                        // If any exception is thrown, gracefully exit.
+                        // The sub-object could be invalid or not understood by this library.
+                        // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
+                        // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
+                        break;
+                    }
+                }
+                else
+                {
+                    stream.Position += 1;
+                }
+            }
+
+            return items.ToArray();
+        }
+    }
+}
