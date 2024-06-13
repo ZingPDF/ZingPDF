@@ -1,6 +1,10 @@
-﻿namespace ZingPDF.Parsing;
+﻿using ZingPDF.Drawing;
+using ZingPDF.ObjectModel.CommonDataStructures;
+using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 
-public class EditablePdf : IPdf
+namespace ZingPDF.Parsing;
+
+public class EditablePdf : IEditablePdf
 {
     private readonly ReadOnlyPdf _sourcePdf;
 
@@ -35,12 +39,85 @@ public class EditablePdf : IPdf
         return new(await ReadOnlyPdf.LoadAsync(stream));
     }
 
-    #region IPdf
+    public void AddWatermark()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AppendPageAsync(Page.PageCreationOptions? pageCreationOptions)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AppendPdf(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CompleteForm(IDictionary<string, string> values)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Compress(int dpi, int quality)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Decrypt()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeletePageAsync(int pageNumber)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Draw(int pageNumber, IEnumerable<Drawing.Path> paths, IEnumerable<Text> text, IEnumerable<Image> imageOperations, CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Encrypt()
+    {
+        throw new NotImplementedException();
+    }
+
+    public IDictionary<string, string?> GetFields()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Page> GetPageAsync(int pageNumber)
+    {
+        throw new NotImplementedException();
+    }
 
     public Task<int> GetPageCountAsync()
     {
         throw new NotImplementedException();
     }
 
-    #endregion
+    public Task InsertPageAsync(int pageNumber, Page.PageCreationOptions? pageCreationOptions)
+    {
+        // get page at number
+        // get parent page tree node
+        // add new page indirect object
+        // add new page ref to kids property
+        // increment page count
+        // - this involves recursively updating multiple nodes in page tree
+
+        throw new NotImplementedException();
+    }
+
+    public Task SetPageRotationAsync(int pageNumber, Rotation rotation)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Sign()
+    {
+        throw new NotImplementedException();
+    }
 }

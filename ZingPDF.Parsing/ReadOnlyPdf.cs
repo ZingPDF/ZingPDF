@@ -1,9 +1,7 @@
-﻿using ZingPDF.Drawing;
-using ZingPDF.Extensions;
+﻿using ZingPDF.Extensions;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
 using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences;
@@ -16,11 +14,13 @@ using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;
 
-public class ReadOnlyPdf : IReadOnlyPdf, IDisposable
+public class ReadOnlyPdf : IPdf, IDisposable
 {
     private readonly Stream _pdfInputStream;
     private readonly LinearizationParameterDictionary? _linearizationDictionary;
     private readonly Trailer? _trailer;
+
+    private readonly PageTree _pageTree;
 
     private ReadOnlyPdf(
         Stream pdfInputStream,
@@ -39,6 +39,8 @@ public class ReadOnlyPdf : IReadOnlyPdf, IDisposable
         _linearizationDictionary = linearizationDictionary;
         _trailer = trailer;
         TrailerDictionary = trailerDictionary ?? throw new ArgumentNullException(nameof(trailerDictionary));
+
+        _pageTree = new PageTree(documentCatalog.Pages, IndirectObjects);
     }
 
     internal ReadOnlyIndirectObjectDictionary IndirectObjects { get; }
@@ -49,13 +51,9 @@ public class ReadOnlyPdf : IReadOnlyPdf, IDisposable
 
     #region IPdf
 
-    public async Task<int> GetPageCountAsync()
-    {
-        var rootPageTreeNode = await IndirectObjects.GetAsync<PageTreeNode>(DocumentCatalog.Pages)
-            ?? throw new InvalidPdfException("Unable to find root page tree node");
+    public Task<int> GetPageCountAsync() => _pageTree.GetPageCountAsync();
 
-        return rootPageTreeNode.PageCount;
-    }
+    public Task<Page> GetPageAsync(int pageNumber) => _pageTree.GetAsync(pageNumber);
 
     #endregion
 
@@ -393,6 +391,7 @@ public class ReadOnlyPdf : IReadOnlyPdf, IDisposable
     #endregion
 
     #region IDisposable
+
     public void Dispose()
     {
         Dispose(true);
@@ -406,6 +405,7 @@ public class ReadOnlyPdf : IReadOnlyPdf, IDisposable
             ((IDisposable)_pdfInputStream).Dispose();
         }
     }
+
     #endregion
 }
 
