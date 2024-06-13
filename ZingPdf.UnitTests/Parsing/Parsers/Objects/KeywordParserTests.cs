@@ -2,9 +2,8 @@
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.ObjectModel.Objects;
-using ZingPDF.Parsing.Parsers;
 
-namespace ZingPDF.Parsing.PrimitiveParsers;
+namespace ZingPDF.Parsing.Parsers.Objects;
 
 public class KeywordParserTests
 {
@@ -17,7 +16,7 @@ public class KeywordParserTests
 
         Keyword expectedKeyword = expected;
 
-        var output = await Parser.For<Keyword>().ParseAsync(input);
+        var output = await new KeywordParser().ParseAsync(input);
 
         output.Should().BeEquivalentTo(expectedKeyword);
     }

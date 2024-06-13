@@ -1,7 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences;
 
-namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences.CrossReferenceTables
+namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceSectionParser : IPdfObjectParser<CrossReferenceSection>
     {

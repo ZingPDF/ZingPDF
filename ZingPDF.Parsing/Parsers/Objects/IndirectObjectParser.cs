@@ -5,8 +5,6 @@ using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 using ZingPDF.ObjectModel.Objects.Streams;
-using ZingPDF.Parsing.Objects;
-using ZingPDF.Parsing.PrimitiveParsers;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {

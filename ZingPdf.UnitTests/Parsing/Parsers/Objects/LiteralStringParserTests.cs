@@ -4,7 +4,7 @@ using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.ObjectModel.Objects;
 
-namespace ZingPDF.Parsing.PrimitiveParsers;
+namespace ZingPDF.Parsing.Parsers.Objects;
 
 public class LiteralStringParserTests
 {

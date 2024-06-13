@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using ZingPDF.Parsing;
+using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing
 {

@@ -2,7 +2,7 @@
 using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Parsing.ObjectGroupParsers;
+namespace ZingPDF.Parsing.Parsers.FileStructure;
 
 public class TrailerParserTests
 {
