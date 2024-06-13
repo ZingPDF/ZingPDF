@@ -2,7 +2,7 @@
 using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Parsing.ObjectGroupParsers.CrossReferenceTableParsing;
+namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 
 public class CrossReferenceEntryParserTests
 {
