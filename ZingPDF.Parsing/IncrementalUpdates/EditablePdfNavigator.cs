@@ -1,184 +1,184 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.Linearization;
-using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿//using ZingPDF.Extensions;
+//using ZingPDF.Linearization;
+//using ZingPDF.ObjectModel;
+//using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+//using ZingPDF.ObjectModel.FileStructure.Trailer;
+//using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing.IncrementalUpdates;
+//namespace ZingPDF.Parsing.IncrementalUpdates;
 
-/// <summary>
-/// IPdfNavigator which aggregates elements from a root PDF file, any incremental updates, plus unsaved objects.
-/// </summary>
-internal class EditablePdfNavigator : IPdfNavigator
-{
-    // Navigator for the root PDF file
-    private readonly PdfFileNavigator _pdfFileNavigator;
+///// <summary>
+///// IPdfNavigator which aggregates elements from a root PDF file, any incremental updates, plus unsaved objects.
+///// </summary>
+//internal class EditablePdfNavigator : IPdfNavigator
+//{
+//    // Navigator for the root PDF file
+//    private readonly PdfFileNavigator _pdfFileNavigator;
 
-    public EditablePdfNavigator(PdfFileNavigator pdfFileNavigator)
-    {
-        _pdfFileNavigator = pdfFileNavigator ?? throw new ArgumentNullException(nameof(pdfFileNavigator));
-    }
+//    public EditablePdfNavigator(PdfFileNavigator pdfFileNavigator)
+//    {
+//        _pdfFileNavigator = pdfFileNavigator ?? throw new ArgumentNullException(nameof(pdfFileNavigator));
+//    }
 
-    public List<IncrementalUpdate> Updates { get; } = [];
+//    public List<IncrementalUpdate> Updates { get; } = [];
 
-    public IncrementalUpdate GetWorkingIncrementalUpdate()
-    {
-        var latestIncrementalUpdate = Updates.SingleOrDefault(x => !x.Written);
-        if (latestIncrementalUpdate is null)
-        {
-            latestIncrementalUpdate = new IncrementalUpdate(this, new IncrementalUpdateOptions { RenderCrossReferencesAsStream = true });
-            Updates.Add(latestIncrementalUpdate);
-        }
+//    public IncrementalUpdate GetWorkingIncrementalUpdate()
+//    {
+//        var latestIncrementalUpdate = Updates.SingleOrDefault(x => !x.Written);
+//        if (latestIncrementalUpdate is null)
+//        {
+//            latestIncrementalUpdate = new IncrementalUpdate(this, new IncrementalUpdateOptions { RenderCrossReferencesAsStream = true });
+//            Updates.Add(latestIncrementalUpdate);
+//        }
 
-        return latestIncrementalUpdate;
-    }
+//        return latestIncrementalUpdate;
+//    }
 
-    public bool UsingXrefStreams => _pdfFileNavigator.UsingXrefStreams;
-    public bool UsingXrefTables => _pdfFileNavigator.UsingXrefTables;
+//    public bool UsingXrefStreams => _pdfFileNavigator.UsingXrefStreams;
+//    public bool UsingXrefTables => _pdfFileNavigator.UsingXrefTables;
 
-    public Task<int> GetStartXrefAsync()
-    {
-        // TODO: This is the file startxref value, determine how to get this for updated file
-        return _pdfFileNavigator.GetStartXrefAsync();
-    }
+//    public Task<int> GetStartXrefAsync()
+//    {
+//        // TODO: This is the file startxref value, determine how to get this for updated file
+//        return _pdfFileNavigator.GetStartXrefAsync();
+//    }
 
-    public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
-    {
-        // Search backwards through all updated objects for the specified reference
-        for (int i = Updates.Count - 1; i >= 0; i--)
-        {
-            var update = Updates[i];
+//    public async Task<IndirectObject> DereferenceIndirectObjectAsync(IndirectObjectReference reference)
+//    {
+//        // Search backwards through all updated objects for the specified reference
+//        for (int i = Updates.Count - 1; i >= 0; i--)
+//        {
+//            var update = Updates[i];
 
-            foreach (var obj in update.UpdatedObjects)
-            {
-                if (obj.Key == reference.Id)
-                {
-                    return obj.Value;
-                }
-            }
-        }
+//            foreach (var obj in update.UpdatedObjects)
+//            {
+//                if (obj.Key == reference.Id)
+//                {
+//                    return obj.Value;
+//                }
+//            }
+//        }
 
-        return await _pdfFileNavigator.DereferenceIndirectObjectAsync(reference);
-    }
+//        return await _pdfFileNavigator.DereferenceIndirectObjectAsync(reference);
+//    }
 
-    public async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
-        => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
+//    public async Task<T> DereferenceIndirectObjectAsync<T>(IndirectObjectReference reference) where T : PdfObject
+//        => (T)(await DereferenceIndirectObjectAsync(reference)).Children.First();
 
-    public async Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync()
-    {
-        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
+//    public async Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync()
+//    {
+//        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
-        // Concatenate unsaved entries with existing objects
-        var updateDictionary = latestIncrementalUpdate.NewOrUpdatedObjects
-            .ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false));
+//        // Concatenate unsaved entries with existing objects
+//        var updateDictionary = latestIncrementalUpdate.NewOrUpdatedObjects
+//            .ToDictionary(e => e.Id.Index, e => new CrossReferenceEntry(0, 0, inUse: true, compressed: false));
 
-        var existingXrefs = await _pdfFileNavigator.GetAggregateCrossReferencesAsync();
+//        var existingXrefs = await _pdfFileNavigator.GetAggregateCrossReferencesAsync();
 
-        updateDictionary.MergeInto(await _pdfFileNavigator.GetAggregateCrossReferencesAsync());
+//        updateDictionary.MergeInto(await _pdfFileNavigator.GetAggregateCrossReferencesAsync());
 
-        return existingXrefs;
-    }
+//        return existingXrefs;
+//    }
 
-    public Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync()
-    {
-        return _pdfFileNavigator.GetLinearizationDictionaryAsync();
-    }
+//    public Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync()
+//    {
+//        return _pdfFileNavigator.GetLinearizationDictionaryAsync();
+//    }
 
-    public async Task<IEnumerable<IndirectObject>> GetPagesAsync()
-    {
-        var originalPages = await _pdfFileNavigator.GetPagesAsync();
+//    public async Task<IEnumerable<IndirectObject>> GetPagesAsync()
+//    {
+//        var originalPages = await _pdfFileNavigator.GetPagesAsync();
 
-        var newOrUpdatedPages = Updates
-            .SelectMany(x => x.NewOrUpdatedObjects);
+//        var newOrUpdatedPages = Updates
+//            .SelectMany(x => x.NewOrUpdatedObjects);
 
-        // TODO: ensure new pages override old ones
-        return originalPages.Except(newOrUpdatedPages);
-    }
+//        // TODO: ensure new pages override old ones
+//        return originalPages.Except(newOrUpdatedPages);
+//    }
 
-    public async Task<IndirectObject> GetRootPageTreeNodeAsync()
-    {
-        var rootPageTreeNode = await _pdfFileNavigator.GetRootPageTreeNodeAsync();
+//    public async Task<IndirectObject> GetRootPageTreeNodeAsync()
+//    {
+//        var rootPageTreeNode = await _pdfFileNavigator.GetRootPageTreeNodeAsync();
 
-        return await DereferenceIndirectObjectAsync(rootPageTreeNode.Id.Reference);
-    }
+//        return await DereferenceIndirectObjectAsync(rootPageTreeNode.Id.Reference);
+//    }
 
-    /// <summary>
-    /// Gets the latest trailer which has been written to the file.
-    /// </summary>
-    public async Task<Trailer?> GetRootTrailerAsync()
-    {
-        var workingUpdate = GetWorkingIncrementalUpdate();
+//    /// <summary>
+//    /// Gets the latest trailer which has been written to the file.
+//    /// </summary>
+//    public async Task<Trailer?> GetRootTrailerAsync()
+//    {
+//        var workingUpdate = GetWorkingIncrementalUpdate();
 
-        return Updates.LastOrDefault(u => u.Written)?.Trailer
-            ?? await _pdfFileNavigator.GetRootTrailerAsync();
-    }
+//        return Updates.LastOrDefault(u => u.Written)?.Trailer
+//            ?? await _pdfFileNavigator.GetRootTrailerAsync();
+//    }
 
-    /// <summary>
-    /// Gets the latest trailer dictionary which has been written to the file.
-    /// </summary>
-    public async Task<ITrailerDictionary> GetRootTrailerDictionaryAsync()
-    {
-        var workingUpdate = GetWorkingIncrementalUpdate();
+//    /// <summary>
+//    /// Gets the latest trailer dictionary which has been written to the file.
+//    /// </summary>
+//    public async Task<ITrailerDictionary> GetRootTrailerDictionaryAsync()
+//    {
+//        var workingUpdate = GetWorkingIncrementalUpdate();
 
-        var lastWrittenUpdate = Updates.LastOrDefault(u => u.Written);
+//        var lastWrittenUpdate = Updates.LastOrDefault(u => u.Written);
 
-        return lastWrittenUpdate?.TrailerDictionary
-            ?? lastWrittenUpdate?.Trailer?.Dictionary
-            ?? await _pdfFileNavigator.GetRootTrailerDictionaryAsync();
+//        return lastWrittenUpdate?.TrailerDictionary
+//            ?? lastWrittenUpdate?.Trailer?.Dictionary
+//            ?? await _pdfFileNavigator.GetRootTrailerDictionaryAsync();
 
-    }
+//    }
 
-    public async Task<IndirectObjectId> GetFreeIndexAsync()
-    {
-        var xrefs = await GetAggregateCrossReferencesAsync();
+//    public async Task<IndirectObjectId> GetFreeIndexAsync()
+//    {
+//        var xrefs = await GetAggregateCrossReferencesAsync();
 
-        IndirectObjectId newObjectId;
-        var free = xrefs.FirstOrDefault(x => !x.Value.InUse);
-        if (free.Key != 0)
-        {
-            newObjectId = new IndirectObjectId(free.Key, free.Value.Value2);
-        }
-        else
-        {
-            newObjectId = new IndirectObjectId(xrefs.Count + 1, 0);
-        }
+//        IndirectObjectId newObjectId;
+//        var free = xrefs.FirstOrDefault(x => !x.Value.InUse);
+//        if (free.Key != 0)
+//        {
+//            newObjectId = new IndirectObjectId(free.Key, free.Value.Value2);
+//        }
+//        else
+//        {
+//            newObjectId = new IndirectObjectId(xrefs.Count + 1, 0);
+//        }
 
-        return newObjectId;
-    }
+//        return newObjectId;
+//    }
 
-    public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject)
-    {
-        ArgumentNullException.ThrowIfNull(pdfObject);
+//    public async Task<IndirectObject> AddNewObjectAsync(PdfObject pdfObject)
+//    {
+//        ArgumentNullException.ThrowIfNull(pdfObject);
 
-        IndirectObjectId newObjectId = await GetFreeIndexAsync();
+//        IndirectObjectId newObjectId = await GetFreeIndexAsync();
 
-        var indirectObject = new IndirectObject(newObjectId, pdfObject);
+//        var indirectObject = new IndirectObject(newObjectId, pdfObject);
 
-        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
+//        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
-        latestIncrementalUpdate.NewObjects.Add(indirectObject);
+//        latestIncrementalUpdate.NewObjects.Add(indirectObject);
 
-        return indirectObject;
-    }
+//        return indirectObject;
+//    }
 
-    public void UpdateObject(IndirectObject indirectObject)
-    {
-        ArgumentNullException.ThrowIfNull(indirectObject);
+//    public void UpdateObject(IndirectObject indirectObject)
+//    {
+//        ArgumentNullException.ThrowIfNull(indirectObject);
 
-        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
+//        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
-        latestIncrementalUpdate.UpdatedObjects[indirectObject.Id] = indirectObject;
-    }
+//        latestIncrementalUpdate.UpdatedObjects[indirectObject.Id] = indirectObject;
+//    }
 
-    public void DeleteObject(IndirectObjectId indirectObjectId)
-    {
-        ArgumentNullException.ThrowIfNull(indirectObjectId);
+//    public void DeleteObject(IndirectObjectId indirectObjectId)
+//    {
+//        ArgumentNullException.ThrowIfNull(indirectObjectId);
 
-        indirectObjectId.GenerationNumber++;
+//        indirectObjectId.GenerationNumber++;
 
-        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
+//        var latestIncrementalUpdate = GetWorkingIncrementalUpdate();
 
-        latestIncrementalUpdate.DeletedObjects.Add(indirectObjectId);
-    }
-}
+//        latestIncrementalUpdate.DeletedObjects.Add(indirectObjectId);
+//    }
+//}

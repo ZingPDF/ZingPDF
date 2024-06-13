@@ -2,7 +2,7 @@
 using ZingPDF.ObjectModel.FileStructure.CrossReferences;
 using ZingPDF.ObjectModel.Objects;
 
-namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences.CrossReferenceTables
+namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceEntryParser : IPdfObjectParser<CrossReferenceEntry>
     {

@@ -13,6 +13,7 @@
 //using ZingPDF.ObjectModel.Objects;
 //using ZingPDF.ObjectModel.Objects.IndirectObjects;
 //using ZingPDF.ObjectModel.Objects.Streams;
+//using ZingPDF.Parsing.Parsers;
 
 //namespace ZingPDF.Parsing;
 
@@ -111,54 +112,6 @@
 //    public Task<IEnumerable<IndirectObject>> GetPagesAsync() => _pages.Task;
 
 //    public Task<IndirectObject> GetRootPageTreeNodeAsync() => _rootPageTreeNode.Task;
-
-//    public async Task<Dictionary<int, CrossReferenceEntry>> GetAggregateCrossReferencesAsync()
-//    {
-//        Logger.Log(LogLevel.Trace, $"Aggregating cross references");
-
-//        Dictionary<int, CrossReferenceEntry> xrefs = [];
-
-//        // To aggregate all cross references
-//        // - check if PDF is linearized
-//        // - - presence of linearization dictionary in first 1024 bytes
-//        // - - dictionary L value is identical to stream length
-//        // - search for startxref keyword
-//        // - - for linearized files, search from top
-//        // - - for non-linearized files, search from bottom
-//        // - following the startxref keyword is a byte offset
-//        // - go to offset and identify
-//        // - - if we find the keyword xref, it's a table
-//        // - - if we find an indirect object containing a stream, it's an xref stream
-
-//        var objectFinder = new ObjectFinder();
-
-//        // PDF is linearized if there is a linearization dictionary, AND
-//        // the length value (L) is identical to the length of the stream.
-//        // A mismatch indicates the file has had at least one incremental update applied,
-//        // and should be considered to not be linearized.
-//        LinearizationParameterDictionary? linearizationDictionary = await GetLinearizationDictionaryAsync();
-//        var isLinearized = linearizationDictionary != null && linearizationDictionary.L == _stream.Length;
-
-//        if (linearizationDictionary != null && !isLinearized)
-//        {
-//            Logger.Log(LogLevel.Trace, "Treating file as non-linearised, as it has been updated since linearisation.");
-//        }
-
-//        // First, find the startxref keyword
-//        var offset = await objectFinder.FindAsync(_stream, Constants.StartXref, forwards: isLinearized)
-//            ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
-
-//        _stream.Position = offset;
-//        await _stream.AdvanceBeyondNextAsync(Constants.StartXref);
-
-//        var xrefOffset = await Parser.For<Integer>().ParseAsync(_stream);
-
-//        _stream.Position = xrefOffset;
-
-//        await ParseCrossReferencesAsync(xrefs);
-
-//        return xrefs;
-//    }
 
 //    private void SetupLazyProperties()
 //    {
@@ -298,22 +251,22 @@
 //        });
 //    }
 
-//    private AsyncLazy<IndirectObject> SetupLazyRootPageTreeNode()
-//    {
-//        return new AsyncLazy<IndirectObject>(async () =>
-//        {
-//            Logger.Log(LogLevel.Trace, $"Searching for root page tree node");
+//    //private AsyncLazy<IndirectObject> SetupLazyRootPageTreeNode()
+//    //{
+//    //    return new AsyncLazy<IndirectObject>(async () =>
+//    //    {
+//    //        Logger.Log(LogLevel.Trace, $"Searching for root page tree node");
 
-//            var trailerDictionary = await GetRootTrailerDictionaryAsync();
+//    //        var trailerDictionary = await GetRootTrailerDictionaryAsync();
 
-//            var documentCatalog = await DereferenceIndirectObjectAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
+//    //        var documentCatalog = await DereferenceIndirectObjectAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
 
-//            var xrefs = await GetAggregateCrossReferencesAsync();
-//            var xref = xrefs[documentCatalog.Pages.Id.Index];
+//    //        var xrefs = await GetAggregateCrossReferencesAsync();
+//    //        var xref = xrefs[documentCatalog.Pages.Id.Index];
 
-//            return await DereferenceIndirectObjectAsync(documentCatalog.Pages);
-//        });
-//    }
+//    //        return await DereferenceIndirectObjectAsync(documentCatalog.Pages);
+//    //    });
+//    //}
 
 //    private AsyncLazy<IEnumerable<IndirectObject>> SetupLazyPages()
 //    {
@@ -325,146 +278,6 @@
 
 //            return await GetSubPagesAsync(rootPageTreeNode);
 //        });
-//    }
-
-//    private async Task ParseCrossReferencesAsync(Dictionary<int, CrossReferenceEntry> xrefs)
-//    {
-//        // The offset specified after the startxref keyword will either be an xref table, or stream.
-//        var type = await TokenTypeIdentifier.TryIdentifyAsync(_stream)
-//            ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
-
-//        var item = await Parser.For(type).ParseAsync(_stream);
-
-//        if (item is IndirectObject io
-//            && io.Children.First() is IStreamObject<IStreamDictionary> streamObject
-//            && streamObject.Dictionary is CrossReferenceStreamDictionary)
-//        {
-//            UsingXrefStreams = true;
-//            await ParseCrossReferenceStreamAsync(streamObject, xrefs);
-//        }
-//        else if (item is Keyword k && k == Constants.Xref)
-//        {
-//            UsingXrefTables = true;
-//            await ParseCrossReferenceTableAsync(xrefs);
-//        }
-//        else
-//        {
-//            throw new InvalidOperationException("Unable to find PDF cross references.");
-//        }
-//    }
-
-//    private async Task ParseCrossReferenceStreamAsync(IStreamObject<IStreamDictionary> crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
-//    {
-//        var xrefStreamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
-
-//        // Get the indices for each subsection
-//        List<CrossReferenceSectionIndex> xrefIndices = [];
-//        if (xrefStreamDictionary.Index is null)
-//        {
-//            // Index defaults to a start index of zero, and the size for the count.
-//            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStreamDictionary.Size));
-//        }
-//        else
-//        {
-//            // Index contains a pair of integers for each subsection
-//            // representing the start index and count
-//            for (var i = 0; i < xrefStreamDictionary.Index.Count(); i += 2)
-//            {
-//                xrefIndices.Add(
-//                    new CrossReferenceSectionIndex(
-//                        xrefStreamDictionary.Index.Get<Integer>(i)!,
-//                        xrefStreamDictionary.Index.Get<Integer>(i + 1)!
-//                        )
-//                    );
-//            }
-//        }
-
-//        var xrefData = await (await crossReferenceStream.GetDecompressedDataAsync()).ReadToEndAsync();
-//        var entrySize = xrefStreamDictionary.W.Sum(x => (x as Integer)!);
-
-//        var field1Size = xrefStreamDictionary.W.Get<Integer>(0)!;
-//        var field2Size = xrefStreamDictionary.W.Get<Integer>(1)!;
-//        var field3Size = xrefStreamDictionary.W.Get<Integer>(2)!;
-
-//        for (int i = 0; i < xrefIndices.Count; i++)
-//        {
-//            CrossReferenceSectionIndex? index = xrefIndices[i];
-
-//            var sectionOffset = index.StartIndex * entrySize;
-
-//            for (var j = 0; j < index.Count; j++)
-//            {
-//                var entryOffset = (i + j) * entrySize;
-//                var entryData = xrefData[entryOffset..(entryOffset + entrySize)];
-
-//                // Default entry type is 1 ('in use' object)
-//                var entryType = (byte)1;
-
-//                if (field1Size != 0)
-//                {
-//                    entryType = entryData[0];
-//                }
-
-//                int field2 = ExtractField(entryData, field1Size, field2Size);
-//                int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
-
-//                xrefs.TryAdd(index.StartIndex + j, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2));
-//            }
-//        }
-
-//        if (xrefStreamDictionary.Prev is not null)
-//        {
-//            _stream.Position = xrefStreamDictionary.Prev;
-
-//            await ParseCrossReferencesAsync(xrefs);
-//        }
-//    }
-
-//    private async Task ParseCrossReferenceTableAsync(Dictionary<int, CrossReferenceEntry> xrefs)
-//    {
-//        var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(_stream);
-
-//        foreach (var section in xrefTable.Sections)
-//        {
-//            var maxIndex = section.Index.StartIndex + section.Entries.Count;
-
-//            for (var i = section.Index.StartIndex; i < maxIndex; i++)
-//            {
-//                var entry = section.Entries[i];
-
-//                xrefs.TryAdd(i, entry);
-//            }
-//        }
-
-//        var trailer = await Parser.For<Trailer>().ParseAsync(_stream);
-
-//        if (trailer.Dictionary.Prev is not null)
-//        {
-//            _stream.Position = trailer.Dictionary.Prev;
-
-//            await ParseCrossReferencesAsync(xrefs);
-//        }
-//    }
-
-//    /// <summary>
-//    /// Function to extract multi-byte fields
-//    /// </summary>
-//    /// <remarks>
-//    /// The field is stored in big-endian order, where the most significant byte is at the lowest memory address.
-//    /// The function iterates over each byte in the field, masks out the lower 8 bits,
-//    /// and left-shifts the value by an appropriate amount based on its position in the field.
-//    /// The result is accumulated to reconstruct the final field value.
-//    /// </remarks>
-//    private static int ExtractField(byte[] data, int startIndex, int fieldSize)
-//    {
-//        int fieldValue = 0;
-
-//        for (var i = 0; i < fieldSize; i++)
-//        {
-//            fieldValue += (data[i + startIndex] & 0x00FF) << (fieldSize - i - 1) * 8;
-//        }
-
-//        return fieldValue;
 //    }
 //}
 
