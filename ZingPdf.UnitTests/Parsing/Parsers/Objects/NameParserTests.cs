@@ -2,7 +2,7 @@
 using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Parsing.PrimitiveParsers;
+namespace ZingPDF.Parsing.Parsers.Objects;
 
 public class NameParserTests
 {
