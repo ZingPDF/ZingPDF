@@ -9,6 +9,7 @@ using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing
 {
