@@ -4,7 +4,7 @@ using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.ObjectModel.Objects;
 
-namespace ZingPDF.Parsing.ObjectGroupParsers;
+namespace ZingPDF.Parsing.Parsers;
 
 public class PdfObjectGroupParserTests
 {

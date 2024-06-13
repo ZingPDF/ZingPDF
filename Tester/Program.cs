@@ -50,14 +50,14 @@ static async Task ParseResaveValidate(string input, string output)
     //var errors = ValidatePdf("Before", inputFileStream).ToList();
     //inputFileStream.Position = 0;
 
-    var pdf = Pdf.Load(inputFileStream);
+    var pdf = await ReadOnlyPdf.LoadAsync(inputFileStream);
 
     var count1 = await pdf.GetPageCountAsync();
 
-    await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
+    //await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     // pdf.DeletePageAsync(1);
 
-    var count2 = await pdf.GetPageCountAsync();
+    //var count2 = await pdf.GetPageCountAsync();
 
     //await pdf.AppendPageAsync();
 
@@ -65,9 +65,9 @@ static async Task ParseResaveValidate(string input, string output)
 
     //var test = await pdf.GetPageAsync(1);
 
-    using var outputFileStream = new FileStream(output, FileMode.Create);
+    //using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    await pdf.SaveAsync(outputFileStream);
+    //await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
 

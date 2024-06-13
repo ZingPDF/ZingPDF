@@ -1,7 +1,7 @@
 ﻿using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Parsing.DataStructures;
+namespace ZingPDF.Parsing.Parsers.DataStructures;
 
 public class DateParserTests
 {
