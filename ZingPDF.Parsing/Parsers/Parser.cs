@@ -8,7 +8,7 @@ using ZingPDF.ObjectModel.Objects.IndirectObjects;
 using ZingPDF.ObjectModel.Objects.Streams;
 using ZingPDF.Parsing.Parsers.DataStructures;
 using ZingPDF.Parsing.Parsers.FileStructure;
-using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences.CrossReferenceTables;
+using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Parsing.Parsers.Objects;
 
 namespace ZingPDF.Parsing.Parsers

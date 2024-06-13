@@ -4,7 +4,6 @@ using ZingPDF.Logging;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.Streams;
-using ZingPDF.Objects.Primitives.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {

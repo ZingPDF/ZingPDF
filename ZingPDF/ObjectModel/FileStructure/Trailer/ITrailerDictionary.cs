@@ -3,7 +3,7 @@ using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.ObjectModel.FileStructure.Trailer
 {
-    public interface ITrailerDictionary : IPdfObject, IDictionary<Name, IPdfObject>
+    internal interface ITrailerDictionary : IPdfObject, IDictionary<Name, IPdfObject>
     {
         Dictionary? Encrypt { get; }
         ArrayObject? ID { get; }
