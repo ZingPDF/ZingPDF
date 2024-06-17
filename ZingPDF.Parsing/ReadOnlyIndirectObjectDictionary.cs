@@ -7,11 +7,12 @@ using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;
 
-public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs)
+public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs) : IIndirectObjectDictionary
 {
     private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = [];
     private readonly Stream _stream = stream ?? throw new ArgumentNullException(nameof(stream));
-    private readonly Dictionary<int, CrossReferenceEntry> _xrefs = xrefs;
+
+    public int Count => xrefs.Count;
 
     /// <summary>
     /// Returns the latest Indirect Object matching the given reference.
@@ -22,7 +23,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
 
         var indirectObject = await GetOrAddAsync(key, async () =>
         {
-            if (!_xrefs.TryGetValue(key.Id.Index, out CrossReferenceEntry? xref))
+            if (!xrefs.TryGetValue(key.Id.Index, out CrossReferenceEntry? xref))
             {
                 return null;
             }
@@ -37,8 +38,8 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
 
                 var objStreamIndirectObject = await GetAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)))
                     ?? throw new InvalidOperationException($"Error attempting to parse {key}. Unable to find parent object stream {xref.Value1}");
-                
-                var objectStream = (objStreamIndirectObject.Children.First() as IStreamObject<IStreamDictionary>)!;
+
+                var objectStream = objStreamIndirectObject.Get<IStreamObject<IStreamDictionary>>()!;
                 var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
                 // TODO: cache decompressed stream data?
@@ -91,6 +92,14 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
         var io = await GetAsync(key);
 
         return io == null ? default : (T)io.Children.First();
+    }
+
+    public List<IndirectObjectId> GetFreeIds()
+    {
+        return xrefs
+            .Where(x => !x.Value.InUse)
+            .Select(x => new IndirectObjectId(x.Key, x.Value.Value2))
+            .ToList();
     }
 
     private async Task<IndirectObject?> GetOrAddAsync(
