@@ -27,9 +27,9 @@ internal class PageTree
         });
     }
 
-    public async Task<Page> GetAsync(int pageNumber)
+    public async Task<IndirectObject> GetAsync(int pageNumber)
     {
-        return (Page)(await _pages)[pageNumber - 1].Children.First();
+        return (await _pages)[pageNumber - 1];
     }
 
     public async Task<int> GetPageCountAsync()
