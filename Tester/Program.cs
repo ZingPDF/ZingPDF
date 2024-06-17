@@ -58,7 +58,7 @@ static async Task ParseResaveValidate(string input, string output)
     //var errors = ValidatePdf("Before", inputFileStream).ToList();
     //inputFileStream.Position = 0;
 
-    var pdf = await ReadOnlyPdf.LoadAsync(inputFileStream);
+    var pdf = await Pdf.OpenAsync(inputFileStream);
 
     var count1 = await pdf.GetPageCountAsync();
 
