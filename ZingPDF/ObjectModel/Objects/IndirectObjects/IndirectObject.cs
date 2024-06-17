@@ -18,6 +18,8 @@ namespace ZingPDF.ObjectModel.Objects.IndirectObjects
         public IndirectObjectId Id { get; }
         public List<IPdfObject> Children { get; }
 
+        public T Get<T>(int index = 0) => (T)Children[index];
+
         protected override async Task WriteOutputAsync(Stream stream)
         {
             // e.g.
