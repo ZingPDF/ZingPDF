@@ -1,157 +1,139 @@
-﻿//using ZingPDF.Extensions;
-//using ZingPDF.ObjectModel;
-//using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-//using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
-//using ZingPDF.ObjectModel.FileStructure.Trailer;
-//using ZingPDF.ObjectModel.Objects;
-//using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Extensions;
+using ZingPDF.ObjectModel;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences;
+using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.FileStructure.Trailer;
+using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-//namespace ZingPDF.Parsing.IncrementalUpdates
-//{
-//    internal class IncrementalUpdate : PdfObject
-//    {
-//        private readonly EditablePdfNavigator _pdfNavigator;
-//        private readonly IncrementalUpdateOptions _options;
+namespace ZingPDF.Parsing.IncrementalUpdates
+{
+    internal class IncrementalUpdate : PdfObject
+    {
+        private readonly IndirectObjectManager _indirectObjectManager;
 
-//        public IncrementalUpdate(
-//            EditablePdfNavigator pdfNavigator,
-//            IncrementalUpdateOptions? options = null
-//            )
-//        {
-//            _pdfNavigator = pdfNavigator ?? throw new ArgumentNullException(nameof(pdfNavigator));
+        private readonly ReadOnlyPdf _sourcePdf;
+        private readonly IncrementalUpdateOptions _options;
 
-//            _options = options ?? IncrementalUpdateOptions.Default;
-//        }
+        public IncrementalUpdate(
+            ReadOnlyPdf sourcePdf,
+            IndirectObjectManager indirectObjectManager,
+            IncrementalUpdateOptions? options = null
+            )
+        {
+            _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
+            _indirectObjectManager = indirectObjectManager ?? throw new ArgumentNullException(nameof(indirectObjectManager));
+            _options = options ?? IncrementalUpdateOptions.Default;
+        }
 
-//        public List<IndirectObject> NewObjects { get; } = [];
-//        public Dictionary<IndirectObjectId, IndirectObject> UpdatedObjects { get; } = [];
-//        public List<IndirectObjectId> DeletedObjects { get; } = [];
+        protected override async Task WriteOutputAsync(Stream stream)
+        {
+            if (_indirectObjectManager.NewOrUpdatedObjects.Count == 0 && _indirectObjectManager.DeletedObjects.Count == 0)
+            {
+                return;
+            }
 
-//        public List<IndirectObject> NewOrUpdatedObjects { get => UpdatedObjects.Values.Concat(NewObjects).ToList(); }
+            var xrefGenerator = new CrossReferenceGenerator();
 
-//        /// <summary>
-//        /// This will be null until the update is written to the file.
-//        /// </summary>
-//        public Trailer? Trailer { get; private set; }
+            await stream.WriteNewLineAsync();
 
-//        /// <summary>
-//        /// This will be null until the update is written to the file.
-//        /// </summary>
-//        public ITrailerDictionary? TrailerDictionary { get; private set; }
+            // Write all updated and new objects to the output stream
+            foreach (var entry in _indirectObjectManager.NewOrUpdatedObjects)
+            {
+                await entry.WriteAsync(stream);
+            }
 
-//        protected override async Task WriteOutputAsync(Stream stream)
-//        {
-//            var xrefGenerator = new CrossReferenceGenerator();
+            var size = _sourcePdf.TrailerDictionary.Size + _indirectObjectManager.NewObjects.Count;
 
-//            await stream.WriteNewLineAsync();
+            // The prev value points to the previous latest xref table or stream.
+            // If the current PDF has a trailer, prev should be the same as the current startxref value.
+            // If the current PDF instead uses an xref stream dictionary, prev is going to be the offset of the stream dictionary
+            long prev = _sourcePdf.Trailer?.XrefTableByteOffset ?? _sourcePdf.TrailerDictionary.ByteOffset!.Value;
 
-//            // Write all updated and new objects to the output stream
-//            foreach (var entry in UpdatedObjects.Values.Concat(NewObjects))
-//            {
-//                await entry.WriteAsync(stream);
-//            }
+            if (_options.RenderCrossReferencesAsStream)
+            {
+                // When rendering as an xref stream, the stream itself needs to be present as a reference within itself.
+                // To acheive this, create a dummy indirect object, with its fake byte offset set to the current stream position.
+                // Then build the xref stream, including the dummy object.
+                // As long as the next thing written is the xref stream, its byte offset will be correct.
 
-//            Trailer? latestTrailer = await _pdfNavigator.GetRootTrailerAsync();
-//            ITrailerDictionary latestTrailerDictionary = latestTrailer?.Dictionary ?? await _pdfNavigator.GetRootTrailerDictionaryAsync();
+                IndirectObjectId newObjectId = _indirectObjectManager.GetNextFreeId();
 
-//            var size = latestTrailerDictionary.Size + NewObjects.Count;
+                var xrefStreamIndirectObject = new DummyIndirectObject(newObjectId, stream.Position);
 
-//            if (_options.RenderCrossReferencesAsStream)
-//            {
-//                // When rendering as an xref stream, the stream itself needs to be present as a reference within itself.
-//                // To acheive this, create a dummy indirect object, with its fake byte offset set to the current stream position.
-//                // Then build the xref stream, including the dummy object.
-//                // As long as the next thing written is the xref stream, its byte offset will be correct.
+                _indirectObjectManager.NewObjects.Add(xrefStreamIndirectObject);
 
-//                IndirectObjectId newObjectId = await _pdfNavigator.GetFreeIndexAsync();
+                List<CrossReferenceSection> xrefSections = xrefGenerator.Generate(
+                    _indirectObjectManager.NewOrUpdatedObjects,
+                    _indirectObjectManager.DeletedObjects
+                    );
 
-//                var xrefStreamIndirectObject = new DummyIndirectObject(newObjectId, stream.Position);
+                // +1 because the new xref stream should be included in the count
+                size++;
 
-//                NewObjects.Add(xrefStreamIndirectObject);
+                var xrefStream = new CrossReferenceStream(
+                    xrefSections,
+                    null,
+                    //new[] { new FlateDecodeFilter(filterParams: null) },
+                    //new[] { new ASCIIHexDecodeFilter() },
+                    size,
+                    prev,
+                    _sourcePdf.TrailerDictionary.Root,
+                    _sourcePdf.TrailerDictionary.Encrypt,
+                    _sourcePdf.TrailerDictionary.Info,
+                    _sourcePdf.TrailerDictionary.ID
+                    );
 
-//                List<CrossReferenceSection> xrefSections = xrefGenerator.Generate(NewOrUpdatedObjects, DeletedObjects);
+                xrefStreamIndirectObject.Children.Clear();
+                xrefStreamIndirectObject.Children.Add(xrefStream);
 
-//                // +1 because the new xref stream should be included in the count
-//                size++;
+                await xrefStreamIndirectObject.WriteAsync(stream);
 
-//                var latestXrefStreamDict = latestTrailerDictionary as CrossReferenceStreamDictionary
-//                    ?? throw new InvalidOperationException("Internal Error: {59D30CD9-D2DB-4418-B59E-033538307C68}");
+                await new Keyword(Constants.StartXref).WriteAsync(stream);
+                await stream.WriteNewLineAsync();
 
-//                var prev = await _pdfNavigator.GetStartXrefAsync();
+                await new Integer(xrefStreamIndirectObject.ByteOffset!.Value).WriteAsync(stream);
+                await stream.WriteNewLineAsync();
 
-//                var xrefStream = new CrossReferenceStream(
-//                    xrefSections,
-//                    null,
-//                    //new[] { new FlateDecodeFilter(filterParams: null) },
-//                    //new[] { new ASCIIHexDecodeFilter() },
-//                    size,
-//                    prev,
-//                    latestXrefStreamDict.Root,
-//                    latestXrefStreamDict.Encrypt,
-//                    latestXrefStreamDict.Info,
-//                    latestXrefStreamDict.ID
-//                    );
+                await new Keyword(Constants.Eof).WriteAsync(stream);
+            }
+            else
+            {
+                List<CrossReferenceSection> xrefSections = xrefGenerator.Generate(
+                    _indirectObjectManager.NewOrUpdatedObjects,
+                    _indirectObjectManager.DeletedObjects
+                    );
 
-//                xrefStreamIndirectObject.Children.Clear();
-//                xrefStreamIndirectObject.Children.Add(xrefStream);
+                var xrefTable = new CrossReferenceTable(xrefSections);
+                await xrefTable.WriteAsync(stream);
 
-//                await xrefStreamIndirectObject.WriteAsync(stream);
+                var trailer = new Trailer(
+                    TrailerDictionary.CreateNew(
+                        size,
+                        prev,
+                        _sourcePdf.TrailerDictionary.Root,
+                        _sourcePdf.TrailerDictionary.Encrypt,
+                        _sourcePdf.TrailerDictionary.Info,
+                        _sourcePdf.TrailerDictionary.ID
+                        ),
+                    xrefTable.ByteOffset!.Value
+                    );
 
-//                await new Keyword(Constants.StartXref).WriteAsync(stream);
-//                await stream.WriteNewLineAsync();
+                await trailer.WriteAsync(stream);
+            }
 
-//                await new Integer(xrefStreamIndirectObject.ByteOffset!.Value).WriteAsync(stream);
-//                await stream.WriteNewLineAsync();
+            // TODO: account for the use of features which should increase the pdf version
 
-//                await new Keyword(Constants.Eof).WriteAsync(stream);
+            // TODO: do we need to amend metadata to change PDF Producer?
+        }
 
-//                TrailerDictionary = xrefStream.Dictionary;
-//            }
-//            else
-//            {
-//                List<CrossReferenceSection> xrefSections = xrefGenerator.Generate(NewOrUpdatedObjects, DeletedObjects);
-
-//                var xrefTable = new CrossReferenceTable(xrefSections);
-//                await xrefTable.WriteAsync(stream);
-
-//                long previousXrefOffset;
-
-//                if (latestTrailer is null)
-//                {
-//                    previousXrefOffset = latestTrailerDictionary.ByteOffset!.Value;
-//                }
-//                else
-//                {
-//                    previousXrefOffset = latestTrailer.XrefTableByteOffset;
-//                }
-
-//                Trailer = new Trailer(
-//                    ObjectModel.FileStructure.Trailer.TrailerDictionary.CreateNew(
-//                        size,
-//                        previousXrefOffset,
-//                        latestTrailerDictionary.Root,
-//                        latestTrailerDictionary.Encrypt,
-//                        latestTrailerDictionary.Info,
-//                        latestTrailerDictionary.ID
-//                        ),
-//                    xrefTable.ByteOffset!.Value
-//                    );
-
-//                await Trailer.WriteAsync(stream);
-//            }
-
-//            // TODO: account for the use of features which should increase the pdf version
-
-//            // TODO: do we need to amend metadata to change PDF Producer?
-//        }
-
-//        private class DummyIndirectObject : IndirectObject
-//        {
-//            public DummyIndirectObject(IndirectObjectId id, long byteOffset)
-//                : base(id)
-//            {
-//                ByteOffset = byteOffset;
-//            }
-//        }
-//    }
-//}
+        private class DummyIndirectObject : IndirectObject
+        {
+            public DummyIndirectObject(IndirectObjectId id, long byteOffset)
+                : base(id)
+            {
+                ByteOffset = byteOffset;
+            }
+        }
+    }
+}
