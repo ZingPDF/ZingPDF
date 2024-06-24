@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.Parsing
+﻿namespace ZingPDF
 {
 
     [Serializable]
