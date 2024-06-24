@@ -1,14 +1,14 @@
 ﻿using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing;
+namespace ZingPDF.IncrementalUpdates;
 
 internal class IndirectObjectManager : IIndirectObjectDictionary
 {
-    private readonly ReadOnlyIndirectObjectDictionary _sourceDictionary;
+    private readonly IIndirectObjectDictionary _sourceDictionary;
     private readonly Queue<IndirectObjectId> _freeIds;
 
-    public IndirectObjectManager(ReadOnlyIndirectObjectDictionary sourceDictionary)
+    public IndirectObjectManager(IIndirectObjectDictionary sourceDictionary)
     {
         _sourceDictionary = sourceDictionary ?? throw new ArgumentNullException(nameof(sourceDictionary));
 
@@ -25,11 +25,19 @@ internal class IndirectObjectManager : IIndirectObjectDictionary
 
     public async Task<IndirectObject?> GetAsync(IndirectObjectReference key)
     {
-        foreach (var obj in UpdatedObjects)
+        foreach (var obj in NewOrUpdatedObjects)
         {
-            if (obj.Key == key.Id)
+            if (obj.Id == key.Id)
             {
-                return obj.Value;
+                return obj;
+            }
+        }
+
+        foreach (var obj in DeletedObjects)
+        {
+            if (obj == key.Id)
+            {
+                return null;
             }
         }
 
@@ -81,5 +89,10 @@ internal class IndirectObjectManager : IIndirectObjectDictionary
         }
 
         return new IndirectObjectId(Count + 1, 0);
+    }
+
+    public List<IndirectObjectId> GetFreeIds()
+    {
+        throw new NotImplementedException();
     }
 }

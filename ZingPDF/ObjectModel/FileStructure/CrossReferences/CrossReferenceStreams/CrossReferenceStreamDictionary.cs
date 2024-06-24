@@ -14,49 +14,9 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
             public const string W = "W";
         }
 
-        private CrossReferenceStreamDictionary(
-            ArrayObject index,
-            ArrayObject w,
-            Integer size,
-            Integer? prev,
-            IndirectObjectReference root,
-            Dictionary? encrypt,
-            IndirectObjectReference? info,
-            ArrayObject? id
-            )
-        {
-            Index = index ?? throw new ArgumentNullException(nameof(index));
-            W = w ?? throw new ArgumentNullException(nameof(w));
-
-            Size = size;
-            Root = root;
-
-            if (prev is not null)
-            {
-                Prev = prev;
-            }
-
-            if (encrypt is not null)
-            {
-                Encrypt = encrypt;
-            }
-
-            if (info is not null)
-            {
-                Info = info;
-            }
-
-            if (id is not null)
-            {
-                ID = id;
-            }
-
-            Type = DictionaryKeys.XRef;
-        }
-
         private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
 
-        public Name Type { get => Get<Name>(Constants.DictionaryKeys.Type)!; set => Set(Constants.DictionaryKeys.Type, value); }
+        public Name Type => Get<Name>(Constants.DictionaryKeys.Type)!;
 
         #region CrossReferenceDictionary
 
@@ -67,7 +27,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// The array shall be sorted in ascending order by object number.
         /// Subsections cannot overlap; an object number shall have no more than one entry in a section.
         /// </summary>
-        public ArrayObject? Index { get => Get<ArrayObject>(DictionaryKeys.Index); private set => Set(DictionaryKeys.Index, value!); }
+        public ArrayObject? Index => Get<ArrayObject>(DictionaryKeys.Index);
 
 
         /// <summary>
@@ -83,7 +43,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// The sum of the items shall be the total length of each entry; it can be used with the Index array to determine the starting position of each subsection.
         /// Different cross-reference streams in a PDF file may use different values for W.
         /// </remarks>
-        public ArrayObject W { get => Get<ArrayObject>(DictionaryKeys.W)!; private set => Set(DictionaryKeys.W, value); }
+        public ArrayObject W => Get<ArrayObject>(DictionaryKeys.W)!;
 
         #endregion
 
@@ -93,7 +53,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// The number one greater than the highest object number used in this section or in any section for which this shall be an update.
         /// It shall be equivalent to the Size entry in a trailer dictionary.
         /// </summary>
-        public Integer Size { get => Get<Integer>(TrailerDictionary.DictionaryKeys.Size)!; private set => Set(TrailerDictionary.DictionaryKeys.Size, value); }
+        public Integer Size => Get<Integer>(TrailerDictionary.DictionaryKeys.Size)!;
 
         /// <summary>
         /// (Required, if any cross reference streams are already present in the file)
@@ -103,36 +63,28 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// This entry has the same function as the Prev entry in the trailer dictionary
         /// ("Table 15 — Entries in the file trailer dictionary").
         /// </summary>
-        public Integer? Prev { get => Get<Integer>(TrailerDictionary.DictionaryKeys.Prev); private set => Set(TrailerDictionary.DictionaryKeys.Prev, value!); }
+        public Integer? Prev => Get<Integer>(TrailerDictionary.DictionaryKeys.Prev);
 
         /// <summary>
         /// The catalog dictionary for the PDF file.
         /// </summary>
-        public IndirectObjectReference Root
-        {
-            get => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root)!;
-            private set => this[TrailerDictionary.DictionaryKeys.Root] = value;
-        }
+        public IndirectObjectReference Root => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root)!;
 
         /// <summary>
         /// Required if document is encrypted; Added in PDF 1.1.
         /// </summary>
-        public Dictionary? Encrypt
-        {
-            get => Get<Dictionary>(TrailerDictionary.DictionaryKeys.Encrypt);
-            private set => this[TrailerDictionary.DictionaryKeys.Encrypt] = value!;
-        }
+        public Dictionary? Encrypt => Get<Dictionary>(TrailerDictionary.DictionaryKeys.Encrypt);
 
         /// <summary>
         /// Optional. Deprecated in PDF 2.0. The PDF file's information dictionary.<para></para>
         /// N.B. The ModDate key within the Info dictionary is required if Page-Piece dictionaries are used. 
         /// </summary>
-        public IndirectObjectReference? Info { get => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info); private set => this[TrailerDictionary.DictionaryKeys.Info] = value!; }
+        public IndirectObjectReference? Info => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info);
 
         /// <summary>
         /// Required in PDF 2.0 and later, or if an Encrypt entry is present; optional otherwise; Added in PDF 1.1.
         /// </summary>
-        public ArrayObject? ID { get => Get<ArrayObject>(TrailerDictionary.DictionaryKeys.ID); private set => this[TrailerDictionary.DictionaryKeys.ID] = value!; }
+        public ArrayObject? ID => Get<ArrayObject>(TrailerDictionary.DictionaryKeys.ID);
 
         #endregion
 
@@ -145,7 +97,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// included in the count and is not logically part of the stream data.) 
         /// See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        public Integer Length { get => Get<Integer>(StreamDictionary.DictionaryKeys.Length)!; private set => Set(StreamDictionary.DictionaryKeys.Length, value); }
+        public Integer Length => Get<Integer>(StreamDictionary.DictionaryKeys.Length)!;
 
         /// <summary>
         /// The name, or an array of zero, one or several names, of filter(s) that shall be 
@@ -153,7 +105,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// Multiple filters shall be specified in the order in which they are to be applied.
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </summary>
-        public IPdfObject? Filter { get => Get<IPdfObject>(StreamDictionary.DictionaryKeys.Filter); private set => Set(StreamDictionary.DictionaryKeys.Filter, value!); }
+        public IPdfObject? Filter => Get<IPdfObject>(StreamDictionary.DictionaryKeys.Filter);
 
         /// <summary>
         /// A parameter dictionary or an array of such dictionaries, used by the filters 
@@ -168,7 +120,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// If none of the filters have parameters, or if all their parameters have default 
         /// values, the DecodeParms entry may be omitted.
         /// </summary>
-        public IPdfObject? DecodeParms { get => Get<IPdfObject>(StreamDictionary.DictionaryKeys.DecodeParms); private set => Set(StreamDictionary.DictionaryKeys.DecodeParms, value!); }
+        public IPdfObject? DecodeParms => Get<IPdfObject>(StreamDictionary.DictionaryKeys.DecodeParms);
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. 
@@ -178,28 +130,28 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// file data shall be specified by FFilter and the filter parameters shall be specified by FDecodeParms.
         /// </summary>
         // TODO: implement first class FileSpecificationDictionary
-        public Dictionary? F { get => Get<Dictionary>(StreamDictionary.DictionaryKeys.DecodeParms); private set => Set(StreamDictionary.DictionaryKeys.DecodeParms, value!); }
+        public Dictionary? F => Get<Dictionary>(StreamDictionary.DictionaryKeys.DecodeParms);
 
         /// <summary>
         /// (Optional; PDF 1.2) The name of a filter to be applied in processing the data 
         /// found in the stream’s external file, or an array of zero, one or several such names. 
         /// The same rules apply as for Filter.
         /// </summary>
-        public IPdfObject? FFilter { get => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter); private set => Set(StreamDictionary.DictionaryKeys.FFilter, value!); }
+        public IPdfObject? FFilter => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter);
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, 
         /// used by the filters specified by FFilter, respectively. 
         /// The same rules apply as for DecodeParms.
         /// </summary>
-        public IPdfObject? FDecodeParms { get => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter); private set => Set(StreamDictionary.DictionaryKeys.FFilter, value!); }
+        public IPdfObject? FDecodeParms => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter);
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        public Integer? DL { get => Get<Integer>(StreamDictionary.DictionaryKeys.DL); private set => Set(StreamDictionary.DictionaryKeys.DL, value!); }
+        public Integer? DL => Get<Integer>(StreamDictionary.DictionaryKeys.DL);
 
         #endregion
 
@@ -218,17 +170,45 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
             ArrayObject? id
             )
         {
-            if (index is null) throw new ArgumentNullException(nameof(index));
-            if (w is null) throw new ArgumentNullException(nameof(w));
-            if (size is null) throw new ArgumentNullException(nameof(size));
-            if (root is null) throw new ArgumentNullException(nameof(root));
+            ArgumentNullException.ThrowIfNull(index);
+            ArgumentNullException.ThrowIfNull(w);
+            ArgumentNullException.ThrowIfNull(size);
+            ArgumentNullException.ThrowIfNull(root);
 
-            return new(index, w, size, prev, root, encrypt, info, id);
+            var dict = new Dictionary<Name, IPdfObject>
+            {
+                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.XRef) },
+                { TrailerDictionary.DictionaryKeys.Size, size },
+                { TrailerDictionary.DictionaryKeys.Root, root },
+            };
+
+            if (prev is not null)
+            {
+                dict[TrailerDictionary.DictionaryKeys.Prev] = prev;
+            }
+
+            if (encrypt is not null)
+            {
+                dict[TrailerDictionary.DictionaryKeys.Encrypt] = encrypt;
+            }
+
+            if (info is not null)
+            {
+                dict[TrailerDictionary.DictionaryKeys.Info] = info;
+            }
+
+            if (id is not null)
+            {
+                dict[TrailerDictionary.DictionaryKeys.ID] = id;
+            }
+
+            return new(dict);
         }
 
         public static CrossReferenceStreamDictionary FromDictionary(Dictionary xrefStreamDictionary)
         {
-            if (xrefStreamDictionary is null) throw new ArgumentNullException(nameof(xrefStreamDictionary));
+            ArgumentNullException.ThrowIfNull(xrefStreamDictionary);
+
             if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != DictionaryKeys.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
