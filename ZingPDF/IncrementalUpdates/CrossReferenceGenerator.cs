@@ -1,7 +1,7 @@
 ﻿using ZingPDF.ObjectModel.FileStructure.CrossReferences;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing.IncrementalUpdates;
+namespace ZingPDF.IncrementalUpdates;
 
 internal class CrossReferenceGenerator
 {
