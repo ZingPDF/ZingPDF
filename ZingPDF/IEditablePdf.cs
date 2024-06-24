@@ -2,13 +2,7 @@
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 
-namespace ZingPDF.Parsing;
-
-public interface IPdf
-{
-    Task<int> GetPageCountAsync();
-    Task<Page> GetPageAsync(int pageNumber);
-}
+namespace ZingPDF;
 
 public interface IEditablePdf : IPdf
 {

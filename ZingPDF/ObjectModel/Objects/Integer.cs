@@ -6,7 +6,7 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.3 - Numeric objects
     /// </summary>
-    internal class Integer : PdfObject
+    public class Integer : PdfObject
     {
         public Integer(int value) : this((long)value) { }
 
