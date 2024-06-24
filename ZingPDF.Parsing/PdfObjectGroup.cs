@@ -19,7 +19,7 @@ namespace ZingPDF.Parsing
             => (T)Objects[index];
 
         public static implicit operator PdfObjectGroup(List<IPdfObject> items) => new() { Objects = items };
-        public static implicit operator PdfObjectGroup(IPdfObject[] items) => new() { Objects = items.ToList() };
+        public static implicit operator PdfObjectGroup(IPdfObject[] items) => new() { Objects = [..items] };
 
         protected void InsertNewLine() => Objects.Add(new NewLineObject());
 

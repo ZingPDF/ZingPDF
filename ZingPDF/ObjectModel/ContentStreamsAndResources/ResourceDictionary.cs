@@ -8,5 +8,9 @@ namespace ZingPDF.ObjectModel.ContentStreamsAndResources
     internal class ResourceDictionary : Dictionary
     {
         // TODO 
+
+        private ResourceDictionary(Dictionary dictionary) : base(dictionary)
+        {
+        }
     }
 }

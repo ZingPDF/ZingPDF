@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.Parsing.IncrementalUpdates
+﻿namespace ZingPDF.IncrementalUpdates
 {
     internal class IncrementalUpdateOptions
     {
