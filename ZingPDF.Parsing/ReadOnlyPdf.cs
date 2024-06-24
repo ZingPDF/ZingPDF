@@ -1,4 +1,6 @@
-﻿using ZingPDF.Linearization;
+﻿using Nito.AsyncEx;
+using ZingPDF.Extensions;
+using ZingPDF.Linearization;
 using ZingPDF.Logging;
 using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.DocumentStructure;
@@ -12,41 +14,71 @@ using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;
 
+/// <summary>
+/// Internal class 
+/// </summary>
 internal class ReadOnlyPdf : IPdf, IDisposable
 {
     private readonly Stream _pdfInputStream;
     private readonly LinearizationParameterDictionary? _linearizationDictionary;
 
+    private readonly AsyncLazy<PageTreeNode> _rootPageTreeNode;
+    private readonly AsyncLazy<List<IndirectObject>> _pages;
+
     private ReadOnlyPdf(
         Stream pdfInputStream,
         DocumentCatalogDictionary documentCatalog,
-        ReadOnlyIndirectObjectDictionary indirectObjectDictionary,
-        LinearizationParameterDictionary? linearizationDictionary,
         Trailer? trailer,
-        ITrailerDictionary trailerDictionary
+        ITrailerDictionary trailerDictionary,
+        ReadOnlyIndirectObjectDictionary indirectObjectDictionary,
+        LinearizationParameterDictionary? linearizationDictionary
         )
     {
         _pdfInputStream = pdfInputStream ?? throw new ArgumentNullException(nameof(pdfInputStream));
-
         DocumentCatalog = documentCatalog ?? throw new ArgumentNullException(nameof(documentCatalog));
-        IndirectObjects = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
-
-        _linearizationDictionary = linearizationDictionary;
         Trailer = trailer;
         TrailerDictionary = trailerDictionary ?? throw new ArgumentNullException(nameof(trailerDictionary));
+        IndirectObjects = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
+        _linearizationDictionary = linearizationDictionary;
 
-        PageTree = new PageTree(documentCatalog.Pages, IndirectObjects);
+        _rootPageTreeNode = new AsyncLazy<PageTreeNode>(async () =>
+        {
+            return await IndirectObjects.GetAsync<PageTreeNode>(documentCatalog.Pages)
+                ?? throw new InvalidPdfException("Unable to find root page tree node");
+        });
+
+        _pages = new AsyncLazy<List<IndirectObject>>(async () =>
+        {
+            var rootPageTreeNode = await _rootPageTreeNode;
+
+            return await rootPageTreeNode.GetSubPagesAsync(IndirectObjects);
+        });
     }
 
-    internal ReadOnlyIndirectObjectDictionary IndirectObjects { get; }
+    #region IPdf
 
-    internal DocumentCatalogDictionary DocumentCatalog { get; }
+    public IIndirectObjectDictionary IndirectObjects { get; }
+    public Trailer? Trailer { get; }
+    public ITrailerDictionary TrailerDictionary { get; }
+    public DocumentCatalogDictionary DocumentCatalog { get; }
 
-    internal Trailer? Trailer { get; }
+    public async Task<IndirectObject> GetPageAsync(int pageNumber)
+    {
+        return (await _pages)[pageNumber - 1];
+    }
 
-    internal ITrailerDictionary TrailerDictionary { get; }
+    public async Task<int> GetPageCountAsync()
+    {
+        return (await _rootPageTreeNode).PageCount;
+    }
 
-    internal PageTree PageTree { get; }
+    public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions)
+    {
+        _pdfInputStream.Position = 0;
+        await _pdfInputStream.CopyToAsync(outputStream);
+    }
+
+    #endregion
 
     /// <summary>
     /// PDF is linearized if there is a linearization dictionary, AND
@@ -55,20 +87,6 @@ internal class ReadOnlyPdf : IPdf, IDisposable
     /// and should be considered to not be linearized.
     /// </summary>
     internal bool Linearized => _linearizationDictionary != null && _linearizationDictionary.L == _pdfInputStream.Length;
-
-    public async Task CopyToAsync(Stream outputStream)
-    {
-        _pdfInputStream.Position = 0;
-        await _pdfInputStream.CopyToAsync(outputStream);
-    }
-
-    #region IPdf
-
-    public Task<int> GetPageCountAsync() => PageTree.GetPageCountAsync();
-
-    public async Task<Page> GetPageAsync(int pageNumber) => (await PageTree.GetAsync(pageNumber)).Get<Page>();
-
-    #endregion
 
     public static async Task<ReadOnlyPdf> OpenAsync(Stream pdfInputStream)
     {
@@ -98,7 +116,7 @@ internal class ReadOnlyPdf : IPdf, IDisposable
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
 
-        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, indirectObjectDictionary, linearizationDictionary, trailer, trailerDictionary);
+        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, trailerDictionary, indirectObjectDictionary, linearizationDictionary);
     }
 
     #region Private
@@ -239,46 +257,3 @@ internal class ReadOnlyPdf : IPdf, IDisposable
 
     #endregion
 }
-
-///// <summary>
-///// 
-///// </summary>
-///// <remarks>
-///// This class is disposable. Disposing will dispose the underlying <see cref="Stream"/>.
-///// </remarks>
-//public class Pdf : IDisposable
-//{
-//    public async Task DeletePageAsync(int pageNumber)
-//    {
-//        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-
-//        // TODO: check if there's a more efficient way to do this.
-//        var pages = await _pdfNavigator.GetPagesAsync();
-
-//        var pageIndirectObject = pages.ElementAt(pageNumber - 1);
-//        var page = (pageIndirectObject.Children.First() as Page)!;
-//        var parentIndirectObject = await _pdfNavigator.DereferenceIndirectObjectAsync(page.Parent);
-//        var parent = (parentIndirectObject.Children.First() as PageTreeNode)!;
-
-//        parent.Kids = parent.Kids.Cast<IndirectObjectReference>().Where(x => x.Id != pageIndirectObject.Id).ToArray();
-//        parent.PageCount--;
-
-//        _pdfNavigator.DeleteObject(pageIndirectObject.Id);
-//        _pdfNavigator.UpdateObject(new IndirectObject(parentIndirectObject.Id, parent));
-//    }
-
-//    public async Task SetPageRotationAsync(int pageNumber, Rotation rotation)
-//    {
-//        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-//        ArgumentNullException.ThrowIfNull(rotation);
-
-//        // TODO: check if there's a more efficient way to do this.
-//        var pages = await _pdfNavigator.GetPagesAsync();
-
-//        var page = pages.ElementAt(pageNumber - 1);
-
-//        (page.Children.First() as Page)!.Rotate = rotation;
-
-//        _pdfNavigator.UpdateObject(page);
-//    }
-//}

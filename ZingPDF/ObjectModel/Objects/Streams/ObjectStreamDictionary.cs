@@ -108,7 +108,8 @@ namespace ZingPDF.ObjectModel.Objects.Streams
 
         public static ObjectStreamDictionary FromDictionary(Dictionary objectStreamDictionary)
         {
-            if (objectStreamDictionary is null) throw new ArgumentNullException(nameof(objectStreamDictionary));
+            ArgumentNullException.ThrowIfNull(objectStreamDictionary);
+
             if (!objectStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != DictionaryKeys.ObjStm)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(objectStreamDictionary));
