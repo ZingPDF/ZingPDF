@@ -6,7 +6,7 @@ namespace ZingPDF.ObjectModel.FileStructure.Trailer
     /// <summary>
     /// ISO 32000-2:2020 7.5.5 - File Trailer
     /// </summary>
-    internal class Trailer : PdfObject
+    public class Trailer : PdfObject
     {
         public Trailer(
             TrailerDictionary trailerDictionary,

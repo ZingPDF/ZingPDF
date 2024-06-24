@@ -1,6 +1,6 @@
 ﻿using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing
+namespace ZingPDF
 {
     public interface IIndirectObjectDictionary
     {
@@ -8,5 +8,6 @@ namespace ZingPDF.Parsing
 
         Task<IndirectObject?> GetAsync(IndirectObjectReference key);
         Task<T?> GetAsync<T>(IndirectObjectReference key);
+        List<IndirectObjectId> GetFreeIds();
     }
 }

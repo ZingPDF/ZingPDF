@@ -6,17 +6,17 @@ using ZingPDF.ObjectModel.FileStructure.Trailer;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing.IncrementalUpdates
+namespace ZingPDF.IncrementalUpdates
 {
     internal class IncrementalUpdate : PdfObject
     {
         private readonly IndirectObjectManager _indirectObjectManager;
 
-        private readonly ReadOnlyPdf _sourcePdf;
+        private readonly IPdf _sourcePdf;
         private readonly IncrementalUpdateOptions _options;
 
         public IncrementalUpdate(
-            ReadOnlyPdf sourcePdf,
+            IPdf sourcePdf,
             IndirectObjectManager indirectObjectManager,
             IncrementalUpdateOptions? options = null
             )

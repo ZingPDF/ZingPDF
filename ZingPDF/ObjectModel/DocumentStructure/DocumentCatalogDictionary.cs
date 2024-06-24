@@ -24,20 +24,22 @@ namespace ZingPDF.ObjectModel.DocumentStructure
             })
         { }
 
-        public IndirectObjectReference Pages { get => Get<IndirectObjectReference>(DictionaryKeys.Pages)!; }
+        /// <summary>
+        /// (Required)<para></para>
+        /// The page tree node that shall be the root of the document’s page tree (see 7.7.3, "Page tree").
+        /// </summary>
+        public IndirectObjectReference Pages => Get<IndirectObjectReference>(DictionaryKeys.Pages)!;
 
         public static DocumentCatalogDictionary FromDictionary(Dictionary documentCatalogDictionary)
         {
-            if (documentCatalogDictionary is null) throw new ArgumentNullException(nameof(documentCatalogDictionary));
-
-            return new(documentCatalogDictionary);
+            return documentCatalogDictionary is null
+                ? throw new ArgumentNullException(nameof(documentCatalogDictionary))
+                : new(documentCatalogDictionary);
         }
 
         public static DocumentCatalogDictionary CreateNew(IndirectObjectReference pageTreeNode)
         {
-            if (pageTreeNode is null) throw new ArgumentNullException(nameof(pageTreeNode));
-
-            return new(pageTreeNode);
+            return pageTreeNode is null ? throw new ArgumentNullException(nameof(pageTreeNode)) : new(pageTreeNode);
         }
     }
 }

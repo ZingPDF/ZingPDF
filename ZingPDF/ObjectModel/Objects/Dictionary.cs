@@ -7,14 +7,28 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary : PdfObject, IDictionary<Name, IPdfObject>
+    public class Dictionary : PdfObject, IReadOnlyDictionary<Name, IPdfObject>
     {
-        private readonly IDictionary<Name, IPdfObject> _dictionary = new Dictionary<Name, IPdfObject>();
+        private readonly Dictionary _dictionary;
 
-        public Dictionary(IDictionary<Name, IPdfObject>? dictionary = null)
+        public Dictionary(Dictionary dictionary)
         {
-            _dictionary = dictionary ?? new Dictionary<Name, IPdfObject>();
+            _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
         }
+
+        #region IReadOnlyDictionary
+
+        public IPdfObject this[Name key] => _dictionary[key];
+        public IEnumerable<Name> Keys => _dictionary.Keys;
+        public IEnumerable<IPdfObject> Values => _dictionary.Values;
+        public int Count => _dictionary.Count;
+        public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
+        IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
+        public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
+        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);
+        
+
+        #endregion
 
         /// <summary>
         /// Strongly typed access to the underlying <see cref="PdfObject"/>.
@@ -25,45 +39,6 @@ namespace ZingPDF.ObjectModel.Objects
         public T? Get<T>(Name key) where T : class, IPdfObject
             => _dictionary.TryGetValue(key, out IPdfObject? value) ? value as T
             : null;
-
-        public void Set<T>(Name key, T pdfObject) where T : IPdfObject
-        {
-            _dictionary[key] = pdfObject;
-        }
-
-        #region IDictionary
-        public virtual IPdfObject this[Name key] { get => _dictionary[key]; set => _dictionary[key] = value; }
-
-        public virtual void Add(Name key, IPdfObject value) => _dictionary.Add(key, value);
-
-        public virtual void Add(KeyValuePair<Name, IPdfObject> item) => _dictionary.Add(item);
-
-        public virtual void Clear() => _dictionary.Clear();
-
-        public virtual bool Remove(Name key) => _dictionary.Remove(key);
-
-        public virtual bool Remove(KeyValuePair<Name, IPdfObject> item) => _dictionary.Remove(item);
-
-        public ICollection<Name> Keys => _dictionary.Keys;
-
-        public ICollection<IPdfObject> Values => _dictionary.Values;
-
-        public int Count => _dictionary.Count;
-
-        public bool IsReadOnly => _dictionary.IsReadOnly;
-
-        public bool Contains(KeyValuePair<Name, IPdfObject> item) => _dictionary.Contains(item);
-
-        public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
-
-        public void CopyTo(KeyValuePair<Name, IPdfObject>[] array, int arrayIndex) => _dictionary.CopyTo(array, arrayIndex);
-
-        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);
-
-        public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
-        #endregion
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
