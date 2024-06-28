@@ -1,4 +1,6 @@
-﻿using ZingPDF.Drawing;
+﻿using Nito.AsyncEx;
+using ZingPDF.Drawing;
+using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure;
@@ -13,6 +15,9 @@ public class Pdf : IEditablePdf
     private readonly IPdf _sourcePdf;
     private readonly IndirectObjectManager _indirectObjectManager;
 
+    private readonly AsyncLazy<PageTreeNode> _rootPageTreeNode;
+    private AsyncLazy<List<IndirectObject>>? _pages;
+
     /// <summary>
     /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
     /// </summary>
@@ -20,6 +25,24 @@ public class Pdf : IEditablePdf
     {
         _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
         _indirectObjectManager = new IndirectObjectManager(sourcePdf.IndirectObjects);
+
+        _rootPageTreeNode = new AsyncLazy<PageTreeNode>(async () =>
+        {
+            return await IndirectObjects.GetAsync<PageTreeNode>(DocumentCatalog.Pages)
+                ?? throw new InvalidPdfException("Unable to find root page tree node");
+        });
+
+        ResetPages();
+    }
+
+    private void ResetPages()
+    {
+        _pages = new AsyncLazy<List<IndirectObject>>(async () =>
+        {
+            var rootPageTreeNode = await _rootPageTreeNode;
+
+            return await rootPageTreeNode.GetSubPagesAsync(IndirectObjects);
+        });
     }
 
     #region IPdf
@@ -29,15 +52,10 @@ public class Pdf : IEditablePdf
     public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
     public DocumentCatalogDictionary DocumentCatalog => _sourcePdf.DocumentCatalog;
 
-    public Task<IndirectObject> GetPageAsync(int pageNumber)
-    {
-        throw new NotImplementedException();
-    }
+    // TODO: logic is duplicated in readonlypdf. Consider sharing.
+    public async Task<IndirectObject> GetPageAsync(int pageNumber) => (await _pages!)[pageNumber - 1];
 
-    public Task<int> GetPageCountAsync()
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<int> GetPageCountAsync() => (await _rootPageTreeNode).PageCount;
 
     /// <summary>
     /// Save the PDF to the provided output stream.
