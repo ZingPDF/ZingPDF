@@ -5,7 +5,7 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.2 - Boolean objects
     /// </summary>
-    internal class BooleanObject : PdfObject
+    public class BooleanObject : PdfObject
     {
         public BooleanObject(bool value)
         {

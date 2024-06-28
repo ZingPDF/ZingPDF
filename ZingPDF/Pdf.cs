@@ -6,7 +6,7 @@ using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.Trailer;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing;
+namespace ZingPDF;
 
 public class Pdf : IEditablePdf
 {
@@ -14,9 +14,9 @@ public class Pdf : IEditablePdf
     private readonly IndirectObjectManager _indirectObjectManager;
 
     /// <summary>
-    /// Private constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
+    /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
     /// </summary>
-    private Pdf(IPdf sourcePdf)
+    internal Pdf(IPdf sourcePdf)
     {
         _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
         _indirectObjectManager = new IndirectObjectManager(sourcePdf.IndirectObjects);
@@ -89,9 +89,7 @@ public class Pdf : IEditablePdf
         // TODO: For now, to simplify adding pages,
         // new pages are appended to the root page tree node.
         // Determine if there's a better way, like ensuring a balanced tree.
-        rootPageTreeNode.Kids.Add(pageIndirectObject.Id.Reference);
-
-        rootPageTreeNode.PageCount++;
+        rootPageTreeNode.AddChild(pageIndirectObject.Id.Reference);
 
         _indirectObjectManager.Update(rootPageTreeNodeIndirectObject);
     }
@@ -117,8 +115,9 @@ public class Pdf : IEditablePdf
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
-        parent.Kids = parent.Kids.Cast<IndirectObjectReference>().Where(x => x.Id != pageIndirectObject.Id).ToArray();
-        parent.PageCount--;
+        parent.RemoveChild(pageIndirectObject.Id.Reference);
+
+        // TODO: decrement page count in ancestors?
 
         _indirectObjectManager.Delete(pageIndirectObject.Id);
         _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
@@ -166,11 +165,7 @@ public class Pdf : IEditablePdf
 
         var newPageIndirectObject = _indirectObjectManager.Add(page);
 
-        var newKids = parentPageTreeNode.Kids.ToList();
-        newKids.Insert(kidsIndex, newPageIndirectObject.Id.Reference);
-
-        parentPageTreeNode.Kids = newKids.ToArray();
-        parentPageTreeNode.PageCount++;
+        parentPageTreeNode.AddChild(newPageIndirectObject.Id.Reference);
 
         await IncrementPageCountAsync(parentPageTreeNode);
 
@@ -255,11 +250,32 @@ public class Pdf : IEditablePdf
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
         var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNode>();
 
-        parentPageTreeNode.PageCount++;
+        parentPageTreeNode.IncrementCount();
 
         _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
 
         await IncrementPageCountAsync(parentPageTreeNode);
+    }
+
+    // TODO: move to testable class?
+    /// <summary>
+    /// Recursively decrement the page count of this page tree node and all its ancestors
+    /// </summary>
+    private async Task DecrementPageCountAsync(PageTreeNode pageTreeNode)
+    {
+        if (pageTreeNode.Parent is null)
+        {
+            return;
+        }
+
+        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
+        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNode>();
+
+        parentPageTreeNode.DecrementCount();
+
+        _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
+
+        await DecrementPageCountAsync(parentPageTreeNode);
     }
 
     // TODO: move to testable class?

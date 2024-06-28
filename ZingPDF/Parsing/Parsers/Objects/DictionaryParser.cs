@@ -3,6 +3,7 @@ using System.Text;
 using ZingPDF.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
+using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -97,8 +98,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 throw new ParserException($"Unable to find end of dictionary. PDF may be corrupt.");
             }
 
-            Dictionary output = [];
-
+            Dictionary? output = null;
+            
             if (dictEnd - dictStart > 1)
             {
                 var dictStream = new SubStream(stream, dictStart, dictEnd);
@@ -110,51 +111,56 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
                 }
 
+                Dictionary<Name, IPdfObject> dict = [];
+
                 for (int j = 0; j < objectGroup.Objects.Count; j += 2)
                 {
-                    output.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
+                    dict.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
                 }
 
-                if (output.ContainsKey(Constants.DictionaryKeys.Type))
+                if (dict.ContainsKey(Constants.DictionaryKeys.Type))
                 {
-                    switch ((Name)output[Constants.DictionaryKeys.Type])
+                    switch ((Name)dict[Constants.DictionaryKeys.Type])
                     {
+                        // TODO: check this: can we just cast rather than construction?
                         case DocumentCatalogDictionary.DictionaryKeys.Catalog:
-                            output = DocumentCatalogDictionary.FromDictionary(output);
+                            output = DocumentCatalogDictionary.FromDictionary(dict);
                             break;
 
                         case Page.DictionaryKeys.Page:
-                            output = Page.FromDictionary(output);
+                            output = Page.FromDictionary(dict);
                             break;
 
                         case PageTreeNode.DictionaryKeys.Pages:
-                            output = PageTreeNode.FromDictionary(output);
+                            output = PageTreeNode.FromDictionary(dict);
                             break;
 
                         case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
-                            output = CrossReferenceStreamDictionary.FromDictionary(output);
+                            output = CrossReferenceStreamDictionary.FromDictionary(dict);
                             break;
 
                         case ObjectStreamDictionary.DictionaryKeys.ObjStm:
-                            output = ObjectStreamDictionary.FromDictionary(output);
+                            output = ObjectStreamDictionary.FromDictionary(dict);
                             break;
                     }
                 }
 
-                if (output.ContainsKey(InteractiveFormDictionary.DictionaryKeys.Fields))
+                if (dict.ContainsKey(InteractiveFormDictionary.DictionaryKeys.Fields))
                 {
-                    output = InteractiveFormDictionary.FromDictionary(output);
+                    output = InteractiveFormDictionary.FromDictionary(dict);
                 }
 
-                if (output.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))
+                if (dict.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))
                 {
-                    output = LinearizationParameterDictionary.FromDictionary(output);
+                    output = LinearizationParameterDictionary.FromDictionary(dict);
                 }
+
+                output ??= dict;
             }
 
             stream.Position = dictEnd + 2;
 
-            output.ByteOffset = initialStreamPosition;
+            output!.ByteOffset = initialStreamPosition;
 
             Logger.Log(LogLevel.Trace, $"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
 

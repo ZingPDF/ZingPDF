@@ -23,15 +23,6 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
             public const string Rotate = "Rotate";
         }
 
-        private Page(IndirectObjectReference parentPageTreeNode)
-            : base(new Dictionary<Name, IPdfObject>
-            {
-                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
-                { DictionaryKeys.Parent, parentPageTreeNode },
-                { DictionaryKeys.Resources, new Dictionary() },
-            })
-        { }
-
         private Page(Dictionary pageDictionary) : base(pageDictionary) { }
 
         public IndirectObjectReference Parent { get => Get<IndirectObjectReference>(DictionaryKeys.Parent)!; }
@@ -39,46 +30,38 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.
         /// </summary>
-        public Rectangle? MediaBox
-        {
-            get => Get<Rectangle>(DictionaryKeys.MediaBox);
-            set => this[DictionaryKeys.MediaBox] = value ?? throw new ArgumentNullException(nameof(value));
-        }
+        public Rectangle? MediaBox => Get<Rectangle>(DictionaryKeys.MediaBox);
 
         /// <summary>
         /// Defines the visible region of default user space.
         /// Contents will be clipped to this rectangle.
         /// </summary>
-        public Rectangle? CropBox
-        {
-            get => Get<Rectangle>(DictionaryKeys.CropBox);
-            set => this[DictionaryKeys.CropBox] = value ?? throw new ArgumentNullException(nameof(value));
-        }
+        public Rectangle? CropBox => Get<Rectangle>(DictionaryKeys.CropBox);
 
         /// <summary>
         /// Defines a clipping rectangle for output in a production environment.
         /// </summary>
-        public Rectangle? BleedBox { get => Get<Rectangle>(DictionaryKeys.BleedBox); set => this[DictionaryKeys.BleedBox] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rectangle? BleedBox { get => Get<Rectangle>(DictionaryKeys.BleedBox); }
 
         /// <summary>
         /// Defines the intended dimensions of the finished page after trimming.
         /// </summary>
-        public Rectangle? TrimBox { get => Get<Rectangle>(DictionaryKeys.TrimBox); set => this[DictionaryKeys.TrimBox] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rectangle? TrimBox { get => Get<Rectangle>(DictionaryKeys.TrimBox); }
 
         /// <summary>
         /// Defines the extent of the page's meaningful content (including whitespace) intended by the page's creator.
         /// </summary>
-        public Rectangle? ArtBox { get => Get<Rectangle>(DictionaryKeys.ArtBox); set => this[DictionaryKeys.ArtBox] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rectangle? ArtBox { get => Get<Rectangle>(DictionaryKeys.ArtBox); }
 
         /// <summary>
         /// Describes the contents of the page.
         /// </summary>
-        public ArrayObject? Contents { get => Get<ArrayObject>(DictionaryKeys.Contents); set => this[DictionaryKeys.Contents] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public ArrayObject? Contents { get => Get<ArrayObject>(DictionaryKeys.Contents); }
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
         /// </summary>
-        public Rotation? Rotate { get => Get<Rotation>(DictionaryKeys.Rotate); set => this[DictionaryKeys.Rotate] = value ?? throw new ArgumentNullException(nameof(value)); }
+        public Rotation? Rotate { get => Get<Rotation>(DictionaryKeys.Rotate); }
 
         /// <summary>
         /// Create a blank page.
@@ -92,14 +75,19 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
 
             options ??= new PageCreationOptions();
 
-            var page = new Page(parent);
+            var dict = new Dictionary<Name, IPdfObject>
+            {
+                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
+                { DictionaryKeys.Parent, parent },
+                { DictionaryKeys.Resources, new Dictionary() },
+            };
 
             if (options.MediaBox is not null)
             {
-                page.MediaBox = options.MediaBox;
+                dict[DictionaryKeys.MediaBox] = options.MediaBox;
             }
 
-            return page;
+            return new(dict);
         }
 
         /// <summary>
