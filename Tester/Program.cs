@@ -2,8 +2,6 @@
 using System.Text.RegularExpressions;
 using WebSupergoo.ABCpdf12;
 using ZingPDF.Parsing;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
-using ZingPDF.ObjectModel.CommonDataStructures;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -58,9 +56,12 @@ static async Task ParseResaveValidate(string input, string output)
     //var errors = ValidatePdf("Before", inputFileStream).ToList();
     //inputFileStream.Position = 0;
 
-    var pdf = await Pdf.OpenAsync(inputFileStream);
+    var test = await PdfParser.OpenAsync(inputFileStream);
 
-    var count1 = await pdf.GetPageCountAsync();
+    var pageCount = test.GetPageCountAsync();
+    //var pdf = await Pdf.OpenAsync(inputFileStream);
+
+    //var count1 = await pdf.GetPageCountAsync();
 
     //await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     // pdf.DeletePageAsync(1);
@@ -71,8 +72,8 @@ static async Task ParseResaveValidate(string input, string output)
 
     //var count2 = await pdf.GetPageCountAsync();
 
-    var test = await pdf.GetPageAsync(1);
-    var test2 = await pdf.GetPageAsync(2);
+    //var test = await pdf.GetPageAsync(1);
+    //var test2 = await pdf.GetPageAsync(2);
 
     //using var outputFileStream = new FileStream(output, FileMode.Create);
 

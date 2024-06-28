@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using ZingPDF.ObjectModel.Filters.FilterUtils;
 using ZingPDF.ObjectModel.Objects;
 
