@@ -3,15 +3,22 @@
     internal static class DictionaryExtensions
     {
         /// <summary>
-        /// Merges the target dictionary into the source dictionary.<para></para>
+        /// Creates a new dictionary from the target dictionary, overriden with values from the source dictionary.<para></para>
         /// Existing values in the source dictionary will be overwritten.
         /// </summary>
-        public static void MergeInto<TKey, TValue>(this IDictionary<TKey, TValue> source, IDictionary<TKey, TValue> target) where TKey : notnull
+        public static IReadOnlyDictionary<TKey, TValue> MergeInto<TKey, TValue>(
+            this IEnumerable<KeyValuePair<TKey, TValue>> source,
+            IEnumerable<KeyValuePair<TKey, TValue>> target
+            ) where TKey : notnull
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(target);
 
-            source.ToList().ForEach(x => target[x.Key] = x.Value);
+            var targetDict = target.ToDictionary();
+
+            source.ToList().ForEach(x => targetDict[x.Key] = x.Value);
+
+            return targetDict;
         }
     }
 }

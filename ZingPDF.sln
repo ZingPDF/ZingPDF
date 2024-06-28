@@ -7,13 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF.UnitTests", "ZingPDF.UnitTests\ZingPDF.UnitTests.csproj", "{E4FA0A42-D460-4758-8CE9-7ADE49A39372}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF.Parsing", "ZingPDF.Parsing\ZingPDF.Parsing.csproj", "{00A6022E-2C4D-4543-9CD8-7EC2DA6714FF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF", "ZingPDF\ZingPDF.csproj", "{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{8168D312-4EC2-424F-8694-73DFD3554208}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MorseCode.ITask", "External\MorseCode.ITask\MorseCode.ITask.csproj", "{EC799191-DB8F-436B-AFCD-5FDFCE27A329}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MorseCode.ITask", "External\MorseCode.ITask\MorseCode.ITask.csproj", "{EC799191-DB8F-436B-AFCD-5FDFCE27A329}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{E4FA0A42-D460-4758-8CE9-7ADE49A39372}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4FA0A42-D460-4758-8CE9-7ADE49A39372}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4FA0A42-D460-4758-8CE9-7ADE49A39372}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00A6022E-2C4D-4543-9CD8-7EC2DA6714FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00A6022E-2C4D-4543-9CD8-7EC2DA6714FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00A6022E-2C4D-4543-9CD8-7EC2DA6714FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00A6022E-2C4D-4543-9CD8-7EC2DA6714FF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -34,6 +34,34 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
 
         public Integer PageCount => Get<Integer>(DictionaryKeys.Count)!;
 
+        public void AddChild(IndirectObjectReference key)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            Kids.Add(key);
+
+            Set(DictionaryKeys.Count, new Integer(PageCount + 1));
+        }
+
+        public void RemoveChild(IndirectObjectReference key)
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            Kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);   
+
+            Set(DictionaryKeys.Count, new Integer(PageCount - 1));
+        }
+
+        public void IncrementCount()
+        {
+            Set(DictionaryKeys.Count, new Integer(PageCount + 1));
+        }
+
+        public void DecrementCount()
+        {
+            Set(DictionaryKeys.Count, new Integer(PageCount - 1));
+        }
+
         public static PageTreeNode CreateNew(ArrayObject pageReferences)
         {
             return new(new Dictionary<Name, IPdfObject>

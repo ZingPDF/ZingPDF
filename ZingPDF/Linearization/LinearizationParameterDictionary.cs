@@ -5,7 +5,7 @@ namespace ZingPDF.Linearization
     /// <summary>
     /// ISO 32000-2:2020 F.3.3 - Linearization parameter dictionary
     /// </summary
-    internal class LinearizationParameterDictionary : Dictionary
+    public class LinearizationParameterDictionary : Dictionary
     {
         public static class DictionaryKeys
         {

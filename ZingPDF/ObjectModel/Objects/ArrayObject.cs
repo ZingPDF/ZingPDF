@@ -8,9 +8,9 @@ namespace ZingPDF.ObjectModel.Objects
     /// </summary>
     public class ArrayObject : PdfObject, IEnumerable<IPdfObject>
     {
-        private static readonly ArrayObject _empty = new(Array.Empty<IPdfObject>());
+        private static readonly ArrayObject _empty = new([]);
 
-        private readonly List<IPdfObject> _values = new();
+        private readonly List<IPdfObject> _values = [];
 
         public ArrayObject(IPdfObject[] values)
         {
@@ -22,6 +22,11 @@ namespace ZingPDF.ObjectModel.Objects
         /// </summary>
         public void Add<T>(T item) where T : PdfObject
             => _values.Add(item);
+
+        public void Remove<T>(Predicate<T> match) where T : IPdfObject
+        {
+            _values.OfType<T>().ToList().RemoveAll(match);
+        }
 
         public T? Get<T>(int index) where T : PdfObject
             => _values[index] as T;

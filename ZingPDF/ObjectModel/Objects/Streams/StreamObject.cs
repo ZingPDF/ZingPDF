@@ -62,11 +62,12 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
         var streamData = await _sourceData;
         var compressedData = await _compressedData;
 
-        var streamDict = await CreateBaseStreamDictionaryAsync(compressedData.Length, streamData.Length);
+        var streamDict = new Dictionary(
+            (await CreateBaseStreamDictionaryAsync(compressedData.Length, streamData.Length))
+            .MergeInto(specialisedDict)
+            );
 
-        streamDict.MergeInto(specialisedDict);
-
-        await specialisedDict.WriteAsync(stream);
+        await streamDict.WriteAsync(stream);
 
         await stream.WriteNewLineAsync();
         await new Keyword(Constants.StreamStart).WriteAsync(stream);

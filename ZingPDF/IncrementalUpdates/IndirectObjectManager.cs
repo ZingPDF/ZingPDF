@@ -3,6 +3,10 @@ using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates;
 
+/// <summary>
+/// <see cref="IIndirectObjectDictionary"/> containing all of the PDFs indirect objects.<para></para>
+/// Allows adding, removing, and updating of objects.
+/// </summary>
 internal class IndirectObjectManager : IIndirectObjectDictionary
 {
     private readonly IIndirectObjectDictionary _sourceDictionary;
