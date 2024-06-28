@@ -1,6 +1,6 @@
 ﻿namespace ZingPDF.ObjectModel.Objects
 {
-    internal enum LiteralStringEncoding
+    public enum LiteralStringEncoding
     {
         UTF8,
         UTF16BE,
