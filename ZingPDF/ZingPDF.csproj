@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\External\MorseCode.ITask\MorseCode.ITask.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Spec\ISO_32000-2-2020.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
