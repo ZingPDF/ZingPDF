@@ -5,7 +5,7 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.4.3 - Hexadecimal strings
     /// </summary>
-    internal class HexadecimalString : PdfObject
+    public class HexadecimalString : PdfObject
     {
         private HexadecimalString()
         {

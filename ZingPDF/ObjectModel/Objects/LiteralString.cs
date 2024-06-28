@@ -7,7 +7,7 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.4.2 - Literal strings
     /// </summary>
-    internal class LiteralString : PdfObject
+    public class LiteralString : PdfObject
     {
         private readonly Encoding _encodeUsing;
 

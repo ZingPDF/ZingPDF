@@ -7,6 +7,9 @@ using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;
 
+/// <summary>
+/// Read only <see cref="IIndirectObjectDictionary"/> containing all of the PDFs indirect objects.<para></para>
+/// </summary>
 public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, CrossReferenceEntry> xrefs) : IIndirectObjectDictionary
 {
     private readonly Dictionary<IndirectObjectId, IndirectObject> _indirectObjectCache = [];
