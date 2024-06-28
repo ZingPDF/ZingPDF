@@ -2,7 +2,7 @@
 
 namespace ZingPDF.ObjectModel.Objects
 {
-    internal class Comment : PdfObject
+    public class Comment : PdfObject
     {
         public Comment(string value)
         {

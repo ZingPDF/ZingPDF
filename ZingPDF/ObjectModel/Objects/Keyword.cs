@@ -5,7 +5,7 @@ namespace ZingPDF.ObjectModel.Objects
     /// <summary>
     /// Represents special PDF keywords, such as 'trailer', or 'startxref'.
     /// </summary>
-    internal class Keyword : PdfObject
+    public class Keyword : PdfObject
     {
         public Keyword(string value)
         {
