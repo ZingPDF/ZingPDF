@@ -43,12 +43,12 @@ namespace ZingPDF.IncrementalUpdates
                 await entry.WriteAsync(stream);
             }
 
-            var size = _sourcePdf.TrailerDictionary.Size + _indirectObjectManager.NewObjects.Count;
+            var size = _indirectObjectManager.Count + _indirectObjectManager.NewObjects.Count;
 
             // The prev value points to the previous latest xref table or stream.
             // If the current PDF has a trailer, prev should be the same as the current startxref value.
             // If the current PDF instead uses an xref stream dictionary, prev is going to be the offset of the stream dictionary
-            long prev = _sourcePdf.Trailer?.XrefTableByteOffset ?? _sourcePdf.TrailerDictionary.ByteOffset!.Value;
+            long prev = _sourcePdf.Trailer?.XrefTableByteOffset ?? _sourcePdf.CrossReferenceStream!.ByteOffset!.Value;
 
             if (_options.RenderCrossReferencesAsStream)
             {
