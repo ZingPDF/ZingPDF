@@ -49,7 +49,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 streamDataOffset,
                 streamDataOffset + streamLength,
                 streamDict
-                );
+                )
+            { ByteOffset = initialStreamPosition };
         }
     }
 }
