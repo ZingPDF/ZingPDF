@@ -73,7 +73,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences
             await stream.WriteWhitespaceAsync();
 
             await stream.WriteTextAsync(InUse ? "n" : "f");
-            await stream.WriteNewLineAsync();
+            await stream.WriteFullNewLineAsync();
         }
 
         public static CrossReferenceEntry RootFreeEntry => _rootFreeEntry;
