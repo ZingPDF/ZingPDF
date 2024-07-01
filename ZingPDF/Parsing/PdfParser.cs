@@ -46,12 +46,12 @@ public class PdfParser
 
         // 5. Get the trailer dictionary, either from the trailer, or the xref stream dictionary
         var trailerDictionary = trailer?.Dictionary
-            ?? xrefStream?.Dictionary as ITrailerDictionary
+            ?? xrefStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
 
-        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, trailerDictionary, indirectObjectDictionary, linearizationDictionary);
+        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
     }
 
     private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream)
@@ -105,7 +105,7 @@ public class PdfParser
         return await Parser.For<Integer>().ParseAsync(pdfStream);
     }
 
-    private static async Task<IStreamObject<IStreamDictionary>?> GetXrefStreamAsync(Stream pdfStream)
+    private static async Task<IndirectObject?> GetXrefStreamAsync(Stream pdfStream)
     {
         Logger.Log(LogLevel.Trace, $"Searching for root trailer dictionary");
 
@@ -117,7 +117,7 @@ public class PdfParser
         {
             Logger.Log(LogLevel.Trace, $"Found cross reference stream dictionary");
 
-            return so;
+            return io;
         }
 
         return null;
