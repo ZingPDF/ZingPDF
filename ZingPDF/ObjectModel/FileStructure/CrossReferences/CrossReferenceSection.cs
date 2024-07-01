@@ -8,7 +8,7 @@
 
         public CrossReferenceSection(int startIndex, IEnumerable<CrossReferenceEntry> entries)
         {
-            if (entries is null) throw new ArgumentNullException(nameof(entries));
+            ArgumentNullException.ThrowIfNull(entries);
 
             Index = new CrossReferenceSectionIndex(startIndex, entries.Count());
             Entries = entries.ToList();
@@ -19,7 +19,7 @@
 
         public void Add(CrossReferenceEntry entry)
         {
-            if (entry is null) throw new ArgumentNullException(nameof(entry));
+            ArgumentNullException.ThrowIfNull(entry);
 
             Index.Count++;
             Entries.Add(entry);
