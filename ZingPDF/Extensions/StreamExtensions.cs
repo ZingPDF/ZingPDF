@@ -40,10 +40,16 @@ internal static class StreamExtensions
         => await stream.WriteCharsAsync(Constants.Whitespace);
 
     /// <summary>
-    /// Write a new line character to the stream.
+    /// Write a unix-style new line character to the stream (\n).
     /// </summary>
     public static async Task WriteNewLineAsync(this Stream stream)
         => await stream.WriteCharsAsync(Constants.LineFeed);
+
+    /// <summary>
+    /// Write a full new line character sequence to the stream (\r\n).
+    /// </summary>
+    public static async Task WriteFullNewLineAsync(this Stream stream)
+        => await stream.WriteCharsAsync(Constants.EndOfLineCharacters);
 
     /// <summary>
     /// Finds the specified value in the stream and advances its position to it.
