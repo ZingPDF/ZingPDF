@@ -49,8 +49,10 @@ public class Pdf : IEditablePdf
 
     public IIndirectObjectDictionary IndirectObjects => _indirectObjectManager;
     public Trailer? Trailer => _sourcePdf.Trailer;
-    public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
+    public IndirectObject? CrossReferenceStream => _sourcePdf.CrossReferenceStream;
     public DocumentCatalogDictionary DocumentCatalog => _sourcePdf.DocumentCatalog;
+
+    public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
 
     // TODO: logic is duplicated in readonlypdf. Consider sharing.
     public async Task<IndirectObject> GetPageAsync(int pageNumber) => (await _pages!)[pageNumber - 1];
@@ -135,7 +137,7 @@ public class Pdf : IEditablePdf
 
         parent.RemoveChild(pageIndirectObject.Id.Reference);
 
-        // TODO: decrement page count in ancestors?
+        await DecrementPageCountAsync(parent);
 
         _indirectObjectManager.Delete(pageIndirectObject.Id);
         _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));

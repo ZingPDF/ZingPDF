@@ -12,9 +12,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
     {
         public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
+            stream.AdvancePastWhitepace();
+
             Logger.Log(LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            stream.AdvancePastWhitepace();
+            var initialStreamPosition = stream.Position;
 
             var integerParser = Parser.For<Integer>();
 
@@ -64,7 +66,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             }
             while (stream.Position < stream.Length);
 
-            return new IndirectObject(new IndirectObjectId(id, genNumber), [.. items]);
+            return new IndirectObject(new IndirectObjectId(id, genNumber), [.. items]) { ByteOffset = initialStreamPosition };
         }
     }
 }

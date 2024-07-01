@@ -5,7 +5,9 @@ using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.Trailer;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
+using ZingPDF.ObjectModel.Objects.Streams;
 using ZingPDF.Parsing;
+using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF;
 
@@ -30,7 +32,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
         Stream pdfInputStream,
         DocumentCatalogDictionary documentCatalog,
         Trailer? trailer,
-        ITrailerDictionary trailerDictionary,
+        IndirectObject? xrefStream,
         ReadOnlyIndirectObjectDictionary indirectObjectDictionary,
         LinearizationParameterDictionary? linearizationDictionary
         )
@@ -38,7 +40,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
         _pdfInputStream = pdfInputStream ?? throw new ArgumentNullException(nameof(pdfInputStream));
         DocumentCatalog = documentCatalog ?? throw new ArgumentNullException(nameof(documentCatalog));
         Trailer = trailer;
-        TrailerDictionary = trailerDictionary ?? throw new ArgumentNullException(nameof(trailerDictionary));
+        CrossReferenceStream = xrefStream;
         IndirectObjects = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
         _linearizationDictionary = linearizationDictionary;
 
@@ -60,8 +62,12 @@ public class ReadOnlyPdf : IPdf, IDisposable
 
     public IIndirectObjectDictionary IndirectObjects { get; }
     public Trailer? Trailer { get; }
-    public ITrailerDictionary TrailerDictionary { get; }
+    public IndirectObject? CrossReferenceStream { get; }
     public DocumentCatalogDictionary DocumentCatalog { get; }
+
+    public ITrailerDictionary TrailerDictionary => Trailer?.Dictionary
+        ?? CrossReferenceStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
+        ?? throw new ParserException("Unable to find trailer dictionary");
 
     public async Task<IndirectObject> GetPageAsync(int pageNumber)
     {

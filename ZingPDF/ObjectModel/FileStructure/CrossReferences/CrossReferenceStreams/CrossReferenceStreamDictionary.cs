@@ -178,6 +178,8 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
             var dict = new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.XRef) },
+                { DictionaryKeys.Index, index },
+                { DictionaryKeys.W, w },
                 { TrailerDictionary.DictionaryKeys.Size, size },
                 { TrailerDictionary.DictionaryKeys.Root, root },
             };

@@ -158,6 +158,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 output ??= dict;
             }
 
+            output ??= Dictionary.Empty;
+
             stream.Position = dictEnd + 2;
 
             output!.ByteOffset = initialStreamPosition;
