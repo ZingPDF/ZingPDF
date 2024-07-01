@@ -19,10 +19,10 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //LoadAndSaveUsingAbcpdf("output.pdf", "output-abcpdf.pdf");
 
 //await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-//await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("test.pdf", "output.pdf");
 
 //LoadAndValidateUsingAbcpdf("Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -55,8 +55,8 @@ static async Task ParseResaveValidate(string input, string output)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
 
-    //var errors = ValidatePdf("Before", inputFileStream).ToList();
-    //inputFileStream.Position = 0;
+    var errors = ValidatePdf("Before", inputFileStream).ToList();
+    inputFileStream.Position = 0;
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
@@ -74,24 +74,32 @@ static async Task ParseResaveValidate(string input, string output)
     //var test = await pdf.GetPageAsync(1);
     //var test2 = await pdf.GetPageAsync(2);
 
-    //using var outputFileStream = new FileStream(output, FileMode.Create);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    //await pdf.SaveAsync(outputFileStream);
+    await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
 
     //await pdf.GetPageAsync(1);
 
-    //outputFileStream.Position = 0;
+    outputFileStream.Position = 0;
 
-    //var errors2 = ValidatePdf("After", outputFileStream).ToList();
+    var errors2 = ValidatePdf("After", outputFileStream).ToList();
 
-    //var newErrors = errors2.Except(errors);
+    var newErrors = errors2.Except(errors);
+    var fixedErrors = errors.Except(errors2);
 
-    //foreach (var error in newErrors)
-    //{
-    //   Console.WriteLine(error);
-    //}
+    Console.WriteLine("New errors:");
+    foreach (var error in newErrors)
+    {
+       Console.WriteLine(error);
+    }
+
+    Console.WriteLine("Fixed errors:");
+    foreach (var error in fixedErrors)
+    {
+        Console.WriteLine(error);
+    }
 }
 
 static void LoadAndSaveUsingAbcpdf(string inputPath, string outputPath)

@@ -14,7 +14,7 @@ namespace ZingPDF.ObjectModel.Objects
 
         public Dictionary(IDictionary<Name, IPdfObject>? dictionary = null)
         {
-            _dictionary = dictionary?.ToDictionary() ?? new Dictionary<Name, IPdfObject>();
+            _dictionary = dictionary?.ToDictionary() ?? [];
         }
 
         public Dictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary)
@@ -69,6 +69,8 @@ namespace ZingPDF.ObjectModel.Objects
         {
             _dictionary[key] = value;
         }
+
+        public static Dictionary Empty => new();
 
         public static implicit operator Dictionary(Dictionary<Name, IPdfObject> value) => new(value);
     }

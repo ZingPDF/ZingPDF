@@ -8,8 +8,10 @@ public interface IPdf
 {
     IIndirectObjectDictionary IndirectObjects { get; }
     Trailer? Trailer { get; }
-    ITrailerDictionary TrailerDictionary { get; }
+    IndirectObject? CrossReferenceStream { get; }
     DocumentCatalogDictionary DocumentCatalog { get; }
+
+    ITrailerDictionary TrailerDictionary { get; }
 
     Task<IndirectObject> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();

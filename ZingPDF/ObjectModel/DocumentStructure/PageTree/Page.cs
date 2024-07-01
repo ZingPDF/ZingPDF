@@ -1,4 +1,5 @@
 ﻿using ZingPDF.ObjectModel.CommonDataStructures;
+using ZingPDF.ObjectModel.ContentStreamsAndResources;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
@@ -25,7 +26,22 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
 
         private Page(Dictionary pageDictionary) : base(pageDictionary) { }
 
-        public IndirectObjectReference Parent { get => Get<IndirectObjectReference>(DictionaryKeys.Parent)!; }
+        /// <summary>
+        /// Required.<para></para>
+        /// The page tree node that is the immediate parent of this page object.
+        /// Objects of Type Template shall have no Parent key.
+        /// </summary>
+        public IndirectObjectReference Parent => Get<IndirectObjectReference>(DictionaryKeys.Parent)!;
+
+        /// <summary>
+        /// (Required; inheritable)<para></para>
+        /// A dictionary containing any resources required by the page contents (see 7.8.3, "Resource dictionaries").
+        /// If the page requires no resources, the value of this entry shall be an empty dictionary.
+        /// Omitting the entry entirely indicates that the resources shall be inherited from an ancestor 
+        /// node in the page tree, but PDF writers should not use this method of sharing resources as 
+        /// described in 7.8.3, "Resource dictionaries".
+        /// </summary>
+        public ResourceDictionary? Resources => Get<ResourceDictionary>(DictionaryKeys.Resources);
 
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.
@@ -79,7 +95,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
             {
                 { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
                 { DictionaryKeys.Parent, parent },
-                { DictionaryKeys.Resources, new Dictionary() },
+                { DictionaryKeys.Resources, Empty },
             };
 
             if (options.MediaBox is not null)
