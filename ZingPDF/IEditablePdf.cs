@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Drawing;
+using ZingPDF.Forms;
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 
@@ -17,8 +18,10 @@ public interface IEditablePdf : IPdf
         IEnumerable<Image> imageOperations,
         CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
         );
-    void CompleteForm(IDictionary<string, string> values);
-    IDictionary<string, string?> GetFields();
+
+    Task CompleteFormAsync(IDictionary<string, string> formValues);
+    Task<IEnumerable<FormField>> GetFieldsAsync();
+
     void AddWatermark();
     void Compress(int dpi, int quality);
     void Encrypt();

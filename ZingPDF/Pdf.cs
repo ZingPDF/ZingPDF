@@ -1,7 +1,9 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Drawing;
 using ZingPDF.Extensions;
+using ZingPDF.Forms;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
@@ -17,6 +19,8 @@ public class Pdf : IEditablePdf
 
     private readonly AsyncLazy<PageTreeNode> _rootPageTreeNode;
     private AsyncLazy<List<IndirectObject>>? _pages;
+
+    private readonly FormManager _formManager = new();
 
     /// <summary>
     /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
@@ -213,15 +217,50 @@ public class Pdf : IEditablePdf
     {
         throw new NotImplementedException();
     }
-
-    public void CompleteForm(IDictionary<string, string> values)
+    
+    // TODO: support for all field types?
+    public async Task CompleteFormAsync(IDictionary<string, string> formValues)
     {
-        throw new NotImplementedException();
+        if (DocumentCatalog.AcroForm is null)
+        {
+            throw new InvalidOperationException("PDF does not contain a form");
+        }
+
+        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
+            ?? throw new InvalidPdfException("Unable to resolve form reference");
+
+        var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
+
+        foreach (var kvp in formValues)
+        {
+            var fieldIndirectObject = fields[kvp.Key];
+
+            fieldIndirectObject.Get<FieldDictionary>().SetValue(kvp.Value!);
+
+            _indirectObjectManager.Update(fieldIndirectObject);
+        }
     }
 
-    public IDictionary<string, string?> GetFields()
+    public async Task<IEnumerable<FormField>> GetFieldsAsync()
     {
-        throw new NotImplementedException();
+        List<FormField> fields = [];
+
+        if (DocumentCatalog.AcroForm is null)
+        {
+            return fields;
+        }
+
+        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
+            ?? throw new InvalidPdfException("Unable to resolve form reference");
+
+        var fieldDict = await _formManager.GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
+
+        return fieldDict.Select(kvp =>
+        {
+            var field = kvp.Value.Get<FieldDictionary>();
+
+            return new FormField(kvp.Key, field.TU, _formManager.GetFieldValue(field.V));
+        });
     }
 
     public void AddWatermark()
