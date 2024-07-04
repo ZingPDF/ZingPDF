@@ -17,7 +17,8 @@ using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 //await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-await ParseResaveValidate("test.pdf", "output.pdf");
+await ParseResaveValidate("form.pdf", "output.pdf");
+//await ParseResaveValidate("test.pdf", "output.pdf");
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
@@ -54,10 +55,14 @@ static async Task ParseResaveValidate(string input, string output)
 
     var count1 = await pdf.GetPageCountAsync();
 
-    await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
+    var fields = await pdf.GetFieldsAsync();
+
+    await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
+
+    //await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     //await pdf.DeletePageAsync(1);
 
-    var count2 = await pdf.GetPageCountAsync();
+    //var count2 = await pdf.GetPageCountAsync();
 
     //await pdf.AppendPageAsync();
 

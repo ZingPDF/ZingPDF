@@ -6,7 +6,7 @@ namespace ZingPDF.Forms
     /// <summary>
     /// ISO 32000-2:2020 12.7.3 - Interactive form dictionary
     /// </summary>
-    internal class InteractiveFormDictionary : Dictionary
+    public class InteractiveFormDictionary : Dictionary
     {
         public static class DictionaryKeys
         {

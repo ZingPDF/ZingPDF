@@ -23,6 +23,8 @@ namespace ZingPDF.Forms
             public const string AA = "AA";
         }
 
+        private FieldDictionary(Dictionary dict) : base(dict) { }
+
         /// <summary>
         /// (Required for terminal fields; inheritable)<para></para>
         /// The type of field that this dictionary describes:<para></para>
@@ -107,5 +109,17 @@ namespace ZingPDF.Forms
         /// as the AA entry in an annotation dictionary (see 12.5.2, "Annotation dictionaries").
         /// </summary>
         public Dictionary? AA { get => Get<Dictionary>(DictionaryKeys.AA); }
+
+        public void SetValue(LiteralString value)
+        {
+            Set(DictionaryKeys.V, value);
+        }
+
+        public static FieldDictionary FromDictionary(Dictionary dict)
+        {
+            ArgumentNullException.ThrowIfNull(dict);
+
+            return new(dict);
+        }
     }
 }

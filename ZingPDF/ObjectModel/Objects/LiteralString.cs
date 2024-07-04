@@ -11,7 +11,7 @@ namespace ZingPDF.ObjectModel.Objects
     {
         private readonly Encoding _encodeUsing;
 
-        public LiteralString(string value, LiteralStringEncoding encodeUsing = LiteralStringEncoding.UTF8)
+        public LiteralString(string value, LiteralStringEncoding encodeUsing = LiteralStringEncoding.PDFDocEncoding)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
 
@@ -38,8 +38,8 @@ namespace ZingPDF.ObjectModel.Objects
             await stream.WriteCharsAsync(Constants.RightParenthesis);
         }
 
-        public static implicit operator LiteralString(string value) => new(value);
-        public static implicit operator string(LiteralString value) => value.Value;
+        public static implicit operator LiteralString?(string? value) => value is null ? null : new(value);
+        public static implicit operator string?(LiteralString? value) => value?.Value;
 
         public override string ToString() => Value;
 

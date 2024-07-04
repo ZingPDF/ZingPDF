@@ -122,12 +122,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 {
                     switch ((Name)dict[Constants.DictionaryKeys.Type])
                     {
-                        // TODO: check this: can we just cast rather than construction?
-                        case DocumentCatalogDictionary.DictionaryKeys.Catalog:
+                        // TODO: check this: can we just cast rather than construct?
+                        case Constants.DictionaryTypes.Catalog:
                             output = DocumentCatalogDictionary.FromDictionary(dict);
                             break;
 
-                        case Page.DictionaryKeys.Page:
+                        case Constants.DictionaryTypes.Page:
                             output = Page.FromDictionary(dict);
                             break;
 
@@ -148,6 +148,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 if (dict.ContainsKey(InteractiveFormDictionary.DictionaryKeys.Fields))
                 {
                     output = InteractiveFormDictionary.FromDictionary(dict);
+                }
+
+                if (dict.ContainsKey(FieldDictionary.DictionaryKeys.FT))
+                {
+                    output = FieldDictionary.FromDictionary(dict);
                 }
 
                 if (dict.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))
