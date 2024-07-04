@@ -1,4 +1,5 @@
-﻿using ZingPDF.ObjectModel.CommonDataStructures;
+﻿using System.Dynamic;
+using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.ContentStreamsAndResources;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
@@ -12,7 +13,6 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
     {
         internal static class DictionaryKeys
         {
-            public const string Page = "Page";
             public const string Parent = "Parent";
             public const string Resources = "Resources";
             public const string MediaBox = "MediaBox";
@@ -25,6 +25,8 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
         }
 
         private Page(Dictionary pageDictionary) : base(pageDictionary) { }
+
+        public static Name Type => Constants.DictionaryTypes.Page;
 
         /// <summary>
         /// Required.<para></para>
@@ -93,7 +95,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
 
             var dict = new Dictionary<Name, IPdfObject>
             {
-                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.Page) },
+                { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Page) },
                 { DictionaryKeys.Parent, parent },
                 { DictionaryKeys.Resources, Empty },
             };
