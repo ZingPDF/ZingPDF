@@ -67,6 +67,13 @@ internal static class Constants
         public const string Type = "Type";
     }
 
+    public static class DictionaryTypes
+    {
+        public const string Catalog = "Catalog";
+        public const string Pages = "Pages";
+        public const string Page = "Page";
+    }
+
     internal static class PdfVersion
     {
         public static double v1 = 1.0;
