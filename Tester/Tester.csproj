@@ -11,6 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="form.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Ghostscript.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
