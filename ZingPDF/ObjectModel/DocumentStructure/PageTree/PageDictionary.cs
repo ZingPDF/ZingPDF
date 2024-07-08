@@ -1,5 +1,4 @@
-﻿using System.Dynamic;
-using ZingPDF.ObjectModel.CommonDataStructures;
+﻿using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.ContentStreamsAndResources;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
@@ -9,31 +8,16 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
     /// <summary>
     /// ISO 32000-2:2020 7.7.3.3 - Page objects
     /// </summary>
-    public class Page : Dictionary
+    public class PageDictionary : Dictionary
     {
-        internal static class DictionaryKeys
-        {
-            public const string Parent = "Parent";
-            public const string Resources = "Resources";
-            public const string MediaBox = "MediaBox";
-            public const string CropBox = "CropBox";
-            public const string BleedBox = "BleedBox";
-            public const string TrimBox = "TrimBox";
-            public const string ArtBox = "ArtBox";
-            public const string Contents = "Contents";
-            public const string Rotate = "Rotate";
-        }
-
-        private Page(Dictionary pageDictionary) : base(pageDictionary) { }
-
-        public static Name Type => Constants.DictionaryTypes.Page;
+        private PageDictionary(Dictionary pageDictionary) : base(pageDictionary) { }
 
         /// <summary>
         /// Required.<para></para>
         /// The page tree node that is the immediate parent of this page object.
         /// Objects of Type Template shall have no Parent key.
         /// </summary>
-        public IndirectObjectReference Parent => Get<IndirectObjectReference>(DictionaryKeys.Parent)!;
+        public IndirectObjectReference Parent => Get<IndirectObjectReference>(Constants.DictionaryKeys.Page.Parent)!;
 
         /// <summary>
         /// (Required; inheritable)<para></para>
@@ -43,51 +27,51 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
         /// node in the page tree, but PDF writers should not use this method of sharing resources as 
         /// described in 7.8.3, "Resource dictionaries".
         /// </summary>
-        public ResourceDictionary? Resources => Get<ResourceDictionary>(DictionaryKeys.Resources);
+        public ResourceDictionary? Resources => Get<ResourceDictionary>(Constants.DictionaryKeys.Page.Resources);
 
         /// <summary>
         /// The boundaries of the physical medium on which the page shall be displayed or printed.
         /// </summary>
-        public Rectangle? MediaBox => Get<Rectangle>(DictionaryKeys.MediaBox);
+        public Rectangle? MediaBox => Get<Rectangle>(Constants.DictionaryKeys.Page.MediaBox);
 
         /// <summary>
         /// Defines the visible region of default user space.
         /// Contents will be clipped to this rectangle.
         /// </summary>
-        public Rectangle? CropBox => Get<Rectangle>(DictionaryKeys.CropBox);
+        public Rectangle? CropBox => Get<Rectangle>(Constants.DictionaryKeys.Page.CropBox);
 
         /// <summary>
         /// Defines a clipping rectangle for output in a production environment.
         /// </summary>
-        public Rectangle? BleedBox { get => Get<Rectangle>(DictionaryKeys.BleedBox); }
+        public Rectangle? BleedBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.BleedBox); }
 
         /// <summary>
         /// Defines the intended dimensions of the finished page after trimming.
         /// </summary>
-        public Rectangle? TrimBox { get => Get<Rectangle>(DictionaryKeys.TrimBox); }
+        public Rectangle? TrimBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.TrimBox); }
 
         /// <summary>
         /// Defines the extent of the page's meaningful content (including whitespace) intended by the page's creator.
         /// </summary>
-        public Rectangle? ArtBox { get => Get<Rectangle>(DictionaryKeys.ArtBox); }
+        public Rectangle? ArtBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.ArtBox); }
 
         /// <summary>
         /// Describes the contents of the page.
         /// </summary>
-        public ArrayObject? Contents { get => Get<ArrayObject>(DictionaryKeys.Contents); }
+        public ArrayObject? Contents { get => Get<ArrayObject>(Constants.DictionaryKeys.Page.Contents); }
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
         /// </summary>
-        public Rotation? Rotate { get => Get<Rotation>(DictionaryKeys.Rotate); }
+        public Rotation? Rotate { get => Get<Rotation>(Constants.DictionaryKeys.Page.Rotate); }
 
         /// <summary>
         /// Create a blank page.
         /// </summary>
-        /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNode"/>.</param>
-        /// <returns>A <see cref="Page"/> instance.</returns>
+        /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
+        /// <returns>A <see cref="PageDictionary"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static Page CreateNew(IndirectObjectReference parent, PageCreationOptions? options = null)
+        internal static PageDictionary CreateNew(IndirectObjectReference parent, PageCreationOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(parent);
 
@@ -96,13 +80,13 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
             var dict = new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Page) },
-                { DictionaryKeys.Parent, parent },
-                { DictionaryKeys.Resources, Empty },
+                { Constants.DictionaryKeys.Page.Parent, parent },
+                { Constants.DictionaryKeys.Page.Resources, Empty },
             };
 
             if (options.MediaBox is not null)
             {
-                dict[DictionaryKeys.MediaBox] = options.MediaBox;
+                dict[Constants.DictionaryKeys.Page.MediaBox] = options.MediaBox;
             }
 
             return new(dict);
@@ -113,11 +97,11 @@ namespace ZingPDF.ObjectModel.DocumentStructure.PageTree
         /// </summary>
         /// <param name="pageDictionary"></param>
         /// <returns></returns>
-        internal static Page FromDictionary(Dictionary pageDictionary)
+        internal static PageDictionary FromDictionary(Dictionary pageDictionary)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
 
-            return new Page(pageDictionary);
+            return new PageDictionary(pageDictionary);
         }
 
         public class PageCreationOptions

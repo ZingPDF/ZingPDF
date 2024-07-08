@@ -65,13 +65,140 @@ internal static class Constants
     public static class DictionaryKeys
     {
         public const string Type = "Type";
+
+        public static class DocumentCatalog
+        {
+            public const string Version = "Version";
+            public const string Extensions = "Extensions";
+            public const string Pages = "Pages";
+            public const string PageLabels = "PageLabels";
+
+            public const string AcroForm = "AcroForm";
+        }
+
+        public static class LinearizationParameter
+        {
+            public const string Linearized = "Linearized";
+            public const string L = "L";
+            public const string H = "H";
+            public const string O = "O";
+            public const string E = "E";
+            public const string N = "N";
+            public const string T = "T";
+            public const string P = "P";
+        }
+
+        public static class ObjectStream
+        {
+            // Object stream dictionary
+            public const string ObjStm = "ObjStm";
+            public const string N = "N";
+            public const string First = "First";
+            public const string Extends = "Extends";
+
+            // Stream dictionary
+            public const string Length = "Length";
+            public const string Filter = "Filter";
+            public const string DecodeParms = "DecodeParms";
+            public const string F = "F";
+            public const string FFilter = "FFilter";
+            public const string FDecodeParms = "FDecodeParms";
+            public const string DL = "DL";
+        }
+
+        public static class CrossReferenceStream
+        {
+            //public const string XRef = "XRef";
+            public const string Index = "Index";
+            public const string W = "W";
+        }
+
+        public static class PageTreeNode
+        {
+            public const string Parent = "Parent";
+            public const string Kids = "Kids";
+            public const string Count = "Count";
+        }
+
+        public static class Page
+        {
+            public const string Parent = "Parent";
+            public const string Resources = "Resources";
+            public const string MediaBox = "MediaBox";
+            public const string CropBox = "CropBox";
+            public const string BleedBox = "BleedBox";
+            public const string TrimBox = "TrimBox";
+            public const string ArtBox = "ArtBox";
+            public const string Contents = "Contents";
+            public const string Rotate = "Rotate";
+        }
+
+        public static class InteractiveForm
+        {
+            public const string Fields = "Fields";
+            public const string NeedAppearances = "NeedAppearances";
+            public const string SigFlags = "SigFlags";
+            public const string CO = "CO";
+            public const string DR = "DR";
+            public const string DA = "DA";
+            public const string Q = "Q";
+            public const string XFA = "XFA";
+        }
+
+        public static class Field
+        {
+            public const string FT = "FT";
+            public const string Parent = "Parent";
+            public const string Kids = "Kids";
+            public const string T = "T";
+            public const string TU = "TU";
+            public const string TM = "TM";
+            public const string Ff = "Ff";
+            public const string V = "V";
+            public const string DV = "DV";
+            public const string AA = "AA";
+        }
+
+        public static class Annotation
+        {
+            public const string Subtype = "Subtype";
+            public const string Rect = "Rect";
+            public const string Contents = "Contents";
+            public const string P = "P";
+            public const string NM = "NM";
+            public const string M = "M";
+            public const string F = "F";
+            public const string AP = "AP";
+            public const string AS = "AS";
+            public const string Border = "Border";
+            public const string C = "C";
+            public const string StructParent = "StructParent";
+            public const string OC = "OC";
+            public const string AF = "AF";
+            public const string ca = "ca";
+            public const string CA = "CA";
+            public const string BM = "BM";
+            public const string Lang = "Lang";
+        }
+
+        public static class WidgetAnnotation
+        {
+            public const string H = "H";
+            public const string MK = "MK";
+            public const string A = "A";
+            public const string AA = "AA";
+            public const string BS = "BS";
+            public const string Parent = "Parent";
+        }
     }
 
     public static class DictionaryTypes
     {
-        public const string Catalog = "Catalog";
-        public const string Pages = "Pages";
-        public const string Page = "Page";
+        public const string Catalog = "Catalog"; // Document Catalog
+        public const string Pages = "Pages"; // Page Tree Node
+        public const string Page = "Page"; // Page
+        public const string XRef = "XRef"; // Cross Reference
+        public const string ObjStm = "ObjStm"; // Object Stream
     }
 
     internal static class PdfVersion

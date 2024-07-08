@@ -7,16 +7,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
 {
     internal class CrossReferenceStreamDictionary : Dictionary, ITrailerDictionary, IStreamDictionary
     {
-        public static class DictionaryKeys
-        {
-            public const string XRef = "XRef";
-            public const string Index = "Index";
-            public const string W = "W";
-        }
-
         private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
-
-        public Name Type => Get<Name>(Constants.DictionaryKeys.Type)!;
 
         #region CrossReferenceDictionary
 
@@ -27,7 +18,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// The array shall be sorted in ascending order by object number.
         /// Subsections cannot overlap; an object number shall have no more than one entry in a section.
         /// </summary>
-        public ArrayObject? Index => Get<ArrayObject>(DictionaryKeys.Index);
+        public ArrayObject? Index => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.Index);
 
 
         /// <summary>
@@ -43,7 +34,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// The sum of the items shall be the total length of each entry; it can be used with the Index array to determine the starting position of each subsection.
         /// Different cross-reference streams in a PDF file may use different values for W.
         /// </remarks>
-        public ArrayObject W => Get<ArrayObject>(DictionaryKeys.W)!;
+        public ArrayObject W => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.W)!;
 
         #endregion
 
@@ -177,9 +168,9 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
 
             var dict = new Dictionary<Name, IPdfObject>
             {
-                { Constants.DictionaryKeys.Type, new Name(DictionaryKeys.XRef) },
-                { DictionaryKeys.Index, index },
-                { DictionaryKeys.W, w },
+                { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.XRef) },
+                { Constants.DictionaryKeys.CrossReferenceStream.Index, index },
+                { Constants.DictionaryKeys.CrossReferenceStream.W, w },
                 { TrailerDictionary.DictionaryKeys.Size, size },
                 { TrailerDictionary.DictionaryKeys.Root, root },
             };
@@ -211,7 +202,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         {
             ArgumentNullException.ThrowIfNull(xrefStreamDictionary);
 
-            if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != DictionaryKeys.XRef)
+            if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
             }

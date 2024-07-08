@@ -1,6 +1,4 @@
-﻿using ZingPDF.Forms;
-using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.Objects;
+﻿using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.ObjectModel.DocumentStructure
@@ -10,19 +8,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure
     /// </summary>
     public class DocumentCatalogDictionary : Dictionary
     {
-        public static class DictionaryKeys
-        {
-            public const string Version = "Version";
-            public const string Extensions = "Extensions";
-            public const string Pages = "Pages";
-            public const string PageLabels = "PageLabels";
-
-            public const string AcroForm = "AcroForm";
-        }
-
         private DocumentCatalogDictionary(Dictionary documentCatalogDictionary) : base(documentCatalogDictionary) { }
-
-        public static Name Type => Constants.DictionaryTypes.Catalog;
 
         /// <summary>
         /// (Optional; PDF 1.4)<para></para>
@@ -34,7 +20,7 @@ namespace ZingPDF.ObjectModel.DocumentStructure
         /// The value of this entry shall be a name object, not a number, and therefore shall 
         /// be preceded by a SOLIDUS (2Fh) character (/) when written in the PDF file (for example, /1.4).
         /// </summary>
-        public Name? Version => Get<Name>(DictionaryKeys.Version);
+        public Name? Version => Get<Name>(Constants.DictionaryKeys.DocumentCatalog.Version);
 
         /// <summary>
         /// (Optional; ISO 32000-1)<para></para>
@@ -42,13 +28,13 @@ namespace ZingPDF.ObjectModel.DocumentStructure
         /// for developer extensions that occur in this document. 7.12, "Extensions dictionary", 
         /// describes this dictionary and how it shall be used.
         /// </summary>
-        public ExtensionsDictionary? Extensions => Get<ExtensionsDictionary>(DictionaryKeys.Extensions);
+        public ExtensionsDictionary? Extensions => Get<ExtensionsDictionary>(Constants.DictionaryKeys.DocumentCatalog.Extensions);
 
         /// <summary>
         /// (Required)<para></para>
         /// The page tree node that shall be the root of the document’s page tree (see 7.7.3, "Page tree").
         /// </summary>
-        public IndirectObjectReference Pages => Get<IndirectObjectReference>(DictionaryKeys.Pages)!;
+        public IndirectObjectReference Pages => Get<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.Pages)!;
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
@@ -58,13 +44,13 @@ namespace ZingPDF.ObjectModel.DocumentStructure
         /// the specified page label dictionary applies. The tree shall include a value for page index 0.
         /// </summary>
         // TODO: Implement NumberTreeNodeDictionary
-        public Dictionary? PageLabels => Get<Dictionary>(DictionaryKeys.PageLabels);
+        public Dictionary? PageLabels => Get<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.PageLabels);
 
         /// <summary>
         /// (Optional; PDF 1.2)<para></para>
         /// The document’s interactive form (AcroForm) dictionary (see 12.7.3, "Interactive form dictionary").
         /// </summary>
-        public IndirectObjectReference? AcroForm => Get<IndirectObjectReference>(DictionaryKeys.AcroForm);
+        public IndirectObjectReference? AcroForm => Get<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.AcroForm);
 
         public static DocumentCatalogDictionary FromDictionary(Dictionary documentCatalogDictionary) 
         {

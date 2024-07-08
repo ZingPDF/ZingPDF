@@ -1,9 +1,8 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Drawing;
 using ZingPDF.Extensions;
-using ZingPDF.Forms;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.ObjectModel;
+using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
@@ -17,7 +16,7 @@ public class Pdf : IEditablePdf
     private readonly IPdf _sourcePdf;
     private readonly IndirectObjectManager _indirectObjectManager;
 
-    private readonly AsyncLazy<PageTreeNode> _rootPageTreeNode;
+    private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
     private AsyncLazy<List<IndirectObject>>? _pages;
 
     private readonly FormManager _formManager = new();
@@ -30,9 +29,9 @@ public class Pdf : IEditablePdf
         _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
         _indirectObjectManager = new IndirectObjectManager(sourcePdf.IndirectObjects);
 
-        _rootPageTreeNode = new AsyncLazy<PageTreeNode>(async () =>
+        _rootPageTreeNode = new AsyncLazy<PageTreeNodeDictionary>(async () =>
         {
-            return await IndirectObjects.GetAsync<PageTreeNode>(DocumentCatalog.Pages)
+            return await IndirectObjects.GetAsync<PageTreeNodeDictionary>(DocumentCatalog.Pages)
                 ?? throw new InvalidPdfException("Unable to find root page tree node");
         });
 
@@ -97,18 +96,18 @@ public class Pdf : IEditablePdf
 
     #region IEditablePdf
 
-    public async Task AppendPageAsync(Page.PageCreationOptions? pageCreationOptions)
+    public async Task AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions)
     {
-        pageCreationOptions ??= Page.PageCreationOptions.Default;
+        pageCreationOptions ??= PageDictionary.PageCreationOptions.Default;
 
         var rootPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.Pages)
             ?? throw new InvalidPdfException("Unable to find root page tree node");
 
-        var page = Page.CreateNew(DocumentCatalog.Pages, pageCreationOptions);
+        var page = PageDictionary.CreateNew(DocumentCatalog.Pages, pageCreationOptions);
 
         var pageIndirectObject = _indirectObjectManager.Add(page);
 
-        var rootPageTreeNode = rootPageTreeNodeIndirectObject!.Get<PageTreeNode>();
+        var rootPageTreeNode = rootPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
 
         // TODO: For now, to simplify adding pages,
         // new pages are appended to the root page tree node.
@@ -130,12 +129,12 @@ public class Pdf : IEditablePdf
         }
 
         var pageIndirectObject = await GetPageAsync(pageNumber);
-        var page = pageIndirectObject.Get<Page>();
+        var page = pageIndirectObject.Get<PageDictionary>();
 
         var parentIndirectObject = await IndirectObjects.GetAsync(page.Parent)
             ?? throw new InvalidPdfException("Unable to find parent page tree node of requested page");
 
-        var parent = (parentIndirectObject.Children.First() as PageTreeNode)!;
+        var parent = (parentIndirectObject.Children.First() as PageTreeNodeDictionary)!;
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
@@ -147,7 +146,7 @@ public class Pdf : IEditablePdf
         _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
     }
 
-    public async Task InsertPageAsync(int pageNumber, Page.PageCreationOptions? pageCreationOptions)
+    public async Task InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions)
     {
         // get page at number
         // get parent page tree node
@@ -158,7 +157,7 @@ public class Pdf : IEditablePdf
 
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
 
-        pageCreationOptions ??= Page.PageCreationOptions.Default;
+        pageCreationOptions ??= PageDictionary.PageCreationOptions.Default;
 
         var count = await GetPageCountAsync();
 
@@ -168,9 +167,9 @@ public class Pdf : IEditablePdf
         }
 
         var pageAtNumberIndirectObject = await GetPageAsync(pageNumber);
-        var pageAtNumber = pageAtNumberIndirectObject.Get<Page>();
+        var pageAtNumber = pageAtNumberIndirectObject.Get<PageDictionary>();
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageAtNumber.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNode>();
+        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
 
         var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumberIndirectObject.Id.Reference);
 
@@ -182,7 +181,7 @@ public class Pdf : IEditablePdf
             throw new Exception("This PDF does not have a default page size, you must therefore provide a PageCreationOptions.MediaBox property or ensure an ancestor has a value for this property."); // TODO: proper exception
         }
 
-        var page = Page.CreateNew(
+        var page = PageDictionary.CreateNew(
             parentPageTreeNodeIndirectObject.Id.Reference,
             pageCreationOptions
             );
@@ -235,7 +234,11 @@ public class Pdf : IEditablePdf
         {
             var fieldIndirectObject = fields[kvp.Key];
 
-            fieldIndirectObject.Get<FieldDictionary>().SetValue(kvp.Value!);
+            var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
+
+            fieldDict.SetValue(kvp.Value!);
+
+            
 
             _indirectObjectManager.Update(fieldIndirectObject);
         }
@@ -299,7 +302,7 @@ public class Pdf : IEditablePdf
     /// <summary>
     /// Recursively increment the page count of this page tree node and all its ancestors
     /// </summary>
-    private async Task IncrementPageCountAsync(PageTreeNode pageTreeNode)
+    private async Task IncrementPageCountAsync(PageTreeNodeDictionary pageTreeNode)
     {
         if (pageTreeNode.Parent is null)
         {
@@ -307,7 +310,7 @@ public class Pdf : IEditablePdf
         }
 
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNode>();
+        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
 
         parentPageTreeNode.IncrementCount();
 
@@ -320,7 +323,7 @@ public class Pdf : IEditablePdf
     /// <summary>
     /// Recursively decrement the page count of this page tree node and all its ancestors
     /// </summary>
-    private async Task DecrementPageCountAsync(PageTreeNode pageTreeNode)
+    private async Task DecrementPageCountAsync(PageTreeNodeDictionary pageTreeNode)
     {
         if (pageTreeNode.Parent is null)
         {
@@ -328,7 +331,7 @@ public class Pdf : IEditablePdf
         }
 
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNode>();
+        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
 
         parentPageTreeNode.DecrementCount();
 
@@ -341,7 +344,7 @@ public class Pdf : IEditablePdf
     /// <summary>
     /// Recursively walk up the page tree to check for the presence of a MediaBox property.
     /// </summary>
-    private async Task<bool> AncestorHasMediaBox(PageTreeNode parentPageTreeNode)
+    private async Task<bool> AncestorHasMediaBox(PageTreeNodeDictionary parentPageTreeNode)
     {
         if (parentPageTreeNode.MediaBox is not null)
         {
@@ -353,7 +356,7 @@ public class Pdf : IEditablePdf
             return false;
         }
 
-        var parent = await _indirectObjectManager.GetAsync<PageTreeNode>(parentPageTreeNode.Parent);
+        var parent = await _indirectObjectManager.GetAsync<PageTreeNodeDictionary>(parentPageTreeNode.Parent);
         if (parent == null)
         {
             return false;
