@@ -1,6 +1,6 @@
 ﻿using MorseCode.ITask;
 using System.Text;
-using ZingPDF.Forms;
+using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
 using ZingPDF.ObjectModel;
@@ -128,34 +128,34 @@ namespace ZingPDF.Parsing.Parsers.Objects
                             break;
 
                         case Constants.DictionaryTypes.Page:
-                            output = Page.FromDictionary(dict);
+                            output = PageDictionary.FromDictionary(dict);
                             break;
 
-                        case PageTreeNode.DictionaryKeys.Pages:
-                            output = PageTreeNode.FromDictionary(dict);
+                        case Constants.DictionaryTypes.Pages:
+                            output = PageTreeNodeDictionary.FromDictionary(dict);
                             break;
 
-                        case CrossReferenceStreamDictionary.DictionaryKeys.XRef:
+                        case Constants.DictionaryTypes.XRef:
                             output = CrossReferenceStreamDictionary.FromDictionary(dict);
                             break;
 
-                        case ObjectStreamDictionary.DictionaryKeys.ObjStm:
+                        case Constants.DictionaryTypes.ObjStm:
                             output = ObjectStreamDictionary.FromDictionary(dict);
                             break;
                     }
                 }
 
-                if (dict.ContainsKey(InteractiveFormDictionary.DictionaryKeys.Fields))
+                if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
                 {
                     output = InteractiveFormDictionary.FromDictionary(dict);
                 }
 
-                if (dict.ContainsKey(FieldDictionary.DictionaryKeys.FT))
+                if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
                 {
                     output = FieldDictionary.FromDictionary(dict);
                 }
 
-                if (dict.ContainsKey(LinearizationParameterDictionary.DictionaryKeys.Linearized))
+                if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
                 {
                     output = LinearizationParameterDictionary.FromDictionary(dict);
                 }
