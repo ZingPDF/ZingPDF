@@ -2,27 +2,13 @@
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Forms
+namespace ZingPDF.InteractiveFeatures.Forms
 {
     /// <summary>
     /// ISO 32000-2:2020 12.7.4 - Field dictionaries
     /// </summary>
     internal class FieldDictionary : Dictionary
     {
-        public static class DictionaryKeys
-        {
-            public const string FT = "FT";
-            public const string Parent = "Parent";
-            public const string Kids = "Kids";
-            public const string T = "T";
-            public const string TU = "TU";
-            public const string TM = "TM";
-            public const string Ff = "Ff";
-            public const string V = "V";
-            public const string DV = "DV";
-            public const string AA = "AA";
-        }
-
         private FieldDictionary(Dictionary dict) : base(dict) { }
 
         /// <summary>
@@ -37,14 +23,14 @@ namespace ZingPDF.Forms
         /// have a type of its own; it is merely a container for inheritable attributes that are 
         /// intended for descendant terminal fields of any type.
         /// </summary>
-        public Name? FT { get => Get<Name>(DictionaryKeys.FT); }
+        public Name? FT { get => Get<Name>(Constants.DictionaryKeys.Field.FT); }
 
         /// <summary>
         /// (Required if this field is the child of another in the field hierarchy; absent otherwise)<para></para>
         /// The field that is the immediate parent of this one (the field, if any, whose Kids array includes this field). 
         /// A field can have at most one parent; that is, it can be included in the Kids array of at most one other field.
         /// </summary>
-        public IndirectObjectReference? Parent { get => Get<IndirectObjectReference>(DictionaryKeys.Parent); }
+        public IndirectObjectReference? Parent { get => Get<IndirectObjectReference>(Constants.DictionaryKeys.Field.Parent); }
 
         /// <summary>
         /// (Sometimes required, as described below)<para></para>
@@ -56,13 +42,13 @@ namespace ZingPDF.Forms
         /// widget annotation, and its contents have been merged into the field dictionary, 
         /// Kids shall be omitted.
         /// </summary>
-        public ArrayObject? Kids { get => Get<ArrayObject>(DictionaryKeys.Kids); }
+        public ArrayObject? Kids { get => Get<ArrayObject>(Constants.DictionaryKeys.Field.Kids); }
 
         /// <summary>
         /// (Optional)<para></para>
         /// The partial field name (see 12.7.4.2, "Field names").
         /// </summary>
-        public LiteralString? T { get => Get<LiteralString>(DictionaryKeys.T); }
+        public LiteralString? T { get => Get<LiteralString>(Constants.DictionaryKeys.Field.T); }
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
@@ -72,13 +58,13 @@ namespace ZingPDF.Forms
         /// This text is also useful when extracting the document’s contents in support 
         /// of accessibility to users with disabilities or for other purposes (see 14.9.3, "Alternate descriptions").
         /// </summary>
-        public LiteralString? TU { get => Get<LiteralString>(DictionaryKeys.TU); }
+        public LiteralString? TU { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TU); }
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
         /// The mapping name that shall be used when exporting interactive form field data from the document.
         /// </summary>
-        public LiteralString? TM { get => Get<LiteralString>(DictionaryKeys.TM); }
+        public LiteralString? TM { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TM); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -86,21 +72,21 @@ namespace ZingPDF.Forms
         /// (see "Table 227 — Field flags common to all field types").<para></para>
         /// Default value: 0.
         /// </summary>
-        public Integer? Ff { get => Get<Integer>(DictionaryKeys.Ff); }
+        public Integer? Ff { get => Get<Integer>(Constants.DictionaryKeys.Field.Ff); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
         /// The field’s value, whose format varies depending on the field type. 
         /// See the descriptions of individual field types for further information.
         /// </summary>
-        public IPdfObject? V { get => Get<IPdfObject>(DictionaryKeys.V); }
+        public IPdfObject? V { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.V); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
         /// The default value to which the field reverts when a reset-form action is executed 
         /// (see 12.7.6.3, "Reset-form action"). The format of this value is the same as that of V.
         /// </summary>
-        public IPdfObject? DV { get => Get<IPdfObject>(DictionaryKeys.DV); }
+        public IPdfObject? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
 
         /// <summary>
         /// (Optional; PDF 1.2)<para></para>
@@ -108,11 +94,11 @@ namespace ZingPDF.Forms
         /// trigger events (see 12.6.3, "Trigger events"). This entry has exactly the same meaning 
         /// as the AA entry in an annotation dictionary (see 12.5.2, "Annotation dictionaries").
         /// </summary>
-        public Dictionary? AA { get => Get<Dictionary>(DictionaryKeys.AA); }
+        public Dictionary? AA { get => Get<Dictionary>(Constants.DictionaryKeys.Field.AA); }
 
         public void SetValue(LiteralString value)
         {
-            Set(DictionaryKeys.V, value);
+            Set(Constants.DictionaryKeys.Field.V, value);
         }
 
         public static FieldDictionary FromDictionary(Dictionary dict)
