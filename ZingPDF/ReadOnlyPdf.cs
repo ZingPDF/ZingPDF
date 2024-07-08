@@ -22,7 +22,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
     private readonly Stream _pdfInputStream;
     private readonly LinearizationParameterDictionary? _linearizationDictionary;
 
-    private readonly AsyncLazy<PageTreeNode> _rootPageTreeNode;
+    private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
     private readonly AsyncLazy<List<IndirectObject>> _pages;
 
     /// <summary>
@@ -44,9 +44,9 @@ public class ReadOnlyPdf : IPdf, IDisposable
         IndirectObjects = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
         _linearizationDictionary = linearizationDictionary;
 
-        _rootPageTreeNode = new AsyncLazy<PageTreeNode>(async () =>
+        _rootPageTreeNode = new AsyncLazy<PageTreeNodeDictionary>(async () =>
         {
-            return await IndirectObjects.GetAsync<PageTreeNode>(documentCatalog.Pages)
+            return await IndirectObjects.GetAsync<PageTreeNodeDictionary>(documentCatalog.Pages)
                 ?? throw new InvalidPdfException("Unable to find root page tree node");
         });
 

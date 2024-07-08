@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using ZingPDF.Extensions;
 
@@ -12,15 +11,22 @@ namespace ZingPDF.ObjectModel.Objects
     {
         private readonly Dictionary<Name, IPdfObject> _dictionary;
 
-        public Dictionary(IDictionary<Name, IPdfObject>? dictionary = null)
+        public Dictionary(Name? type)
         {
-            _dictionary = dictionary?.ToDictionary() ?? [];
+            _dictionary = [];
+
+            if (type != null)
+            {
+                _dictionary[Constants.DictionaryKeys.Type] = type;
+            }
         }
 
         public Dictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary)
         {
             _dictionary = dictionary?.ToDictionary() ?? throw new ArgumentNullException(nameof(dictionary));
         }
+
+        public Name? Type => Get<Name>(Constants.DictionaryKeys.Type);
 
         #region IReadOnlyDictionary
 
@@ -70,7 +76,7 @@ namespace ZingPDF.ObjectModel.Objects
             _dictionary[key] = value;
         }
 
-        public static Dictionary Empty => new();
+        public static Dictionary Empty => new((Name?)null);
 
         public static implicit operator Dictionary(Dictionary<Name, IPdfObject> value) => new(value);
     }
