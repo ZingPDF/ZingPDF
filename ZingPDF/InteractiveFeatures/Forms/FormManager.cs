@@ -1,7 +1,7 @@
 ﻿using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
-namespace ZingPDF.Forms
+namespace ZingPDF.InteractiveFeatures.Forms
 {
     internal class FormManager
     {
