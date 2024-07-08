@@ -6,10 +6,10 @@ namespace ZingPDF.Extensions
     internal static class PageTreeNodeExtensions
     {
         /// <summary>
-        /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNode"/>.
+        /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNodeDictionary"/>.
         /// </summary>
         public static async Task<List<IndirectObject>> GetSubPagesAsync(
-            this PageTreeNode pageTreeNode,
+            this PageTreeNodeDictionary pageTreeNode,
             IIndirectObjectDictionary indirectObjectDictionary
             )
         {
@@ -26,11 +26,11 @@ namespace ZingPDF.Extensions
                 var obj = await indirectObjectDictionary.GetAsync(ior)
                     ?? throw new InvalidPdfException("Unable to find referenced page");
 
-                if (obj.Children.First() is Page)
+                if (obj.Children.First() is PageDictionary)
                 {
                     pages.Add(obj);
                 }
-                else if (obj.Children.First() is PageTreeNode ptn)
+                else if (obj.Children.First() is PageTreeNodeDictionary ptn)
                 {
                     pages.AddRange(await ptn.GetSubPagesAsync(indirectObjectDictionary));
                 }
