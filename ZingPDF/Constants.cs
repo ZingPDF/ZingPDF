@@ -90,13 +90,13 @@ internal static class Constants
 
         public static class ObjectStream
         {
-            // Object stream dictionary
-            public const string ObjStm = "ObjStm";
             public const string N = "N";
             public const string First = "First";
             public const string Extends = "Extends";
-
-            // Stream dictionary
+        }
+        
+        public static class Stream
+        {
             public const string Length = "Length";
             public const string Filter = "Filter";
             public const string DecodeParms = "DecodeParms";
@@ -108,7 +108,6 @@ internal static class Constants
 
         public static class CrossReferenceStream
         {
-            //public const string XRef = "XRef";
             public const string Index = "Index";
             public const string W = "W";
         }
@@ -199,6 +198,8 @@ internal static class Constants
         public const string Page = "Page"; // Page
         public const string XRef = "XRef"; // Cross Reference
         public const string ObjStm = "ObjStm"; // Object Stream
+        public const string Extensions = "Extensions"; // Extensions
+        public const string Annot = "Annot"; // Annotations
     }
 
     internal static class PdfVersion
