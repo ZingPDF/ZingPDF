@@ -1,8 +1,31 @@
-﻿namespace ZingPDF.ObjectModel.Objects.Streams
+﻿using ZingPDF.ObjectModel.Objects;
+using ZingPDF.ObjectModel.Objects.IndirectObjects;
+using ZingPDF.ObjectModel.Objects.Streams;
+
+namespace ZingPDF.ObjectModel.FileStructure.ObjectStreams
 {
-    internal class StreamDictionary : Dictionary, IStreamDictionary
+    internal class ObjectStreamDictionary : Dictionary, IStreamDictionary
     {
-        private StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
+        private ObjectStreamDictionary(Dictionary objectStreamDictionary) : base(objectStreamDictionary) { }
+
+        /// <summary>
+        /// The number of indirect objects stored in the stream.
+        /// </summary>
+        public Integer N { get => Get<Integer>(Constants.DictionaryKeys.ObjectStream.N)!; }
+
+        /// <summary>
+        /// The byte offset in the decoded stream of the first compressed object.
+        /// </summary>
+        public Integer First { get => Get<Integer>(Constants.DictionaryKeys.ObjectStream.First)!; }
+
+        /// <summary>
+        /// reference to another object stream, of which the current object stream is an extension.
+        /// Both streams are considered part of a collection of object streams (see below).
+        /// A given collection consists of a set of streams whose Extends links form a directed acyclic graph.
+        /// </summary>
+        public IndirectObjectReference? Extends { get => Get<IndirectObjectReference>(Constants.DictionaryKeys.ObjectStream.Extends); }
+
+        #region IStreamDictionary
 
         /// <summary>
         /// The number of bytes from the beginning of the line following the keyword stream to the last byte just before the keyword endstream.
@@ -58,59 +81,18 @@
         /// </summary>
         public Integer? DL { get => Get<Integer>(Constants.DictionaryKeys.Stream.DL); }
 
-        public static StreamDictionary CreateNew(
-            Integer length,
-            IPdfObject? filter,
-            IPdfObject? decodeParms,
-            Dictionary? f,
-            IPdfObject? fFilter,
-            IPdfObject? fDecodeParms,
-            Integer? dL
-            )
+        #endregion
+
+        public static ObjectStreamDictionary FromDictionary(Dictionary objectStreamDictionary)
         {
-            var dict = new Dictionary<Name, IPdfObject>
-            {
-                { Constants.DictionaryKeys.Stream.Length, length },
-            };
+            ArgumentNullException.ThrowIfNull(objectStreamDictionary);
 
-            if (filter != null)
+            if (!objectStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.ObjStm)
             {
-                dict[Constants.DictionaryKeys.Stream.Filter] = filter;
+                throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(objectStreamDictionary));
             }
 
-            if (decodeParms != null)
-            {
-                dict[Constants.DictionaryKeys.Stream.DecodeParms] = decodeParms;
-            }
-
-            if (f != null)
-            {
-                dict[Constants.DictionaryKeys.Stream.F] = f;
-            }
-
-            if (fFilter != null)
-            {
-                dict[Constants.DictionaryKeys.Stream.FFilter] = fFilter;
-            }
-
-            if (fDecodeParms != null)
-            {
-                dict[Constants.DictionaryKeys.Stream.F] = fDecodeParms;
-            }
-
-            if (dL != null)
-            {
-                dict[Constants.DictionaryKeys.Stream.DL] = dL;
-            }
-
-            return new(dict);
-        }
-
-        public static StreamDictionary FromDictionary(Dictionary streamDictionary)
-        {
-            return streamDictionary is null
-                ? throw new ArgumentNullException(nameof(streamDictionary))
-                : new(streamDictionary);
+            return new(objectStreamDictionary);
         }
     }
 }

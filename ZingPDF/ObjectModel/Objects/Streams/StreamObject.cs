@@ -97,12 +97,12 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
     {
         var streamDictionary = new Dictionary<Name, IPdfObject>()
         {
-            { StreamDictionary.DictionaryKeys.Length, new Integer(encodedLength) },
+            { Constants.DictionaryKeys.Stream.Length, new Integer(encodedLength) },
         };
 
         if (unencodedLength is not null)
         {
-            streamDictionary.Add(StreamDictionary.DictionaryKeys.DL, new Integer(unencodedLength.Value));
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.DL, new Integer(unencodedLength.Value));
         }
 
         if (_filters.Any())

@@ -4,7 +4,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
 {
     internal class WidgetAnnotationDictionary : AnnotationDictionary
     {
-        public WidgetAnnotationDictionary() : base("Widget") { }
+        public WidgetAnnotationDictionary() : base(Subtypes.Widget) { }
 
         private WidgetAnnotationDictionary(Dictionary dict) : base(dict) { }
 

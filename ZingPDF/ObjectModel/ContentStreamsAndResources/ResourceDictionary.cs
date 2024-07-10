@@ -9,6 +9,8 @@ namespace ZingPDF.ObjectModel.ContentStreamsAndResources
     {
         // TODO
 
-
+        public ResourceDictionary() : base((Name?)null)
+        {
+        }
     }
 }

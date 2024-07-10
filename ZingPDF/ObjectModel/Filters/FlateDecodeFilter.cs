@@ -13,7 +13,7 @@ namespace ZingPDF.ObjectModel.Filters
 
         public FlateDecodeFilter(Dictionary? filterParams)
         {
-            Params = filterParams ?? [];
+            Params = filterParams ?? Dictionary.Empty;
         }
 
         public Name Name => Constants.Filters.Flate;

@@ -2,6 +2,7 @@
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.FileStructure.ObjectStreams;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.Streams;
 
