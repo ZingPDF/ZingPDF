@@ -9,8 +9,6 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
     {
         private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
 
-        #region CrossReferenceDictionary
-
         /// <summary>
         /// An array containing a pair of integers for each subsection in this section.
         /// The first integer shall be the first object number in the subsection;
@@ -19,7 +17,6 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// Subsections cannot overlap; an object number shall have no more than one entry in a section.
         /// </summary>
         public ArrayObject? Index => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.Index);
-
 
         /// <summary>
         /// An array of integers representing the size of the fields in a single cross-reference entry.
@@ -36,7 +33,8 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// </remarks>
         public ArrayObject W => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.W)!;
 
-        #endregion
+        // TODO: see if we can inherit all these properties from a base trailer stream dictionary,
+        // rather than duplicting them through interfaces
 
         #region ITrailerDictionary
 
@@ -88,7 +86,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// included in the count and is not logically part of the stream data.) 
         /// See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        public Integer Length => Get<Integer>(StreamDictionary.DictionaryKeys.Length)!;
+        public Integer Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
 
         /// <summary>
         /// The name, or an array of zero, one or several names, of filter(s) that shall be 
@@ -96,7 +94,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// Multiple filters shall be specified in the order in which they are to be applied.
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </summary>
-        public IPdfObject? Filter => Get<IPdfObject>(StreamDictionary.DictionaryKeys.Filter);
+        public IPdfObject? Filter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Filter);
 
         /// <summary>
         /// A parameter dictionary or an array of such dictionaries, used by the filters 
@@ -111,7 +109,7 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// If none of the filters have parameters, or if all their parameters have default 
         /// values, the DecodeParms entry may be omitted.
         /// </summary>
-        public IPdfObject? DecodeParms => Get<IPdfObject>(StreamDictionary.DictionaryKeys.DecodeParms);
+        public IPdfObject? DecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.DecodeParms);
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. 
@@ -121,28 +119,28 @@ namespace ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStream
         /// file data shall be specified by FFilter and the filter parameters shall be specified by FDecodeParms.
         /// </summary>
         // TODO: implement first class FileSpecificationDictionary
-        public Dictionary? F => Get<Dictionary>(StreamDictionary.DictionaryKeys.DecodeParms);
+        public Dictionary? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.DecodeParms);
 
         /// <summary>
         /// (Optional; PDF 1.2) The name of a filter to be applied in processing the data 
         /// found in the stream’s external file, or an array of zero, one or several such names. 
         /// The same rules apply as for Filter.
         /// </summary>
-        public IPdfObject? FFilter => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter);
+        public IPdfObject? FFilter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.FFilter);
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, 
         /// used by the filters specified by FFilter, respectively. 
         /// The same rules apply as for DecodeParms.
         /// </summary>
-        public IPdfObject? FDecodeParms => Get<IPdfObject>(StreamDictionary.DictionaryKeys.FFilter);
+        public IPdfObject? FDecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.FFilter);
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        public Integer? DL => Get<Integer>(StreamDictionary.DictionaryKeys.DL);
+        public Integer? DL => Get<Integer>(Constants.DictionaryKeys.Stream.DL);
 
         #endregion
 
