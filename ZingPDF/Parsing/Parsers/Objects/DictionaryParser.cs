@@ -7,8 +7,8 @@ using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.DocumentStructure;
 using ZingPDF.ObjectModel.DocumentStructure.PageTree;
 using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.ObjectModel.FileStructure.ObjectStreams;
 using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
