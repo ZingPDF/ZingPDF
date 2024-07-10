@@ -6,7 +6,12 @@ namespace ZingPDF.InteractiveFeatures.Annotations
 {
     public class AnnotationDictionary : Dictionary
     {
-        public AnnotationDictionary(Name subtype) : base("Annot")
+        public static class Subtypes
+        {
+            public const string Widget = "Widget";
+        }
+
+        public AnnotationDictionary(Name subtype) : base(Constants.DictionaryTypes.Annot)
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
