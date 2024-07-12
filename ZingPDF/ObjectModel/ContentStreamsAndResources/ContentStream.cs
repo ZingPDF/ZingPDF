@@ -1,16 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ZingPDF.ObjectModel.Filters;
+using ZingPDF.ObjectModel.Objects.Streams;
 
 namespace ZingPDF.ObjectModel.ContentStreamsAndResources
 {
     /// <summary>
     /// ISO 32000-2:2020 7.8.2 - Content streams
     /// </summary>
-    internal class ContentStream
+    internal class ContentStream : StreamObject<ResourceDictionary>
     {
-        // TODO 
+        public ContentStream(IEnumerable<IFilter>? filters) : base(filters)
+        {
+        }
+
+        protected override Task<Stream> GetSourceDataAsync(ResourceDictionary dictionary)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task<ResourceDictionary> GetSpecialisedDictionaryAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
