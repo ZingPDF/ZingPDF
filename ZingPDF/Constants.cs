@@ -1,4 +1,6 @@
-﻿namespace ZingPDF;
+﻿using ZingPDF.ObjectModel.Objects;
+
+namespace ZingPDF;
 
 internal static class Constants
 {
@@ -132,6 +134,18 @@ internal static class Constants
             public const string Rotate = "Rotate";
         }
 
+        public static class Resource
+        {
+            public const string ExtGState = "ExtGState";
+            public const string ColorSpace = "ColorSpace";
+            public const string Pattern = "Pattern";
+            public const string Shading = "Shading";
+            public const string XObject = "XObject";
+            public const string Font = "Font";
+            public const string ProcSet = "ProcSet";
+            public const string Properties = "Properties";
+        }
+
         public static class InteractiveForm
         {
             public const string Fields = "Fields";
@@ -189,6 +203,54 @@ internal static class Constants
             public const string BS = "BS";
             public const string Parent = "Parent";
         }
+
+        public static class GraphicsStateParameter
+        {
+            public const string LW = "LW";
+            public const string LC = "LC";
+            public const string LJ = "LJ";
+            public const string ML = "ML";
+            public const string D = "D";
+            public const string RI = "RI";
+            public const string OP = "OP";
+            public const string op = "op";
+            public const string OPM = "OPM";
+            public const string Font = "Font";
+            public const string BG = "BG";
+            public const string BG2 = "BG2";
+            public const string UCR = "UCR";
+            public const string UCR2 = "UCR2";
+            public const string TR = "TR";
+            public const string TR2 = "TR2";
+            public const string HT = "HT";
+            public const string FL = "FL";
+            public const string SM = "SM";
+            public const string SA = "SA";
+            public const string BM = "BM";
+            public const string SMask = "SMask";
+            public const string CA = "CA";
+            public const string ca = "ca";
+            public const string AIS = "AIS";
+            public const string TK = "TK";
+            public const string UseBlackPtComp = "UseBlackPtComp";
+            public const string HTO = "HTO";
+        }
+
+        public static class Function
+        {
+            public const string FunctionType = "FunctionType";
+            public const string Domain = "Domain";
+            public const string Range = "Range";
+
+            public static class Type0
+            {
+                public const string Size = "Size";
+                public const string BitsPerSample = "BitsPerSample";
+                public const string Order = "Order";
+                public const string Encode = "Encode";
+                public const string Decode = "Decode";
+            }
+        }
     }
 
     public static class DictionaryTypes
@@ -200,6 +262,15 @@ internal static class Constants
         public const string ObjStm = "ObjStm"; // Object Stream
         public const string Extensions = "Extensions"; // Extensions
         public const string Annot = "Annot"; // Annotations
+        public const string ExtGState = "ExtGState"; // Graphics State Parameter
+    }
+
+    public static class FunctionTypes
+    {
+        public const int Zero = 0;
+        public const int Two = 2;
+        public const int Three = 3;
+        public const int Four = 4;
     }
 
     internal static class PdfVersion
