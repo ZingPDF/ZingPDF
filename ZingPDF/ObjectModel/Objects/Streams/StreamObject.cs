@@ -40,7 +40,7 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
     /// </summary>
     protected StreamObject(IEnumerable<IFilter>? filters)
     {
-        _filters = filters ?? Array.Empty<IFilter>();
+        _filters = filters ?? [];
 
         _specialisedDictionary = new AsyncLazy<TDictionary>(GetSpecialisedDictionaryAsync);
         _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(await _specialisedDictionary));
