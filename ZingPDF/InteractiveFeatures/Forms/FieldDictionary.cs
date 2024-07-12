@@ -1,13 +1,13 @@
-﻿using ZingPDF.ObjectModel;
+﻿using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
 
 namespace ZingPDF.InteractiveFeatures.Forms
 {
     /// <summary>
     /// ISO 32000-2:2020 12.7.4 - Field dictionaries
     /// </summary>
-    internal class FieldDictionary : Dictionary
+    internal class FieldDictionary : WidgetAnnotationDictionary
     {
         private FieldDictionary(Dictionary dict) : base(dict) { }
 
@@ -24,13 +24,6 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// intended for descendant terminal fields of any type.
         /// </summary>
         public Name? FT { get => Get<Name>(Constants.DictionaryKeys.Field.FT); }
-
-        /// <summary>
-        /// (Required if this field is the child of another in the field hierarchy; absent otherwise)<para></para>
-        /// The field that is the immediate parent of this one (the field, if any, whose Kids array includes this field). 
-        /// A field can have at most one parent; that is, it can be included in the Kids array of at most one other field.
-        /// </summary>
-        public IndirectObjectReference? Parent { get => Get<IndirectObjectReference>(Constants.DictionaryKeys.Field.Parent); }
 
         /// <summary>
         /// (Sometimes required, as described below)<para></para>
@@ -88,20 +81,12 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </summary>
         public IPdfObject? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
 
-        /// <summary>
-        /// (Optional; PDF 1.2)<para></para>
-        /// An additional-actions dictionary defining the field’s behaviour in response to various 
-        /// trigger events (see 12.6.3, "Trigger events"). This entry has exactly the same meaning 
-        /// as the AA entry in an annotation dictionary (see 12.5.2, "Annotation dictionaries").
-        /// </summary>
-        public Dictionary? AA { get => Get<Dictionary>(Constants.DictionaryKeys.Field.AA); }
-
         public void SetValue(LiteralString value)
         {
             Set(Constants.DictionaryKeys.Field.V, value);
         }
 
-        public static FieldDictionary FromDictionary(Dictionary dict)
+        new public static FieldDictionary FromDictionary(Dictionary dict)
         {
             ArgumentNullException.ThrowIfNull(dict);
 
