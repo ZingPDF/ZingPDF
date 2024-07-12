@@ -6,7 +6,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
     {
         public WidgetAnnotationDictionary() : base(Subtypes.Widget) { }
 
-        private WidgetAnnotationDictionary(Dictionary dict) : base(dict) { }
+        protected WidgetAnnotationDictionary(Dictionary dict) : base(dict) { }
 
         /// <summary>
         /// <para>(Optional)</para>
