@@ -67,6 +67,7 @@ internal static class Constants
     public static class DictionaryKeys
     {
         public const string Type = "Type";
+        public const string Subtype = "Subtype";
 
         public static class DocumentCatalog
         {
@@ -174,7 +175,6 @@ internal static class Constants
 
         public static class Annotation
         {
-            public const string Subtype = "Subtype";
             public const string Rect = "Rect";
             public const string Contents = "Contents";
             public const string P = "P";
@@ -202,6 +202,31 @@ internal static class Constants
             public const string AA = "AA";
             public const string BS = "BS";
             public const string Parent = "Parent";
+        }
+
+        public static class Form
+        {
+            public const string FormType = "FormType";
+
+            public static class Type1
+            {
+                public const string BBox = "BBox";
+                public const string Matrix = "Matrix";
+                public const string Resources = "Resources";
+                public const string Group = "Group";
+                public const string Ref = "Ref";
+                public const string Metadata = "Metadata";
+                public const string PieceInfo = "PieceInfo";
+                public const string LastModified = "LastModified";
+                public const string StructParent = "StructParent";
+                public const string StructParents = "StructParents";
+                public const string OPI = "OPI";
+                public const string OC = "OC";
+                public const string Name = "Name";
+                public const string AF = "AF";
+                public const string Measure = "Measure";
+                public const string PtData = "PtData";
+            }
         }
 
         public static class GraphicsStateParameter
@@ -263,6 +288,8 @@ internal static class Constants
         public const string Extensions = "Extensions"; // Extensions
         public const string Annot = "Annot"; // Annotations
         public const string ExtGState = "ExtGState"; // Graphics State Parameter
+        public const string XObject = "XObject"; // Form Dictionary (Form XObjects)
+        public const string Metadata = "Metadata"; // Metadata Stream
     }
 
     public static class FunctionTypes
