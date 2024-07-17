@@ -6,7 +6,7 @@ namespace ZingPDF.ObjectModel.ContentStreamsAndResources
     /// <summary>
     /// ISO 32000-2:2020 7.8.3 - Resource dictionaries
     /// </summary>
-    internal class ResourceDictionary : StreamDictionary
+    public class ResourceDictionary : StreamDictionary
     {
         private ResourceDictionary(Dictionary dict) : base(dict) { }
 

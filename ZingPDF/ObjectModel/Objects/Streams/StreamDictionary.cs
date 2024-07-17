@@ -1,7 +1,8 @@
 ﻿namespace ZingPDF.ObjectModel.Objects.Streams
 {
-    internal class StreamDictionary : Dictionary, IStreamDictionary
+    public class StreamDictionary : Dictionary, IStreamDictionary
     {
+        protected StreamDictionary(Name type) : base(type) { }
         protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
         public Integer Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
