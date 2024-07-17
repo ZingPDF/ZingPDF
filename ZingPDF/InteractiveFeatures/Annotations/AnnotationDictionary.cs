@@ -15,7 +15,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
-            Set(Constants.DictionaryKeys.Annotation.Subtype, subtype);
+            Set(Constants.DictionaryKeys.Subtype, subtype);
         }
 
         protected AnnotationDictionary(Dictionary dict) : base(dict) { }
@@ -24,7 +24,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>(Required)</para>
         /// <para>The type of annotation that this dictionary describes; see "Table 171 — Annotation types" for specific values.</para>
         /// </summary>
-        public Name Subtype => Get<Name>(Constants.DictionaryKeys.Annotation.Subtype)!;
+        public Name Subtype => Get<Name>(Constants.DictionaryKeys.Subtype)!;
 
         /// <summary>
         /// <para>(Required)</para>
