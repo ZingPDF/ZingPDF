@@ -21,8 +21,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Graphics\FormXObjects\" />
-  </ItemGroup>
-
 </Project>
