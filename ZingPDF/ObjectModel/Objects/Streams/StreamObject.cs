@@ -47,7 +47,14 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
         _compressedData = new AsyncLazy<Stream>(CompressDataAsync);
     }
 
+    /// <summary>
+    /// When overridden in a derived class this method returns the specialised dictionary for the subclass.
+    /// </summary>
     protected abstract Task<TDictionary> GetSpecialisedDictionaryAsync();
+
+    /// <summary>
+    /// When overriden in a derived class this method returns the uncompressed data stream.
+    /// </summary>
     protected abstract Task<Stream> GetSourceDataAsync(TDictionary dictionary);
 
     protected override async Task WriteOutputAsync(Stream stream)
