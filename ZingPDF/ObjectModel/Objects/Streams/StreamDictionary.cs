@@ -2,7 +2,7 @@
 {
     public class StreamDictionary : Dictionary, IStreamDictionary
     {
-        protected StreamDictionary(Name type) : base(type) { }
+        protected StreamDictionary(Name? type) : base(type) { }
         protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
         public Integer Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
@@ -67,5 +67,7 @@
                 ? throw new ArgumentNullException(nameof(streamDictionary))
                 : new(streamDictionary);
         }
+
+        new public static IStreamDictionary Empty(Name? type = null) => new StreamDictionary(type);
     }
 }
