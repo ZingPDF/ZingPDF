@@ -1,5 +1,4 @@
-﻿using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-using ZingPDF.ObjectModel.Filters;
+﻿using ZingPDF.ObjectModel.Filters;
 using ZingPDF.ObjectModel.Objects;
 using ZingPDF.ObjectModel.Objects.IndirectObjects;
 using ZingPDF.ObjectModel.Objects.Streams;
