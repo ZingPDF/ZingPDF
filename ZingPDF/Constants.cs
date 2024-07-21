@@ -203,6 +203,13 @@ internal static class Constants
             public const string BS = "BS";
             public const string Parent = "Parent";
         }
+        
+        public static class Appearance
+        {
+            public const string N = "N";
+            public const string R = "R";
+            public const string D = "D";
+        }
 
         public static class Form
         {
