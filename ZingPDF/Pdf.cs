@@ -1,7 +1,9 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Drawing;
 using ZingPDF.Extensions;
+using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.ObjectModel.CommonDataStructures;
 using ZingPDF.ObjectModel.DocumentStructure;
@@ -238,7 +240,10 @@ public class Pdf : IEditablePdf
 
             fieldDict.SetValue(kvp.Value!);
 
-            
+            var apFormXObject = new FormXObject();
+            var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
+
+            fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
 
             _indirectObjectManager.Update(fieldIndirectObject);
         }
