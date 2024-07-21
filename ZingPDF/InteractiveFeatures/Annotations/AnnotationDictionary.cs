@@ -79,7 +79,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>Every annotation (including those whose Subtype value is Widget, as used for form fields), 
         /// except for the two cases listed below, shall have at least one appearance dictionary.</para>
         /// <para>• Annotations where the value of the Rect key consists of an array where the value at 
-        /// index 1 is equal to the value at index 3 and the value at index 2 is equal to the value at index 4.</para>
+        /// index 0 is equal to the value at index 2 and the value at index 1 is equal to the value at index 3.</para>
         /// <para> NOTE (2020) The bullet point above was changed from “or” to “and” in this document to match 
         /// requirements in other published ISO PDF standards (such as PDF/A).</para>
         /// <para>• Annotations whose Subtype value is Popup, Projection or Link.</para>

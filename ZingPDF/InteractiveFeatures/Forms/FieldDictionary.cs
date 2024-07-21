@@ -1,4 +1,5 @@
 ﻿using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.ObjectModel;
 using ZingPDF.ObjectModel.Objects;
 
@@ -83,7 +84,16 @@ namespace ZingPDF.InteractiveFeatures.Forms
 
         public void SetValue(LiteralString value)
         {
+            ArgumentNullException.ThrowIfNull(value);
+
             Set(Constants.DictionaryKeys.Field.V, value);
+        }
+
+        public void SetAppearanceStream(AppearanceDictionary apDict)
+        {
+            ArgumentNullException.ThrowIfNull(apDict);
+
+            Set(Constants.DictionaryKeys.Annotation.AP, apDict);
         }
 
         new public static FieldDictionary FromDictionary(Dictionary dict)
