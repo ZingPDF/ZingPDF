@@ -1,22 +1,26 @@
-﻿using ZingPDF.ObjectModel.ContentStreamsAndResources;
+﻿using ZingPDF.ObjectModel.CommonDataStructures;
+using ZingPDF.ObjectModel.ContentStreamsAndResources;
 using ZingPDF.ObjectModel.Filters;
 
 namespace ZingPDF.Graphics.FormXObjects
 {
     internal class FormXObject : ContentStream<Type1FormDictionary>
     {
+        private readonly Rectangle _bBox;
+
         public FormXObject(
-            IEnumerable<IFilter>? filters,
-            // TODO
-            ) : base(filters)
+            Rectangle bBox,
+            IEnumerable<ContentStreamInstruction> instructions,
+            IEnumerable<IFilter>? filters = null
+            )
+            : base(instructions, filters)
         {
+            _bBox = bBox ?? throw new ArgumentNullException(nameof(bBox));
         }
 
         protected override Task<Type1FormDictionary> GetSpecialisedDictionaryAsync()
         {
-            // TODO
-
-            return Task.FromResult(new Type1FormDictionary());
+            return Task.FromResult(new Type1FormDictionary(_bBox));
         }
     }
 }
