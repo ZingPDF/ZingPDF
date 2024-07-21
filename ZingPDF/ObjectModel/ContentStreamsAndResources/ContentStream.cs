@@ -9,9 +9,13 @@ namespace ZingPDF.ObjectModel.ContentStreamsAndResources;
 /// </summary>
 internal class ContentStream<TDictionary> : StreamObject<TDictionary> where TDictionary : class, IStreamDictionary
 {
-    private readonly IEnumerable<IContentStreamInstruction> _instructions;
+    private readonly IEnumerable<ContentStreamInstruction> _instructions;
 
-    public ContentStream(IEnumerable<IContentStreamInstruction> instructions, IEnumerable<IFilter>? filters) : base(filters)
+    public ContentStream(
+        IEnumerable<ContentStreamInstruction> instructions,
+        IEnumerable<IFilter>? filters = null
+        )
+        : base(filters)
     {
         _instructions = instructions ?? throw new ArgumentNullException(nameof(instructions));
     }
