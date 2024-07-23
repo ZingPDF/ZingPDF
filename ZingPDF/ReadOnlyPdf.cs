@@ -1,11 +1,11 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Extensions;
 using ZingPDF.Linearization;
-using ZingPDF.ObjectModel.DocumentStructure;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
-using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 

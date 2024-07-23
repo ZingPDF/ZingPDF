@@ -3,12 +3,12 @@ using System.Text;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
-using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.DocumentStructure;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
-using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
-using ZingPDF.ObjectModel.FileStructure.ObjectStreams;
-using ZingPDF.ObjectModel.Objects;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
