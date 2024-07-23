@@ -2,7 +2,7 @@
 using System.Text;
 using Xunit;
 
-namespace ZingPDF.ObjectModel.Filters;
+namespace ZingPDF.Syntax.Filters;
 
 public class ASCII85DecodeFilterTests
 {
