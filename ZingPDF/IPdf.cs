@@ -1,6 +1,6 @@
-﻿using ZingPDF.ObjectModel.DocumentStructure;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
 

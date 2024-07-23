@@ -1,5 +1,5 @@
-﻿using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates;
 

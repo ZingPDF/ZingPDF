@@ -1,6 +1,6 @@
-﻿using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.ContentStreamsAndResources;
-using ZingPDF.ObjectModel.Filters;
+﻿using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.Filters;
 
 namespace ZingPDF.Graphics.FormXObjects
 {

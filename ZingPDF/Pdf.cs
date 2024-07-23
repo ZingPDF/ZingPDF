@@ -5,11 +5,11 @@ using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.DocumentStructure;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
 
@@ -240,7 +240,7 @@ public class Pdf : IEditablePdf
 
             fieldDict.SetValue(kvp.Value!);
 
-            var apFormXObject = new FormXObject();
+            var apFormXObject = new FormXObject(Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height), );
             var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));

@@ -1,10 +1,10 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-using ZingPDF.ObjectModel.FileStructure.CrossReferences.CrossReferenceStreams;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates
 {

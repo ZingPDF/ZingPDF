@@ -1,7 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
-using ZingPDF.ObjectModel.FileStructure.Trailer;
-using ZingPDF.ObjectModel.Objects;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure
 {

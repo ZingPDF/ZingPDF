@@ -3,7 +3,7 @@ using System.Globalization;
 using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.ObjectModel.CommonDataStructures;
+namespace ZingPDF.Syntax.CommonDataStructures;
 
 public class DateTests
 {

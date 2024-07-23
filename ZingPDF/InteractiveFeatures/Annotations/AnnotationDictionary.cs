@@ -1,6 +1,6 @@
-﻿using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.Objects;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations
 {

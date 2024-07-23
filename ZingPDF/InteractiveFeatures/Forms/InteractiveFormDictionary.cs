@@ -1,5 +1,5 @@
-﻿using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.Objects;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Forms
 {

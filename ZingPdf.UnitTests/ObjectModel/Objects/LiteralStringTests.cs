@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using Xunit;
 
-namespace ZingPDF.ObjectModel.Objects;
+namespace ZingPDF.Syntax.Objects;
 
 public class LiteralStringTests
 {

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
-using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
