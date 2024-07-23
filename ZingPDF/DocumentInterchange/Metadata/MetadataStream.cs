@@ -1,5 +1,5 @@
-﻿using ZingPDF.ObjectModel.Filters;
-using ZingPDF.ObjectModel.Objects.Streams;
+﻿using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.DocumentInterchange.Metadata
 {

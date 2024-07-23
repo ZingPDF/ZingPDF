@@ -1,7 +1,7 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
-using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.ContentStreamsAndResources;
-using ZingPDF.ObjectModel.Objects;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Graphics.FormXObjects
 {

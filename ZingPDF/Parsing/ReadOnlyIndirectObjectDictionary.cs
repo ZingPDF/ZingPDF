@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using ZingPDF.Logging;
-using ZingPDF.ObjectModel.FileStructure.CrossReferences;
-using ZingPDF.ObjectModel.FileStructure.ObjectStreams;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
-using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;

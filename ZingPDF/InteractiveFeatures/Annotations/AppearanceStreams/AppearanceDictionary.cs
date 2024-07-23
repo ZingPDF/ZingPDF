@@ -1,6 +1,6 @@
-﻿using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
 {

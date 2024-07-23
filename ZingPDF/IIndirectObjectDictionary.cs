@@ -1,4 +1,4 @@
-﻿using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF
 {
