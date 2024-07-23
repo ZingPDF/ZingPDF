@@ -1,4 +1,4 @@
-﻿using ZingPDF.ObjectModel.Objects;
+﻿using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations
 {

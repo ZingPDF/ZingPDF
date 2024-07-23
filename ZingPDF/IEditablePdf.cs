@@ -1,7 +1,7 @@
 ﻿using ZingPDF.Drawing;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.ObjectModel.CommonDataStructures;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
 
 namespace ZingPDF;
 

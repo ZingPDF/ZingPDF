@@ -1,5 +1,5 @@
-﻿using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.Streams;
+﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Graphics.FormXObjects
 {
