@@ -1,5 +1,5 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.ObjectModel;
+using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing
 {

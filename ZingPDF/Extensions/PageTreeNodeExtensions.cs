@@ -1,5 +1,5 @@
-﻿using ZingPDF.ObjectModel.DocumentStructure.PageTree;
-using ZingPDF.ObjectModel.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Extensions
 {

@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using ZingPDF.ObjectModel.CommonDataStructures;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Parsing;
-using ZingPDF.ObjectModel.DocumentStructure.PageTree;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();

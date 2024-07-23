@@ -1,8 +1,8 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.ObjectModel;
-using ZingPDF.ObjectModel.Filters;
-using ZingPDF.ObjectModel.Objects;
-using ZingPDF.ObjectModel.Objects.Streams;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
