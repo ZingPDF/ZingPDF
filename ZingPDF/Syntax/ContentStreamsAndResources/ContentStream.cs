@@ -9,27 +9,25 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources;
 /// </summary>
 internal class ContentStream<TDictionary> : StreamObject<TDictionary> where TDictionary : class, IStreamDictionary
 {
-    private readonly IEnumerable<ContentStreamInstruction> _instructions;
+    private readonly IEnumerable<PdfObject> _graphicsObjects;
 
     public ContentStream(
-        IEnumerable<ContentStreamInstruction> instructions,
+        IEnumerable<PdfObject> graphicsObjects,
         IEnumerable<IFilter>? filters = null
         )
         : base(filters)
     {
-        _instructions = instructions ?? throw new ArgumentNullException(nameof(instructions));
+        _graphicsObjects = graphicsObjects ?? throw new ArgumentNullException(nameof(graphicsObjects));
     }
 
     protected override async Task<Stream> GetSourceDataAsync(TDictionary dictionary)
     {
         var ms = new MemoryStream();
 
-        foreach (var instruction in _instructions)
+        foreach (var graphicsObject in _graphicsObjects)
         {
-            await ms.WriteTextAsync(instruction.Operator);
+            await graphicsObject.WriteAsync(ms);
             await ms.WriteWhitespaceAsync();
-
-            await instruction.Operand.WriteAsync(ms);
         }
 
         ms.Position = 0;

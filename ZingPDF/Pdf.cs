@@ -2,6 +2,7 @@
 using ZingPDF.Drawing;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.Graphics.GraphicsObjects;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
@@ -240,7 +241,7 @@ public class Pdf : IEditablePdf
 
             fieldDict.SetValue(kvp.Value!);
 
-            var apFormXObject = new FormXObject(Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height), );
+            var apFormXObject = new FormXObject(Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height), [new TextObject(kvp.Value!)]);
             var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
