@@ -2,7 +2,7 @@
 using Xunit;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.ObjectModel.FileStructure.CrossReferences;
+namespace ZingPDF.Syntax.FileStructure.CrossReferences;
 
 public class CrossReferenceEntryTests
 {
