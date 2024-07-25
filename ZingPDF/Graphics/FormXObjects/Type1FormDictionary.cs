@@ -9,12 +9,17 @@ namespace ZingPDF.Graphics.FormXObjects
     {
         private const int _formType = 1;
 
-        public Type1FormDictionary(Rectangle bBox) : base(Subtypes.Form)
+        public Type1FormDictionary(Rectangle bBox, ResourceDictionary? resources = null) : base(Subtypes.Form)
         {
             ArgumentNullException.ThrowIfNull(bBox);
 
             Set<Integer>(Constants.DictionaryKeys.Form.FormType, _formType);
             Set(Constants.DictionaryKeys.Form.Type1.BBox, bBox);
+
+            if (resources is not null)
+            {
+                Set(Constants.DictionaryKeys.Form.Type1.Resources, resources);
+            }
         }
 
         private Type1FormDictionary(Dictionary dictionary) : base(dictionary)
