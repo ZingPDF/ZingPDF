@@ -11,13 +11,13 @@ public interface IEditablePdf : IPdf
     Task InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions);
     Task DeletePageAsync(int pageNumber);
     Task SetPageRotationAsync(int pageNumber, Rotation rotation);
-    void Draw(
-        int pageNumber,
-        IEnumerable<Drawing.Path> paths,
-        IEnumerable<Text> text,
-        IEnumerable<Image> imageOperations,
-        CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
-        );
+    //void Draw(
+    //    int pageNumber,
+    //    IEnumerable<Drawing.Path> paths,
+    //    IEnumerable<Text> text,
+    //    IEnumerable<Image> imageOperations,
+    //    CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
+    //    );
 
     Task CompleteFormAsync(IDictionary<string, string> formValues);
     Task<IEnumerable<FormField>> GetFieldsAsync();

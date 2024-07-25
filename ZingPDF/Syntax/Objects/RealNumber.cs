@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using ZingPDF.Extensions;
+﻿using ZingPDF.Extensions;
 
 namespace ZingPDF.Syntax.Objects
 {
@@ -15,9 +14,9 @@ namespace ZingPDF.Syntax.Objects
 
         public double Value { get; }
 
-        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteTextAsync(Value.ToString("G", CultureInfo.InvariantCulture));
+        protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteDoubleAsync(Value);
 
-        public override string ToString() => $"{nameof(Integer)}: {Value}";
+        public override string ToString() => $"{nameof(RealNumber)}: {Value}";
 
         public static implicit operator RealNumber(double value) => new(value);
         public static implicit operator RealNumber(long value) => new(value);
@@ -26,5 +25,10 @@ namespace ZingPDF.Syntax.Objects
         public static implicit operator double(RealNumber value) => value.Value;
         public static implicit operator long(RealNumber value) => (long)value.Value;
         public static implicit operator int(RealNumber value) => (int)value.Value;
+
+        public static RealNumber operator +(RealNumber a, RealNumber b) => a.Value + b.Value;
+        public static RealNumber operator -(RealNumber a, RealNumber b) => a.Value - b.Value;
+        public static RealNumber operator *(RealNumber a, RealNumber b) => a.Value * b.Value;
+        public static RealNumber operator /(RealNumber a, RealNumber b) => a.Value / b.Value;
     }
 }
