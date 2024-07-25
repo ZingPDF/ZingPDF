@@ -281,6 +281,21 @@ internal static class Constants
                 public const string Decode = "Decode";
             }
         }
+
+        public static class Font
+        {
+            public static class Type1
+            {
+                public const string Name = "Name";
+                public const string BaseFont = "BaseFont";
+                public const string FirstChar = "FirstChar";
+                public const string LastChar = "LastChar";
+                public const string Widths = "Widths";
+                public const string FontDescriptor = "FontDescriptor";
+                public const string Encoding = "Encoding";
+                public const string ToUnicode = "ToUnicode";
+            }
+        }
     }
 
     public static class DictionaryTypes
@@ -295,6 +310,7 @@ internal static class Constants
         public const string ExtGState = "ExtGState"; // Graphics State Parameter
         public const string XObject = "XObject"; // Form Dictionary (Form XObjects)
         public const string Metadata = "Metadata"; // Metadata Stream
+        public const string Font = "Font"; // Font
     }
 
     public static class FunctionTypes

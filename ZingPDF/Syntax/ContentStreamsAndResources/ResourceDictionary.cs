@@ -8,6 +8,28 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
     /// </summary>
     public class ResourceDictionary : StreamDictionary
     {
+        public ResourceDictionary(
+            Dictionary? extGState = null,
+            Dictionary? colorSpace = null,
+            Dictionary? pattern = null,
+            Dictionary? shading = null,
+            Dictionary? xObject = null,
+            Dictionary? font = null,
+            Dictionary? procSet = null,
+            Dictionary? properties = null
+            )
+            : base((Name?)null)
+        {
+            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, extGState);
+            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, colorSpace);
+            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, pattern);
+            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, shading);
+            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, xObject);
+            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, font);
+            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, procSet);
+            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, properties);
+        }
+
         private ResourceDictionary(Dictionary dict) : base(dict) { }
 
         /// <summary>
