@@ -1,16 +1,19 @@
 ﻿using Nito.AsyncEx;
-using ZingPDF.Drawing;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics.FormXObjects;
-using ZingPDF.Graphics.GraphicsObjects;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Text;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF;
 
@@ -215,10 +218,10 @@ public class Pdf : IEditablePdf
         throw new NotImplementedException();
     }
 
-    public void Draw(int pageNumber, IEnumerable<Drawing.Path> paths, IEnumerable<Text> text, IEnumerable<Image> imageOperations, CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp)
-    {
-        throw new NotImplementedException();
-    }
+    //public void Draw(int pageNumber, IEnumerable<Drawing.Path> paths, IEnumerable<Text> text, IEnumerable<Image> imageOperations, CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp)
+    //{
+    //    throw new NotImplementedException();
+    //}
     
     // TODO: support for all field types?
     public async Task CompleteFormAsync(IDictionary<string, string> formValues)
@@ -231,17 +234,37 @@ public class Pdf : IEditablePdf
         var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
             ?? throw new InvalidPdfException("Unable to resolve form reference");
 
+        // TODO: can we reuse an existing font?
+        var font = new Type1FontDictionary("Helvetica");
+        var fontIndirectObject = _indirectObjectManager.Add(font);
+
+        // TODO: choose short unique font name
+        var fontResourceName = "F1";
+        var fontMap = new Dictionary<Name, IPdfObject> { { fontResourceName, fontIndirectObject.Id.Reference } };
+
         var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
 
-        foreach (var kvp in formValues)
+        foreach (var kvp in formValues.Take(1))
         {
             var fieldIndirectObject = fields[kvp.Key];
 
             var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
 
+            if ((fieldDict.FT ?? "") != "Tx")
+            {
+                continue;
+            }
+
             fieldDict.SetValue(kvp.Value!);
 
-            var apFormXObject = new FormXObject(Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height), [new TextObject(kvp.Value!)]);
+            // TODO: do we need to account for fields which already have an appearance stream? or always replace?
+
+            var apFormXObject = new FormXObject(
+                Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height),
+                [new TextObject(kvp.Value!, new TextObject.FontOptions(fontResourceName, 12))],
+                new ResourceDictionary(font: fontMap)
+                );
+
             var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));

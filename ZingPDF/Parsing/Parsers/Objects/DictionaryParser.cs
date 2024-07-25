@@ -4,6 +4,7 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -20,6 +21,18 @@ namespace ZingPDF.Parsing.Parsers.Objects
     /// </remarks>
     internal class DictionaryParser : IPdfObjectParser<Dictionary>
     {
+        // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
+        private readonly List<Name> _rectKeys =
+        [
+            Constants.DictionaryKeys.Page.MediaBox,
+            Constants.DictionaryKeys.Page.CropBox,
+            Constants.DictionaryKeys.Page.BleedBox,
+            Constants.DictionaryKeys.Page.TrimBox,
+            Constants.DictionaryKeys.Page.ArtBox,
+            Constants.DictionaryKeys.Annotation.Rect,
+            Constants.DictionaryKeys.Form.Type1.BBox,
+        ];
+
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
             Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
@@ -115,7 +128,20 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
                 for (int j = 0; j < objectGroup.Objects.Count; j += 2)
                 {
-                    dict.Add((Name)objectGroup.Objects[j], objectGroup.Objects[j + 1]);
+                    var key = (Name)objectGroup.Objects[j];
+                    var val = objectGroup.Objects[j + 1];
+
+                    if (_rectKeys.Contains(key))
+                    {
+                        var ary = (ArrayObject)val;
+
+                        val = new Rectangle(
+                            new Coordinate((RealNumber)ary.ElementAt(0), (RealNumber)ary.ElementAt(1)),
+                            new Coordinate((RealNumber)ary.ElementAt(2), (RealNumber)ary.ElementAt(3))
+                            );
+                    }
+
+                    dict.Add(key, val);
                 }
 
                 if (dict.ContainsKey(Constants.DictionaryKeys.Type))
