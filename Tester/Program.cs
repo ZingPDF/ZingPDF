@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Parsing;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -53,7 +56,21 @@ static async Task ParseResaveValidate(string input, string output)
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var count1 = await pdf.GetPageCountAsync();
+    var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
+
+    var page1 = await pdf.GetPageAsync(1);
+
+    //var annots = (await pdf.IndirectObjects.GetAsync<ArrayObject>(page1.Get<PageDictionary>().Annots)).Cast<IndirectObjectReference>();
+
+    //var annotObjs = new List<IPdfObject>();
+
+    //foreach(var ior in annots)
+    //{
+    //    var obj = await pdf.IndirectObjects.GetAsync(ior);
+    //    annotObjs.Add(obj);
+    //}
+
+    //var count1 = await pdf.GetPageCountAsync();
 
     var fields = await pdf.GetFieldsAsync();
 
