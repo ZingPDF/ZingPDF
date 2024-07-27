@@ -66,6 +66,146 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public Rotation? Rotate { get => Get<Rotation>(Constants.DictionaryKeys.Page.Rotate); }
 
         /// <summary>
+        /// (Optional; PDF 1.4) A group attributes dictionary that shall specify the attributes of 
+        /// the page’s page group for use in the transparent imaging model (see 11.4.7, "Page group" 
+        /// and 11.6.6, "Transparency group XObjects").
+        /// </summary>
+        public Dictionary? Group => Get<Dictionary>(Constants.DictionaryKeys.Page.Group);
+
+        /// <summary>
+        /// (Optional) A stream object that shall define the page’s thumbnail image (see 12.3.4, "Thumbnail images").
+        /// </summary>
+        public IndirectObjectReference? Thumb => Get<IndirectObjectReference>(Constants.DictionaryKeys.Page.Thumb);
+
+        /// <summary>
+        /// <para>(Optional; PDF 1.1; recommended if the page contains article beads) An array that shall contain 
+        /// indirect references to all article beads appearing on the page (see 12.4.3, "Articles"). The beads 
+        /// shall be listed in the array in natural reading order. Objects of Type Template shall have no B key.</para>
+        /// <para>NOTE 2 The information in this entry can be created or recreated from the information obtained 
+        /// from the Threads key in the catalog dictionary.</para>
+        /// </summary>
+        public ArrayObject? B => Get<ArrayObject>(Constants.DictionaryKeys.Page.B);
+
+        /// <summary>
+        /// (Optional; PDF 1.1) The page’s display duration (also called its advance timing): the maximum length 
+        /// of time, in seconds, that the page shall be displayed during presentations before the viewer application 
+        /// shall automatically advance to the next page (see 12.4.4, "Presentations"). By default, the viewer shall 
+        /// not advance automatically.
+        /// </summary>
+        public RealNumber? Dur => Get<RealNumber>(Constants.DictionaryKeys.Page.Dur);
+
+        /// <summary>
+        /// (Optional; PDF 1.1) A transition dictionary describing the transition effect that shall be used when 
+        /// displaying the page during presentations (see 12.4.4, "Presentations").
+        /// </summary>
+        public Dictionary? Trans => Get<Dictionary>(Constants.DictionaryKeys.Page.Trans);
+
+        /// <summary>
+        /// (Optional) An array of annotation dictionaries that shall contain indirect references to all 
+        /// annotations associated with the page (see 12.5, "Annotations").
+        /// </summary>
+        public IndirectObjectReference? Annots => Get<IndirectObjectReference>(Constants.DictionaryKeys.Page.Annots);
+
+        /// <summary>
+        /// (Optional; PDF 1.2) An additional-actions dictionary that shall define actions to be performed 
+        /// when the page is opened or closed (see 12.6.3, "Trigger events"). (PDF 1.3) additional-actions 
+        /// dictionaries are not inheritable.
+        /// </summary>
+        public Dictionary? AA => Get<Dictionary>(Constants.DictionaryKeys.Page.AA);
+
+        /// <summary>
+        /// (Optional; PDF 1.4) A metadata stream that shall contain metadata for the page (see 14.3.2, "Metadata streams").
+        /// </summary>
+        public IndirectObjectReference? Metadata => Get<IndirectObjectReference>(Constants.DictionaryKeys.Page.Metadata);
+
+        /// <summary>
+        /// (Optional; PDF 1.3) A page-piece dictionary associated with the page (see 14.5, "Page-piece dictionaries").
+        /// </summary>
+        public Dictionary? PieceInfo => Get<Dictionary>(Constants.DictionaryKeys.Page.PieceInfo);
+
+        /// <summary>
+        /// (Required if the page contains structural content items; PDF 1.3) The integer key of the page’s entry 
+        /// in the structural parent tree (see 14.7.5.4, "Finding structure elements from content items").
+        /// </summary>
+        public Integer? StructParents => Get<Integer>(Constants.DictionaryKeys.Page.StructParents);
+
+        /// <summary>
+        /// (Optional; PDF 1.3; indirect reference preferred) The digital identifier of the page’s parent Web Capture 
+        /// content set (see 14.10.6, "Object attributes related to web capture").
+        /// </summary>
+        public HexadecimalString? ID => Get<HexadecimalString>(Constants.DictionaryKeys.Page.ID);
+
+        /// <summary>
+        /// (Optional; PDF 1.3) The page’s preferred zoom (magnification) factor: the factor by which it shall be 
+        /// scaled to achieve the natural display magnification (see 14.10.6, "Object attributes related to web capture").
+        /// </summary>
+        public RealNumber? PZ => Get<RealNumber>(Constants.DictionaryKeys.Page.PZ);
+
+        /// <summary>
+        /// (Optional; PDF 1.3) A separation dictionary that shall contain information needed to generate colour separations 
+        /// for the page (see 14.11.4, "Separation dictionaries").
+        /// </summary>
+        public Dictionary? SeparationInfo => Get<Dictionary>(Constants.DictionaryKeys.Page.SeparationInfo);
+
+        /// <summary>
+        /// (Optional; PDF 1.5) A name specifying the tab order that shall be used for annotations on the page 
+        /// (see 12.5 "Annotations"). If present, the values shall be one of R (row order), C (column order), 
+        /// and S (structure order). Beginning with PDF 2.0, additional values also include A (annotations array order) 
+        /// and W (widget order). Annotations array order refers to the order of the annotation enumerated in the Annots 
+        /// entry of the Page dictionary (see "Table 31 — Entries in a page object"). Widget order means using the same 
+        /// array ordering but making two passes, the first only picking the widget annotations and the second picking 
+        /// all other annotations.
+        /// </summary>
+        public Name? Tabs => Get<Name>(Constants.DictionaryKeys.Page.Tabs);
+
+        /// <summary>
+        /// (Required if this page was created from a named page object; PDF 1.5) The name of the originating page object 
+        /// (see 12.7.7, "Named pages").
+        /// </summary>
+        public Name? TemplateInstantiated => Get<Name>(Constants.DictionaryKeys.Page.TemplateInstantiated);
+
+        /// <summary>
+        /// (Optional; PDF 1.5) A navigation node dictionary that shall represent the first node on the page 
+        /// (see 12.4.4.2, "Sub-page navigation").
+        /// </summary>
+        public Dictionary? PresSteps => Get<Dictionary>(Constants.DictionaryKeys.Page.PresSteps);
+
+        /// <summary>
+        /// <para>(Optional; PDF 1.6) A positive number that shall give the size of default user space units, in multiples of 1 ⁄ 72 inch. The range of supported values shall be implementation-dependent.</para>
+        /// <para>Default value: 1.0 (user space unit is 1 ⁄ 72 inch).</para>
+        /// </summary>
+        public RealNumber? UserUnit => Get<RealNumber>(Constants.DictionaryKeys.Page.UserUnit);
+
+        /// <summary>
+        /// (Optional; PDF 1.6) An array of viewport dictionaries (see "Table 265 — Entries in a viewport dictionary") 
+        /// that shall specify rectangular regions of the page.
+        /// </summary>
+        public ArrayObject? VP => Get<ArrayObject>(Constants.DictionaryKeys.Page.VP);
+
+        /// <summary>
+        /// (Optional; PDF 2.0) An array of one or more file specification dictionaries 
+        /// (7.11.3, "File specification dictionaries") which denote the associated files 
+        /// for this page. See 14.13, "Associated files" and 14.13.8, "Associated files linked to DParts" for more details.
+        /// </summary>
+        public ArrayObject? AF => Get<ArrayObject>(Constants.DictionaryKeys.Page.AF);
+
+        /// <summary>
+        /// (Optional; PDF 2.0) An array of output intent dictionaries that shall specify the colour characteristics of output 
+        /// devices on which this page might be rendered (see 14.11.5, "Output intents").
+        /// </summary>
+        public ArrayObject? OutputIntents => Get<ArrayObject>(Constants.DictionaryKeys.Page.OutputIntents);
+
+        /// <summary>
+        /// <para>(Required, if this page is within the range of a DPart, not permitted otherwise; PDF 2.0) 
+        /// An indirect reference to the DPart dictionary whose range of pages includes this page object 
+        /// (see 14.12.3, "Connecting the DPart tree structure to pages").</para>
+        /// <para>NOTE 3 The DPart key in a page object allows a PDF processor to directly retrieve 
+        /// the section of the document part hierarchy that applies to this page object. 
+        /// This also allows for ready access of DPM data in PDF processors.</para>
+        /// </summary>
+        public Dictionary? DPart => Get<Dictionary>(Constants.DictionaryKeys.Page.DPart);
+
+        /// <summary>
         /// Create a blank page.
         /// </summary>
         /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
