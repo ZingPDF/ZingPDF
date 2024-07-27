@@ -1,5 +1,4 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.Syntax.Filters;
+﻿using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
@@ -27,7 +26,6 @@ internal class ContentStream<TDictionary> : StreamObject<TDictionary> where TDic
         foreach (var graphicsObject in _graphicsObjects)
         {
             await graphicsObject.WriteAsync(ms);
-            await ms.WriteWhitespaceAsync();
         }
 
         ms.Position = 0;

@@ -69,6 +69,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </summary>
         public IPdfObject? XFA { get => Get<IPdfObject>(Constants.DictionaryKeys.InteractiveForm.XFA); }
 
+        public void SetNeedAppearances(BooleanObject needAppearances)
+        {
+            ArgumentNullException.ThrowIfNull(needAppearances);
+
+            Set(Constants.DictionaryKeys.InteractiveForm.NeedAppearances, needAppearances);
+        }
+
         public static InteractiveFormDictionary FromDictionary(Dictionary dict)
         {
             ArgumentNullException.ThrowIfNull(dict);
