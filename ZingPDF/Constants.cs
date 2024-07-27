@@ -131,6 +131,27 @@ internal static class Constants
             public const string ArtBox = "ArtBox";
             public const string Contents = "Contents";
             public const string Rotate = "Rotate";
+            public const string Group = "Group";
+            public const string Thumb = "Thumb";
+            public const string B = "B";
+            public const string Dur = "Dur";
+            public const string Trans = "Trans";
+            public const string Annots = "Annots";
+            public const string AA = "AA";
+            public const string Metadata = "Metadata";
+            public const string PieceInfo = "PieceInfo";
+            public const string StructParents = "StructParents";
+            public const string ID = "ID";
+            public const string PZ = "PZ";
+            public const string SeparationInfo = "SeparationInfo";
+            public const string Tabs = "Tabs";
+            public const string TemplateInstantiated = "TemplateInstantiated";
+            public const string PresSteps = "PresSteps";
+            public const string UserUnit = "UserUnit";
+            public const string VP = "VP";
+            public const string AF = "AF";
+            public const string OutputIntents = "OutputIntents";
+            public const string DPart = "DPart";
         }
 
         public static class Resource
