@@ -1,5 +1,6 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Extensions;
+using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
@@ -231,8 +232,16 @@ public class Pdf : IEditablePdf
             throw new InvalidOperationException("PDF does not contain a form");
         }
 
-        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
+        var acroFormIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.AcroForm)
             ?? throw new InvalidPdfException("Unable to resolve form reference");
+
+        var acroForm = acroFormIndirectObject.Get<InteractiveFormDictionary>();
+
+        // Ensure compliant PDF viewers use the provided appearance stream for each field
+        // This setting applies to pre-PDF2.0 documents.
+        acroForm.SetNeedAppearances(false);
+
+        _indirectObjectManager.Update(acroFormIndirectObject);
 
         // TODO: can we reuse an existing font?
         var font = new Type1FontDictionary("Helvetica");
@@ -244,7 +253,7 @@ public class Pdf : IEditablePdf
 
         var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
 
-        foreach (var kvp in formValues.Take(1))
+        foreach (var kvp in formValues)
         {
             var fieldIndirectObject = fields[kvp.Key];
 
@@ -258,12 +267,18 @@ public class Pdf : IEditablePdf
             fieldDict.SetValue(kvp.Value!);
 
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
+            var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
 
-            var apFormXObject = new FormXObject(
-                Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height),
-                [new TextObject(kvp.Value!, new TextObject.FontOptions(fontResourceName, 12))],
-                new ResourceDictionary(font: fontMap)
+            var textObject = new TextObject(
+                kvp.Value!,
+                fieldSizeRect,
+                new Coordinate(2, 5), // TODO: calculate this
+                new TextObject.FontOptions(fontResourceName, 12, RGBColour.Black)
                 );
+
+            var resourceDict = new ResourceDictionary(font: fontMap);
+
+            var apFormXObject = new FormXObject(fieldSizeRect, [textObject], resourceDict);
 
             var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 
