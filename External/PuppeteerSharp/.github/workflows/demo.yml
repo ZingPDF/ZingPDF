@@ -1,0 +1,41 @@
+name: Demo Project
+
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    branches: [master]
+    paths:
+      - "**.cs"
+      - "**.csproj"
+      - "**/demo.yml"
+
+jobs:
+  build:
+
+    name: Demo Project
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022, macos-latest]
+    env:
+      DOTNET_VERSION: '8.0.x' # The .NET SDK version to use
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.5
+
+    - name: Install dependencies
+      working-directory: ./demos/PuppeteerSharpPdfDemo
+      run: |
+        dotnet restore PuppeteerSharpPdfDemo-Local.csproj
+    - name: Run Project
+      working-directory: ./demos/PuppeteerSharpPdfDemo
+      run: |
+          dotnet run --project PuppeteerSharpPdfDemo-Local.csproj auto-exit

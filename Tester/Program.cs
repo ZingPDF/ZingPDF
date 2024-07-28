@@ -6,6 +6,7 @@ using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax;
+using ZingPDF;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -20,31 +21,20 @@ using ZingPDF.Syntax;
 //await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
 //await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-await ParseResaveValidate("form.pdf", "output.pdf");
+//await ParseResaveValidate("form.pdf", "output.pdf");
 //await ParseResaveValidate("test.pdf", "output.pdf");
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
-static async Task ListObjNumbers(string input)
+await ConvertFromHTML(new Uri("https://www.youtube.com"), "output.pdf");
+
+static async Task ConvertFromHTML(Uri uri, string output)
 {
-    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    using var reader = new StreamReader(inputFileStream);
+    using var pdfStream = await ZingPDF.FromHTML.Converter.ToPdfAsync(uri);
 
-    string content = reader.ReadToEnd();
-    MatchCollection matches = Regex.Matches(content, @"([\d]+) [\d]+ obj");
-
-    var csvBuilder = new StringBuilder();
-
-    foreach (var match in matches.Cast<Match>())
-    {
-        csvBuilder.AppendLine(match.Groups[1].Value);
-    }
-
-    var csvDetailFilename = $"output.csv";
-    File.WriteAllText(csvDetailFilename, csvBuilder.ToString());
-    Console.WriteLine($"Saved as {csvDetailFilename}");
-
+    await pdfStream.CopyToAsync(outputFileStream);
 }
 
 static async Task ParseResaveValidate(string input, string output)
@@ -116,3 +106,24 @@ static async Task ParseResaveValidate(string input, string output)
     }
 }
 
+static async Task ListObjNumbers(string input)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+
+    using var reader = new StreamReader(inputFileStream);
+
+    string content = reader.ReadToEnd();
+    MatchCollection matches = Regex.Matches(content, @"([\d]+) [\d]+ obj");
+
+    var csvBuilder = new StringBuilder();
+
+    foreach (var match in matches.Cast<Match>())
+    {
+        csvBuilder.AppendLine(match.Groups[1].Value);
+    }
+
+    var csvDetailFilename = $"output.csv";
+    File.WriteAllText(csvDetailFilename, csvBuilder.ToString());
+    Console.WriteLine($"Saved as {csvDetailFilename}");
+
+}
