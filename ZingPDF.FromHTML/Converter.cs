@@ -11,8 +11,10 @@ namespace ZingPDF.FromHTML
             var browserFetcher = new BrowserFetcher();
             await browserFetcher.DownloadAsync();
 
-            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
-            await using var page = await browser.NewPageAsync();
+            var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true, DumpIO = true });
+            var page = await browser.NewPageAsync();
+
+            await page.EmulateMediaTypeAsync(PuppeteerSharp.Media.MediaType.Screen);
 
             await page.GoToAsync(
                 uri.AbsoluteUri,
@@ -22,9 +24,20 @@ namespace ZingPDF.FromHTML
 
             // Wait for fonts to be loaded. Omitting this might result in no text rendered in pdf.
             await page.EvaluateExpressionHandleAsync("document.fonts.ready");
-            await page.EmulateMediaTypeAsync(PuppeteerSharp.Media.MediaType.Screen);
 
-            return await page.PdfStreamAsync();
+            var pdfStream = await page.PdfStreamAsync();
+
+            try
+            {
+                await page.CloseAsync();
+                await browser.CloseAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            return pdfStream;
         }
     }
 }
