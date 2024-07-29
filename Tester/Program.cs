@@ -7,6 +7,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax;
 using ZingPDF;
+using ZingPDF.FromHTML;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -26,13 +27,13 @@ using ZingPDF;
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
-await ConvertFromHTML(new Uri("https://www.youtube.com"), "output.pdf");
+await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 
 static async Task ConvertFromHTML(Uri uri, string output)
 {
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    using var pdfStream = await ZingPDF.FromHTML.Converter.ToPdfAsync(uri);
+    using var pdfStream = await Converter.ToPdfAsync(uri);
 
     await pdfStream.CopyToAsync(outputFileStream);
 }
