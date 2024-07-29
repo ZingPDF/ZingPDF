@@ -8,6 +8,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax;
 using ZingPDF;
+using ZingPDF.FromHTML;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -34,13 +35,13 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
 
-await ConvertFromHTML(new Uri("https://www.youtube.com"), "output.pdf");
+await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 
 static async Task ConvertFromHTML(Uri uri, string output)
 {
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    using var pdfStream = await ZingPDF.FromHTML.Converter.ToPdfAsync(uri);
+    using var pdfStream = await Converter.ToPdfAsync(uri);
 
     await pdfStream.CopyToAsync(outputFileStream);
 }
