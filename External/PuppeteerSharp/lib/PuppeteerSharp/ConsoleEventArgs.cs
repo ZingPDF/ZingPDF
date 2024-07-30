@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <see cref="IPage.Console"/> data.
     /// </summary>
-    public class ConsoleEventArgs : EventArgs
+    internal class ConsoleEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleEventArgs"/> class.

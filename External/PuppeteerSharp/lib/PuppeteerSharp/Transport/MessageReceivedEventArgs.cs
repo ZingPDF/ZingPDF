@@ -6,7 +6,7 @@ namespace PuppeteerSharp.Transport
     /// Message received event arguments.
     /// <see cref="IConnectionTransport.MessageReceived"/>.
     /// </summary>
-    public class MessageReceivedEventArgs : EventArgs
+    internal class MessageReceivedEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PuppeteerSharp.Transport.MessageReceivedEventArgs"/> class.

@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <seealso cref="IPage.SetContentAsync(string, NavigationOptions)"/>
     /// <seealso cref="IPage.DeleteCookieAsync(CookieParam[])"/>
     /// <seealso cref="IPage.GetCookiesAsync(string[])"/>
-    public class CookieParam
+    internal class CookieParam
     {
         /// <summary>
         /// Gets or sets the name.

@@ -6,7 +6,7 @@ namespace PuppeteerSharp.Transport
     /// <summary>
     /// Connection transport abstraction.
     /// </summary>
-    public interface IConnectionTransport : IDisposable
+    internal interface IConnectionTransport : IDisposable
     {
         /// <summary>
         /// Occurs when the transport is closed.

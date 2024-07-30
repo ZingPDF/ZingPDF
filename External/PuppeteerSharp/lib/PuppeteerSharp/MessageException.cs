@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// Exception thrown by. <seealso cref="CDPSession.SendAsync{T}(string, object, CommandOptions)"/>
     /// </summary>
     [Serializable]
-    public class MessageException : PuppeteerException
+    internal class MessageException : PuppeteerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageException"/> class.

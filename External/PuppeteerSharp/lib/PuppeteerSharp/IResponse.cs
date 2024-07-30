@@ -13,7 +13,7 @@ namespace PuppeteerSharp
     /// <seealso cref="IPage.ReloadAsync(int?, WaitUntilNavigation[])"/>
     /// <seealso cref="IPage.Response"/>
     /// <seealso cref="IPage.WaitForResponseAsync(Func{IResponse, bool}, WaitForOptions)"/>
-    public interface IResponse
+    internal interface IResponse
     {
         /// <summary>
         /// Contains the URL of the response.

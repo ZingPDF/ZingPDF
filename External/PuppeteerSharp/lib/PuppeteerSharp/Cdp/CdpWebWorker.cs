@@ -30,7 +30,7 @@ using PuppeteerSharp.Helpers.Json;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpWebWorker : WebWorker
+internal class CdpWebWorker : WebWorker
 {
     private readonly ILogger _logger;
     private readonly Func<ConsoleType, IJSHandle[], StackTrace, Task> _consoleAPICalled;

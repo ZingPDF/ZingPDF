@@ -29,7 +29,7 @@ using PuppeteerSharp.Input;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
-public class CdpKeyboard : Keyboard
+internal class CdpKeyboard : Keyboard
 {
     private readonly HashSet<string> _pressedKeys = [];
     private CDPSession _client;

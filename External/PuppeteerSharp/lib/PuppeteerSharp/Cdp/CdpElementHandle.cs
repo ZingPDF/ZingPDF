@@ -31,7 +31,7 @@ using PuppeteerSharp.QueryHandlers;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpElementHandle : ElementHandle
+internal class CdpElementHandle : ElementHandle
 {
     private readonly CdpFrame _cdpFrame;
 

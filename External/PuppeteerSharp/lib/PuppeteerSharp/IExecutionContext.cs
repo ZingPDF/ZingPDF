@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// Each <see cref="Frame"/> has a separate <see cref="IExecutionContext"/>
     /// All kind of web workers have their own contexts.
     /// </summary>
-    public interface IExecutionContext
+    internal interface IExecutionContext
     {
         /// <summary>
         /// Frame associated with this execution context.

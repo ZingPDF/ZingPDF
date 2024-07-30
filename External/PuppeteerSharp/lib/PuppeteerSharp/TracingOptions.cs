@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Tracing options used on <see cref="ITracing.StartAsync(TracingOptions)"/>.
     /// </summary>
-    public class TracingOptions
+    internal class TracingOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether Tracing should capture screenshots in the trace.

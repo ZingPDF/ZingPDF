@@ -14,7 +14,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Launcher controls the creation of processes or the connection remote ones.
     /// </summary>
-    public class Launcher
+    internal class Launcher
     {
         private readonly ILoggerFactory _loggerFactory;
         private bool _processLaunched;

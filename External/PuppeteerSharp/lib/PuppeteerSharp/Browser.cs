@@ -9,7 +9,7 @@ using PuppeteerSharp.Helpers;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public abstract class Browser : IBrowser
+    internal abstract class Browser : IBrowser
     {
         /// <inheritdoc/>
         public event EventHandler Closed;

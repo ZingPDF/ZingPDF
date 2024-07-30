@@ -7,7 +7,7 @@ namespace PuppeteerSharp
     /// Exception thrown when a <see cref="IPage"/> fails to navigate an URL.
     /// </summary>
     [Serializable]
-    public class NavigationException : PuppeteerException
+    internal class NavigationException : PuppeteerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="NavigationException"/> class.
