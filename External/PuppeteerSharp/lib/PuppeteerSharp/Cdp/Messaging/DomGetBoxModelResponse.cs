@@ -4,7 +4,7 @@ namespace PuppeteerSharp.Cdp.Messaging
     {
         public BoxModelResponseModel Model { get; set; }
 
-        public class BoxModelResponseModel
+        internal class BoxModelResponseModel
         {
             public decimal[] Content { get; set; }
 

@@ -17,7 +17,7 @@ namespace PuppeteerSharp
     /// await Browser.CloseAsync();
     /// </code>
     /// </example>
-    public static class Puppeteer
+    internal static class Puppeteer
     {
         internal const int DefaultTimeout = 30_000;
 

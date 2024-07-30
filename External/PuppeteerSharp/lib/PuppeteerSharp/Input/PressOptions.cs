@@ -5,7 +5,7 @@ namespace PuppeteerSharp.Input
     /// </summary>
     /// <seealso cref="IKeyboard.PressAsync(string, PressOptions)"/>
     /// <seealso cref="IElementHandle.PressAsync(string, PressOptions)"/>
-    public class PressOptions : DownOptions
+    internal class PressOptions : DownOptions
     {
         /// <summary>
         /// Time to wait between <c>keydown</c> and <c>keyup</c> in milliseconds. Defaults to 0.

@@ -36,7 +36,7 @@ namespace PuppeteerSharp
     /// ]]>
     /// </code>
     /// </example>
-    public interface IFrame
+    internal interface IFrame
     {
         /// <summary>
         /// Raised when the frame is swapped.

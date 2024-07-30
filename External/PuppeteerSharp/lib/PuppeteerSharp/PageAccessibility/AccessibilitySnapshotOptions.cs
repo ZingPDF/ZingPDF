@@ -4,7 +4,7 @@ namespace PuppeteerSharp.PageAccessibility
     /// <see cref="IAccessibility.SnapshotAsync(AccessibilitySnapshotOptions)"/>.
     /// </summary>
     /// <seealso cref="IPage.Accessibility"/>
-    public class AccessibilitySnapshotOptions
+    internal class AccessibilitySnapshotOptions
     {
         /// <summary>
         /// Prune uninteresting nodes from the tree. Defaults to true.

@@ -4,7 +4,7 @@ namespace PuppeteerSharp.Media
     /// Clip data.
     /// </summary>
     /// <seealso cref="ScreenshotOptions.Clip"/>
-    public class Clip : BoundingBox
+    internal class Clip : BoundingBox
     {
         /// <summary>
         /// Scale of the webpage rendering. Defaults to 1.

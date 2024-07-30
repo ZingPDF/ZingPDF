@@ -12,7 +12,7 @@ using PuppeteerSharp.Helpers;
 namespace PuppeteerSharp
 {
     /// <inheritdoc cref="IExecutionContext"/>
-    public sealed class ExecutionContext : IExecutionContext, IDisposable, IAsyncDisposable
+    internal sealed class ExecutionContext : IExecutionContext, IDisposable, IAsyncDisposable
     {
         internal const string EvaluationScriptUrl = "__puppeteer_evaluation_script__";
         private const string EvaluationScriptSuffix = $"//# sourceURL={EvaluationScriptUrl}";

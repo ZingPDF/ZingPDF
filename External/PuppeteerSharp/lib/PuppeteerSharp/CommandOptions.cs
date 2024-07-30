@@ -3,7 +3,7 @@ namespace PuppeteerSharp;
 /// <summary>
 /// Command options. See <see cref="ICDPConnection.SendAsync{T}(string, object, CommandOptions)"/>.
 /// </summary>
-public class CommandOptions
+internal class CommandOptions
 {
     /// <summary>
     /// Gets or sets the timeout.

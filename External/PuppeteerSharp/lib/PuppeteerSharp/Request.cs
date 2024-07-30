@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public abstract class Request<TResponse>
+    internal abstract class Request<TResponse>
         : IRequest
         where TResponse : IResponse
     {

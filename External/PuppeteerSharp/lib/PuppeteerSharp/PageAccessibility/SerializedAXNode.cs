@@ -6,7 +6,7 @@ namespace PuppeteerSharp.PageAccessibility
     /// <summary>
     /// AXNode.
     /// </summary>
-    public class SerializedAXNode : IEquatable<SerializedAXNode>
+    internal class SerializedAXNode : IEquatable<SerializedAXNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializedAXNode"/> class.

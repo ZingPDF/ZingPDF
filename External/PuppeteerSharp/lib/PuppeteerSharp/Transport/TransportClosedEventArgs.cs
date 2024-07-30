@@ -5,7 +5,7 @@ namespace PuppeteerSharp.Transport
     /// <summary>
     /// <see cref="IConnectionTransport.Closed"/>.
     /// </summary>
-    public class TransportClosedEventArgs : EventArgs
+    internal class TransportClosedEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PuppeteerSharp.Transport.TransportClosedEventArgs"/> class.

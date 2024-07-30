@@ -5,7 +5,7 @@ namespace PuppeteerSharp.PageCoverage
     /// <summary>
     /// gathers information about parts of JavaScript and CSS that were used by the page.
     /// </summary>
-    public interface ICoverage
+    internal interface ICoverage
     {
         /// <summary>
         /// Starts CSS coverage.

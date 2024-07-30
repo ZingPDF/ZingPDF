@@ -16,7 +16,7 @@ namespace PuppeteerSharp
     /// await Page.Tracing.StopAsync();
     /// </code>
     /// </example>
-    public interface ITracing
+    internal interface ITracing
     {
         /// <summary>
         /// Starts tracing.

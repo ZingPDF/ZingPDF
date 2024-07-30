@@ -6,7 +6,7 @@ namespace PuppeteerSharp.Cdp.Messaging
     {
         public IEnumerable<RuntimeGetPropertiesResponseItem> Result { get; set; }
 
-        public class RuntimeGetPropertiesResponseItem
+        internal class RuntimeGetPropertiesResponseItem
         {
             public object Enumerable { get; set; }
 

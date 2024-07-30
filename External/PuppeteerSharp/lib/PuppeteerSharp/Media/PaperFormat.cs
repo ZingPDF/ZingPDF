@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Media
     /// Paper format.
     /// </summary>
     /// <seealso cref="PdfOptions.Format"/>
-    public class PaperFormat : IEquatable<PaperFormat>
+    internal class PaperFormat : IEquatable<PaperFormat>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PaperFormat"/> class.

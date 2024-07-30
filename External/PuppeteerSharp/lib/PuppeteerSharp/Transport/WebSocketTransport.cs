@@ -11,7 +11,7 @@ namespace PuppeteerSharp.Transport
     /// <summary>
     /// Default web socket transport.
     /// </summary>
-    public class WebSocketTransport : IConnectionTransport
+    internal class WebSocketTransport : IConnectionTransport
     {
         /// <summary>
         /// Gets the default <see cref="WebSocketFactory"/>. This factory does not support Windows 7.

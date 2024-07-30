@@ -41,7 +41,7 @@ using Timer = System.Timers.Timer;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpPage : Page
+internal class CdpPage : Page
 {
     private static readonly Dictionary<string, decimal> _unitToPixels = new()
     {

@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <seealso cref="IBrowser.TargetChanged"/>
     /// <seealso cref="IBrowser.TargetCreated"/>
     /// <seealso cref="IBrowser.TargetDestroyed"/>
-    public class TargetChangedArgs
+    internal class TargetChangedArgs
     {
         private TargetInfo _targetInfo;
 

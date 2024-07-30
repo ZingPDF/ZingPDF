@@ -7,7 +7,7 @@ namespace PuppeteerSharp
     /// Exception thrown by <see cref="ExecutionContext.ExecuteEvaluationAsync(string, object)"/>.
     /// </summary>
     [Serializable]
-    public class EvaluationFailedException : PuppeteerException
+    internal class EvaluationFailedException : PuppeteerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="EvaluationFailedException"/> class.

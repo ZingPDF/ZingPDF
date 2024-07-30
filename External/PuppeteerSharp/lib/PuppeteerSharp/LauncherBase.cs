@@ -12,7 +12,7 @@ namespace PuppeteerSharp
     /// Represents a Base process and any associated temporary user data directory that have created
     /// by Puppeteer and therefore must be cleaned up when no longer needed.
     /// </summary>
-    public abstract class LauncherBase : IDisposable
+    internal abstract class LauncherBase : IDisposable
     {
         private readonly StateManager _stateManager;
 

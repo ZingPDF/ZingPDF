@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options for <see cref="Connection"/> creation.
     /// </summary>
-    public interface IConnectionOptions
+    internal interface IConnectionOptions
     {
         /// <summary>
         /// Slows down Puppeteer operations by the specified amount of milliseconds. Useful so that you can see what is going on.

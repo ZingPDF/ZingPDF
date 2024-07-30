@@ -15,7 +15,7 @@ namespace PuppeteerSharp;
 /// <example>
 /// <code source="../PuppeteerSharp.Tests/DeviceRequestPromptTests/WaitForDevicePromptTests.cs" region="DeviceRequestPromptUsage" lang="csharp"/>
 /// </example>
-public class DeviceRequestPrompt
+internal class DeviceRequestPrompt
 {
     private readonly string _id;
     private readonly TimeoutSettings _timeoutSettings;

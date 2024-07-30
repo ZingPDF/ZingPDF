@@ -30,7 +30,7 @@ namespace PuppeteerSharp;
 /// <summary>
 /// Prompt manager.
 /// </summary>
-public class DeviceRequestPromptManager
+internal class DeviceRequestPromptManager
 {
     private readonly TimeoutSettings _timeoutSettings;
     private ICDPSession _client;

@@ -12,7 +12,7 @@ namespace PuppeteerSharp.PageAccessibility
     /// Most of the accessibility tree gets filtered out when converting from Blink AX Tree to Platform-specific AX-Tree or by assistive technologies themselves.
     /// By default, Puppeteer tries to approximate this filtering, exposing only the "interesting" nodes of the tree.
     /// </summary>
-    public interface IAccessibility
+    internal interface IAccessibility
     {
         /// <summary>
         /// Snapshots the async.

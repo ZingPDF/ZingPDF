@@ -15,7 +15,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// BrowserContext options.
     /// </summary>
-    public class BrowserContextOptions
+    internal class BrowserContextOptions
     {
         /// <summary>
         /// Proxy server with optional port to use for all requests.

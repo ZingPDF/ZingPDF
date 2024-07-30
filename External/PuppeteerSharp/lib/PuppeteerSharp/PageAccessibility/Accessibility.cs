@@ -5,7 +5,7 @@ using PuppeteerSharp.Cdp.Messaging;
 namespace PuppeteerSharp.PageAccessibility
 {
     /// <inheritdoc/>
-    public class Accessibility : IAccessibility
+    internal class Accessibility : IAccessibility
     {
         private CDPSession _client;
 

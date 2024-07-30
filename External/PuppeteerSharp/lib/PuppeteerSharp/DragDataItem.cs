@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Item returned by drag methods.
     /// </summary>
-    public class DragDataItem
+    internal class DragDataItem
     {
         /// <summary>
         /// Mime type of the dragged data.

@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options for <see cref="IPage.EmulateIdleStateAsync(EmulateIdleOverrides)"/>.
     /// </summary>
-    public class EmulateIdleOverrides
+    internal class EmulateIdleOverrides
     {
         /// <summary>
         /// Whether the user is active or not.

@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// An ICDPConnection is an object able to send and receive messages from the browser.
     /// </summary>
-    public interface ICDPConnection
+    internal interface ICDPConnection
     {
         /// <summary>
         /// Occurs when message received from Chromium.

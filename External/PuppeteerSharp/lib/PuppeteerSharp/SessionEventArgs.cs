@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Session event arguments.
     /// </summary>
-    public class SessionEventArgs
+    internal class SessionEventArgs
     {
         internal SessionEventArgs(ICDPSession session)
         {

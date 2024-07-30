@@ -24,7 +24,7 @@ namespace PuppeteerSharp
     /// await browser.CloseAsync();
     /// </code>
     /// </example>
-    public interface IPage : IDisposable, IAsyncDisposable
+    internal interface IPage : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Raised when the page closes.

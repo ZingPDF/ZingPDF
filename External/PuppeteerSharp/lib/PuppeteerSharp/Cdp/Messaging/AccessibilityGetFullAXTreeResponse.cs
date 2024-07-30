@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Cdp.Messaging
     {
         public IEnumerable<AXTreeNode> Nodes { get; set; }
 
-        public class AXTreeNode
+        internal class AXTreeNode
         {
             public string NodeId { get; set; }
 
@@ -28,14 +28,14 @@ namespace PuppeteerSharp.Cdp.Messaging
             public bool Ignored { get; set; }
         }
 
-        public class AXTreeProperty
+        internal class AXTreeProperty
         {
             public string Name { get; set; }
 
             public AXTreePropertyValue Value { get; set; }
         }
 
-        public class AXTreePropertyValue
+        internal class AXTreePropertyValue
         {
             public string Type { get; set; }
 

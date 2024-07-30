@@ -4,7 +4,7 @@ namespace PuppeteerSharp
     ///  Used to specify User Agent Cient Hints to emulate. See https://wicg.github.io/ua-client-hints
     ///  Missing optional values will be filled in by the target with what it would normally use.
     /// </summary>
-    public class UserAgentMetadata
+    internal class UserAgentMetadata
     {
         /// <summary>
         /// Brands.

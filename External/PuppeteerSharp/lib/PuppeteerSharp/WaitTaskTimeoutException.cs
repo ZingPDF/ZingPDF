@@ -7,7 +7,7 @@ namespace PuppeteerSharp
     /// Timeout exception that might be thrown by <c>WaitFor</c> methods in <see cref="Frame"/>.
     /// </summary>
     [Serializable]
-    public class WaitTaskTimeoutException : PuppeteerException
+    internal class WaitTaskTimeoutException : PuppeteerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitTaskTimeoutException"/> class.

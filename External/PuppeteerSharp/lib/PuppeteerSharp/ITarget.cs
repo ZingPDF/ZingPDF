@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Target.
     /// </summary>
-    public interface ITarget
+    internal interface ITarget
     {
         /// <summary>
         /// Get the browser the target belongs to.

@@ -3,7 +3,7 @@ namespace PuppeteerSharp.Mobile
     /// <summary>
     /// Device descriptor.
     /// </summary>
-    public class DeviceDescriptor
+    internal class DeviceDescriptor
     {
         /// <summary>
         /// Device name.

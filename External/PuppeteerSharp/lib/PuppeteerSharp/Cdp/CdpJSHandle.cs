@@ -32,7 +32,7 @@ namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
 [JsonConverter(typeof(JSHandleMethodConverter))]
-public class CdpJSHandle : JSHandle
+internal class CdpJSHandle : JSHandle
 {
     internal CdpJSHandle(IsolatedWorld world, RemoteObject remoteObject) : base(world, remoteObject)
     {

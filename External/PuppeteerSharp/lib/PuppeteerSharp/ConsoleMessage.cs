@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// ConsoleMessage is part of <see cref="ConsoleEventArgs"/> used by <see cref="IPage.Console"/>.
     /// </summary>
-    public class ConsoleMessage
+    internal class ConsoleMessage
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleMessage"/> class.

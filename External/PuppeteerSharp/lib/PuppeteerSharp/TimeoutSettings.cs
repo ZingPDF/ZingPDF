@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Timeout settings.
     /// </summary>
-    public class TimeoutSettings
+    internal class TimeoutSettings
     {
         private int? _defaultNavigationTimeout;
 

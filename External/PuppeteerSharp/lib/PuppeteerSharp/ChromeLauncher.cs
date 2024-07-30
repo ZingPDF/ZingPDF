@@ -11,7 +11,7 @@ namespace PuppeteerSharp
     /// Represents a Chromium process and any associated temporary user data directory that have created
     /// by Puppeteer and therefore must be cleaned up when no longer needed.
     /// </summary>
-    public class ChromeLauncher : LauncherBase
+    internal class ChromeLauncher : LauncherBase
     {
         private const string UserDataDirArgument = "--user-data-dir";
 

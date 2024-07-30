@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Popup event arguments. <see cref="IPage.Popup"/>.
     /// </summary>
-    public class PopupEventArgs : EventArgs
+    internal class PopupEventArgs : EventArgs
     {
         /// <summary>
         /// Gets the popup page.

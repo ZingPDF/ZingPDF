@@ -11,7 +11,7 @@ using PuppeteerSharp.Helpers;
 namespace PuppeteerSharp.Input
 {
     /// <inheritdoc/>
-    public abstract class Mouse : IMouse
+    internal abstract class Mouse : IMouse
     {
         /// <inheritdoc/>
         public abstract Task MoveAsync(decimal x, decimal y, MoveOptions options = null);

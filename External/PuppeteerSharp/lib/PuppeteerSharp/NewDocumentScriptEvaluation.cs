@@ -3,7 +3,7 @@ namespace PuppeteerSharp;
 /// <summary>
 /// New document information.
 /// </summary>
-public class NewDocumentScriptEvaluation(string documentIdentifierIdentifier)
+internal class NewDocumentScriptEvaluation(string documentIdentifierIdentifier)
 {
     /// <summary>
     /// New document identifier.

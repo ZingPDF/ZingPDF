@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Payload information.
     /// </summary>
-    public class Payload
+    internal class Payload
     {
         /// <summary>
         /// Gets or sets the HTTP method.

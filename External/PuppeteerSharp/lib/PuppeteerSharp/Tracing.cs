@@ -24,7 +24,7 @@ namespace PuppeteerSharp
     /// </code>
     /// </example>
 #pragma warning disable CA1724
-    public class Tracing : ITracing
+    internal class Tracing : ITracing
 
 #pragma warning restore CA1724
     {

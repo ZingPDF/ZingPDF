@@ -10,7 +10,7 @@ namespace PuppeteerSharp.Input
 
         public Action Rollback { get; set; }
 
-        public class TransactionData
+        internal class TransactionData
         {
             public Point? Position { get; set; }
 

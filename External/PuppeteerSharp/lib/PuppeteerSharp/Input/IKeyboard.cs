@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Input
     ///
     /// For finer control, you can use <see cref="IKeyboard.DownAsync(string, DownOptions)"/>, <see cref="UpAsync(string)"/>, and <see cref="SendCharacterAsync(string)"/> to manually fire events as if they were generated from a real keyboard.
     /// </summary>
-    public interface IKeyboard
+    internal interface IKeyboard
     {
         /// <summary>
         /// Dispatches a <c>keydown</c> event.

@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// Contains two functions `queryOne` and `queryAll` to be used as custom query handlers
     /// The functions `queryOne` and `queryAll` are executed in the page context.
     /// </summary>
-    public class CustomQueryHandler
+    internal class CustomQueryHandler
     {
         /// <summary>
         /// `queryOne` should take an `Element` and a selector string as argument and return a single `Element` or `null` if no element is found.

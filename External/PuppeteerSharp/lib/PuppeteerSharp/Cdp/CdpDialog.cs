@@ -26,7 +26,7 @@ using PuppeteerSharp.Cdp.Messaging;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpDialog : Dialog
+internal class CdpDialog : Dialog
 {
     private readonly CDPSession _client;
 

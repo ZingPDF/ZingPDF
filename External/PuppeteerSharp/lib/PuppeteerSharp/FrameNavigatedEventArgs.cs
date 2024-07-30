@@ -5,7 +5,7 @@ namespace PuppeteerSharp;
 /// <summary>
 /// <see cref="IPage.FrameNavigated"/> arguments.
 /// </summary>
-public record FrameNavigatedEventArgs
+internal record FrameNavigatedEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameNavigatedEventArgs"/> class.

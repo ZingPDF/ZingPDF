@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <see cref="IPage.Error"/> arguments.
     /// </summary>
-    public class ErrorEventArgs : EventArgs
+    internal class ErrorEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ErrorEventArgs"/> class.

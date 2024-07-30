@@ -27,7 +27,7 @@ using PuppeteerSharp.Helpers;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpTarget : Target
+internal class CdpTarget : Target
 {
     internal CdpTarget(
         TargetInfo targetInfo,
