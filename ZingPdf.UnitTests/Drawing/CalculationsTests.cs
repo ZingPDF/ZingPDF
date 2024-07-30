@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 
-namespace ZingPDF.Drawing;
+namespace ZingPDF.Elements.Drawing;
 
 public class CalculationsTests
 {

@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.Drawing
+﻿namespace ZingPDF.Elements.Drawing
 {
     public enum TextAlignment
     {
