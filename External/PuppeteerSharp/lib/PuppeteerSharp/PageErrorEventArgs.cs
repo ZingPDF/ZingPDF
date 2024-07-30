@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Page error event arguments.
     /// </summary>
-    public class PageErrorEventArgs : EventArgs
+    internal class PageErrorEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PageErrorEventArgs"/> class.

@@ -30,7 +30,7 @@ using PuppeteerSharp.Helpers;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpFrame : Frame
+internal class CdpFrame : Frame
 {
     private const string RefererHeaderName = "referer";
 

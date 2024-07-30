@@ -7,7 +7,7 @@ namespace PuppeteerSharp.BrowserData
     /// <summary>
     /// Installed browser info.
     /// </summary>
-    public class InstalledBrowser
+    internal class InstalledBrowser
     {
         private static readonly Dictionary<SupportedBrowser, Func<Platform, string, string>> _executablePathByBrowser = new()
         {

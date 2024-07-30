@@ -18,7 +18,7 @@ namespace PuppeteerSharp.Cdp
     /// <summary>
     /// A connection handles the communication with a Chromium browser.
     /// </summary>
-    public sealed class Connection : IDisposable, ICDPConnection
+    internal sealed class Connection : IDisposable, ICDPConnection
     {
         internal const int DefaultCommandTimeout = 180_000;
         private readonly ILogger _logger;

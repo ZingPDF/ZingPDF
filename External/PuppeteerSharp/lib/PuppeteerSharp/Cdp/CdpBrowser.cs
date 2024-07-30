@@ -31,7 +31,7 @@ using PuppeteerSharp.Cdp.Messaging;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc />
-public class CdpBrowser : Browser
+internal class CdpBrowser : Browser
 {
     /// <summary>
     /// Time in milliseconds for process to exit gracefully.

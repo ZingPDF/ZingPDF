@@ -8,7 +8,7 @@ using PuppeteerSharp.Cdp.Messaging;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
-public class CdpHttpResponse : Response<CdpHttpRequest>
+internal class CdpHttpResponse : Response<CdpHttpRequest>
 {
     private static readonly Regex _extraInfoLines = new(@"[^ ]* [^ ]* (?<text>.*)", RegexOptions.Multiline);
     private readonly CDPSession _client;

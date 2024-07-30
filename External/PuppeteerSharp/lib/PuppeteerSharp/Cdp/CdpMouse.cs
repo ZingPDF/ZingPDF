@@ -30,7 +30,7 @@ using PuppeteerSharp.Input;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
-public class CdpMouse : Mouse
+internal class CdpMouse : Mouse
 {
     private readonly Keyboard _keyboard;
     private readonly MouseState _mouseState = new();

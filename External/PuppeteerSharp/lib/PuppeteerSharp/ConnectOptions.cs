@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options for connecting to an existing browser.
     /// </summary>
-    public class ConnectOptions : IBrowserOptions, IConnectionOptions
+    internal class ConnectOptions : IBrowserOptions, IConnectionOptions
     {
         /// <summary>
         /// Whether to ignore HTTPS errors during navigation. Defaults to false.
