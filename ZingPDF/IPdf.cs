@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.DocumentStructure;
+﻿using ZingPDF.Elements;
+using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -13,7 +14,7 @@ public interface IPdf
 
     ITrailerDictionary TrailerDictionary { get; }
 
-    Task<IndirectObject> GetPageAsync(int pageNumber);
+    Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();
 
     Task SaveAsync(Stream stream, PdfSaveOptions? saveOptions);
