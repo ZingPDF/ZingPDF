@@ -29,7 +29,7 @@ namespace PuppeteerSharp
     /// ]]>
     /// </code>
     /// </example>
-    public interface IBrowser : IDisposable, IAsyncDisposable
+    internal interface IBrowser : IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Raised when the <see cref="IBrowser"/> gets closed.

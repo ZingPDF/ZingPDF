@@ -25,7 +25,7 @@ namespace PuppeteerSharp;
 /// <summary>
 /// Information about the request initiator.
 /// </summary>
-public class Initiator
+internal class Initiator
 {
     /// <summary>
     /// Gets or sets the type of the initiator.

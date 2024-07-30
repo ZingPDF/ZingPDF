@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <see cref="IPage.FrameAttached"/>, <see cref="IPage.FrameDetached"/> and <see cref="IPage.FrameNavigated"/> arguments.
     /// </summary>
-    public class FrameEventArgs
+    internal class FrameEventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FrameEventArgs"/> class.

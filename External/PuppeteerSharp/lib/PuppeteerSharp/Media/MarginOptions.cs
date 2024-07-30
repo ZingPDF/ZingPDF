@@ -6,7 +6,7 @@ namespace PuppeteerSharp.Media
     /// <summary>
     /// margin options used in <see cref="PdfOptions"/>.
     /// </summary>
-    public class MarginOptions : IEquatable<MarginOptions>
+    internal class MarginOptions : IEquatable<MarginOptions>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PuppeteerSharp.Media.MarginOptions"/> class.

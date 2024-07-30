@@ -14,7 +14,7 @@ namespace PuppeteerSharp
     ///
     /// If request gets a 'redirect' response, the request is successfully finished with the <see cref="IPage.RequestFinished"/> event, and a new request is issued to a redirected url.
     /// </summary>
-    public interface IRequest
+    internal interface IRequest
     {
         /// <summary>
         /// Response attached to the request.

@@ -3,7 +3,7 @@ namespace PuppeteerSharp.Input
     /// <summary>
     /// Options to use when clicking.
     /// </summary>
-    public class ClickOptions
+    internal class ClickOptions
     {
         /// <summary>
         /// Time to wait between <c>mousedown</c> and <c>mouseup</c> in milliseconds. Defaults to 0.

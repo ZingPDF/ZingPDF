@@ -8,7 +8,7 @@ using PuppeteerSharp.Helpers.Json;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public abstract class Response<TRequest>
+    internal abstract class Response<TRequest>
         : IResponse
         where TRequest : IRequest
     {

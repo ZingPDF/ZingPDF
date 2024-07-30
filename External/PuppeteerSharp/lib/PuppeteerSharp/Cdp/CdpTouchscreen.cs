@@ -28,7 +28,7 @@ using PuppeteerSharp.Input;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
-public class CdpTouchscreen : Touchscreen
+internal class CdpTouchscreen : Touchscreen
 {
     private readonly Keyboard _keyboard;
     private CDPSession _client;

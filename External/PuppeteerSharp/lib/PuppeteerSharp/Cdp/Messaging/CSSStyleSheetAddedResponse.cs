@@ -4,7 +4,7 @@ namespace PuppeteerSharp.Cdp.Messaging
     {
         public CSSStyleSheetAddedResponseHeader Header { get; set; }
 
-        public class CSSStyleSheetAddedResponseHeader
+        internal class CSSStyleSheetAddedResponseHeader
         {
             public string StyleSheetId { get; set; }
 

@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Represents boxes of the element.
     /// </summary>
-    public class BoxModel
+    internal class BoxModel
     {
         internal BoxModel()
         {

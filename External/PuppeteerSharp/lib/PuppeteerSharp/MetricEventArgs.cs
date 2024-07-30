@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <seealso cref="IPage.Metrics"/> arguments.
     /// </summary>
-    public class MetricEventArgs : EventArgs
+    internal class MetricEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MetricEventArgs"/> class.

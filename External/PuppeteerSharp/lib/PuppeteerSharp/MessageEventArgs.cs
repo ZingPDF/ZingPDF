@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <seealso cref="CDPSession.MessageReceived"/> arguments.
     /// </summary>
-    public class MessageEventArgs : EventArgs
+    internal class MessageEventArgs : EventArgs
     {
         /// <summary>
         /// Gets the message identifier.

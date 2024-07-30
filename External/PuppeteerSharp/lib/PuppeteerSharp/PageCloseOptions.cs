@@ -4,7 +4,7 @@ namespace PuppeteerSharp
     /// Page close options.
     /// </summary>
     /// <seealso cref="IPage.CloseAsync(PageCloseOptions)"/>
-    public class PageCloseOptions
+    internal class PageCloseOptions
     {
         /// <summary>
         /// Defaults to <c>false</c>. Whether to run the beforeunload page handlers.

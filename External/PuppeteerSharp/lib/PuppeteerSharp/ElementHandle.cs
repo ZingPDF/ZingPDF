@@ -15,7 +15,7 @@ namespace PuppeteerSharp
 {
     /// <inheritdoc cref="PuppeteerSharp.IElementHandle" />
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public abstract class ElementHandle : JSHandle, IElementHandle
+    internal abstract class ElementHandle : JSHandle, IElementHandle
     {
         private ElementHandle _isolatedHandle;
 

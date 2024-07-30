@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Timeout options.
     /// </summary>
-    public class WaitForOptions
+    internal class WaitForOptions
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="WaitForOptions"/> class.
