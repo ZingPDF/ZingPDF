@@ -25,9 +25,22 @@ using ZingPDF.FromHTML;
 //await ParseResaveValidate("form.pdf", "output.pdf");
 //await ParseResaveValidate("test.pdf", "output.pdf");
 
-//await ListObjNumbers("Spec/ISO_32000-2-2020.pdf");
+//await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 
-await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
+//await AddPage("test.pdf", "output.pdf");
+
+await AddTextToPage();
+
+static async Task AddTextToPage()
+{
+    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var page = await pdf.InsertPageAsync(1);
+
+    page.AddText(new ZingPDF.Elements.Drawing.TextBox("test", ));
+}
 
 static async Task ConvertFromHTML(Uri uri, string output)
 {
@@ -36,6 +49,36 @@ static async Task ConvertFromHTML(Uri uri, string output)
     using var pdfStream = await Converter.ToPdfAsync(uri);
 
     await pdfStream.CopyToAsync(outputFileStream);
+}
+
+static async Task CompleteForm(string input, string output)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var fields = await pdf.GetFieldsAsync();
+
+    await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
+
+    await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task AddPage(string input, string output)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var count1 = await pdf.GetPageCountAsync();
+
+    var page = await pdf.AppendPageAsync();
+
+    var count2 = await pdf.GetPageCountAsync();
+
+    await pdf.SaveAsync(outputFileStream);
 }
 
 static async Task ParseResaveValidate(string input, string output)
@@ -47,7 +90,7 @@ static async Task ParseResaveValidate(string input, string output)
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
+    //var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
 
     var page1 = await pdf.GetPageAsync(1);
 
@@ -107,24 +150,3 @@ static async Task ParseResaveValidate(string input, string output)
     }
 }
 
-static async Task ListObjNumbers(string input)
-{
-    using var inputFileStream = new FileStream(input, FileMode.Open);
-
-    using var reader = new StreamReader(inputFileStream);
-
-    string content = reader.ReadToEnd();
-    MatchCollection matches = Regex.Matches(content, @"([\d]+) [\d]+ obj");
-
-    var csvBuilder = new StringBuilder();
-
-    foreach (var match in matches.Cast<Match>())
-    {
-        csvBuilder.AppendLine(match.Groups[1].Value);
-    }
-
-    var csvDetailFilename = $"output.csv";
-    File.WriteAllText(csvDetailFilename, csvBuilder.ToString());
-    Console.WriteLine($"Saved as {csvDetailFilename}");
-
-}
