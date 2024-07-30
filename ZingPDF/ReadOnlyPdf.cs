@@ -8,6 +8,8 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Elements;
+using ZingPDF.IncrementalUpdates;
 
 namespace ZingPDF;
 
@@ -69,9 +71,15 @@ public class ReadOnlyPdf : IPdf, IDisposable
         ?? CrossReferenceStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
         ?? throw new ParserException("Unable to find trailer dictionary");
 
-    public async Task<IndirectObject> GetPageAsync(int pageNumber)
+    public async Task<Page> GetPageAsync(int pageNumber)
     {
-        return (await _pages)[pageNumber - 1];
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        var pageIndirectObject = (await _pages!)[pageNumber - 1];
+
+        return pageIndirectObject == null
+            ? throw new InvalidOperationException()
+            : new Page(pageIndirectObject, IndirectObjects);
     }
 
     public async Task<int> GetPageCountAsync()
@@ -87,6 +95,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
 
     #endregion
 
+    // TODO: move this to the interface
     /// <summary>
     /// PDF is linearized if there is a linearization dictionary, AND
     /// the length value (L) is identical to the length of the stream.

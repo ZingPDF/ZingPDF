@@ -1,8 +1,8 @@
-﻿namespace ZingPDF.Drawing
+﻿namespace ZingPDF.Elements.Drawing
 {
-    public class Text
+    public class TextBox
     {
-        public Text(string value, TextOptions options, BoundingBox bounds)
+        public TextBox(string value, TextOptions options, BoundingBox bounds)
         {
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
 
