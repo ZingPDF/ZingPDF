@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <see cref="IPage.Response"/> arguments.
     /// </summary>
-    public class ResponseCreatedEventArgs(IResponse response) : EventArgs
+    internal class ResponseCreatedEventArgs(IResponse response) : EventArgs
     {
         /// <summary>
         /// Gets the response.

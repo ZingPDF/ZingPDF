@@ -31,7 +31,7 @@ namespace PuppeteerSharp
     /// });
     /// ]]></code>
     /// </summary>
-    public interface ICDPSession : ICDPConnection
+    internal interface ICDPSession : ICDPConnection
     {
         /// <summary>
         /// Occurs when the connection is closed.

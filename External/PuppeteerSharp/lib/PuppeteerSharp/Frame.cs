@@ -9,7 +9,7 @@ using PuppeteerSharp.Input;
 namespace PuppeteerSharp
 {
     /// <inheritdoc cref="PuppeteerSharp.IFrame" />
-    public abstract class Frame : IFrame, IEnvironment
+    internal abstract class Frame : IFrame, IEnvironment
     {
         private Task<ElementHandle> _documentTask;
 

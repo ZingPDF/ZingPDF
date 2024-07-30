@@ -35,7 +35,7 @@ namespace PuppeteerSharp.Cdp;
 // This is a pretty terrible name, but it matches upstream
 
 /// <inheritdoc />
-public class CdpCDPSession : CDPSession
+internal class CdpCDPSession : CDPSession
 {
     private readonly ConcurrentDictionary<int, MessageTask> _callbacks = new();
     private readonly string _parentSessionId;

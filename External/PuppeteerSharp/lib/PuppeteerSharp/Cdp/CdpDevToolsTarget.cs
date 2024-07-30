@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Cdp
     /// <summary>
     /// DevTools target.
     /// </summary>
-    public class CdpDevToolsTarget : CdpPageTarget
+    internal class CdpDevToolsTarget : CdpPageTarget
     {
         internal CdpDevToolsTarget(
             TargetInfo targetInfo,

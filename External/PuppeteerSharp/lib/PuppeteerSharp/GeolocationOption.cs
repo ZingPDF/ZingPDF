@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// Geolocation option.
     /// </summary>
     /// <seealso cref="IPage.SetGeolocationAsync(GeolocationOption)"/>
-    public class GeolocationOption : IEquatable<GeolocationOption>
+    internal class GeolocationOption : IEquatable<GeolocationOption>
     {
         /// <summary>
         /// Latitude between -90 and 90.

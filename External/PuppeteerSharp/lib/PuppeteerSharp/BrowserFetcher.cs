@@ -17,7 +17,7 @@ using static PuppeteerSharp.BrowserFetcherOptions;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public sealed class BrowserFetcher : IBrowserFetcher
+    internal sealed class BrowserFetcher : IBrowserFetcher
     {
         private const string PublishSingleFileLocalApplicationDataFolderName = "PuppeteerSharp";
 

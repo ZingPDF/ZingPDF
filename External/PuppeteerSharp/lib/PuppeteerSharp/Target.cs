@@ -11,7 +11,7 @@ namespace PuppeteerSharp
     /// Target.
     /// </summary>
     [DebuggerDisplay("Target {Type} - {Url}")]
-    public abstract class Target : ITarget
+    internal abstract class Target : ITarget
     {
         private readonly ConcurrentSet<ITarget> _childTargets = [];
 

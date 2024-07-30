@@ -16,7 +16,7 @@ namespace PuppeteerSharp
     /// var browser = await Puppeteer.LaunchAsync(new LaunchOptions { ExecutablePath = revisionInfo.ExecutablePath});
     /// </code>
     /// </example>
-    public interface IBrowserFetcher
+    internal interface IBrowserFetcher
     {
         /// <summary>
         /// A download host to be used.

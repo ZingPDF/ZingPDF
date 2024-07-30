@@ -18,7 +18,7 @@ namespace PuppeteerSharp
 {
     /// <inheritdoc/>
     [DebuggerDisplay("Page {Url}")]
-    public abstract class Page : IPage
+    internal abstract class Page : IPage
     {
         /// <summary>
         /// List of supported metrics.

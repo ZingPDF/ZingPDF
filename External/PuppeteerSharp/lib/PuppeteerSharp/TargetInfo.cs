@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Target info.
     /// </summary>
-    public class TargetInfo
+    internal class TargetInfo
     {
         internal TargetInfo()
         {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace PuppeteerSharp.PageCoverage
 {
     /// <inheritdoc/>
-    public class Coverage : ICoverage
+    internal class Coverage : ICoverage
     {
         private readonly JSCoverage _jsCoverage;
         private readonly CSSCoverage _cssCoverage;

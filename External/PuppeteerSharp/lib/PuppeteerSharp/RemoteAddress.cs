@@ -4,7 +4,7 @@ namespace PuppeteerSharp
     /// Remote server address.
     /// </summary>
     /// <seealso cref="IResponse.RemoteAddress"/>
-    public class RemoteAddress
+    internal class RemoteAddress
     {
         /// <summary>
         /// The IP address of the remote server.

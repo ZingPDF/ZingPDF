@@ -3,7 +3,7 @@ namespace PuppeteerSharp.Input
     /// <summary>
     /// Utility class to be used with <see cref="Keyboard"/> operations.
     /// </summary>
-    public class Key
+    internal class Key
     {
         /// <summary>
         /// Cancel key.

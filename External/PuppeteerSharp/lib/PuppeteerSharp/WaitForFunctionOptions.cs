@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <seealso cref="IPage.WaitForFunctionAsync(string, WaitForFunctionOptions, object[])"/>
     /// <seealso cref="IFrame.WaitForFunctionAsync(string, WaitForFunctionOptions, object[])"/>
     /// <seealso cref="WaitForSelectorOptions"/>
-    public class WaitForFunctionOptions : WaitForOptions
+    internal class WaitForFunctionOptions : WaitForOptions
     {
         /// <summary>
         /// An interval at which the <c>pageFunction</c> is executed. defaults to <see cref="WaitForFunctionPollingOption.Raf"/>.

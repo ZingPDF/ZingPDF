@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace PuppeteerSharp.Input
 {
     /// <inheritdoc/>
-    public abstract class Keyboard : IKeyboard
+    internal abstract class Keyboard : IKeyboard
     {
         internal int Modifiers { get; set; }
 

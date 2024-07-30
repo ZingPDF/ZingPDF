@@ -8,7 +8,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options to be used in <see cref="IPage.ScreenshotAsync(string, ScreenshotOptions)"/>, <see cref="IPage.ScreenshotStreamAsync(ScreenshotOptions)"/> and <see cref="IPage.ScreenshotDataAsync(ScreenshotOptions)"/>.
     /// </summary>
-    public class ScreenshotOptions
+    internal class ScreenshotOptions
     {
         private static readonly Dictionary<string, ScreenshotType?> _extensionScreenshotTypeMap = new()
         {

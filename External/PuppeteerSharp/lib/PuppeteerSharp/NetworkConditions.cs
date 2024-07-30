@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options to be used in <see cref="IPage.EmulateNetworkConditionsAsync(NetworkConditions)"/>.
     /// </summary>
-    public class NetworkConditions
+    internal class NetworkConditions
     {
         /// <summary>
         /// Key to be used with <see cref="Puppeteer.NetworkConditions()"/>.

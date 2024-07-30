@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Browser fetcher options used to construct a <see cref="BrowserFetcher"/>.
     /// </summary>
-    public class BrowserFetcherOptions
+    internal class BrowserFetcherOptions
     {
         /// <summary>
         /// A custom download delegate.

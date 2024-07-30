@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Cdp
     /// <summary>
     /// Other target.
     /// </summary>
-    public class CdpOtherTarget : CdpTarget
+    internal class CdpOtherTarget : CdpTarget
     {
         internal CdpOtherTarget(
             TargetInfo targetInfo,

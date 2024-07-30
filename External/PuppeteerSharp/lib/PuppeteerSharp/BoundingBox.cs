@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Bounding box data returned by <see cref="IElementHandle.BoundingBoxAsync"/>.
     /// </summary>
-    public class BoundingBox : IEquatable<BoundingBox>
+    internal class BoundingBox : IEquatable<BoundingBox>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BoundingBox"/> class.
