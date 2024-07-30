@@ -6,7 +6,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Console message location.
     /// </summary>
-    public class ConsoleMessageLocation : IEquatable<ConsoleMessageLocation>
+    internal class ConsoleMessageLocation : IEquatable<ConsoleMessageLocation>
     {
         /// <summary>
         /// URL of the resource if known.

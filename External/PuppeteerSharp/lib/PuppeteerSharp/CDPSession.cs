@@ -8,7 +8,7 @@ using PuppeteerSharp.Helpers.Json;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public abstract class CDPSession : ICDPSession
+    internal abstract class CDPSession : ICDPSession
     {
         /// <inheritdoc/>
         public event EventHandler<MessageEventArgs> MessageReceived;

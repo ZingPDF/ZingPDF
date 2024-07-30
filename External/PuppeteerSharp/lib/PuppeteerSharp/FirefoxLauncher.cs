@@ -12,7 +12,7 @@ namespace PuppeteerSharp
     /// Represents a Firefox process and any associated temporary user data directory that have created
     /// by Puppeteer and therefore must be cleaned up when no longer needed.
     /// </summary>
-    public class FirefoxLauncher : LauncherBase
+    internal class FirefoxLauncher : LauncherBase
     {
         private static readonly string[] _defaultArgs =
         [

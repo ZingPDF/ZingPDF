@@ -7,7 +7,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options to be used in <see cref="IPage.PdfAsync(string, PdfOptions)"/>, <see cref="IPage.PdfStreamAsync(PdfOptions)"/> and <see cref="IPage.PdfDataAsync(PdfOptions)"/>.
     /// </summary>
-    public record PdfOptions
+    internal record PdfOptions
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PuppeteerSharp.PdfOptions"/> class.

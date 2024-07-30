@@ -5,7 +5,7 @@ namespace PuppeteerSharp.Cdp.Messaging
     /// <summary>
     /// Remote object is a mirror object referencing original JavaScript object.
     /// </summary>
-    public class RemoteObject
+    internal class RemoteObject
     {
         /// <summary>
         /// Gets or sets String representation of the object. (Optional).

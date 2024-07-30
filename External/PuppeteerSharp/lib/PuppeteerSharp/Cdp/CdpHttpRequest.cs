@@ -13,7 +13,7 @@ using PuppeteerSharp.Cdp.Messaging.Protocol.Network;
 namespace PuppeteerSharp.Cdp;
 
 /// <inheritdoc/>
-public class CdpHttpRequest : Request<CdpHttpResponse>
+internal class CdpHttpRequest : Request<CdpHttpResponse>
 {
     private readonly CDPSession _client;
     private readonly bool _allowInterception;

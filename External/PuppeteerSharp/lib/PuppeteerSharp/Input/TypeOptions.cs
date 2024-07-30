@@ -6,7 +6,7 @@ namespace PuppeteerSharp.Input
     /// <seealso cref="IPage.TypeAsync(string, string, TypeOptions)"/>
     /// <seealso cref="IElementHandle.TypeAsync(string, TypeOptions)"/>
     /// <seealso cref="IKeyboard.TypeAsync(string, TypeOptions)"/>
-    public class TypeOptions
+    internal class TypeOptions
     {
         /// <summary>
         /// Time to wait between <c>keydown</c> and <c>keyup</c> in milliseconds. Defaults to 0.

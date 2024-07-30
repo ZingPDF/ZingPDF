@@ -7,7 +7,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Response that will fulfill a request.
     /// </summary>
-    public class ResponseData
+    internal class ResponseData
     {
         /// <summary>
         /// Response body (text content).

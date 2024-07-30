@@ -7,7 +7,7 @@ using PuppeteerSharp.Cdp.Messaging;
 namespace PuppeteerSharp
 {
     /// <inheritdoc/>
-    public abstract class BrowserContext : IBrowserContext
+    internal abstract class BrowserContext : IBrowserContext
     {
         /// <inheritdoc/>
         public event EventHandler<TargetChangedArgs> TargetChanged;

@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options to be used in <see cref="IPage.AuthenticateAsync(Credentials)"/>.
     /// </summary>
-    public class Credentials
+    internal class Credentials
     {
         /// <summary>
         /// Gets or sets the username to be used for authentication.

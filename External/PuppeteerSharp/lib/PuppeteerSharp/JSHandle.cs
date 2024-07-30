@@ -10,7 +10,7 @@ namespace PuppeteerSharp
 {
     /// <inheritdoc/>
     [JsonConverter(typeof(JSHandleMethodConverter))]
-    public abstract class JSHandle : IJSHandle
+    internal abstract class JSHandle : IJSHandle
     {
         internal JSHandle(IsolatedWorld world, RemoteObject remoteObject)
         {
