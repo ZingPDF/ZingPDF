@@ -10,7 +10,7 @@ namespace PuppeteerSharp
     /// Represents the security details when response was received over the secure connection.
     /// </summary>
     /// <seealso cref="IResponse.SecurityDetails"/>
-    public class SecurityDetails
+    internal class SecurityDetails
     {
         /// <summary>
         ///  Initializes a new instance of the <see cref="SecurityDetails"/> class.

@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Cdp
     /// <summary>
     /// Page target.
     /// </summary>
-    public class CdpPageTarget : CdpTarget
+    internal class CdpPageTarget : CdpTarget
     {
         private readonly bool _ignoreHTTPSErrors;
         private readonly ViewPortOptions _defaultViewport;

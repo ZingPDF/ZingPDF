@@ -5,7 +5,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// <see cref="IPage.Dialog"/> arguments.
     /// </summary>
-    public class DialogEventArgs : EventArgs
+    internal class DialogEventArgs : EventArgs
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DialogEventArgs"/> class.

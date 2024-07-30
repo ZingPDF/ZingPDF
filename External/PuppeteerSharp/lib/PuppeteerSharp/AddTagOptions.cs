@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options used by <see cref="IPage.AddScriptTagAsync(AddTagOptions)"/> &amp; <see cref="IPage.AddStyleTagAsync(AddTagOptions)"/>.
     /// </summary>
-    public class AddTagOptions
+    internal class AddTagOptions
     {
         /// <summary>
         /// Url of a script to be added.

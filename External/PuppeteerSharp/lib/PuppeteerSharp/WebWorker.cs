@@ -19,7 +19,7 @@ namespace PuppeteerSharp
     /// ]]>
     /// </code>
     /// </example>
-    public abstract class WebWorker : IEnvironment
+    internal abstract class WebWorker : IEnvironment
     {
         internal WebWorker(string url)
         {

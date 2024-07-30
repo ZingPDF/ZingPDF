@@ -7,7 +7,7 @@ namespace PuppeteerSharp.Mobile
     /// <summary>
     /// Device descriptors.
     /// </summary>
-    public static class DeviceDescriptors
+    internal static class DeviceDescriptors
     {
         private static readonly Dictionary<DeviceDescriptorName, DeviceDescriptor> Devices = new Dictionary<DeviceDescriptorName, DeviceDescriptor>
         {

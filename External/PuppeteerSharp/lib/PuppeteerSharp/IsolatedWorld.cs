@@ -16,7 +16,7 @@ namespace PuppeteerSharp
     /// </summary>
     /// <param name="context">Execution context.</param>
     /// <returns>Resolved argument.</returns>
-    public delegate Task<object> LazyArg(ExecutionContext context);
+    internal delegate Task<object> LazyArg(ExecutionContext context);
 
     internal class IsolatedWorld : Realm, IDisposable, IAsyncDisposable
     {

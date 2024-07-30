@@ -3,7 +3,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Data returned by the drag methods.
     /// </summary>
-    public partial class DragData
+    internal partial class DragData
     {
         /// <summary>
         /// Drag items.

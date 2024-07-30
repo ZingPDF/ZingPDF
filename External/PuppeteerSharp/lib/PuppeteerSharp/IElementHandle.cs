@@ -9,7 +9,7 @@ namespace PuppeteerSharp
     /// Inherits from <see cref="IJSHandle"/>. It represents an in-page DOM element.
     /// ElementHandles can be created by <see cref="IPage.QuerySelectorAsync(string)"/> or <see cref="IPage.QuerySelectorAllAsync(string)"/>.
     /// </summary>
-    public interface IElementHandle : IJSHandle
+    internal interface IElementHandle : IJSHandle
     {
         /// <summary>
         /// Parent frame.

@@ -8,7 +8,7 @@ namespace PuppeteerSharp.Cdp
     /// <summary>
     /// Worker target.
     /// </summary>
-    public class CdpWorkerTarget : CdpTarget
+    internal class CdpWorkerTarget : CdpTarget
     {
         private Task<WebWorker> _workerTask;
 

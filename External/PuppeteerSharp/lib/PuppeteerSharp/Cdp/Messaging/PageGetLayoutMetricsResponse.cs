@@ -10,7 +10,7 @@ namespace PuppeteerSharp.Cdp.Messaging
 
         public LayoutContentSize LayoutViewport { get; set; }
 
-        public class LayoutContentSize
+        internal class LayoutContentSize
         {
             public decimal ClientWidth { get; set; }
 
@@ -21,7 +21,7 @@ namespace PuppeteerSharp.Cdp.Messaging
             public decimal PageY { get; set; }
         }
 
-        public class Rect
+        internal class Rect
         {
             public decimal X { get; set; }
 

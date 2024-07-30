@@ -10,7 +10,7 @@ namespace PuppeteerSharp
     /// <summary>
     /// Options for launching the Chrome/ium browser.
     /// </summary>
-    public class LaunchOptions : IBrowserOptions, IConnectionOptions
+    internal class LaunchOptions : IBrowserOptions, IConnectionOptions
     {
         private string[] _ignoredDefaultArgs;
         private bool _devtools;
