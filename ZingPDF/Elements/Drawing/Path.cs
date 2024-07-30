@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace ZingPDF.Drawing
+namespace ZingPDF.Elements.Drawing
 {
     /// <summary>
     /// Defines a path.

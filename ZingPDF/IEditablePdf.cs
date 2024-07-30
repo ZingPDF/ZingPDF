@@ -1,4 +1,4 @@
-﻿using ZingPDF.Drawing;
+﻿using ZingPDF.Elements;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -7,17 +7,10 @@ namespace ZingPDF;
 
 public interface IEditablePdf : IPdf
 {
-    Task AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions);
-    Task InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions);
+    Task<Page> AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions);
+    Task<Page> InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions);
     Task DeletePageAsync(int pageNumber);
-    Task SetPageRotationAsync(int pageNumber, Rotation rotation);
-    //void Draw(
-    //    int pageNumber,
-    //    IEnumerable<Drawing.Path> paths,
-    //    IEnumerable<Text> text,
-    //    IEnumerable<Image> imageOperations,
-    //    CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp
-    //    );
+    Task SetRotationAsync(Rotation rotation);
 
     Task CompleteFormAsync(IDictionary<string, string> formValues);
     Task<IEnumerable<FormField>> GetFieldsAsync();
