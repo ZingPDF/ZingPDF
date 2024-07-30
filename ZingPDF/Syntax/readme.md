@@ -1,0 +1,1 @@
+This directory contains implementations for PDF objects defined in ISO 32000-2:2020 Section 7.

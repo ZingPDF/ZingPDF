@@ -1,4 +1,5 @@
 ﻿using Nito.AsyncEx;
+using ZingPDF.Elements;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
@@ -18,6 +19,7 @@ using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF;
 
+// TODO: consider inheriting from ReadOnlyPdf
 public class Pdf : IEditablePdf
 {
     private readonly IPdf _sourcePdf;
@@ -65,7 +67,16 @@ public class Pdf : IEditablePdf
     public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
 
     // TODO: logic is duplicated in readonlypdf. Consider sharing.
-    public async Task<IndirectObject> GetPageAsync(int pageNumber) => (await _pages!)[pageNumber - 1];
+    public async Task<Page> GetPageAsync(int pageNumber)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        var pageIndirectObject = (await _pages!)[pageNumber - 1];
+
+        return pageIndirectObject == null
+            ? throw new InvalidOperationException()
+            : new Page(pageIndirectObject, _indirectObjectManager);
+    }
 
     public async Task<int> GetPageCountAsync() => (await _rootPageTreeNode).PageCount;
 
@@ -103,7 +114,7 @@ public class Pdf : IEditablePdf
 
     #region IEditablePdf
 
-    public async Task AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions)
+    public async Task<Page> AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions = null)
     {
         pageCreationOptions ??= PageDictionary.PageCreationOptions.Default;
 
@@ -122,6 +133,8 @@ public class Pdf : IEditablePdf
         rootPageTreeNode.AddChild(pageIndirectObject.Id.Reference);
 
         _indirectObjectManager.Update(rootPageTreeNodeIndirectObject);
+
+        return new Page(pageIndirectObject, _indirectObjectManager);
     }
 
     public async Task DeletePageAsync(int pageNumber)
@@ -135,25 +148,24 @@ public class Pdf : IEditablePdf
             throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages.");
         }
 
-        var pageIndirectObject = await GetPageAsync(pageNumber);
-        var page = pageIndirectObject.Get<PageDictionary>();
+        var page = await GetPageAsync(pageNumber);
 
-        var parentIndirectObject = await IndirectObjects.GetAsync(page.Parent)
+        var parentIndirectObject = await IndirectObjects.GetAsync(page.Dictionary.Parent)
             ?? throw new InvalidPdfException("Unable to find parent page tree node of requested page");
 
         var parent = (parentIndirectObject.Children.First() as PageTreeNodeDictionary)!;
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
-        parent.RemoveChild(pageIndirectObject.Id.Reference);
+        parent.RemoveChild(page.IndirectObject.Id.Reference);
 
         await DecrementPageCountAsync(parent);
 
-        _indirectObjectManager.Delete(pageIndirectObject.Id);
+        _indirectObjectManager.Delete(page.IndirectObject.Id);
         _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
     }
 
-    public async Task InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions)
+    public async Task<Page> InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions = null)
     {
         // get page at number
         // get parent page tree node
@@ -173,12 +185,12 @@ public class Pdf : IEditablePdf
             throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages. To add a page to the end of the PDF, use {nameof(AppendPageAsync)}");
         }
 
-        var pageAtNumberIndirectObject = await GetPageAsync(pageNumber);
-        var pageAtNumber = pageAtNumberIndirectObject.Get<PageDictionary>();
-        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageAtNumber.Parent);
+        var pageAtNumber = await GetPageAsync(pageNumber);
+
+        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageAtNumber.Dictionary.Parent);
         var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
 
-        var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumberIndirectObject.Id.Reference);
+        var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
 
         // Ensure page has all required properties.
         // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
@@ -200,12 +212,15 @@ public class Pdf : IEditablePdf
         await IncrementPageCountAsync(parentPageTreeNode);
 
         _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
+
+        return new Page(newPageIndirectObject, _indirectObjectManager);
     }
 
-    public Task SetPageRotationAsync(int pageNumber, Rotation rotation)
+    public Task SetRotationAsync(Rotation rotation)
     {
-        //        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
-        //        ArgumentNullException.ThrowIfNull(rotation);
+        ArgumentNullException.ThrowIfNull(rotation);
+
+        // TODO: Do we loop through all pages and set rotation?
 
         //        // TODO: check if there's a more efficient way to do this.
         //        var pages = await _pdfNavigator.GetPagesAsync();
@@ -218,11 +233,6 @@ public class Pdf : IEditablePdf
 
         throw new NotImplementedException();
     }
-
-    //public void Draw(int pageNumber, IEnumerable<Drawing.Path> paths, IEnumerable<Text> text, IEnumerable<Image> imageOperations, CoordinateSystem coordinateSystem = CoordinateSystem.BottomUp)
-    //{
-    //    throw new NotImplementedException();
-    //}
     
     // TODO: support for all field types?
     public async Task CompleteFormAsync(IDictionary<string, string> formValues)
