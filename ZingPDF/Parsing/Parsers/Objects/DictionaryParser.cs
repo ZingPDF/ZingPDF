@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;

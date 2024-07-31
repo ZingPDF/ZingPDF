@@ -1,4 +1,5 @@
-﻿using ZingPDF.Extensions;
+﻿using ZingPDF.Elements.Drawing;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Syntax.CommonDataStructures
@@ -39,11 +40,5 @@ namespace ZingPDF.Syntax.CommonDataStructures
         }
 
         public static Rectangle FromSize(RealNumber width, RealNumber height) => new(new(0, 0), new(width, height));
-    }
-
-    public class Coordinate(RealNumber x, RealNumber y)
-    {
-        public RealNumber X { get; set; } = x ?? throw new ArgumentNullException(nameof(x));
-        public RealNumber Y { get; set; } = y ?? throw new ArgumentNullException(nameof(y));
     }
 }
