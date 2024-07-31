@@ -129,6 +129,7 @@ internal static class Constants
             public const string BleedBox = "BleedBox";
             public const string TrimBox = "TrimBox";
             public const string ArtBox = "ArtBox";
+            public const string BoxColorInfo = "BoxColorInfo";
             public const string Contents = "Contents";
             public const string Rotate = "Rotate";
             public const string Group = "Group";

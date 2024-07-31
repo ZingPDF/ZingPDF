@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.Elements;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.InteractiveFeatures.Forms
