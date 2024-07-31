@@ -1,4 +1,6 @@
-﻿namespace ZingPDF.Elements.Drawing
+﻿using ZingPDF.Syntax.CommonDataStructures;
+
+namespace ZingPDF.Elements.Drawing
 {
     public class CoordinateTranslator : ICoordinateTranslator
     {
@@ -9,7 +11,7 @@
             _calculations = calculations ?? throw new ArgumentNullException(nameof(calculations));
         }
 
-        public Point FlipImageCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, Point position, int imageHeight)
+        public Coordinate FlipImageCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, Coordinate position, int imageHeight)
         {
             if (coordinateSystem == CoordinateSystem.BottomUp)
             {
@@ -18,10 +20,10 @@
 
             var newHeight = _calculations.AngleIsPerpendicular(pageDisplayRotation) ? pageWidth : pageHeight;
 
-            return FlipCoordinates(new[] { position }, Convert.ToInt32(newHeight - imageHeight)).First();
+            return FlipCoordinates([position], Convert.ToInt32(newHeight - imageHeight)).First();
         }
 
-        public IEnumerable<Point> FlipPathCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, IEnumerable<Point> coordinates)
+        public IEnumerable<Coordinate> FlipPathCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, IEnumerable<Coordinate> coordinates)
         {
             if (coordinateSystem == CoordinateSystem.BottomUp)
             {
@@ -33,7 +35,7 @@
             return FlipCoordinates(coordinates, Convert.ToInt32(newHeight));
         }
 
-        public BoundingBox FlipTextCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, BoundingBox boundingBox)
+        public Rectangle FlipTextCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, Rectangle boundingBox)
         {
             if (coordinateSystem == CoordinateSystem.BottomUp)
             {
@@ -42,12 +44,12 @@
 
             var newHeight = _calculations.AngleIsPerpendicular(pageDisplayRotation) ? pageWidth : pageHeight;
 
-            var origin = FlipCoordinates(new[] { boundingBox.Origin }, Convert.ToInt32(newHeight - boundingBox.Height)).First();
+            var origin = FlipCoordinates([boundingBox.UpperRight], Convert.ToInt32(newHeight - boundingBox.Height)).First();
 
-            return new BoundingBox(origin, boundingBox.Width, boundingBox.Height);
+            return new Rectangle(origin, new Coordinate(boundingBox.Width, boundingBox.Height));
         }
 
-        public IEnumerable<Point> RotateCoordinates(int angle, double pageWidth, double pageHeight, params Point[] coordinates)
+        public IEnumerable<Coordinate> RotateCoordinates(int angle, double pageWidth, double pageHeight, params Coordinate[] coordinates)
         {
             if (angle == 0)
             {
@@ -72,16 +74,16 @@
                 var rotatedX = cosTheta * (c.X - origin.X) - sinTheta * (c.Y - origin.Y) + origin.X;
                 var rotatedY = sinTheta * (c.X - origin.X) + cosTheta * (c.Y - origin.Y) + origin.Y;
 
-                return new Point((int)rotatedX, (int)rotatedY);
+                return new Coordinate((int)rotatedX, (int)rotatedY);
             });
         }
 
         /// <summary>
         /// Substracts the given page height from a set of coordinates to vertically flip the coordinate system.
         /// </summary>
-        private static IEnumerable<Point> FlipCoordinates(IEnumerable<Point> coordinates, int pageHeight)
+        private static IEnumerable<Coordinate> FlipCoordinates(IEnumerable<Coordinate> coordinates, int pageHeight)
         {
-            return coordinates.Select(c => new Point(c.X, pageHeight - c.Y));
+            return coordinates.Select(c => new Coordinate(c.X, pageHeight - c.Y));
         }
     }
 }

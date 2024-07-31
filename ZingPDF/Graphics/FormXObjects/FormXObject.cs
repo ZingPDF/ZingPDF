@@ -1,5 +1,4 @@
-﻿using ZingPDF.Syntax;
-using ZingPDF.Syntax.CommonDataStructures;
+﻿using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Filters;
 
@@ -27,7 +26,7 @@ namespace ZingPDF.Graphics.FormXObjects
 
         public FormXObject(
             Rectangle bBox,
-            IEnumerable<PdfObject> graphicsObjects,
+            IEnumerable<ContentStreamObject> graphicsObjects,
             ResourceDictionary? resources = null,
             IEnumerable<IFilter>? filters = null
             )

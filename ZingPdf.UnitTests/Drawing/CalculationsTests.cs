@@ -52,7 +52,7 @@ public class CalculationsTests
         var halfArbitraryDimension = arbitaryPageDimension / 2;
 
         new Calculations().FindRotationPoint(pageDisplayRotation, arbitaryPageDimension, arbitaryPageDimension)
-            .Should().BeEquivalentTo(new Point(halfArbitraryDimension, halfArbitraryDimension));
+            .Should().BeEquivalentTo(new Coordinate(halfArbitraryDimension, halfArbitraryDimension));
     }
 
     [Theory]
@@ -65,7 +65,7 @@ public class CalculationsTests
         var halfWidth = pageWidth / 2;
 
         new Calculations().FindRotationPoint(pageDisplayRotation, pageWidth, pageHeight)
-            .Should().BeEquivalentTo(new Point(halfWidth, halfWidth));
+            .Should().BeEquivalentTo(new Coordinate(halfWidth, halfWidth));
     }
 
     [Theory]
@@ -78,6 +78,6 @@ public class CalculationsTests
         var halfHeight = pageHeight / 2;
 
         new Calculations().FindRotationPoint(pageDisplayRotation, pageWidth, pageHeight)
-            .Should().BeEquivalentTo(new Point(halfHeight, halfHeight));
+            .Should().BeEquivalentTo(new Coordinate(halfHeight, halfHeight));
     }
 }
