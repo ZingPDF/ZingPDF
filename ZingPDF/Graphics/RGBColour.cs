@@ -3,7 +3,7 @@ using ZingPDF.Syntax;
 
 namespace ZingPDF.Graphics
 {
-    internal class RGBColour : PdfObject
+    public class RGBColour : PdfObject
     {
         public RGBColour(double red, double green, double blue)
         {
