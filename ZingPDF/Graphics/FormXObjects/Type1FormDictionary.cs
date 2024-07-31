@@ -5,11 +5,14 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Graphics.FormXObjects
 {
+    /// <summary>
+    /// ISO 32000-2:2020 8.10.2 - Form dictionaries
+    /// </summary>
     internal class Type1FormDictionary : FormDictionary
     {
         private const int _formType = 1;
 
-        public Type1FormDictionary(Rectangle bBox, ResourceDictionary? resources = null) : base(Subtypes.Form)
+        public Type1FormDictionary(Rectangle bBox, ResourceDictionary? resources = null)
         {
             ArgumentNullException.ThrowIfNull(bBox);
 
@@ -20,10 +23,6 @@ namespace ZingPDF.Graphics.FormXObjects
             {
                 Set(Constants.DictionaryKeys.Form.Type1.Resources, resources);
             }
-        }
-
-        private Type1FormDictionary(Dictionary dictionary) : base(dictionary)
-        {
         }
 
         /// <summary>

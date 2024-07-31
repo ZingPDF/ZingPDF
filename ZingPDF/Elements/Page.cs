@@ -31,14 +31,14 @@ namespace ZingPDF.Elements
             indirectObjectManager.Update(IndirectObject);
         }
 
-        //public void AddImage(ImageObject image)
-        //{
-        //    EnsureEditable();
-        //    ArgumentNullException.ThrowIfNull(image);
+        public void AddImage(ImageObject image)
+        {
+            EnsureEditable();
+            ArgumentNullException.ThrowIfNull(image);
 
-        //    // TODO: ImageObject
-        //    //Dictionary.AddContent(image, (IndirectObjectManager)_indirectObjectDictionary);
-        //}
+            // TODO: ImageObject
+            //Dictionary.AddContent(image, (IndirectObjectManager)_indirectObjectDictionary);
+        }
 
         //// TODO: consider coordinate system enum.
         //// Should be consistent between this and text/image objects.
