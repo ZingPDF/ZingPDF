@@ -14,7 +14,7 @@ namespace ZingPDF.Elements.Drawing
     /// </remarks>
     public class Path
     {
-        public Path(StrokeOptions? strokeOptions, FillOptions? fillOptions, PathType type, IEnumerable<Point> points)
+        public Path(StrokeOptions? strokeOptions, FillOptions? fillOptions, PathType type, IEnumerable<Coordinate> points)
         {
             if (strokeOptions == null && fillOptions == null) throw new ArgumentException("One of strokeOptions or fillOptions must be specified");
             if (!Enum.IsDefined(typeof(PathType), type)) throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(PathType));
@@ -51,6 +51,6 @@ namespace ZingPDF.Elements.Drawing
         /// <summary>
         /// Points defining the path.
         /// </summary>
-        public IEnumerable<Point> Points { get; }
+        public IEnumerable<Coordinate> Points { get; }
     }
 }

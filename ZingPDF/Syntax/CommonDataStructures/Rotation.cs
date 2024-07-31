@@ -18,9 +18,9 @@ namespace ZingPDF.Syntax.CommonDataStructures
             await stream.WriteIntAsync(_amount);
         }
 
-        public static Rotation Degrees90 = new(90);
-        public static Rotation Degrees180 = new(180);
-        public static Rotation Degrees270 = new(270);
+        public static readonly Rotation Degrees90 = new(90);
+        public static readonly Rotation Degrees180 = new(180);
+        public static readonly Rotation Degrees270 = new(270);
 
         public static Rotation FromValue(int value) => new(value);
     }
