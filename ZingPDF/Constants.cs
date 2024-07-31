@@ -256,6 +256,31 @@ internal static class Constants
             }
         }
 
+        public static class Image
+        {
+            public const string Width = "Width";
+            public const string Height = "Height";
+            public const string ColorSpace = "ColorSpace";
+            public const string BitsPerComponent = "BitsPerComponent";
+            public const string Intent = "Intent";
+            public const string ImageMask = "ImageMask";
+            public const string Mask = "Mask";
+            public const string Decode = "Decode";
+            public const string Interpolate = "Interpolate";
+            public const string Alternates = "Alternates";
+            public const string SMask = "SMask";
+            public const string SMaskInData = "SMaskInData";
+            public const string Name = "Name";
+            public const string StructParent = "StructParent";
+            public const string ID = "ID";
+            public const string OPI = "OPI";
+            public const string Metadata = "Metadata";
+            public const string OC = "OC";
+            public const string AF = "AF";
+            public const string Measure = "Measure";
+            public const string PtData = "PtData";
+        }
+
         public static class GraphicsStateParameter
         {
             public const string LW = "LW";

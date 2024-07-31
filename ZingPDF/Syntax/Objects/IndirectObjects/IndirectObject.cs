@@ -3,7 +3,7 @@
 namespace ZingPDF.Syntax.Objects.IndirectObjects
 {
     /// <summary>
-    /// ISO 32000-2:2020 7.3.10 - Indirect objects<para></para>
+    /// <para>ISO 32000-2:2020 7.3.10 - Indirect objects</para>
     /// 
     /// Wraps any object with an identifier so that it may be referenced by other objects.
     /// </summary>
