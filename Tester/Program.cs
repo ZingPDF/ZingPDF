@@ -8,6 +8,8 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax;
 using ZingPDF;
 using ZingPDF.FromHTML;
+using ZingPDF.Elements.Drawing;
+using ZingPDF.Graphics;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -34,12 +36,20 @@ await AddTextToPage();
 static async Task AddTextToPage()
 {
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var page = await pdf.InsertPageAsync(1);
+    var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
 
-    page.AddText(new ZingPDF.Elements.Drawing.TextBox("test", ));
+    page.AddText(new ZingPDF.Text.TextObject(
+        "test",
+        new Rectangle(new Coordinate(10, 10), new Coordinate(100, 100)),
+        new Coordinate(10, 50),
+        new ZingPDF.Text.TextObject.FontOptions("Helv", 24, RGBColour.PrimaryRed)
+        ));
+
+    await pdf.SaveAsync(outputFileStream);
 }
 
 static async Task ConvertFromHTML(Uri uri, string output)

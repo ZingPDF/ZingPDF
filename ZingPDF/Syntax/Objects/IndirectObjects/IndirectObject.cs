@@ -7,7 +7,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     /// 
     /// Wraps any object with an identifier so that it may be referenced by other objects.
     /// </summary>
-    public class IndirectObject : PdfObject
+    public class IndirectObject : PdfObject, IEquatable<IndirectObject?>
     {
         public IndirectObject(IndirectObjectId id, params IPdfObject[] children)
         {
@@ -38,7 +38,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             await stream.WriteTextAsync(Constants.ObjStart);
             await stream.WriteNewLineAsync();
 
-            foreach (PdfObject child in Children)
+            foreach (var child in Children)
             {
                 await child.WriteAsync(stream);
             }
@@ -46,6 +46,32 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             await stream.WriteNewLineAsync();
             await stream.WriteTextAsync(Constants.ObjEnd);
             await stream.WriteNewLineAsync();
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Id);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as IndirectObject);
+        }
+
+        public bool Equals(IndirectObject? other)
+        {
+            return other is not null &&
+                   EqualityComparer<IndirectObjectId>.Default.Equals(Id, other.Id);
+        }
+
+        public static bool operator ==(IndirectObject? left, IndirectObject? right)
+        {
+            return EqualityComparer<IndirectObject>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(IndirectObject? left, IndirectObject? right)
+        {
+            return !(left == right);
         }
     }
 }

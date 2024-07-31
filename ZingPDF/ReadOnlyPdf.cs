@@ -9,7 +9,7 @@ using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Elements;
-using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Forms;
 
 namespace ZingPDF;
 
@@ -26,6 +26,8 @@ public class ReadOnlyPdf : IPdf, IDisposable
 
     private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
     private readonly AsyncLazy<List<IndirectObject>> _pages;
+
+    private readonly FormManager _formManager = new();
 
     /// <summary>
     /// Internal constructor for creating a <see cref="ReadOnlyPdf"/> from its constituent parts.
@@ -85,6 +87,28 @@ public class ReadOnlyPdf : IPdf, IDisposable
     public async Task<int> GetPageCountAsync()
     {
         return (await _rootPageTreeNode).PageCount;
+    }
+
+    public async Task<IEnumerable<FormField>> GetFieldsAsync()
+    {
+        List<FormField> fields = [];
+
+        if (DocumentCatalog.AcroForm is null)
+        {
+            return fields;
+        }
+
+        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
+            ?? throw new InvalidPdfException("Unable to resolve form reference");
+
+        var fieldDict = await _formManager.GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
+
+        return fieldDict.Select(kvp =>
+        {
+            var field = kvp.Value.Get<FieldDictionary>();
+
+            return new FormField(kvp.Key, field.TU, _formManager.GetFieldValue(field.V));
+        });
     }
 
     public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions)

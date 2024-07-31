@@ -1,7 +1,9 @@
-﻿using ZingPDF.Syntax.CommonDataStructures;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Text;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree
 {
@@ -30,40 +32,70 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public ResourceDictionary? Resources => Get<ResourceDictionary>(Constants.DictionaryKeys.Page.Resources);
 
         /// <summary>
-        /// The boundaries of the physical medium on which the page shall be displayed or printed.
+        /// (Required; inheritable) A rectangle (see 7.9.5, "Rectangles"), expressed in default user space units, 
+        /// that shall define the boundaries of the physical medium on which the page shall be displayed or printed 
+        /// (see 14.11.2, "Page boundaries").
         /// </summary>
         public Rectangle? MediaBox => Get<Rectangle>(Constants.DictionaryKeys.Page.MediaBox);
 
         /// <summary>
-        /// Defines the visible region of default user space.
-        /// Contents will be clipped to this rectangle.
+        /// <para>(Optional; Inheritable) A rectangle, expressed in default user space units, that 
+        /// shall define the visible region of default user space. When the page is displayed or 
+        /// printed, its contents shall be clipped (cropped) to this rectangle (see 14.11.2, "Page boundaries"). 
+        /// Default value: the value of MediaBox.</para>
+        /// <para>NOTE 1 This clipped page output will often be placed (imposed) on the output medium 
+        /// in some implementation-defined manner.</para>
         /// </summary>
         public Rectangle? CropBox => Get<Rectangle>(Constants.DictionaryKeys.Page.CropBox);
 
         /// <summary>
-        /// Defines a clipping rectangle for output in a production environment.
+        /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
+        /// the region to which the contents of the page shall be clipped when output in a production 
+        /// environment (see 14.11.2, "Page boundaries"). Default value: the value of CropBox.
         /// </summary>
-        public Rectangle? BleedBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.BleedBox); }
+        public Rectangle? BleedBox=> Get<Rectangle>(Constants.DictionaryKeys.Page.BleedBox);
 
         /// <summary>
-        /// Defines the intended dimensions of the finished page after trimming.
+        /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
+        /// the intended dimensions of the finished page after trimming (see 14.11.2, "Page boundaries"). 
+        /// Default value: the value of CropBox.
         /// </summary>
-        public Rectangle? TrimBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.TrimBox); }
+        public Rectangle? TrimBox => Get<Rectangle>(Constants.DictionaryKeys.Page.TrimBox);
 
         /// <summary>
-        /// Defines the extent of the page's meaningful content (including whitespace) intended by the page's creator.
+        /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
+        /// the extent of the page’s meaningful content (including potential white-space) as intended 
+        /// by the page’s creator (see 14.11.2, "Page boundaries"). Default value: the value of CropBox.
         /// </summary>
-        public Rectangle? ArtBox { get => Get<Rectangle>(Constants.DictionaryKeys.Page.ArtBox); }
+        public Rectangle? ArtBox => Get<Rectangle>(Constants.DictionaryKeys.Page.ArtBox);
 
         /// <summary>
-        /// Describes the contents of the page.
+        /// (Optional; PDF 1.4) A box colour information dictionary that shall specify the colours and 
+        /// other visual characteristics that should be used in displaying guidelines on the screen for 
+        /// the various page boundaries (see 14.11.2.2, "Display of page boundaries"). If this entry is 
+        /// absent, the application shall use its own current default settings.
         /// </summary>
-        public ArrayObject? Contents { get => Get<ArrayObject>(Constants.DictionaryKeys.Page.Contents); }
+        public Dictionary? BoxColorInfo => Get<Dictionary>(Constants.DictionaryKeys.Page.BoxColorInfo);
+
+        /// <summary>
+        /// <para>(Optional) A content stream (see 7.8.2, "Content streams") that shall describe the 
+        /// contents of this page. If this entry is absent, the page shall be empty.</para>
+        /// <para>The value shall be either a single stream or an array of streams. If the value is 
+        /// an array, the effect shall be as if all of the streams in the array were concatenated with 
+        /// at least one white-space character added between the streams’ data, in order, to form a 
+        /// single stream. PDF writers can create image objects and other resources as they occur, even 
+        /// though they interrupt the content stream. The division between streams may occur only at the 
+        /// boundaries between lexical tokens (see 7.2, "Lexical conventions") but shall be unrelated to 
+        /// the page’s logical content or organisation. Applications that consume or produce PDF files 
+        /// need not preserve the existing structure of the Contents array. PDF writers shall not create 
+        /// a Contents array containing no elements.</para>
+        /// </summary>
+        public IPdfObject? Contents => Get<IPdfObject>(Constants.DictionaryKeys.Page.Contents);
 
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
         /// </summary>
-        public Rotation? Rotate { get => Get<Rotation>(Constants.DictionaryKeys.Page.Rotate); }
+        public Rotation? Rotate => Get<Rotation>(Constants.DictionaryKeys.Page.Rotate);
 
         /// <summary>
         /// (Optional; PDF 1.4) A group attributes dictionary that shall specify the attributes of 
@@ -204,6 +236,26 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// This also allows for ready access of DPM data in PDF processors.</para>
         /// </summary>
         public Dictionary? DPart => Get<Dictionary>(Constants.DictionaryKeys.Page.DPart);
+
+        public void AddContent(IEnumerable<ContentStreamObject> content, IndirectObjectManager indirectObjectManager)
+        {
+            var contentStream = new ContentStream(content);
+
+            if (Contents is null)
+            {
+                Set(Constants.DictionaryKeys.Page.Contents, ArrayObject.Empty);
+            }
+            else if (Contents is IndirectObjectReference ior)
+            {
+                Set(Constants.DictionaryKeys.Page.Contents, new ArrayObject([ior]));
+            }
+
+            var contentObject = indirectObjectManager.Add(contentStream);
+
+            var contents = (Contents as ArrayObject)!;
+
+            contents.Add(contentObject.Id.Reference);
+        }
 
         /// <summary>
         /// Create a blank page.

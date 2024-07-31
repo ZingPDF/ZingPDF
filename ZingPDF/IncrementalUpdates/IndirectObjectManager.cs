@@ -7,7 +7,7 @@ namespace ZingPDF.IncrementalUpdates;
 /// <see cref="IIndirectObjectDictionary"/> containing all of the PDFs indirect objects.<para></para>
 /// Allows adding, removing, and updating of objects.
 /// </summary>
-internal class IndirectObjectManager : IIndirectObjectDictionary
+public class IndirectObjectManager : IIndirectObjectDictionary
 {
     private readonly IIndirectObjectDictionary _sourceDictionary;
     private readonly Queue<IndirectObjectId> _freeIds;
@@ -25,7 +25,20 @@ internal class IndirectObjectManager : IIndirectObjectDictionary
     public Dictionary<IndirectObjectId, IndirectObject> UpdatedObjects { get; } = [];
     public List<IndirectObjectId> DeletedObjects { get; } = [];
 
-    public List<IndirectObject> NewOrUpdatedObjects { get => UpdatedObjects.Values.Concat(NewObjects).ToList(); }
+    public HashSet<IndirectObject> NewOrUpdatedObjects
+    {
+        get
+        {
+            var objects = new HashSet<IndirectObject>(UpdatedObjects.Values);
+
+            foreach (var obj in NewObjects)
+            {
+                objects.Add(obj);
+            }
+
+            return objects;
+        }
+    }
 
     public async Task<IndirectObject?> GetAsync(IndirectObjectReference key)
     {

@@ -1,5 +1,6 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Elements;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
@@ -298,6 +299,7 @@ public class Pdf : IEditablePdf
         }
     }
 
+    // TODO: duplicate logic in ReadOnlyPdf. See if we can share it.
     public async Task<IEnumerable<FormField>> GetFieldsAsync()
     {
         List<FormField> fields = [];

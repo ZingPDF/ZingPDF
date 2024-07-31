@@ -1,8 +1,10 @@
-﻿namespace ZingPDF.Elements.Drawing
+﻿using ZingPDF.Graphics;
+
+namespace ZingPDF.Elements.Drawing
 {
     public class StrokeOptions
     {
-        public StrokeOptions(RGBAColour colour, int width)
+        public StrokeOptions(RGBColour colour, int width)
         {
             if (width < 1) throw new ArgumentOutOfRangeException(nameof(width), "Value must be greater than zero");
 
@@ -13,7 +15,7 @@
         /// <summary>
         /// Stroke colour.
         /// </summary>
-        public RGBAColour Colour { get; } = RGBAColour.Black;
+        public RGBColour Colour { get; } = RGBColour.Black;
 
         /// <summary>
         /// Stroke width in pixels.

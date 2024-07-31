@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.InteractiveFeatures.Forms
+﻿namespace ZingPDF.Elements
 {
     public class FormField
     {

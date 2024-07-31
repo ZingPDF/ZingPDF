@@ -1,6 +1,7 @@
 ﻿using FakeItEasy;
 using FluentAssertions;
 using Xunit;
+using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Elements.Drawing;
 
@@ -9,7 +10,7 @@ public class CoordinateTranslatorTests
     [Fact]
     public void FlipImageCoordinatesDoesNothingForBottomUp()
     {
-        var coordinate = new Point(10, 10);
+        var coordinate = new Coordinate(10, 10);
 
         new CoordinateTranslator(A.Fake<ICalculations>())
             .FlipImageCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, coordinate, 100).Should().BeEquivalentTo(coordinate);
@@ -18,8 +19,10 @@ public class CoordinateTranslatorTests
     [Fact]
     public void FlipTextCoordinatesDoesNothingForBottomUp()
     {
-        var coordinate = new Point(10, 10);
-        var boundingBox = new BoundingBox(coordinate, 100, 100);
+        var lowerLeft = new Coordinate(10, 10);
+        var upperRight = new Coordinate(100, 100);
+
+        var boundingBox = new Rectangle(lowerLeft, upperRight);
 
         new CoordinateTranslator(A.Fake<ICalculations>())
             .FlipTextCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, boundingBox).Should().BeEquivalentTo(boundingBox);
@@ -28,7 +31,7 @@ public class CoordinateTranslatorTests
     [Fact]
     public void FlipPathCoordinatesDoesNothingForBottomUp()
     {
-        var coordinates = new[] { new Point(10, 10) };
+        var coordinates = new[] { new Coordinate(10, 10) };
 
         new CoordinateTranslator(A.Fake<ICalculations>())
             .FlipPathCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, coordinates).Should().BeEquivalentTo(coordinates);
@@ -49,8 +52,8 @@ public class CoordinateTranslatorTests
         var expectedTranslatedYValue = pageHeight - y;
 
         new CoordinateTranslator(calculations)
-            .FlipPathCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new[] { new Point(arbitraryXValue, y) })
-            .Should().BeEquivalentTo(new[] { new Point(arbitraryXValue, expectedYValue) });
+            .FlipPathCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new[] { new Coordinate(arbitraryXValue, y) })
+            .Should().BeEquivalentTo(new[] { new Coordinate(arbitraryXValue, expectedYValue) });
     }
 
     [Theory]
@@ -67,8 +70,8 @@ public class CoordinateTranslatorTests
         var arbitraryPageWidth = 100;
 
         new CoordinateTranslator(calculations)
-            .FlipImageCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new Point(arbitraryXValue, y), imageHeight)
-            .Should().BeEquivalentTo(new Point(arbitraryXValue, expectedYValue));
+            .FlipImageCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, new Coordinate(arbitraryXValue, y), imageHeight)
+            .Should().BeEquivalentTo(new Coordinate(arbitraryXValue, expectedYValue));
     }
 
     [Theory]
@@ -85,8 +88,8 @@ public class CoordinateTranslatorTests
         var arbitraryBoxWidth = 100;
         var arbitraryPageWidth = 100;
 
-        var boundingBox = new BoundingBox(new Point(arbitraryXValue, y), arbitraryBoxWidth, boundingBoxHeight);
-        var translatedBoundingBox = new BoundingBox(new Point(arbitraryXValue, expectedYValue), arbitraryBoxWidth, boundingBoxHeight);
+        var boundingBox = new Rectangle(new Coordinate(arbitraryXValue, y), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
+        var translatedBoundingBox = new Rectangle(new Coordinate(arbitraryXValue, expectedYValue), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
 
         new CoordinateTranslator(calculations)
             .FlipTextCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, boundingBox)
@@ -107,10 +110,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, horizontalCentre));
+            .Returns(new Coordinate(horizontalCentre, horizontalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -127,10 +130,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, horizontalCentre));
+            .Returns(new Coordinate(horizontalCentre, horizontalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -145,10 +148,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(verticalCentre, verticalCentre));
+            .Returns(new Coordinate(verticalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -163,10 +166,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(verticalCentre, verticalCentre));
+            .Returns(new Coordinate(verticalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -184,10 +187,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, verticalCentre));
+            .Returns(new Coordinate(horizontalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -205,10 +208,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, verticalCentre));
+            .Returns(new Coordinate(horizontalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -226,10 +229,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, verticalCentre));
+            .Returns(new Coordinate(horizontalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -247,10 +250,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, verticalCentre));
+            .Returns(new Coordinate(horizontalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -265,10 +268,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(verticalCentre, verticalCentre));
+            .Returns(new Coordinate(verticalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -283,10 +286,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(verticalCentre, verticalCentre));
+            .Returns(new Coordinate(verticalCentre, verticalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -303,10 +306,10 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, horizontalCentre));
+            .Returns(new Coordinate(horizontalCentre, horizontalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 
     [Theory]
@@ -323,9 +326,9 @@ public class CoordinateTranslatorTests
         var calculations = A.Fake<ICalculations>();
 
         A.CallTo(() => calculations.FindRotationPoint(A<int>.Ignored, A<double>.Ignored, A<double>.Ignored))
-            .Returns(new Point(horizontalCentre, horizontalCentre));
+            .Returns(new Coordinate(horizontalCentre, horizontalCentre));
 
-        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, new[] { new Point(x, y) })
-            .Should().BeEquivalentTo(new[] { new Point(expectedX, expectedY) });
+        new CoordinateTranslator(calculations).RotateCoordinates(pageDisplayRotation, pageWidth, pageHeight, [new Coordinate(x, y)])
+            .Should().BeEquivalentTo(new[] { new Coordinate(expectedX, expectedY) });
     }
 }

@@ -1,5 +1,4 @@
 ﻿using ZingPDF.Elements;
-using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 
@@ -13,7 +12,6 @@ public interface IEditablePdf : IPdf
     Task SetRotationAsync(Rotation rotation);
 
     Task CompleteFormAsync(IDictionary<string, string> formValues);
-    Task<IEnumerable<FormField>> GetFieldsAsync();
 
     void AddWatermark();
     void Compress(int dpi, int quality);

@@ -22,6 +22,6 @@
         /// Given a page display rotation angle in degrees, find the point about which the coordinate system can be rotated
         ///     to undo that rotation, so that the true left hand side of the coordinate system aligns to the left of the displayed page.
         /// </summary>
-        Point FindRotationPoint(int pageDisplayRotation, double pageWidth, double pageHeight);
+        Coordinate FindRotationPoint(int pageDisplayRotation, double pageWidth, double pageHeight);
     }
 }
