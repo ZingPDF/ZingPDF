@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ZingPDF.Syntax.ContentStreamsAndResources;
 
 namespace ZingPDF.Graphics.Images
 {
@@ -14,7 +10,11 @@ namespace ZingPDF.Graphics.Images
     /// see 8.9.7, "Inline images" for details.
     /// </para>
     /// </summary>
-    internal class InlineImage
+    internal class InlineImage : ContentStreamObject
     {
+        protected override Task WriteOutputAsync(Stream stream)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
