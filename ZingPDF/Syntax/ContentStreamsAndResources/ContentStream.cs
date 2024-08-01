@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
@@ -7,6 +8,8 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources;
 internal class ContentStream(IEnumerable<ContentStreamObject> graphicsObjects, IEnumerable<IFilter>? filters = null)
     : ContentStream<StreamDictionary>(graphicsObjects, filters)
 {
+    protected override Task<StreamDictionary> GetSpecialisedDictionaryAsync()
+        => Task.FromResult(StreamDictionary.FromDictionary(new Dictionary<Name, IPdfObject>()));
 }
 
 /// <summary>
@@ -39,6 +42,4 @@ internal abstract class ContentStream<TDictionary> : StreamObject<TDictionary> w
 
         return ms;
     }
-
-    protected override Task<TDictionary> GetSpecialisedDictionaryAsync() => Task.FromResult((TDictionary)StreamDictionary.Empty());
 }
