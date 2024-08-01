@@ -16,7 +16,7 @@ namespace ZingPDF.Syntax.Objects
 
         protected override async Task WriteOutputAsync(Stream stream) => await stream.WriteDoubleAsync(Value);
 
-        public override string ToString() => $"{nameof(RealNumber)}: {Value}";
+        public override string ToString() => Value.ToString();
 
         public static implicit operator RealNumber(double value) => new(value);
         public static implicit operator RealNumber(long value) => new(value);

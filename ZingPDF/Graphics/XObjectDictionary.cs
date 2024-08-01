@@ -11,11 +11,14 @@ namespace ZingPDF.Graphics
             public const string Image = "Image";
         }
 
-        protected XObjectDictionary(Name subtype) : base(Constants.DictionaryTypes.XObject)
+        protected XObjectDictionary(Name subtype)
+            : base(Constants.DictionaryTypes.XObject)
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
+        
+        protected XObjectDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
     }
 }

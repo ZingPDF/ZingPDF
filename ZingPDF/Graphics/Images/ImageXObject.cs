@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Graphics.Images
@@ -16,18 +17,50 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     internal class ImageXObject : StreamObject<ImageDictionary>
     {
-        public ImageXObject(Stream image, IEnumerable<IFilter>? filters = null) : base(filters)
+        private readonly Stream _image;
+        private readonly ImageType _imageType;
+        private readonly Integer _width;
+        private readonly Integer _height;
+        private readonly ColorSpace _colorSpace;
+
+        private readonly ImageDictionary _imageDictionary;
+        private readonly List<Name> _filters;
+
+        public ImageXObject(Stream image, ImageType imageType, Integer width, Integer height, ColorSpace colorSpace)
+            : base(null)
         {
+            _image = image ?? throw new ArgumentNullException(nameof(image));
+            _imageType = imageType;
+            _width = width ?? throw new ArgumentNullException(nameof(width));
+            _height = height ?? throw new ArgumentNullException(nameof(height));
+            _colorSpace = colorSpace;
+
+            // TODO: derive bit depth from image data
+            // TODO: derive compression from image data
+
+            switch (_imageType)
+            {
+                case ImageType.Jpeg:
+                    _imageDictionary = new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), 8);
+                    _filters = [Constants.Filters.DCT];
+                    break;
+                case ImageType.Jpeg2000:
+                    _imageDictionary = new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), 8);
+                    _filters = [Constants.Filters.JPX];
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         protected override Task<Stream> GetSourceDataAsync(ImageDictionary dictionary)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_image);
         }
 
         protected override Task<ImageDictionary> GetSpecialisedDictionaryAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_imageDictionary);
         }
     }
 }

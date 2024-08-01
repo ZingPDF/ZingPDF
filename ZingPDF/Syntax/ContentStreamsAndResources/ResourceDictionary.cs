@@ -1,12 +1,12 @@
 ﻿using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources
 {
     /// <summary>
     /// ISO 32000-2:2020 7.8.3 - Resource dictionaries
     /// </summary>
-    public class ResourceDictionary : StreamDictionary
+    public class ResourceDictionary : Dictionary
     {
         public ResourceDictionary(
             Dictionary? extGState = null,
@@ -82,6 +82,16 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// marked-content (see 14.6.2, "Property lists").</para>
         /// </summary>
         public Dictionary? Properties => Get<Dictionary>(Constants.DictionaryKeys.Resource.Properties);
+
+        public void AddXObject(Name name, IndirectObjectReference xObjectReference)
+        {
+            var xObjectDict = new Dictionary<Name, IPdfObject>(XObject ?? Dictionary.Empty)
+            {
+                [name] = xObjectReference
+            };
+
+            Set<Dictionary>(Constants.DictionaryKeys.Resource.XObject, xObjectDict);
+        }
 
         new public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
         {

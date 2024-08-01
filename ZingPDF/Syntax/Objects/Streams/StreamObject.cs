@@ -22,6 +22,18 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
 
     private readonly IEnumerable<IFilter> _filters;
 
+    /// <summary>
+    /// Construct a new <see cref="StreamObject{TDictionary}"/>.
+    /// </summary>
+    protected StreamObject(IEnumerable<IFilter>? filters)
+    {
+        _filters = filters ?? [];
+
+        _specialisedDictionary = new AsyncLazy<TDictionary>(GetSpecialisedDictionaryAsync);
+        _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(await _specialisedDictionary));
+        _compressedData = new AsyncLazy<Stream>(CompressDataAsync);
+    }
+
     public TDictionary Dictionary
     {
         get
@@ -33,18 +45,6 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
 
             return _specialisedDictionary.Task.Result;
         }
-    }
-
-    /// <summary>
-    /// Construct a new <see cref="StreamObject{TDictionary}"/>.
-    /// </summary>
-    protected StreamObject(IEnumerable<IFilter>? filters)
-    {
-        _filters = filters ?? [];
-
-        _specialisedDictionary = new AsyncLazy<TDictionary>(GetSpecialisedDictionaryAsync);
-        _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(await _specialisedDictionary));
-        _compressedData = new AsyncLazy<Stream>(CompressDataAsync);
     }
 
     /// <summary>

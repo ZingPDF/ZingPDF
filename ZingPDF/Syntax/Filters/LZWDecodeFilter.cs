@@ -12,7 +12,7 @@ namespace ZingPDF.Syntax.Filters
     /// </summary>
     internal class LZWDecodeFilter : IFilter
     {
-        public Name Name => "LZWDecode";
+        public Name Name => Constants.Filters.LZW;
         public LZWDecodeFilter(Dictionary? filterParams)
         {
             Params = filterParams;

@@ -71,8 +71,13 @@ namespace ZingPDF.Syntax.Objects
             await stream.WriteTextAsync(Constants.DictionaryEnd);
         }
 
-        protected void Set<T>(Name key, T value) where T : class, IPdfObject
+        protected void Set<T>(Name key, T? value) where T : class, IPdfObject
         {
+            if (value is null)
+            {
+                return;
+            }
+
             _dictionary[key] = value;
         }
 
