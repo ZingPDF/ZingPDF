@@ -12,7 +12,7 @@ namespace ZingPDF.Syntax.Objects
 
         private readonly List<IPdfObject> _values = [];
 
-        public ArrayObject(IPdfObject[] values)
+        public ArrayObject(IEnumerable<IPdfObject> values)
         {
             _values = values?.ToList() ?? throw new ArgumentNullException(nameof(values));
         }

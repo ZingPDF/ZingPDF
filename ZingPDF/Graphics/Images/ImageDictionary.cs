@@ -9,8 +9,21 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     internal class ImageDictionary : XObjectDictionary
     {
-        protected ImageDictionary() : base(Subtypes.Image)
+        public ImageDictionary(
+            Integer width,
+            Integer height,
+            IPdfObject? ColorSpace,
+            Integer? bitsPerComponent
+            )
+            : base(Subtypes.Image)
         {
+            ArgumentNullException.ThrowIfNull(width);
+            ArgumentNullException.ThrowIfNull(height);
+
+            Set(Constants.DictionaryKeys.Image.Width, width);
+            Set(Constants.DictionaryKeys.Image.Height, height);
+            Set(Constants.DictionaryKeys.Image.ColorSpace, ColorSpace);
+            Set(Constants.DictionaryKeys.Image.BitsPerComponent, bitsPerComponent);
         }
 
         /// <summary>
@@ -164,6 +177,32 @@ namespace ZingPDF.Graphics.Images
         /// </summary>
         public IndirectObjectReference? Metadata => Get<IndirectObjectReference>(Constants.DictionaryKeys.Image.Metadata);
 
-        //
+        /// <summary>
+        /// (Optional; PDF 1.5) An optional content group or optional content membership dictionary 
+        /// (see 8.11, "Optional content"), specifying the optional content properties for this image XObject. 
+        /// Before the image is processed by a PDF processor, its visibility shall be determined based on 
+        /// this entry. If it is determined to be invisible, the entire image shall be skipped, as if there 
+        /// were no Do operator to invoke it.
+        /// </summary>
+        public Dictionary? OC => Get<Dictionary>(Constants.DictionaryKeys.Image.OC);
+
+        /// <summary>
+        /// (Optional; PDF 2.0) An array of one or more file specification dictionaries 
+        /// (7.11.3, "File specification dictionaries") which denote the associated files for this image XObject. 
+        /// See 14.13, "Associated files" and 14.13.7, "Associated files linked to XObjects" for more details.
+        /// </summary>
+        public ArrayObject? AF => Get<ArrayObject>(Constants.DictionaryKeys.Image.AF);
+
+        /// <summary>
+        /// (Optional; PDF 2.0) A measure dictionary (see "Table 266 — Entries in a measure dictionary") 
+        /// that specifies the scale and units which shall apply to the image.
+        /// </summary>
+        public Dictionary? Measure => Get<Dictionary>(Constants.DictionaryKeys.Image.Measure);
+
+        /// <summary>
+        /// (Optional; PDF 2.0) A point data dictionary (see "Table 272 — Entries in a point data dictionary") 
+        /// that specifies the extended geospatial data that shall apply to the image.
+        /// </summary>
+        public Dictionary? PtData => Get<Dictionary>(Constants.DictionaryKeys.Image.PtData);
     }
 }

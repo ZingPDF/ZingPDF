@@ -1,5 +1,5 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.CommonDataStructures;
+﻿using ZingPDF.Graphics.Images;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
@@ -16,6 +16,8 @@ namespace ZingPDF.Elements
             _indirectObjectDictionary = indirectObjectManager ?? throw new ArgumentNullException(nameof(indirectObjectManager));
         }
 
+        private IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
+
         public IndirectObject IndirectObject { get; }
         public PageDictionary Dictionary => IndirectObject.Get<PageDictionary>();
 
@@ -24,20 +26,30 @@ namespace ZingPDF.Elements
             EnsureEditable();
             ArgumentNullException.ThrowIfNull(text);
 
-            var indirectObjectManager = (IndirectObjectManager)_indirectObjectDictionary;
+            Dictionary.AddContent([text], IndirectObjects);
 
-            Dictionary.AddContent([text], indirectObjectManager);
-
-            indirectObjectManager.Update(IndirectObject);
+            IndirectObjects.Update(IndirectObject);
         }
 
-        public void AddImage(ImageObject image)
+        public async Task AddImageAsync(Image image)
         {
             EnsureEditable();
             ArgumentNullException.ThrowIfNull(image);
 
-            // TODO: ImageObject
-            //Dictionary.AddContent(image, (IndirectObjectManager)_indirectObjectDictionary);
+            // TODO: Think about whether to implement inline images
+
+            // TODO: configurable image size
+            // TODO: configurable (or derived) image type and colorspace.
+
+            var imageXObject = new ImageXObject(image.ImageData, ImageType.Jpeg, 100, 100, ColorSpace.DeviceRGB);
+            var imageXObjectIndirectObject = IndirectObjects.Add(imageXObject);
+
+            // TODO: random short name, maybe each resource dictionary should manage this
+            await Dictionary.AddXObjectResourceAsync("abcd", imageXObjectIndirectObject.Id.Reference, IndirectObjects);
+
+            var imageContentStream = new ImageXObjectContentStreamObject("abcd", new Drawing.Coordinate(10, 10));
+
+            Dictionary.AddContent([imageContentStream], IndirectObjects);
         }
 
         //// TODO: consider coordinate system enum.
