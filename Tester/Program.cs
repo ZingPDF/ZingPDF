@@ -11,6 +11,7 @@ using ZingPDF;
 using ZingPDF.FromHTML;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
+using ZingPDF.Elements;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -39,7 +40,9 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await AddPage("test.pdf", "output.pdf");
 
-await AddTextToPage();
+//await AddTextToPage();
+
+await AddImageToPage();
 
 static async Task AddTextToPage()
 {
@@ -56,6 +59,20 @@ static async Task AddTextToPage()
         new Coordinate(10, 50),
         new ZingPDF.Text.TextObject.FontOptions("Helv", 24, RGBColour.PrimaryRed)
         ));
+
+    await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task AddImageToPage()
+{
+    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
+
+    await page.AddImageAsync(Image.FromFile("cat.jpg"));
 
     await pdf.SaveAsync(outputFileStream);
 }
