@@ -7,7 +7,7 @@ namespace ZingPDF.Syntax.Filters
     /// 
     /// Provides internal logic for encoding and decoding streams.
     /// </summary>
-    internal interface IFilter
+    public interface IFilter
     {
         Name Name { get; }
         //FilterParams? Params { get; }

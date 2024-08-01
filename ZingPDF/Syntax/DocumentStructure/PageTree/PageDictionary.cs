@@ -1,4 +1,6 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using System.Runtime.InteropServices;
+using System.Xml.Linq;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -29,7 +31,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// node in the page tree, but PDF writers should not use this method of sharing resources as 
         /// described in 7.8.3, "Resource dictionaries".
         /// </summary>
-        public ResourceDictionary? Resources => Get<ResourceDictionary>(Constants.DictionaryKeys.Page.Resources);
+        public IPdfObject? Resources => Get<IPdfObject>(Constants.DictionaryKeys.Page.Resources);
 
         /// <summary>
         /// (Required; inheritable) A rectangle (see 7.9.5, "Rectangles"), expressed in default user space units, 
@@ -237,8 +239,39 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public Dictionary? DPart => Get<Dictionary>(Constants.DictionaryKeys.Page.DPart);
 
+        public async Task AddXObjectResourceAsync(Name name, IndirectObjectReference reference, IndirectObjectManager indirectObjectManager)
+        {
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(reference, nameof(reference));
+            ArgumentNullException.ThrowIfNull(indirectObjectManager, nameof(indirectObjectManager));
+
+            // Resources can be null, a ResourceDictionary, or an indirect object reference to a ResourceDictionary
+
+            if (Resources is null)
+            {
+                Set(
+                    Constants.DictionaryKeys.Page.Resources,
+                    new ResourceDictionary(xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
+                    );
+            }
+            else if (Resources is IndirectObjectReference resourceRef)
+            {
+                var resourcesIndirectObject = await indirectObjectManager.GetAsync(resourceRef);
+                var resources = resourcesIndirectObject!.Get<ResourceDictionary>();
+
+                resources.AddXObject(name, reference);
+            }
+            else if (Resources is ResourceDictionary resources)
+            {
+                resources.AddXObject(name, reference);
+            }
+        }
+
         public void AddContent(IEnumerable<ContentStreamObject> content, IndirectObjectManager indirectObjectManager)
         {
+            ArgumentNullException.ThrowIfNull(content, nameof(content));
+            ArgumentNullException.ThrowIfNull(indirectObjectManager, nameof(indirectObjectManager));
+
             var contentStream = new ContentStream(content);
 
             if (Contents is null)
