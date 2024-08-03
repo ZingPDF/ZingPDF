@@ -26,9 +26,10 @@ internal class CrossReferenceStream : StreamObject<CrossReferenceStreamDictionar
         IndirectObjectReference root,
         Dictionary? encrypt,
         IndirectObjectReference? info,
-        ArrayObject? id
+        ArrayObject? id,
+        bool sourceDataIsCompressed
         )
-        : base(filters)
+        : base(filters, sourceDataIsCompressed)
     {
         _xrefSections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
         _size = size ?? throw new ArgumentNullException(nameof(size));
@@ -62,7 +63,7 @@ internal class CrossReferenceStream : StreamObject<CrossReferenceStreamDictionar
         return Task.FromResult<Stream>(ms);
     }
 
-    protected override Task<CrossReferenceStreamDictionary> GetSpecialisedDictionaryAsync()
+    protected override CrossReferenceStreamDictionary GetSpecialisedDictionary()
     {
         var index = (ArrayObject)_xrefSections.SelectMany(s => new Integer[] { s.Index.StartIndex, s.Index.Count }).ToArray();
 
@@ -74,7 +75,7 @@ internal class CrossReferenceStream : StreamObject<CrossReferenceStreamDictionar
 
         var w = (ArrayObject)new Integer[] { field1Size, field2Size, field3Size };
 
-        return Task.FromResult(CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id));
+        return CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
     }
 
     // Method to get the size of the field based on the entries

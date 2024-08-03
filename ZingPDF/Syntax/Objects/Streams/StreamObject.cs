@@ -9,28 +9,40 @@ namespace ZingPDF.Syntax.Objects.Streams;
 /// This is an abstract class.
 /// </summary>
 /// <remarks>
-/// During rendering, this class will call the abstract method <see cref="GetSpecialisedDictionaryAsync"/>
+/// During rendering, this class will call the abstract method <see cref="GetSpecialisedDictionary"/>
 /// to retrieve the specialised stream dictionary for the subclass. This dictionary must implement <see cref="IStreamDictionary"/>.<para></para>
 /// This class will also call the abstract method <see cref="GetSourceDataAsync(TDictionary)"/> to generate the stream data.<para></para>
 /// Finally, this class will produce a <see cref="StreamDictionary"/> and merge it into the specialised dictionary.
 /// </remarks>
-internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDictionary> where TDictionary : class, IStreamDictionary
+internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDictionary>
+    where TDictionary : class, IStreamDictionary
 {
-    protected readonly AsyncLazy<TDictionary> _specialisedDictionary;
+    private readonly IEnumerable<IFilter> _filters;
+    private readonly bool _sourceDataIsCompressed;
+    private readonly Dictionary<Name, IPdfObject> _streamDictionary;
+    private TDictionary? _specialisedDictionary;
+
     protected readonly AsyncLazy<Stream> _sourceData;
     protected readonly AsyncLazy<Stream> _compressedData;
-
-    private readonly IEnumerable<IFilter> _filters;
 
     /// <summary>
     /// Construct a new <see cref="StreamObject{TDictionary}"/>.
     /// </summary>
-    protected StreamObject(IEnumerable<IFilter>? filters)
+    protected StreamObject(IEnumerable<IFilter>? filters, bool sourceDataIsCompressed)
     {
         _filters = filters ?? [];
+        _sourceDataIsCompressed = sourceDataIsCompressed;
 
-        _specialisedDictionary = new AsyncLazy<TDictionary>(GetSpecialisedDictionaryAsync);
-        _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(await _specialisedDictionary));
+        if (_sourceDataIsCompressed && !_filters.Any())
+        {
+            throw new ArgumentException("Data is compressed, but no filters provided");
+        }
+
+        // First produce a basic stream dictionary from the supplied filters.
+        // This won't contain Length or DL properties until the object is written.
+        _streamDictionary = InitialiseStreamDictionary();
+
+        _sourceData = new AsyncLazy<Stream>(async () => await GetSourceDataAsync(_specialisedDictionary!));
         _compressedData = new AsyncLazy<Stream>(CompressDataAsync);
     }
 
@@ -43,14 +55,14 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
                 throw new InvalidOperationException("Stream dictionary property is not available until the object has been written");
             }
 
-            return _specialisedDictionary.Task.Result;
+            return _specialisedDictionary!;
         }
     }
 
     /// <summary>
     /// When overridden in a derived class this method returns the specialised dictionary for the subclass.
     /// </summary>
-    protected abstract Task<TDictionary> GetSpecialisedDictionaryAsync();
+    protected abstract TDictionary GetSpecialisedDictionary();
 
     /// <summary>
     /// When overriden in a derived class this method returns the uncompressed data stream.
@@ -60,21 +72,20 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
     protected override async Task WriteOutputAsync(Stream stream)
     {
         // Example subclass: CrossReferenceStreamObject
-        // to produce the stream data we need the xref dict
-        // so, first, produce the specialised xref dict
-        // then, produce data, providing xref dict to method
-        // then, produce stream dict, merge with xref dict
+        // To produce the stream data we need the xref dict so first, produce the specialised xref dict.
+        // During rendering, GetSourceDataAsync and CompressDataAsync (if required) will be called.
+        // Length and DL will be set on _streamDictionary which is then merged into _specialisedDictionary.
+        _specialisedDictionary = GetSpecialisedDictionary();
 
-        var specialisedDict = await _specialisedDictionary;
         var streamData = await _sourceData;
         var compressedData = await _compressedData;
 
-        var streamDict = new Dictionary(
-            (await CreateBaseStreamDictionaryAsync(compressedData.Length, streamData.Length))
-            .MergeInto(specialisedDict)
-            );
+        _streamDictionary[Constants.DictionaryKeys.Stream.Length] = (Integer)compressedData.Length;
+        _streamDictionary[Constants.DictionaryKeys.Stream.DL] = (Integer)streamData.Length;
 
-        await streamDict.WriteAsync(stream);
+        _specialisedDictionary.SetStreamProperties(_streamDictionary);
+
+        await _specialisedDictionary.WriteAsync(stream);
 
         await stream.WriteNewLineAsync();
         await new Keyword(Constants.StreamStart).WriteAsync(stream);
@@ -86,10 +97,35 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
         await new Keyword(Constants.StreamEnd).WriteAsync(stream);
     }
 
-    public Task<Stream> GetDecompressedDataAsync() => _sourceData.Task;
+    public async Task<Stream> GetDecompressedDataAsync()
+    {
+        if (!_sourceDataIsCompressed)
+        {
+            return await _sourceData;
+        }
+        
+        var workingData = await (await _sourceData).ReadToEndAsync();
+
+        foreach (var filter in _filters)
+        {
+            workingData = filter.Decode(workingData);
+        }
+
+        return new MemoryStream(workingData);
+    }
 
     private async Task<Stream> CompressDataAsync()
     {
+        if (_sourceDataIsCompressed)
+        {
+            return await _sourceData;
+        }
+
+        if (!_filters.Any())
+        {
+            return await _sourceData;
+        }
+
         var workingData = await (await _sourceData).ReadToEndAsync();
 
         foreach (var filter in _filters)
@@ -100,17 +136,9 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
         return new MemoryStream(workingData);
     }
 
-    private Task<IStreamDictionary> CreateBaseStreamDictionaryAsync(long encodedLength, long? unencodedLength)
+    private Dictionary<Name, IPdfObject> InitialiseStreamDictionary()
     {
-        var streamDictionary = new Dictionary<Name, IPdfObject>()
-        {
-            { Constants.DictionaryKeys.Stream.Length, new Integer(encodedLength) },
-        };
-
-        if (unencodedLength is not null)
-        {
-            streamDictionary.Add(Constants.DictionaryKeys.Stream.DL, new Integer(unencodedLength.Value));
-        }
+        var streamDictionary = new Dictionary<Name, IPdfObject>();
 
         if (_filters.Any())
         {
@@ -139,6 +167,6 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
             }
         }
 
-        return Task.FromResult<IStreamDictionary>(StreamDictionary.FromDictionary(streamDictionary));
+        return streamDictionary;
     }
 }

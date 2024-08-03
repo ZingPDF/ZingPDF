@@ -18,7 +18,7 @@ namespace ZingPDF.Syntax.Functions.Type0
             throw new NotImplementedException();
         } 
 
-        protected override Task<Type0FunctionDictionary> GetSpecialisedDictionaryAsync()
+        protected override Type0FunctionDictionary GetSpecialisedDictionary()
         {
             throw new NotImplementedException();
         }

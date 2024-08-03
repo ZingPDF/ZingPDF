@@ -27,18 +27,19 @@ namespace ZingPDF.Graphics.FormXObjects
         public FormXObject(
             Rectangle bBox,
             IEnumerable<ContentStreamObject> graphicsObjects,
-            ResourceDictionary? resources = null,
-            IEnumerable<IFilter>? filters = null
+            ResourceDictionary? resources,
+            IEnumerable<IFilter>? filters,
+            bool sourceDataIsCompressed
             )
-            : base(graphicsObjects, filters)
+            : base(graphicsObjects, filters, sourceDataIsCompressed)
         {
             _bBox = bBox ?? throw new ArgumentNullException(nameof(bBox));
             _resources = resources;
         }
 
-        protected override Task<Type1FormDictionary> GetSpecialisedDictionaryAsync()
+        protected override Type1FormDictionary GetSpecialisedDictionary()
         {
-            return Task.FromResult(new Type1FormDictionary(_bBox, _resources));
+            return new Type1FormDictionary(_bBox, _resources);
         }
     }
 }

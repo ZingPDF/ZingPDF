@@ -1,6 +1,7 @@
 ﻿using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
 
@@ -40,8 +41,18 @@ namespace ZingPDF.Elements
 
             // TODO: configurable image size
             // TODO: configurable (or derived) image type and colorspace.
+            // TODO: derive bit depth from image data
+            // TODO: derive compression from image data
 
-            var imageXObject = new ImageXObject(image.ImageData, ImageType.Jpeg, 100, 100, ColorSpace.DeviceRGB);
+            var imageXObject = new ImageXObject(
+                image.ImageData,
+                100,
+                100,
+                ColorSpace.DeviceRGB,
+                8,
+                [FilterFactory.Create(Constants.Filters.DCT, null)],
+                sourceDataIsCompressed: true);
+
             var imageXObjectIndirectObject = IndirectObjects.Add(imageXObject);
 
             // TODO: random short name, maybe each resource dictionary should manage this
