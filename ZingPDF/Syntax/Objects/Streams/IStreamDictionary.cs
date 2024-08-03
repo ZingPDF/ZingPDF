@@ -63,5 +63,11 @@
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
         Integer? DL { get; }
+
+        /// <summary>
+        /// Set any stream properties from the given <see cref="Dictionary"/>
+        /// </summary>
+        /// <param name="streamDictionary"></param>
+        void SetStreamProperties(Dictionary streamDictionary);
     }
 }
