@@ -272,7 +272,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             ArgumentNullException.ThrowIfNull(content, nameof(content));
             ArgumentNullException.ThrowIfNull(indirectObjectManager, nameof(indirectObjectManager));
 
-            var contentStream = new ContentStream(content);
+            var contentStream = new ContentStream(content, filters: null, sourceDataIsCompressed: false);
 
             if (Contents is null)
             {

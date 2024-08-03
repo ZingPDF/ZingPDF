@@ -22,5 +22,16 @@
                 ? throw new ArgumentNullException(nameof(streamDictionary))
                 : new(streamDictionary);
         }
+
+        public void SetStreamProperties(Dictionary streamDictionary)
+        {
+            Set(Constants.DictionaryKeys.Stream.Length, streamDictionary[Constants.DictionaryKeys.Stream.Length]);
+            Set(Constants.DictionaryKeys.Stream.Filter, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.Filter, out var item) ? item : null);
+            Set(Constants.DictionaryKeys.Stream.DecodeParms, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.DecodeParms, out item) ? item : null);
+            Set(Constants.DictionaryKeys.Stream.F, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.F, out item) ? item : null);
+            Set(Constants.DictionaryKeys.Stream.FFilter, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.FFilter, out item) ? item : null);
+            Set(Constants.DictionaryKeys.Stream.FDecodeParms, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.FDecodeParms, out item) ? item : null);
+            Set(Constants.DictionaryKeys.Stream.DL, streamDictionary.TryGetValue(Constants.DictionaryKeys.Stream.DL, out item) ? item : null);
+        }
     }
 }
