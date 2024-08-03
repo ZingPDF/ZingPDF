@@ -5,11 +5,15 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
 
-internal class ContentStream(IEnumerable<ContentStreamObject> graphicsObjects, IEnumerable<IFilter>? filters = null)
-    : ContentStream<StreamDictionary>(graphicsObjects, filters)
+internal class ContentStream(
+    IEnumerable<ContentStreamObject> graphicsObjects,
+    IEnumerable<IFilter>? filters,
+    bool sourceDataIsCompressed
+    )
+    : ContentStream<StreamDictionary>(graphicsObjects, filters, sourceDataIsCompressed)
 {
-    protected override Task<StreamDictionary> GetSpecialisedDictionaryAsync()
-        => Task.FromResult(StreamDictionary.FromDictionary(new Dictionary<Name, IPdfObject>()));
+    protected override StreamDictionary GetSpecialisedDictionary()
+        => StreamDictionary.FromDictionary(new Dictionary<Name, IPdfObject>());
 }
 
 /// <summary>
@@ -21,9 +25,10 @@ internal abstract class ContentStream<TDictionary> : StreamObject<TDictionary> w
 
     public ContentStream(
         IEnumerable<ContentStreamObject> graphicsObjects,
-        IEnumerable<IFilter>? filters = null
+        IEnumerable<IFilter>? filters,
+        bool sourceDataIsCompressed
         )
-        : base(filters)
+        : base(filters, sourceDataIsCompressed)
     {
         _graphicsObjects = graphicsObjects ?? throw new ArgumentNullException(nameof(graphicsObjects));
     }
