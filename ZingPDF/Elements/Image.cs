@@ -4,6 +4,8 @@ namespace ZingPDF.Elements
 {
     public class Image : IDisposable
     {
+        private bool _disposedValue;
+
         public Image(Stream imageData, Coordinate origin)
         {
             ImageData = imageData ?? throw new ArgumentNullException(nameof(imageData));
@@ -22,9 +24,24 @@ namespace ZingPDF.Elements
             return new Image(inputFileStream, origin);
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    ((IDisposable)ImageData).Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
         public void Dispose()
         {
-            ((IDisposable)ImageData).Dispose();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

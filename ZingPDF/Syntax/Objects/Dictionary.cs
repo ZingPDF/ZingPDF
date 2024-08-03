@@ -37,8 +37,7 @@ namespace ZingPDF.Syntax.Objects
         public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
         IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
         public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
-        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);
-        
+        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);     
 
         #endregion
 

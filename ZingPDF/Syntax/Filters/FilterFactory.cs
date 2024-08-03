@@ -13,6 +13,8 @@ namespace ZingPDF.Syntax.Filters
                 Constants.Filters.LZW => new LZWDecodeFilter(decodeParams),
                 Constants.Filters.Flate => new FlateDecodeFilter(decodeParams),
                 Constants.Filters.RunLength => new RunLengthDecodeFilter(),
+                Constants.Filters.DCT => new DCTDecodeFilter(decodeParams),
+                Constants.Filters.JPX => new JPXDecodeFilter(),
                 _ => throw new InvalidOperationException("Unsupported filter"),
             };
         }

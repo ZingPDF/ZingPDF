@@ -17,8 +17,8 @@ namespace ZingPDF.Graphics.Images
             )
             : base(Subtypes.Image)
         {
-            ArgumentNullException.ThrowIfNull(width);
-            ArgumentNullException.ThrowIfNull(height);
+            ArgumentNullException.ThrowIfNull(width, nameof(width));
+            ArgumentNullException.ThrowIfNull(height, nameof(height));
 
             Set(Constants.DictionaryKeys.Image.Width, width);
             Set(Constants.DictionaryKeys.Image.Height, height);

@@ -18,39 +18,27 @@ namespace ZingPDF.Graphics.Images
     internal class ImageXObject : StreamObject<ImageDictionary>
     {
         private readonly Stream _image;
-        private readonly ImageType _imageType;
         private readonly Integer _width;
         private readonly Integer _height;
         private readonly ColorSpace _colorSpace;
+        private readonly Integer _bitDepth;
 
-        private readonly ImageDictionary _imageDictionary;
-        private readonly List<Name> _filters;
-
-        public ImageXObject(Stream image, ImageType imageType, Integer width, Integer height, ColorSpace colorSpace)
-            : base(null)
+        public ImageXObject(
+            Stream image,
+            Integer width,
+            Integer height,
+            ColorSpace colorSpace,
+            Integer bitDepth,
+            IEnumerable<IFilter> filters,
+            bool sourceDataIsCompressed
+            )
+            : base(filters, sourceDataIsCompressed)
         {
             _image = image ?? throw new ArgumentNullException(nameof(image));
-            _imageType = imageType;
             _width = width ?? throw new ArgumentNullException(nameof(width));
             _height = height ?? throw new ArgumentNullException(nameof(height));
             _colorSpace = colorSpace;
-
-            // TODO: derive bit depth from image data
-            // TODO: derive compression from image data
-
-            switch (_imageType)
-            {
-                case ImageType.Jpeg:
-                    _imageDictionary = new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), 8);
-                    _filters = [Constants.Filters.DCT];
-                    break;
-                case ImageType.Jpeg2000:
-                    _imageDictionary = new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), 8);
-                    _filters = [Constants.Filters.JPX];
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
+            _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
         }
 
         protected override Task<Stream> GetSourceDataAsync(ImageDictionary dictionary)
@@ -58,9 +46,9 @@ namespace ZingPDF.Graphics.Images
             return Task.FromResult(_image);
         }
 
-        protected override Task<ImageDictionary> GetSpecialisedDictionaryAsync()
+        protected override ImageDictionary GetSpecialisedDictionary()
         {
-            return Task.FromResult(_imageDictionary);
+            return new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), _bitDepth);
         }
     }
 }

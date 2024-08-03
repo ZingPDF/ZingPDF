@@ -5,7 +5,7 @@ namespace ZingPDF.DocumentInterchange.Metadata
 {
     internal class MetadataStream : StreamObject<MetadataStreamDictionary>
     {
-        public MetadataStream(IEnumerable<IFilter>? filters) : base(filters)
+        public MetadataStream(IEnumerable<IFilter>? filters) : base(filters, false)
         {
         }
 
@@ -14,7 +14,7 @@ namespace ZingPDF.DocumentInterchange.Metadata
             throw new NotImplementedException();
         }
 
-        protected override Task<MetadataStreamDictionary> GetSpecialisedDictionaryAsync()
+        protected override MetadataStreamDictionary GetSpecialisedDictionary()
         {
             throw new NotImplementedException();
         }
