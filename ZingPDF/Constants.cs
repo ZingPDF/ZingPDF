@@ -60,8 +60,8 @@ internal static class Constants
         public const string LZW = "LZWDecode";
         public const string Flate = "FlateDecode";
         public const string RunLength = "RunLengthDecode";
-        public const string DCT = "DCTDecode";
-        public const string JPX = "JPXDecode";
+        public const string DCT = "DCTDecode"; // JPEG
+        public const string JPX = "JPXDecode"; // JPEG 2000
     }
 
     public static class DictionaryKeys

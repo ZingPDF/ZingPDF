@@ -81,7 +81,8 @@ namespace ZingPDF.IncrementalUpdates
                     _sourcePdf.TrailerDictionary.Root,
                     _sourcePdf.TrailerDictionary.Encrypt,
                     _sourcePdf.TrailerDictionary.Info,
-                    _sourcePdf.TrailerDictionary.ID
+                    _sourcePdf.TrailerDictionary.ID,
+                    sourceDataIsCompressed: false
                     );
 
                 xrefStreamIndirectObject.Children.Clear();

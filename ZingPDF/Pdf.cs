@@ -289,7 +289,13 @@ public class Pdf : IEditablePdf
 
             var resourceDict = new ResourceDictionary(font: fontMap);
 
-            var apFormXObject = new FormXObject(fieldSizeRect, [textObject], resourceDict);
+            var apFormXObject = new FormXObject(
+                fieldSizeRect,
+                [textObject],
+                resourceDict,
+                filters: null,
+                sourceDataIsCompressed: false
+                );
 
             var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 

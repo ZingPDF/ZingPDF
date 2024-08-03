@@ -3,8 +3,7 @@
     internal static class DictionaryExtensions
     {
         /// <summary>
-        /// Creates a new dictionary from the target dictionary, overriden with values from the source dictionary.<para></para>
-        /// Existing values in the source dictionary will be overwritten.
+        /// Creates a new dictionary from the target dictionary, overriden with values from the source dictionary.
         /// </summary>
         public static IReadOnlyDictionary<TKey, TValue> MergeInto<TKey, TValue>(
             this IEnumerable<KeyValuePair<TKey, TValue>> source,
