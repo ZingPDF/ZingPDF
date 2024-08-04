@@ -44,12 +44,14 @@ namespace ZingPDF.Elements
             // TODO: derive bit depth from image data
             // TODO: derive compression from image data
 
+            var imageMetadata = await new ImageSharpMetadataRetriever().GetAsync(image.ImageData);
+
             var imageXObject = new ImageXObject(
                 image.ImageData,
                 100,
                 100,
-                ColorSpace.DeviceRGB,
-                8,
+                imageMetadata.ColorSpace,
+                imageMetadata.BitDepth,
                 [FilterFactory.Create(Constants.Filters.DCT, null)],
                 sourceDataIsCompressed: true);
 
