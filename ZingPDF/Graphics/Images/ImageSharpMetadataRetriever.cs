@@ -17,7 +17,16 @@ namespace ZingPDF.Graphics.Images
             var bitsPerComponent = GetBitsPerComponent(imageSharpImage);
             var colorSpace = GetColorSpace(imageSharpImage);
 
-            return new ImageMetadata(imageType, bitsPerComponent, colorSpace, compressionType);
+            image.Position = 0;
+
+            return new ImageMetadata(
+                imageType,
+                bitsPerComponent,
+                colorSpace,
+                compressionType,
+                imageSharpImage.Width,
+                imageSharpImage.Height
+                );
         }
 
         private static ImageType GetImageType(Stream image)
@@ -112,6 +121,8 @@ namespace ZingPDF.Graphics.Images
             reader.BaseStream.Seek(14, SeekOrigin.Begin); // Skip to BitmapInfoHeader
             uint compression = reader.ReadUInt32(); // Read compression type
 
+            image.Position = 0;
+
             return compression switch
             {
                 0 => CompressionType.None,
@@ -139,6 +150,9 @@ namespace ZingPDF.Graphics.Images
                 if (tagType == 259) // Compression tag
                 {
                     ushort compression = reader.ReadUInt16();
+
+                    image.Position = 0;
+
                     return compression switch
                     {
                         1 => CompressionType.None,

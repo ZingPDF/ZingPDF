@@ -29,7 +29,7 @@ namespace ZingPDF.Graphics.Images
             Integer height,
             ColorSpace colorSpace,
             Integer bitDepth,
-            IEnumerable<IFilter> filters,
+            IEnumerable<IFilter>? filters,
             bool sourceDataIsCompressed
             )
             : base(filters, sourceDataIsCompressed)

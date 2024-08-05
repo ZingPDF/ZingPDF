@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using System.Xml.Linq;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources
@@ -85,7 +86,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
 
         public void AddXObject(Name name, IndirectObjectReference xObjectReference)
         {
-            var xObjectDict = new Dictionary<Name, IPdfObject>(XObject ?? Dictionary.Empty)
+            var xObjectDict = new Dictionary<Name, IPdfObject>(XObject ?? Empty)
             {
                 [name] = xObjectReference
             };

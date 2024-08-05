@@ -1,5 +1,5 @@
-﻿using ZingPDF.Elements.Drawing;
-using ZingPDF.Extensions;
+﻿using ZingPDF.Extensions;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 
@@ -8,12 +8,12 @@ namespace ZingPDF.Graphics.Images
     internal class ImageXObjectContentStreamObject : ContentStreamObject
     {
         private readonly Name _name;
-        private readonly Coordinate _origin;
+        private readonly Rectangle _maxBounds;
 
-        public ImageXObjectContentStreamObject(Name name, Coordinate origin)
+        public ImageXObjectContentStreamObject(Name name, Rectangle maxBounds)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
-            _origin = origin ?? throw new ArgumentNullException(nameof(origin));
+            _maxBounds = maxBounds ?? throw new ArgumentNullException(nameof(maxBounds));
         }
 
         protected override async Task WriteOutputAsync(Stream stream)
@@ -23,13 +23,13 @@ namespace ZingPDF.Graphics.Images
             await stream.WriteWhitespaceAsync();
 
             // Translate CTM
-            await stream.WriteTextAsync($"1 0 0 1 {_origin.X} {_origin.Y} ");
+            await stream.WriteTextAsync($"1 0 0 1 {_maxBounds.LowerLeft.X} {_maxBounds.LowerLeft.Y} cm ");
 
             // Rotate
             // TODO
 
             // Scale
-            // TODO
+            await stream.WriteTextAsync($"{_maxBounds.UpperRight.X} 0 0 {_maxBounds.UpperRight.Y} 0 0 cm ");
 
             // Paint image
             await _name.WriteAsync(stream);
