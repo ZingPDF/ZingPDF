@@ -140,30 +140,32 @@ internal abstract class StreamObject<TDictionary> : PdfObject, IStreamObject<TDi
     {
         var streamDictionary = new Dictionary<Name, IPdfObject>();
 
-        if (_filters.Any())
+        if (!_filters.Any())
         {
-            streamDictionary.Add("Filter", new ArrayObject(_filters.Select(f => f.Name).ToArray()));
+            return streamDictionary;
+        }
 
-            if (_filters.Any(f => f.Params != null))
+        streamDictionary.Add("Filter", new ArrayObject(_filters.Select(f => f.Name).ToArray()));
+
+        if (_filters.Any(f => f.Params != null))
+        {
+            if (_filters.Count() == 1)
             {
-                if (_filters.Count() == 1)
+                streamDictionary.Add("DecodeParms", _filters.First().Params!);
+            }
+            else
+            {
+                streamDictionary.Add("DecodeParms", new ArrayObject(_filters.Select<IFilter, IPdfObject>(f =>
                 {
-                    streamDictionary.Add("DecodeParms", _filters.First().Params!);
-                }
-                else
-                {
-                    streamDictionary.Add("DecodeParms", new ArrayObject(_filters.Select<IFilter, IPdfObject>(f =>
+                    if (f.Params != null)
                     {
-                        if (f.Params != null)
-                        {
-                            return f.Params;
-                        }
-                        else
-                        {
-                            return new Null();
-                        }
-                    }).ToArray()));
-                }
+                        return f.Params;
+                    }
+                    else
+                    {
+                        return new Null();
+                    }
+                }).ToArray()));
             }
         }
 

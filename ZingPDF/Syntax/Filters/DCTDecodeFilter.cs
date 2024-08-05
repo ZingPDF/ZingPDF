@@ -6,7 +6,7 @@ namespace ZingPDF.Syntax.Filters
     {
         public DCTDecodeFilter(Dictionary? filterParams)
         {
-            Params = filterParams ?? Dictionary.Empty;
+            Params = filterParams;
         }
 
         public Name Name => Constants.Filters.DCT;

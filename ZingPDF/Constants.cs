@@ -62,6 +62,7 @@ internal static class Constants
         public const string RunLength = "RunLengthDecode";
         public const string DCT = "DCTDecode"; // JPEG
         public const string JPX = "JPXDecode"; // JPEG 2000
+        public const string CCITT = "CCITTFaxDecode";
     }
 
     public static class DictionaryKeys
