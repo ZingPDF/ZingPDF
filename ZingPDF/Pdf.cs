@@ -217,22 +217,17 @@ public class Pdf : IEditablePdf
         return new Page(newPageIndirectObject, _indirectObjectManager);
     }
 
-    public Task SetRotationAsync(Rotation rotation)
+    public async Task SetRotationAsync(Rotation rotation)
     {
         ArgumentNullException.ThrowIfNull(rotation);
 
-        // TODO: Do we loop through all pages and set rotation?
-
-        //        // TODO: check if there's a more efficient way to do this.
-        //        var pages = await _pdfNavigator.GetPagesAsync();
-
-        //        var page = pages.ElementAt(pageNumber - 1);
-
-        //        (page.Children.First() as Page)!.Rotate = rotation;
-
-        //        _pdfNavigator.UpdateObject(page);
-
-        throw new NotImplementedException();
+        // Each page may have a rotation property already, therefore a loop is required to set all.
+        // i.e. you can't just set an inheritable property on the root page tree node.
+        foreach (var page in await _pages!)
+        {
+            page.Get<PageDictionary>().SetRotation(rotation);
+            _indirectObjectManager.Update(page);
+        }
     }
     
     // TODO: support for all field types?
