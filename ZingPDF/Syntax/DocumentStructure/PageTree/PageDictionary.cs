@@ -1,11 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using System.Xml.Linq;
-using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Text;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree
 {
@@ -239,7 +236,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public Dictionary? DPart => Get<Dictionary>(Constants.DictionaryKeys.Page.DPart);
 
-        public async Task AddXObjectResourceAsync(Name name, IndirectObjectReference reference, IndirectObjectManager indirectObjectManager)
+        public async Task AddXObjectResourceAsync(
+            Name name,
+            IndirectObjectReference reference,
+            IndirectObjectManager indirectObjectManager
+            )
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
@@ -247,23 +248,27 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             // Resources can be null, a ResourceDictionary, or an indirect object reference to a ResourceDictionary
 
-            if (Resources is null)
-            {
-                Set(
-                    Constants.DictionaryKeys.Page.Resources,
-                    new ResourceDictionary(xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
-                    );
-            }
-            else if (Resources is IndirectObjectReference resourceRef)
+            var resources = Resources ?? Empty;
+
+            if (resources is IndirectObjectReference resourceRef)
             {
                 var resourcesIndirectObject = await indirectObjectManager.GetAsync(resourceRef);
-                var resources = resourcesIndirectObject!.Get<ResourceDictionary>();
+                var resourceDict = resourcesIndirectObject!.Get<ResourceDictionary>();
 
-                resources.AddXObject(name, reference);
+                resourceDict.AddXObject(name, reference);
             }
-            else if (Resources is ResourceDictionary resources)
+            else if (resources is ResourceDictionary resourceDict)
             {
-                resources.AddXObject(name, reference);
+                resourceDict.AddXObject(name, reference);
+            }
+            else if (resources is Dictionary dict)
+            {
+                var editableResourceDict = new Dictionary<Name, IPdfObject>(dict)
+                {
+                    { name, reference }
+                };
+
+                Set(Constants.DictionaryKeys.Page.Resources, new ResourceDictionary(xObject: editableResourceDict));
             }
         }
 
