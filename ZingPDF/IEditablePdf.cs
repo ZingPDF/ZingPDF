@@ -1,5 +1,4 @@
 ﻿using ZingPDF.Elements;
-using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 
 namespace ZingPDF;
