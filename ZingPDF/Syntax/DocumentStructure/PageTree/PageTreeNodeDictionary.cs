@@ -54,6 +54,13 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             Set(Constants.DictionaryKeys.PageTreeNode.Count, new Integer(PageCount - 1));
         }
 
+        public void SetRotation(Rotation rotation)
+        {
+            ArgumentNullException.ThrowIfNull(rotation);
+
+            Set<Integer>(Constants.DictionaryKeys.Page.Rotate, rotation);
+        }
+
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences)
         {
             return new(new Dictionary<Name, IPdfObject>

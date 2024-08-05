@@ -47,7 +47,7 @@ namespace ZingPDF.Elements
 
             if (filter != null)
             {
-                // TODO: derive required params
+                // TODO: derive required params, possibly only for CCITT compression.
                 filters = [FilterFactory.Create(filter, null)];
             }
 
@@ -83,6 +83,8 @@ namespace ZingPDF.Elements
             var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
             Dictionary.AddContent([imageContentStream], IndirectObjects);
+
+            IndirectObjects.Update(IndirectObject);
         }
 
         //// TODO: consider coordinate system enum.
@@ -95,14 +97,19 @@ namespace ZingPDF.Elements
         //    // TODO: PathObject
         //}
 
-        //public void Rotate(Rotation rotation)
-        //{
-        //    EnsureEditable();
+        public void Rotate(Rotation rotation)
+        {
+            // TODO: Ensure contents don't need some sort of transform to match
 
-        //    ArgumentNullException.ThrowIfNull(rotation);
+            EnsureEditable();
+            ArgumentNullException.ThrowIfNull(rotation);
 
-        //    // TODO: apply rotation to page
-        //}
+            // The page may already be rotated, or inherit a value for rotation.
+            // In practice, it is likely desired to rotate by a further n degrees.
+            Dictionary.SetRotation((Dictionary.Rotate ?? 0) + rotation);
+
+            IndirectObjects.Update(IndirectObject);
+        }
 
         private void EnsureEditable()
         {
