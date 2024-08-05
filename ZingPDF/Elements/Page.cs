@@ -1,4 +1,5 @@
-﻿using ZingPDF.Graphics.Images;
+﻿using System.Drawing;
+using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Filters;
@@ -39,28 +40,47 @@ namespace ZingPDF.Elements
 
             // TODO: Think about whether to implement inline images
 
-            // TODO: configurable image size
-            // TODO: configurable (or derived) image type and colorspace.
-            // TODO: derive bit depth from image data
-            // TODO: derive compression from image data
-
             var imageMetadata = await new ImageSharpMetadataRetriever().GetAsync(image.ImageData);
+
+            List<IFilter>? filters = null;
+            var filter = imageMetadata.CompressionType.ToPDFFilterName();
+
+            if (filter != null)
+            {
+                // TODO: derive required params
+                filters = [FilterFactory.Create(filter, null)];
+            }
 
             var imageXObject = new ImageXObject(
                 image.ImageData,
-                100,
-                100,
+                imageMetadata.Width,
+                imageMetadata.Height,
                 imageMetadata.ColorSpace,
                 imageMetadata.BitDepth,
-                [FilterFactory.Create(Constants.Filters.DCT, null)],
-                sourceDataIsCompressed: true);
+                filters,
+                sourceDataIsCompressed: true
+                );
 
             var imageXObjectIndirectObject = IndirectObjects.Add(imageXObject);
 
-            // TODO: random short name, maybe each resource dictionary should manage this
-            await Dictionary.AddXObjectResourceAsync("abcd", imageXObjectIndirectObject.Id.Reference, IndirectObjects);
+            var resourceName = GenerateUniqueString();
+            await Dictionary.AddXObjectResourceAsync(resourceName, imageXObjectIndirectObject.Id.Reference, IndirectObjects);
 
-            var imageContentStream = new ImageXObjectContentStreamObject("abcd", new Drawing.Coordinate(10, 10));
+            var imageRect = image.MaxBounds;
+            if (image.PreserveAspectRatio)
+            {
+                var (newWidth, newHeight) = ScaleToFit(imageMetadata.Width, imageMetadata.Height, image.MaxBounds.Width, image.MaxBounds.Height);
+
+                imageRect = new Syntax.CommonDataStructures.Rectangle(
+                    image.MaxBounds.LowerLeft,
+                    new Drawing.Coordinate(
+                        image.MaxBounds.LowerLeft.X + newWidth,
+                        image.MaxBounds.LowerLeft.Y + newHeight
+                        )
+                    );
+            }
+            
+            var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
             Dictionary.AddContent([imageContentStream], IndirectObjects);
         }
@@ -90,6 +110,42 @@ namespace ZingPDF.Elements
             {
                 throw new InvalidOperationException("Page is immutable");
             }
+        }
+
+        // TODO: move to testable class
+        private static (int newWidth, int newHeight) ScaleToFit(int originalWidth, int originalHeight, int maxWidth, int maxHeight)
+        {
+            // Calculate aspect ratios
+            float aspectRatioOriginal = originalWidth / (float)originalHeight;
+            float aspectRatioMax = maxWidth / maxHeight;
+
+            // Determine scaling factor based on which dimension is more restrictive
+            float newWidth, newHeight;
+            if (aspectRatioOriginal > aspectRatioMax)
+            {
+                // Scale based on maxWidth
+                newWidth = maxWidth;
+                newHeight = maxWidth / aspectRatioOriginal;
+            }
+            else
+            {
+                // Scale based on maxHeight
+                newWidth = maxHeight * aspectRatioOriginal;
+                newHeight = maxHeight;
+            }
+
+            return ((int)newWidth, (int)newHeight);
+        }
+
+        private static string GenerateUniqueString(int length = 8)
+        {
+            // Generate a new GUID and convert it to a Base64 string
+            var guid = Guid.NewGuid();
+            var base64String = Convert.ToBase64String(guid.ToByteArray());
+
+            // Remove non-alphanumeric characters and truncate to the desired length
+            var cleanString = base64String.Replace("/", "").Replace("+", "").Replace("=", "");
+            return cleanString.Substring(0, Math.Min(length, cleanString.Length));
         }
     }
 }

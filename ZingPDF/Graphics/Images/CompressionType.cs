@@ -13,4 +13,22 @@
         CCITTGroup4, // TIFF
         PackBits, // TIFF
     }
+
+    internal static class CompressionTypeExtensions
+    {
+        public static string? ToPDFFilterName(this CompressionType compressionType)
+        {
+            return compressionType switch
+            {
+                CompressionType.None => null,
+                CompressionType.DCT => Constants.Filters.DCT,
+                CompressionType.JPX => Constants.Filters.JPX,
+                CompressionType.DEFLATE => Constants.Filters.Flate,
+                CompressionType.LZW => Constants.Filters.LZW,
+                CompressionType.CCITTGroup3 or CompressionType.CCITTGroup4 => Constants.Filters.CCITT,
+                CompressionType.RLE4 or CompressionType.RLE8 or CompressionType.PackBits => Constants.Filters.RunLength,
+                _ => null,
+            };
+        }
+    }
 }
