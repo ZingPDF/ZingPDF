@@ -64,7 +64,7 @@ static async Task AddImageToPage()
 
     var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
 
-    await page.AddImageAsync(Image.FromFile("cat.jpg"));
+    await page.AddImageAsync(Image.FromFile("cat.jpg", Rectangle.FromSize(200, 200)));
 
     await pdf.SaveAsync(outputFileStream);
 }

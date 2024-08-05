@@ -1,4 +1,4 @@
-﻿using ZingPDF.Elements.Drawing;
+﻿using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Elements
 {
@@ -6,22 +6,25 @@ namespace ZingPDF.Elements
     {
         private bool _disposedValue;
 
-        public Image(Stream imageData, Coordinate origin)
+        public Image(Stream imageData, Rectangle maxBounds, bool preserveAspectRatio = true)
         {
             ImageData = imageData ?? throw new ArgumentNullException(nameof(imageData));
-            Origin = origin ?? throw new ArgumentNullException(nameof(origin));
+            MaxBounds = maxBounds ?? throw new ArgumentNullException(nameof(maxBounds));
+            PreserveAspectRatio = preserveAspectRatio;
         }
 
         public Stream ImageData { get; }
-        public Coordinate Origin { get; }
+        public Rectangle MaxBounds { get; }
+        public bool PreserveAspectRatio { get; }
 
-        public static Image FromFile(string imagePath, Coordinate? origin = null)
+        public static Image FromFile(string imagePath, Rectangle maxBounds, bool preserveAspectRatio = true)
         {
-            origin ??= Coordinate.Zero;
+            ArgumentNullException.ThrowIfNull(imagePath, nameof(imagePath));
+            ArgumentNullException.ThrowIfNull(maxBounds, nameof(maxBounds));
 
             var inputFileStream = new FileStream(imagePath, FileMode.Open);
 
-            return new Image(inputFileStream, origin);
+            return new Image(inputFileStream, maxBounds);
         }
 
         protected virtual void Dispose(bool disposing)
