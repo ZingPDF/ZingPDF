@@ -42,7 +42,11 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await AddTextToPage();
 
-await AddImageToPage();
+//await AddImageToPage();
+
+//await RotatePage();
+
+await RotateWholeDocument();
 
 static async Task AddTextToPage()
 {
@@ -59,6 +63,32 @@ static async Task AddTextToPage()
         new Coordinate(10, 50),
         new ZingPDF.Text.TextObject.FontOptions("Helv", 24, RGBColour.PrimaryRed)
         ));
+
+    await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task RotateWholeDocument()
+{
+    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    await pdf.SetRotationAsync(Rotation.Degrees90);
+
+    await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task RotatePage()
+{
+    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var page = await pdf.GetPageAsync(1);
+
+    page.Rotate(Rotation.Degrees90);
 
     await pdf.SaveAsync(outputFileStream);
 }

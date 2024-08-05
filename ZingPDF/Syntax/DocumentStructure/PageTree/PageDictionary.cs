@@ -94,7 +94,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <summary>
         /// The number of degrees by which the page shall be rotated when displayed or printed.
         /// </summary>
-        public Rotation? Rotate => Get<Rotation>(Constants.DictionaryKeys.Page.Rotate);
+        public Integer? Rotate => Get<Integer>(Constants.DictionaryKeys.Page.Rotate);
 
         /// <summary>
         /// (Optional; PDF 1.4) A group attributes dictionary that shall specify the attributes of 
@@ -293,6 +293,13 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             var contents = (Contents as ArrayObject)!;
 
             contents.Add(contentObject.Id.Reference);
+        }
+
+        public void SetRotation(Rotation rotation)
+        {
+            ArgumentNullException.ThrowIfNull(rotation);
+
+            Set<Integer>(Constants.DictionaryKeys.Page.Rotate, rotation);
         }
 
         /// <summary>
