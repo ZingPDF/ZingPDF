@@ -253,8 +253,7 @@ public class Pdf : IEditablePdf
         var font = new Type1FontDictionary("Helvetica");
         var fontIndirectObject = _indirectObjectManager.Add(font);
 
-        // TODO: choose short unique font name
-        var fontResourceName = "F1";
+        var fontResourceName = UniqueStringGenerator.Generate();
         var fontMap = new Dictionary<Name, IPdfObject> { { fontResourceName, fontIndirectObject.Id.Reference } };
 
         var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
