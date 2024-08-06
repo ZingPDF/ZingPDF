@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Elements;
+using ZingPDF.Elements.Forms;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
