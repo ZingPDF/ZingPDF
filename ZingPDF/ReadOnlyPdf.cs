@@ -10,6 +10,7 @@ using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Elements;
 using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Elements.Forms;
 
 namespace ZingPDF;
 
@@ -107,7 +108,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
         {
             var field = kvp.Value.Get<FieldDictionary>();
 
-            return new FormField(kvp.Key, field.TU, _formManager.GetFieldValue(field.V));
+            return new FormField(kvp.Key, field.FT.ToFormFieldType(), field.TU, _formManager.GetFieldValue(field.V));
         });
     }
 
