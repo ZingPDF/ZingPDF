@@ -1,6 +1,7 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
@@ -264,10 +265,9 @@ public class Pdf : IEditablePdf
 
             var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
 
-            if ((fieldDict.FT ?? "") != "Tx")
-            {
-                continue;
-            }
+            // TODO: process field flags
+            var flags = new FieldProperties(fieldDict.Ff ?? 0);
+
 
             fieldDict.SetValue(kvp.Value!);
 
@@ -318,7 +318,7 @@ public class Pdf : IEditablePdf
         {
             var field = kvp.Value.Get<FieldDictionary>();
 
-            return new FormField(kvp.Key, field.TU, _formManager.GetFieldValue(field.V));
+            return new FormField(kvp.Key, field.FT!.ToFormFieldType(), field.TU, _formManager.GetFieldValue(field.V));
         });
     }
 

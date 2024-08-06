@@ -46,7 +46,9 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await RotatePage();
 
-await RotateWholeDocument();
+//await RotateWholeDocument();
+
+await CompleteForm("form.pdf", "output.pdf");
 
 static async Task AddTextToPage()
 {
@@ -125,7 +127,8 @@ static async Task CompleteForm(string input, string output)
 
     var fields = await pdf.GetFieldsAsync();
 
-    await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
+    //await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
+    //await pdf.CompleteFormAsync();
 
     await pdf.SaveAsync(outputFileStream);
 }
