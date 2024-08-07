@@ -268,6 +268,12 @@ public class Pdf : IEditablePdf
             // TODO: process field flags
             var flags = new FieldProperties(fieldDict.Ff ?? 0);
 
+            if (flags.IsPassword)
+            {
+                // To protect password confidentiality, it is imperative that PDF processors never
+                // store the value of the text field in the PDF file if this flag is set.
+                continue;
+            }
 
             fieldDict.SetValue(kvp.Value!);
 
@@ -300,9 +306,9 @@ public class Pdf : IEditablePdf
     }
 
     // TODO: duplicate logic in ReadOnlyPdf. See if we can share it.
-    public async Task<IEnumerable<FormField>> GetFieldsAsync()
+    public async Task<IEnumerable<IFormField>> GetFieldsAsync()
     {
-        List<FormField> fields = [];
+        List<IFormField> fields = [];
 
         if (DocumentCatalog.AcroForm is null)
         {
