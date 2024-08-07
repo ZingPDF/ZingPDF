@@ -1,22 +1,38 @@
 ﻿namespace ZingPDF.Elements.Forms
 {
-    public class FormField
+    public abstract class FormField<TValue> : IFormField
     {
-        public FormField(string name, FormFieldType type, string? description, string? value, FieldProperties properties)
+        protected FormField(string name, string? description, TValue? value, FieldProperties properties)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
+            ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 
             Name = name;
-            Type = type;
             Description = description;
             Value = value;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
         public string Name { get; }
-        public FormFieldType Type { get; }
         public string? Description { get; }
-        public string? Value { get; }
         public FieldProperties Properties { get; }
+        public TValue? Value { get; protected set; }
+
+        public virtual void SetValue(TValue? value) => Value = value;
+
+        public Type ValueType => typeof(TValue);
+        public object? GetValue() => Value;
+        void IFormField.SetValue(object? value) => SetValue((TValue?)value);
+    }
+
+    public class TextFormField : FormField<string>
+    {
+        public TextFormField(string name, string? description, string? value, FieldProperties properties)
+            : base(name, description, value, properties) { }
+    }
+
+    public class CheckboxFormField : FormField<bool>
+    {
+        public CheckboxFormField(string name, string? description, bool value, FieldProperties properties)
+            : base(name, description, value, properties) { }
     }
 }
