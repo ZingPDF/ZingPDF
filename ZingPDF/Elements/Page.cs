@@ -1,4 +1,5 @@
-﻿using ZingPDF.Graphics.Images;
+﻿using ZingPDF.Extensions;
+using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Filters;
@@ -24,7 +25,7 @@ namespace ZingPDF.Elements
 
         public void AddText(TextObject text)
         {
-            EnsureEditable();
+            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(text);
 
             Dictionary.AddContent([text], IndirectObjects);
@@ -34,7 +35,7 @@ namespace ZingPDF.Elements
 
         public async Task AddImageAsync(Image image)
         {
-            EnsureEditable();
+            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(image);
 
             // TODO: Think about whether to implement inline images
@@ -100,7 +101,7 @@ namespace ZingPDF.Elements
         {
             // TODO: Ensure contents don't need some sort of transform to match
 
-            EnsureEditable();
+            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(rotation);
 
             // The page may already be rotated, or inherit a value for rotation.
@@ -108,14 +109,6 @@ namespace ZingPDF.Elements
             Dictionary.SetRotation((Dictionary.Rotate ?? 0) + rotation);
 
             IndirectObjects.Update(IndirectObject);
-        }
-
-        private void EnsureEditable()
-        {
-            if (_indirectObjectDictionary is not IndirectObjectManager)
-            {
-                throw new InvalidOperationException("Page is immutable");
-            }
         }
 
         // TODO: move to testable class
