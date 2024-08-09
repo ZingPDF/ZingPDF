@@ -10,8 +10,6 @@ public interface IEditablePdf : IPdf
     Task DeletePageAsync(int pageNumber);
     Task SetRotationAsync(Rotation rotation);
 
-    Task CompleteFormAsync(IDictionary<string, string> formValues);
-
     void AddWatermark();
     void Compress(int dpi, int quality);
     void Encrypt();

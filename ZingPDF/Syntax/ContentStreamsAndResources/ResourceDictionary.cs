@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Runtime.Serialization;
+using System.Xml.Linq;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -86,12 +87,28 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
 
         public void AddXObject(Name name, IndirectObjectReference xObjectReference)
         {
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(xObjectReference, nameof(xObjectReference));
+
             var xObjectDict = new Dictionary<Name, IPdfObject>(XObject ?? Empty)
             {
                 [name] = xObjectReference
             };
 
             Set<Dictionary>(Constants.DictionaryKeys.Resource.XObject, xObjectDict);
+        }
+
+        public void AddFont(Name name, IndirectObjectReference fontReference)
+        {
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(fontReference, nameof(fontReference));
+
+            var fontMapDict = new Dictionary<Name, IPdfObject>(Font ?? Empty)
+            {
+                [name] = fontReference
+            };
+
+            Set<Dictionary>(Constants.DictionaryKeys.Resource.Font, fontMapDict);
         }
 
         new public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
