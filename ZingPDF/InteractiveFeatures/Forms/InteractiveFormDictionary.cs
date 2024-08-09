@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Forms
@@ -48,7 +49,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// At a minimum, this dictionary shall contain a Font entry specifying the resource name and font 
         /// dictionary of the default font for displaying text.
         /// </summary>
-        public Dictionary? DR { get => Get<Dictionary>(Constants.DictionaryKeys.InteractiveForm.DR); }
+        public ResourceDictionary? DR { get => Get<ResourceDictionary>(Constants.DictionaryKeys.InteractiveForm.DR); }
 
         /// <summary>
         /// (Optional)<para></para>
@@ -74,6 +75,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
             ArgumentNullException.ThrowIfNull(needAppearances);
 
             Set(Constants.DictionaryKeys.InteractiveForm.NeedAppearances, needAppearances);
+        }
+
+        public void SetResources(ResourceDictionary resources)
+        {
+            ArgumentNullException.ThrowIfNull(resources);
+
+            Set(Constants.DictionaryKeys.InteractiveForm.DR, resources);
         }
 
         public static InteractiveFormDictionary FromDictionary(Dictionary dict)
