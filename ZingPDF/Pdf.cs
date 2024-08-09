@@ -1,23 +1,12 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Elements;
-using ZingPDF.Elements.Drawing;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
-using ZingPDF.Graphics;
-using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
-using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Text;
-using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF;
 
@@ -29,8 +18,6 @@ public class Pdf : IEditablePdf
 
     private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
     private AsyncLazy<List<IndirectObject>>? _pages;
-
-    private readonly FormManager _formManager = new();
 
     /// <summary>
     /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
@@ -231,101 +218,89 @@ public class Pdf : IEditablePdf
         }
     }
     
-    // TODO: support for all field types?
-    public async Task CompleteFormAsync(IDictionary<string, string> formValues)
-    {
-        if (DocumentCatalog.AcroForm is null)
-        {
-            throw new InvalidOperationException("PDF does not contain a form");
-        }
+    //// TODO: support for all field types?
+    //public async Task CompleteFormAsync(IDictionary<string, string> formValues)
+    //{
+    //    if (DocumentCatalog.AcroForm is null)
+    //    {
+    //        throw new InvalidOperationException("PDF does not contain a form");
+    //    }
 
-        var acroFormIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.AcroForm)
-            ?? throw new InvalidPdfException("Unable to resolve form reference");
+    //    var acroFormIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.AcroForm)
+    //        ?? throw new InvalidPdfException("Unable to resolve form reference");
 
-        var acroForm = acroFormIndirectObject.Get<InteractiveFormDictionary>();
+    //    var acroForm = acroFormIndirectObject.Get<InteractiveFormDictionary>();
 
-        // Ensure compliant PDF viewers use the provided appearance stream for each field
-        // This setting applies to pre-PDF2.0 documents.
-        acroForm.SetNeedAppearances(false);
+    //    // Ensure compliant PDF viewers use the provided appearance stream for each field
+    //    // This setting applies to pre-PDF2.0 documents.
+    //    acroForm.SetNeedAppearances(false);
 
-        _indirectObjectManager.Update(acroFormIndirectObject);
+    //    _indirectObjectManager.Update(acroFormIndirectObject);
 
-        // TODO: can we reuse an existing font?
-        var font = new Type1FontDictionary("Helvetica");
-        var fontIndirectObject = _indirectObjectManager.Add(font);
+    //    // TODO: can we reuse an existing font?
+    //    var font = new Type1FontDictionary("Helvetica");
+    //    var fontIndirectObject = _indirectObjectManager.Add(font);
 
-        var fontResourceName = UniqueStringGenerator.Generate();
-        var fontMap = new Dictionary<Name, IPdfObject> { { fontResourceName, fontIndirectObject.Id.Reference } };
+    //    var fontResourceName = UniqueStringGenerator.Generate();
+    //    var fontMap = new Dictionary<Name, IPdfObject> { { fontResourceName, fontIndirectObject.Id.Reference } };
 
-        var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
+    //    var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
 
-        foreach (var kvp in formValues)
-        {
-            var fieldIndirectObject = fields[kvp.Key];
+    //    foreach (var kvp in formValues)
+    //    {
+    //        var fieldIndirectObject = fields[kvp.Key];
 
-            var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
+    //        var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
 
-            // TODO: process field flags
-            var flags = new FieldProperties(fieldDict.Ff ?? 0);
+    //        // TODO: process field flags
+    //        var flags = new FieldProperties(fieldDict.Ff ?? 0);
 
-            if (flags.IsPassword)
-            {
-                // To protect password confidentiality, it is imperative that PDF processors never
-                // store the value of the text field in the PDF file if this flag is set.
-                continue;
-            }
+    //        if (flags.IsPassword)
+    //        {
+    //            // To protect password confidentiality, it is imperative that PDF processors never
+    //            // store the value of the text field in the PDF file if this flag is set.
+    //            continue;
+    //        }
 
-            fieldDict.SetValue(kvp.Value!);
+    //        fieldDict.SetValue(kvp.Value!);
 
-            // TODO: do we need to account for fields which already have an appearance stream? or always replace?
-            var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
+    //        // TODO: do we need to account for fields which already have an appearance stream? or always replace?
+    //        var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
 
-            var textObject = new TextObject(
-                kvp.Value!,
-                fieldSizeRect,
-                new Coordinate(2, 5), // TODO: calculate this
-                new TextObject.FontOptions(fontResourceName, 12, RGBColour.Black)
-                );
+    //        var textObject = new TextObject(
+    //            kvp.Value!,
+    //            fieldSizeRect,
+    //            new Coordinate(2, 5), // TODO: calculate this
+    //            new TextObject.FontOptions(fontResourceName, 12, RGBColour.Black)
+    //            );
 
-            var resourceDict = new ResourceDictionary(font: fontMap);
+    //        var resourceDict = new ResourceDictionary(font: fontMap);
 
-            var apFormXObject = new FormXObject(
-                fieldSizeRect,
-                [textObject],
-                resourceDict,
-                filters: null,
-                sourceDataIsCompressed: false
-                );
+    //        var apFormXObject = new FormXObject(
+    //            fieldSizeRect,
+    //            [textObject],
+    //            resourceDict,
+    //            filters: null,
+    //            sourceDataIsCompressed: false
+    //            );
 
-            var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
+    //        var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
 
-            fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
+    //        fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
 
-            _indirectObjectManager.Update(fieldIndirectObject);
-        }
-    }
+    //        _indirectObjectManager.Update(fieldIndirectObject);
+    //    }
+    //}
 
     // TODO: duplicate logic in ReadOnlyPdf. See if we can share it.
-    public async Task<IEnumerable<IFormField>> GetFieldsAsync()
+    public Form? GetForm()
     {
-        List<IFormField> fields = [];
-
         if (DocumentCatalog.AcroForm is null)
         {
-            return fields;
+            return null;
         }
 
-        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
-            ?? throw new InvalidPdfException("Unable to resolve form reference");
-
-        var fieldDict = await _formManager.GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
-
-        return fieldDict.Select(kvp =>
-        {
-            var field = kvp.Value.Get<FieldDictionary>();
-
-            return new FormField(kvp.Key, field.FT!.ToFormFieldType(), field.TU, _formManager.GetFieldValue(field.V));
-        });
+        return new Form(DocumentCatalog.AcroForm, IndirectObjects);
     }
 
     public void AddWatermark()

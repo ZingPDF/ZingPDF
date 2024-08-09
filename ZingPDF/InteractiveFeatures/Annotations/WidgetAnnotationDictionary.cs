@@ -2,7 +2,7 @@
 
 namespace ZingPDF.InteractiveFeatures.Annotations
 {
-    internal class WidgetAnnotationDictionary : AnnotationDictionary
+    public class WidgetAnnotationDictionary : AnnotationDictionary
     {
         public WidgetAnnotationDictionary() : base(Subtypes.Widget) { }
 

@@ -8,7 +8,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
     /// <summary>
     /// ISO 32000-2:2020 12.7.4 - Field dictionaries
     /// </summary>
-    internal class FieldDictionary : WidgetAnnotationDictionary
+    public class FieldDictionary : WidgetAnnotationDictionary
     {
         private FieldDictionary(Dictionary dict) : base(dict) { }
 
