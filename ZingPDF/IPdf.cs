@@ -18,7 +18,7 @@ public interface IPdf
     Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();
 
-    Task<IEnumerable<FormField>> GetFieldsAsync();
+    Form? GetForm();
 
     Task SaveAsync(Stream stream, PdfSaveOptions? saveOptions);
 }

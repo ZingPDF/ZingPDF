@@ -11,6 +11,7 @@ using ZingPDF.FromHTML;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
 using ZingPDF.Elements;
+using ZingPDF.Elements.Forms.FieldTypes;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -117,7 +118,13 @@ static async Task CompleteForm(string input, string output)
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var fields = await pdf.GetFieldsAsync();
+    var form = pdf.GetForm()!;
+
+    var fields = await form.GetFieldsAsync();
+
+    var test = fields.First() as TextFormField;
+
+    test!.SetValue("test");
 
     //await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
     //await pdf.CompleteFormAsync();
@@ -165,10 +172,6 @@ static async Task ParseResaveValidate(string input, string output)
     //}
 
     //var count1 = await pdf.GetPageCountAsync();
-
-    var fields = await pdf.GetFieldsAsync();
-
-    await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
 
     //await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     //await pdf.DeletePageAsync(1);
