@@ -1,16 +1,15 @@
 ﻿using Nito.AsyncEx;
+using ZingPDF.Elements;
+using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.Linearization;
+using ZingPDF.Parsing;
+using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Parsing;
-using ZingPDF.Parsing.Parsers;
-using ZingPDF.Elements;
-using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Elements.Forms;
 
 namespace ZingPDF;
 
@@ -27,8 +26,6 @@ public class ReadOnlyPdf : IPdf, IDisposable
 
     private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
     private readonly AsyncLazy<List<IndirectObject>> _pages;
-
-    private readonly FormManager _formManager = new();
 
     /// <summary>
     /// Internal constructor for creating a <see cref="ReadOnlyPdf"/> from its constituent parts.
@@ -90,26 +87,15 @@ public class ReadOnlyPdf : IPdf, IDisposable
         return (await _rootPageTreeNode).PageCount;
     }
 
-    public async Task<IEnumerable<FormField>> GetFieldsAsync()
+    // TODO: duplicate logic in Pdf. See if we can share it.
+    public Form? GetForm()
     {
-        List<FormField> fields = [];
-
         if (DocumentCatalog.AcroForm is null)
         {
-            return fields;
+            return null;
         }
 
-        var acroForm = await IndirectObjects.GetAsync<InteractiveFormDictionary>(DocumentCatalog.AcroForm)
-            ?? throw new InvalidPdfException("Unable to resolve form reference");
-
-        var fieldDict = await _formManager.GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
-
-        return fieldDict.Select(kvp =>
-        {
-            var field = kvp.Value.Get<FieldDictionary>();
-
-            return new FormField(kvp.Key, field.FT.ToFormFieldType(), field.TU, _formManager.GetFieldValue(field.V));
-        });
+        return new Form(DocumentCatalog.AcroForm, IndirectObjects);
     }
 
     public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions)

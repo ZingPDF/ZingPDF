@@ -12,6 +12,7 @@ using ZingPDF.FromHTML;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
 using ZingPDF.Elements;
+using ZingPDF.Elements.Forms.FieldTypes;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -125,7 +126,13 @@ static async Task CompleteForm(string input, string output)
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var fields = await pdf.GetFieldsAsync();
+    var form = pdf.GetForm()!;
+
+    var fields = await form.GetFieldsAsync();
+
+    var test = fields.First() as TextFormField;
+
+    test!.SetValue("test");
 
     //await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
     //await pdf.CompleteFormAsync();
@@ -173,10 +180,6 @@ static async Task ParseResaveValidate(string input, string output)
     //}
 
     //var count1 = await pdf.GetPageCountAsync();
-
-    var fields = await pdf.GetFieldsAsync();
-
-    await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
 
     //await pdf.InsertPageAsync(2, new Page.PageCreationOptions { MediaBox = new Rectangle(new(0, 0), new(200, 200)) });
     //await pdf.DeletePageAsync(1);
