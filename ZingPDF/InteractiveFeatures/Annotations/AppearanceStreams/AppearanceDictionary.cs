@@ -4,7 +4,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
 {
-    internal class AppearanceDictionary : Dictionary
+    public class AppearanceDictionary : Dictionary
     {
         private AppearanceDictionary(Dictionary dictionary) : base(dictionary) { }
 
