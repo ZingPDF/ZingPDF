@@ -105,25 +105,117 @@ namespace ZingPDF.Elements.Forms
             }
         }
 
-        private IFormField GetStronglyTypedFormField(IndirectObject fieldIndirectObject, string fullFieldName, FieldDictionary fieldDictionary)
+        private IFormField GetStronglyTypedFormField(
+            IndirectObject fieldIndirectObject,
+            string fullFieldName,
+            FieldDictionary fieldDictionary
+            )
         {
+            var fieldProperties = new FieldProperties(fieldDictionary.Ff ?? 0);
+
             return fieldDictionary.FT!.ToFormFieldType() switch
             {
-                FormFieldType.Button => throw new NotImplementedException(),
+                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties),
                 FormFieldType.Text => new TextFormField(
                     fieldIndirectObject,
                     fullFieldName,
                     fieldDictionary.TU,
                     GetTextFieldValue(fieldDictionary.V),
-                    new FieldProperties(fieldDictionary.Ff ?? 0),
+                    fieldProperties,
                     this,
                     _indirectObjectDictionary,
                     _defaultFontResourceName
                     ),
-                FormFieldType.Choice => throw new NotImplementedException(),
-                FormFieldType.Signature => throw new NotImplementedException(),
+                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties),
+                FormFieldType.Signature => new SignatureFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    GetSignatureFieldValue(fieldDictionary.V),
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                    ),
                 _ => throw new InvalidOperationException("Unexpected error. Code should be unreachable"),
             };
+        }
+
+        private IFormField DeriveChoiceField(
+            IndirectObject fieldIndirectObject,
+            string fullFieldName,
+            FieldDictionary fieldDictionary,
+            FieldProperties fieldProperties
+            )
+        {
+            if (fieldProperties.IsCombo)
+            {
+                return new ComboBoxFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    GetChoiceFieldValues(fieldDictionary.V),
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                );
+            }
+            else
+            {
+                return new ListBoxFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    GetChoiceFieldValues(fieldDictionary.V),
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                );
+            }
+        }
+
+        private IFormField DeriveButtonField(IndirectObject fieldIndirectObject, string fullFieldName, FieldDictionary fieldDictionary, FieldProperties fieldProperties)
+        {
+            if (fieldProperties.IsPushbutton)
+            {
+                return new PushButtonFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    null,
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                );
+            }
+            else if (fieldProperties.IsRadio)
+            {
+                return new RadioButtonFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    GetRadioButtonFieldValue(fieldDictionary.V),
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                );
+            }
+            else
+            {
+                return new CheckboxFormField(
+                    fieldIndirectObject,
+                    fullFieldName,
+                    fieldDictionary.TU,
+                    GetCheckboxFieldValues(fieldDictionary.V),
+                    fieldProperties,
+                    this,
+                    _indirectObjectDictionary
+                );
+            }
+        }
+
+        private bool[] GetCheckboxFieldValues(IPdfObject? v)
+        {
+            return [false];
         }
 
         private string GetTextFieldValue(IPdfObject? value)
@@ -134,6 +226,27 @@ namespace ZingPDF.Elements.Forms
             }
 
             return "";
+        }
+
+        private bool GetRadioButtonFieldValue(IPdfObject? value)
+        {
+            // TODO
+
+            return false;
+        }
+
+        private IEnumerable<string> GetChoiceFieldValues(IPdfObject? value)
+        {
+            // Implement logic to convert PdfObject to IEnumerable<string>
+
+            return [""];
+        }
+
+        private byte[]? GetSignatureFieldValue(IPdfObject? value)
+        {
+            // Implement logic to convert PdfObject to byte[]?
+
+            return null;
         }
     }
 }

@@ -1,21 +1,22 @@
-﻿using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.ContentStreamsAndResources;
+﻿using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes
 {
-    public class CheckboxFormField : FormField<IEnumerable<bool>>
+    public class RadioButtonFormField : FormField<bool>
     {
-        public CheckboxFormField(
+        public RadioButtonFormField(
             IndirectObject fieldIndirectObject,
             string name,
             string? description,
-            bool[] value,
+            bool value,
             FieldProperties properties,
             Form parent,
             IIndirectObjectDictionary indirectObjectDictionary
             )
-            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary) { }
+            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary)
+        {
+        }
 
         protected internal override ContentStreamObject BuildVisualContent()
         {
@@ -23,4 +24,3 @@ namespace ZingPDF.Elements.Forms.FieldTypes
         }
     }
 }
- 
