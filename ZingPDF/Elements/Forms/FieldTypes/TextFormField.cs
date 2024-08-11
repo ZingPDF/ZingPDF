@@ -11,6 +11,8 @@ namespace ZingPDF.Elements.Forms.FieldTypes
 {
     public class TextFormField : FormField<string>
     {
+        private readonly Name _fontResourceName;
+
         public TextFormField(
             IndirectObject fieldIndirectObject,
             string name,
@@ -21,8 +23,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             IIndirectObjectDictionary indirectObjectDictionary,
             Name fontResourceName
             )
-            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary, fontResourceName)
+            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary)
         {
+            _fontResourceName = fontResourceName;
         }
 
         protected internal override ContentStreamObject BuildVisualContent()

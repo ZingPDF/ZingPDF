@@ -5,7 +5,6 @@ using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
@@ -16,7 +15,6 @@ namespace ZingPDF.Elements.Forms
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
         protected readonly IIndirectObjectDictionary _indirectObjectDictionary;
-        protected readonly Name _fontResourceName;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
@@ -25,8 +23,7 @@ namespace ZingPDF.Elements.Forms
             TValue? value,
             FieldProperties properties,
             Form parent,
-            IIndirectObjectDictionary indirectObjectDictionary,
-            Name fontResourceName
+            IIndirectObjectDictionary indirectObjectDictionary
             )
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
@@ -42,7 +39,6 @@ namespace ZingPDF.Elements.Forms
 
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
             _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
-            _fontResourceName = fontResourceName ?? throw new ArgumentNullException(nameof(fontResourceName));
         }
 
         public string Name { get; }
