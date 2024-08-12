@@ -35,35 +35,76 @@ namespace ZingPDF.Elements.Forms
         public Name DefaultFontResourceName => _defaultFontResourceName;
 
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
-            => await GetFieldsAsync((await _acroFormDictionary).Fields.Cast<IndirectObjectReference>(), null);
-
-        private async Task<IEnumerable<IFormField>> GetFieldsAsync(IEnumerable<IndirectObjectReference> fieldReferences, string? prefix)
         {
-            List<IFormField> fields = [];
-
-            foreach (var fieldReference in fieldReferences)
+            var kids = new List<IndirectObject>();
+            foreach (var kid in (await _acroFormDictionary).Fields.Cast<IndirectObjectReference>() ?? [])
             {
-                var fieldIndirectObject = await _indirectObjectDictionary.GetAsync(fieldReference)
-                    ?? throw new InvalidPdfException($"Unable to dereference form field reference: {fieldReference}");
-
-                // A field without a name is considered a widget annotation
-                if (fieldIndirectObject.Children[0] is not FieldDictionary field || field.T is null)
-                {
-                    continue;
-                }
-
-                string fieldName = prefix is not null ? $"{prefix}.{field.T}" : field.T!;
-
-                fields.Add(GetStronglyTypedFormField(fieldIndirectObject, fieldName, field));
-                if (field.Kids is null)
-                {
-                    continue;
-                }
-
-                fields.AddRange(await GetFieldsAsync(field.Kids.Cast<IndirectObjectReference>(), field.T));
+                kids.Add(await IndirectObjects.GetAsync(kid));
             }
 
-            return fields;
+            return await GetFieldsAsync(kids, null);
+        }
+
+        private async Task<IEnumerable<IFormField>> GetFieldsAsync(IEnumerable<IndirectObject> fields, string? prefix)
+        {
+            // Fields may be terminal or non-terminal.
+            // Non-terminal fields are simply containers for other fields and provide inheritable properties
+            // The Kids array contains either the field's children, or widget annotations
+
+            List<IFormField> formFields = [];
+
+            foreach (var field in fields)
+            {
+                // A field without a name is considered a widget annotation, and not a form field
+                if (field.Children[0] is not FieldDictionary fieldDict || fieldDict.T is null)
+                {
+                    continue;
+                }
+
+                var kids = new List<IndirectObject>();
+                foreach (var kid in fieldDict.Kids?.Cast<IndirectObjectReference>() ?? [])
+                {
+                    kids.Add(await IndirectObjects.GetAsync(kid));
+                }
+
+                string fieldName = prefix is not null ? $"{prefix}.{fieldDict.T}" : fieldDict.T!;
+
+                // If the field is terminal, identify its type, add to the list and continue.
+                if (FieldIsTerminal(kids))
+                {
+                    formFields.Add(GetStronglyTypedFormField(field, fieldName, fieldDict));
+                }
+                else
+                {
+                    formFields.AddRange(await GetFieldsAsync(kids, fieldName));
+                }
+            }
+
+            return formFields;
+        }
+
+        private static bool FieldIsTerminal(List<IndirectObject> kids)
+        {
+            // A terminal field can be identified by having no Kids array,
+            //  OR all entries in its Kids array are widget annotations, not fields.
+
+            if (kids.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (var kid in kids)
+            {
+                var kidDict = (Dictionary)kid.Children[0];
+
+                if (kidDict.ContainsKey(Constants.DictionaryKeys.Field.FT))
+                {
+                    // field has field children, therefore it's non-terminal
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal async Task MarkFormForUpdate()
@@ -111,6 +152,19 @@ namespace ZingPDF.Elements.Forms
             FieldDictionary fieldDictionary
             )
         {
+            // If a terminal field contains only a single annotation, it may optionally be merged with the field dictionary
+            // We identify a merged dictionary by the subtype of /Widget
+
+            // checkboxes
+            // - Btn field represents a group of one or more checkboxes
+            // - There is a widget annotation for each checkbox defining the visual appearance
+            // - V contains a Name or array of Names containing the state of each checkbox
+
+            // text
+            // - Tx field represents a single field
+            // ?? - there may or may not be a widget annotation initally
+            // - when saving a value, a widget annotation defines the visual appearance
+
             var fieldProperties = new FieldProperties(fieldDictionary.Ff ?? 0);
 
             return fieldDictionary.FT!.ToFormFieldType() switch
@@ -213,9 +267,9 @@ namespace ZingPDF.Elements.Forms
             }
         }
 
-        private bool[] GetCheckboxFieldValues(IPdfObject? v)
+        private ArrayObject GetCheckboxFieldValues(IPdfObject? v)
         {
-            return [false];
+            return new ArrayObject(new List<BooleanObject> { false });
         }
 
         private string GetTextFieldValue(IPdfObject? value)
@@ -235,14 +289,14 @@ namespace ZingPDF.Elements.Forms
             return false;
         }
 
-        private IEnumerable<string> GetChoiceFieldValues(IPdfObject? value)
+        private ArrayObject GetChoiceFieldValues(IPdfObject? value)
         {
             // Implement logic to convert PdfObject to IEnumerable<string>
 
-            return [""];
+            return new ArrayObject(new List<LiteralString> { "" });
         }
 
-        private byte[]? GetSignatureFieldValue(IPdfObject? value)
+        private IPdfObject? GetSignatureFieldValue(IPdfObject? value)
         {
             // Implement logic to convert PdfObject to byte[]?
 

@@ -1,15 +1,16 @@
 ﻿using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
+using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
 
 namespace ZingPDF.Elements.Forms.FieldTypes
 {
-    public class TextFormField : FormField<string>
+    public class TextFormField : FormField<LiteralString>
     {
         private readonly Name _fontResourceName;
 
@@ -28,19 +29,38 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             _fontResourceName = fontResourceName;
         }
 
-        protected internal override ContentStreamObject BuildVisualContent()
+        protected override void OnChange()
+        {
+            AddAppearanceStream();
+        }
+
+        private void AddAppearanceStream()
         {
             var fieldDict = _fieldIndirectObject.Get<FieldDictionary>();
 
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
             var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
 
-            return new TextObject(
+            // TODO: handle combed display
+
+            var visualContent = new TextObject(
                 Value!,
                 fieldSizeRect,
                 new Coordinate(2, 5), // TODO: calculate this
                 new TextObject.FontOptions(_fontResourceName, 12, RGBColour.Black)
                 );
+
+            var apFormXObject = new FormXObject(
+                fieldSizeRect,
+                [visualContent],
+            null,
+                filters: null,
+                sourceDataIsCompressed: false
+                );
+
+            var apIndirectObject = IndirectObjects.Add(apFormXObject);
+
+            fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
         }
     }
 }

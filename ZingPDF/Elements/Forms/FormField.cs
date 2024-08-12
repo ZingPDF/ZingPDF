@@ -1,15 +1,12 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
 {
-    public abstract class FormField<TValue> : IFormField
+    public abstract class FormField<TValue> : IFormField where TValue : IPdfObject
     {
         protected readonly IndirectObject _fieldIndirectObject;
         protected readonly FieldDictionary _fieldDictionary;
@@ -35,7 +32,6 @@ namespace ZingPDF.Elements.Forms
             Description = description;
             Value = value;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
-            Bounds = Rectangle.FromSize(_fieldDictionary.Rect.Width, _fieldDictionary.Rect.Height);
 
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
             _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
@@ -45,47 +41,33 @@ namespace ZingPDF.Elements.Forms
         public string? Description { get; }
         public FieldProperties Properties { get; }
         public TValue? Value { get; protected set; }
-        public Rectangle Bounds { get; private set; }
 
-        private IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
+        protected IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
 
         public virtual void SetValue(TValue? value)
         {
             _indirectObjectDictionary.EnsureEditable();
 
-            AddAppearanceStream();
+            Value = value;
+
+            if (Value is not null)
+            {
+                _fieldDictionary.SetValue(Value);
+            }
+
+            OnChange();
 
             IndirectObjects.Update(_fieldIndirectObject);
-
-            Value = value;
         }
 
         public Type ValueType => typeof(TValue);
         public object? GetValue() => Value;
         void IFormField.SetValue(object? value) => SetValue((TValue?)value);
 
-        private void AddAppearanceStream()
-        {
-            var fieldDict = _fieldIndirectObject.Get<FieldDictionary>();
-
-            // TODO: do we need to account for fields which already have an appearance stream? or always replace?
-            var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
-
-            var visualContent = BuildVisualContent();
-
-            var apFormXObject = new FormXObject(
-                fieldSizeRect,
-                [visualContent],
-                null,
-                filters: null,
-                sourceDataIsCompressed: false
-                );
-
-            var apIndirectObject = IndirectObjects.Add(apFormXObject);
-
-            fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
-        }
-
-        protected internal abstract ContentStreamObject BuildVisualContent();
+        /// <summary>
+        /// When overriden in a subclass, this method may perform actions necessary for the field type when the value changes.
+        /// For example, a text field will update its appearance stream with the new value.
+        /// </summary>
+        protected virtual void OnChange() { }
     }
 }
