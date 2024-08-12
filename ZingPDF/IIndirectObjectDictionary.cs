@@ -6,8 +6,8 @@ namespace ZingPDF
     {
         int Count { get; }
 
-        Task<IndirectObject?> GetAsync(IndirectObjectReference key);
-        Task<T?> GetAsync<T>(IndirectObjectReference key);
+        Task<IndirectObject> GetAsync(IndirectObjectReference key);
+        Task<T> GetAsync<T>(IndirectObjectReference key);
         List<IndirectObjectId> GetFreeIds();
     }
 }
