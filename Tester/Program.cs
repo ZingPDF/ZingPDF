@@ -130,12 +130,18 @@ static async Task CompleteForm(string input, string output)
 
     var fields = await form.GetFieldsAsync();
 
-    var test = fields.First() as TextFormField;
-
-    test!.SetValue("test");
-
-    //await pdf.CompleteFormAsync(fields.ToDictionary(f => f.Name, f => "TEST"));
-    //await pdf.CompleteFormAsync();
+    foreach (var field in fields)
+    {
+        if (field is TextFormField textField)
+        {
+            textField.SetValue("test");
+        }
+        else if (field is CheckboxFormField cbField)
+        {
+            // TODO: consider cbField[0].Toggle() or cbField["field name"].Toggle()
+            //cbField.SetValue(new ArrayObject(new[] { "" }));
+        }
+    }
 
     await pdf.SaveAsync(outputFileStream);
 }
