@@ -82,7 +82,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </summary>
         public IPdfObject? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
 
-        public void SetValue(LiteralString value)
+        public void SetValue(IPdfObject value)
         {
             ArgumentNullException.ThrowIfNull(value);
 

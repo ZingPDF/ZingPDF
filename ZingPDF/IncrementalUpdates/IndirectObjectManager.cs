@@ -40,7 +40,7 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         }
     }
 
-    public async Task<IndirectObject?> GetAsync(IndirectObjectReference key)
+    public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
     {
         foreach (var obj in NewOrUpdatedObjects)
         {
@@ -54,17 +54,17 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         {
             if (obj == key.Id)
             {
-                return null;
+                throw new InvalidOperationException($"Unable to dereference indirect object: {key}. Object has been deleted.");
             }
         }
 
         return await _sourceDictionary.GetAsync(key);
     }
 
-    public async Task<T?> GetAsync<T>(IndirectObjectReference key)
+    public async Task<T> GetAsync<T>(IndirectObjectReference key)
     {
         var indirectObject = await GetAsync(key)
-            ?? throw new InvalidOperationException($"Unable to find indirect object from reference: {key}");
+            ?? throw new InvalidOperationException($"Unable to dereference indirect object: {key}");
 
         return indirectObject.Get<T>();
     }
