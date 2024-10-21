@@ -41,7 +41,36 @@ using ZingPDF.Elements.Forms.FieldTypes;
 
 //await RotateWholeDocument();
 
-await CompleteForm("form.pdf", "output.pdf");
+await CompleteForm("complex-form.pdf", "output.pdf");
+
+static async Task CompleteForm(string input, string output)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var form = pdf.GetForm()!;
+    
+    var fields = await form.GetFieldsAsync();
+
+    foreach (var field in fields)
+    {
+        if (field is TextFormField textField)
+        {
+            textField.Value = "test";
+        }
+        else if (field is CheckboxFormField cbField)
+        {
+            foreach(Checkbox cb in cbField.Checkboxes)
+            {
+                Console.WriteLine(cb.Checked);
+            }
+        }
+    }
+
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task AddTextToPage()
 {
@@ -109,33 +138,6 @@ static async Task ConvertFromHTML(Uri uri, string output)
     using var pdfStream = await Converter.ToPdfAsync(uri);
 
     await pdfStream.CopyToAsync(outputFileStream);
-}
-
-static async Task CompleteForm(string input, string output)
-{
-    using var inputFileStream = new FileStream(input, FileMode.Open);
-    using var outputFileStream = new FileStream(output, FileMode.Create);
-
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
-
-    var form = pdf.GetForm()!;
-
-    var fields = await form.GetFieldsAsync();
-
-    foreach (var field in fields)
-    {
-        if (field is TextFormField textField)
-        {
-            textField.SetValue("test");
-        }
-        else if (field is CheckboxFormField cbField)
-        {
-            // TODO: consider cbField[0].Toggle() or cbField["field name"].Toggle()
-            //cbField.SetValue(new ArrayObject(new[] { "" }));
-        }
-    }
-
-    await pdf.SaveAsync(outputFileStream);
 }
 
 static async Task AddPage(string input, string output)
