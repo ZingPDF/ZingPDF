@@ -19,7 +19,7 @@ internal class CrossReferenceAggregator
         )
     {
         Logger.Log(LogLevel.Trace, $"Aggregating cross references");
-
+         
         Dictionary<int, CrossReferenceEntry> xrefs = [];
 
         // PDF is linearized if there is a linearization dictionary, AND
@@ -28,13 +28,13 @@ internal class CrossReferenceAggregator
         // and should be considered to not be linearized.
         var isLinearized = linearizationDictionary != null && linearizationDictionary.L == pdfInputStream.Length;
 
-        // If linearized, the T property contains the offset of the xref table
-        // Otherwise, the offset is specified by the startxref value, found by searching from the bottom of the PDF.
-        if (isLinearized)
-        {
-            pdfInputStream.Position = linearizationDictionary!.T;
-        }
-        else
+        // If linearized, the T property contains the offset of the main xref table.
+        // However we don't use the T property. Linearized PDFs have an xref table/stream
+        // immediately following the linearization dictionary for objects required by the first page.
+        // The stream should already be positioned correctly to parse this.
+        // The prev property of that xref table/stream will point to the main table.
+        // Otherwise, the offset we need is specified by the startxref value, found by searching from the bottom of the PDF.
+        if (!isLinearized)
         {
             var offset = await new ObjectFinder().FindAsync(pdfInputStream, Constants.StartXref, forwards: false)
                 ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
