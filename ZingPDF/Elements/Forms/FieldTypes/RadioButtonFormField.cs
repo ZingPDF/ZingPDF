@@ -8,14 +8,16 @@ namespace ZingPDF.Elements.Forms.FieldTypes
         public RadioButtonFormField(
             IndirectObject fieldIndirectObject,
             string name,
-            string? description,
-            BooleanObject value,
-            FieldProperties properties,
             Form parent,
             IIndirectObjectDictionary indirectObjectDictionary
             )
-            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary)
+            : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
+        }
+
+        protected override BooleanObject? GetValue()
+        {
+            throw new NotImplementedException();
         }
     }
 }

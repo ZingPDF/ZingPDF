@@ -17,16 +17,32 @@ namespace ZingPDF.Elements.Forms.FieldTypes
         public TextFormField(
             IndirectObject fieldIndirectObject,
             string name,
-            string? description,
-            string? value,
-            FieldProperties properties,
             Form parent,
             IIndirectObjectDictionary indirectObjectDictionary,
             Name fontResourceName
             )
-            : base(fieldIndirectObject, name, description, value, properties, parent, indirectObjectDictionary)
+            : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
             _fontResourceName = fontResourceName;
+        }
+
+        protected override LiteralString? GetValue()
+        {
+            switch (_fieldDictionary.V)
+            {
+                case null:
+                    return null;
+                case LiteralString stringValue:
+                    return stringValue;
+                case IndirectObjectReference ior:
+                    {
+                        var stream = _indirectObjectDictionary.GetAsync(ior);
+
+                        throw new NotImplementedException();
+                    }
+                default:
+                    throw new InvalidOperationException();
+            }
         }
 
         protected override void OnChange()
@@ -37,7 +53,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes
         private void AddAppearanceStream()
         {
             var fieldDict = _fieldIndirectObject.Get<FieldDictionary>();
-
+            
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
             var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
 
@@ -53,7 +69,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             var apFormXObject = new FormXObject(
                 fieldSizeRect,
                 [visualContent],
-            null,
+                null,
                 filters: null,
                 sourceDataIsCompressed: false
                 );
