@@ -12,13 +12,11 @@ namespace ZingPDF.Elements.Forms
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
         protected readonly IIndirectObjectDictionary _indirectObjectDictionary;
+        private TValue? _value;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
             string name,
-            string? description,
-            TValue? value,
-            FieldProperties properties,
             Form parent,
             IIndirectObjectDictionary indirectObjectDictionary
             )
@@ -29,9 +27,9 @@ namespace ZingPDF.Elements.Forms
             _fieldDictionary = fieldIndirectObject.Get<FieldDictionary>();
 
             Name = name;
-            Description = description;
-            Value = value;
-            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
+            Description = _fieldDictionary.TU;
+            _value = GetValue();
+            Properties = new FieldProperties(_fieldDictionary.Ff ?? 0);
 
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
             _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
@@ -40,34 +38,35 @@ namespace ZingPDF.Elements.Forms
         public string Name { get; }
         public string? Description { get; }
         public FieldProperties Properties { get; }
-        public TValue? Value { get; protected set; }
 
-        protected IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
-
-        public virtual void SetValue(TValue? value)
+        public TValue? Value
         {
-            _indirectObjectDictionary.EnsureEditable();
-
-            Value = value;
-
-            if (Value is not null)
+            get => _value;
+            set
             {
-                _fieldDictionary.SetValue(Value);
+                _indirectObjectDictionary.EnsureEditable();
+
+                _value = value;
+
+                if (_value is not null)
+                {
+                    _fieldDictionary.SetValue(_value);
+                }
+
+                OnChange();
+
+                IndirectObjects.Update(_fieldIndirectObject);
             }
-
-            OnChange();
-
-            IndirectObjects.Update(_fieldIndirectObject);
         }
 
-        public Type ValueType => typeof(TValue);
-        public object? GetValue() => Value;
-        void IFormField.SetValue(object? value) => SetValue((TValue?)value);
+        protected IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
 
         /// <summary>
         /// When overriden in a subclass, this method may perform actions necessary for the field type when the value changes.
         /// For example, a text field will update its appearance stream with the new value.
         /// </summary>
         protected virtual void OnChange() { }
+
+        protected abstract TValue? GetValue();
     }
 }

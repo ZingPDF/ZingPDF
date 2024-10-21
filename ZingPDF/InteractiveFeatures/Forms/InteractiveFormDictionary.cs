@@ -7,10 +7,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
     /// <summary>
     /// ISO 32000-2:2020 12.7.3 - Interactive form dictionary
     /// </summary>
-    public class InteractiveFormDictionary : Dictionary
+    public class InteractiveFormDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary) : Dictionary(dictionary)
     {
-        private InteractiveFormDictionary(Dictionary dict) : base(dict) { }
-
         /// <summary>
         /// (Required)<para></para>
         /// An array of references to the document’s root fields (those with no ancestors in the field hierarchy).
