@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.Objects
 {
@@ -37,7 +38,7 @@ namespace ZingPDF.Syntax.Objects
         public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
         IEnumerator IEnumerable.GetEnumerator() => _dictionary.GetEnumerator();
         public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
-        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);     
+        public bool TryGetValue(Name key, [MaybeNullWhen(false)] out IPdfObject value) => _dictionary.TryGetValue(key, out value);
 
         #endregion
 
@@ -50,6 +51,31 @@ namespace ZingPDF.Syntax.Objects
         public T? Get<T>(Name key) where T : class, IPdfObject
             => _dictionary.TryGetValue(key, out IPdfObject? value) ? value as T
             : null;
+
+        /// <summary>
+        /// Resolve a property <see cref="PdfObject"/>.
+        /// </summary>
+        /// <remarks>
+        /// Similar to <see cref="Get{T}(Name)"/>, except that this method will retrieve the object if the property is an indirect object reference.
+        /// </remarks>
+        public async Task<T?> ResolveAsync<T>(Name key, IIndirectObjectDictionary indirectObjectDictionary) where T : class, IPdfObject
+        {
+            if (!_dictionary.TryGetValue(key, out IPdfObject? value))
+            {
+                return null;
+            }
+
+            if (value is T typed)
+            {
+                return typed;
+            }
+            else if (value is IndirectObjectReference ior)
+            {
+                return await indirectObjectDictionary.GetAsync<T>(ior);
+            }
+
+            return null;
+        }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
