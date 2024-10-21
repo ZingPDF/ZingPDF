@@ -49,7 +49,8 @@ public class PdfParser
             ?? xrefStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
-        var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root);
+        var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
+            ?? throw new ParserException("Unable to find document catalog dictionary");
 
         return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
     }
