@@ -3,7 +3,6 @@ using ZingPDF.Elements.Forms.FieldTypes;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -36,8 +35,12 @@ namespace ZingPDF.Elements.Forms
 
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
         {
+            var formDict = await _acroFormDictionary;
+
+            var fields = await formDict.ResolveAsync<ArrayObject>(Constants.DictionaryKeys.InteractiveForm.Fields, _indirectObjectDictionary);
+
             var kids = new List<IndirectObject>();
-            foreach (var kid in (await _acroFormDictionary).Fields.Cast<IndirectObjectReference>() ?? [])
+            foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])
             {
                 kids.Add(await IndirectObjects.GetAsync(kid));
             }
@@ -72,7 +75,7 @@ namespace ZingPDF.Elements.Forms
                 // If the field is terminal, identify its type, add to the list and continue.
                 if (FieldIsTerminal(kids))
                 {
-                    formFields.Add(GetStronglyTypedFormField(field, fieldName, fieldDict));
+                    formFields.Add(GetStronglyTypedFormField(field, fieldName, fieldDict, kids));
                 }
                 else
                 {
@@ -149,7 +152,8 @@ namespace ZingPDF.Elements.Forms
         private IFormField GetStronglyTypedFormField(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
-            FieldDictionary fieldDictionary
+            FieldDictionary fieldDictionary,
+            List<IndirectObject> kids
             )
         {
             // If a terminal field contains only a single annotation, it may optionally be merged with the field dictionary
@@ -169,13 +173,10 @@ namespace ZingPDF.Elements.Forms
 
             return fieldDictionary.FT!.ToFormFieldType() switch
             {
-                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties),
+                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties, kids),
                 FormFieldType.Text => new TextFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetTextFieldValue(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary,
                     _defaultFontResourceName
@@ -184,9 +185,6 @@ namespace ZingPDF.Elements.Forms
                 FormFieldType.Signature => new SignatureFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetSignatureFieldValue(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                     ),
@@ -206,9 +204,6 @@ namespace ZingPDF.Elements.Forms
                 return new ComboBoxFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetChoiceFieldValues(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                 );
@@ -218,25 +213,25 @@ namespace ZingPDF.Elements.Forms
                 return new ListBoxFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetChoiceFieldValues(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                 );
             }
         }
 
-        private IFormField DeriveButtonField(IndirectObject fieldIndirectObject, string fullFieldName, FieldDictionary fieldDictionary, FieldProperties fieldProperties)
+        private IFormField DeriveButtonField(
+            IndirectObject fieldIndirectObject,
+            string fullFieldName,
+            FieldDictionary fieldDictionary,
+            FieldProperties fieldProperties,
+            List<IndirectObject> kids
+            )
         {
             if (fieldProperties.IsPushbutton)
             {
                 return new PushButtonFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    null,
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                 );
@@ -246,61 +241,24 @@ namespace ZingPDF.Elements.Forms
                 return new RadioButtonFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetRadioButtonFieldValue(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                 );
             }
             else
             {
+                // kids is widget annotations for each checkbox.
+                // widget annotation should have AP dictionary.
+                // AP dictionary contains N (normal) and D for down.
+                // TODO: consider returning info from these dictionaries
+
                 return new CheckboxFormField(
                     fieldIndirectObject,
                     fullFieldName,
-                    fieldDictionary.TU,
-                    GetCheckboxFieldValues(fieldDictionary.V),
-                    fieldProperties,
                     this,
                     _indirectObjectDictionary
                 );
             }
-        }
-
-        private ArrayObject GetCheckboxFieldValues(IPdfObject? v)
-        {
-            return new ArrayObject(new List<BooleanObject> { false });
-        }
-
-        private string GetTextFieldValue(IPdfObject? value)
-        {
-            switch (value)
-            {
-
-            }
-
-            return "";
-        }
-
-        private bool GetRadioButtonFieldValue(IPdfObject? value)
-        {
-            // TODO
-
-            return false;
-        }
-
-        private ArrayObject GetChoiceFieldValues(IPdfObject? value)
-        {
-            // Implement logic to convert PdfObject to IEnumerable<string>
-
-            return new ArrayObject(new List<LiteralString> { "" });
-        }
-
-        private IPdfObject? GetSignatureFieldValue(IPdfObject? value)
-        {
-            // Implement logic to convert PdfObject to byte[]?
-
-            return null;
         }
     }
 }
