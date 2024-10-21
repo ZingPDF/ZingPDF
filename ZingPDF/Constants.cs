@@ -1,4 +1,6 @@
-﻿namespace ZingPDF;
+﻿using ZingPDF.Syntax.Objects;
+
+namespace ZingPDF;
 
 internal static class Constants
 {
@@ -52,6 +54,12 @@ internal static class Constants
 
     public static readonly char[] WhitespaceCharacters = [Space, HorizontalTab, LineFeed, CarriageReturn, FormFeed];
     public static readonly char[] EndOfLineCharacters = [CarriageReturn, LineFeed];
+
+    public static class CheckboxStates
+    {
+        public static readonly Name Checked = "Yes";
+        public static readonly Name NotChecked = "Off";
+    }
 
     public static class Filters
     {
