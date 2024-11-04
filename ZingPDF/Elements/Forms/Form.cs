@@ -256,7 +256,8 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _indirectObjectDictionary,
+                    kids
                 );
             }
         }

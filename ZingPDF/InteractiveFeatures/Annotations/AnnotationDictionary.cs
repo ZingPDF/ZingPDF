@@ -1,5 +1,7 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations
@@ -84,7 +86,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// requirements in other published ISO PDF standards (such as PDF/A).</para>
         /// <para>• Annotations whose Subtype value is Popup, Projection or Link.</para>
         /// </summary>
-        public Dictionary? AP => Get<Dictionary>(Constants.DictionaryKeys.Annotation.AP);
+        public AppearanceDictionary? AP => Get<AppearanceDictionary>(Constants.DictionaryKeys.Annotation.AP);
 
         /// <summary>
         /// <para>(Required if the appearance dictionary AP contains one or more subdictionaries; PDF 1.2)</para>
@@ -204,5 +206,22 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// (see 14.9.2, "Natural language specification").</para>
         /// </summary>
         public LiteralString? Lang => Get<LiteralString>(Constants.DictionaryKeys.Annotation.Lang);
+
+        public void SetAppearanceState(Name? state)
+        {
+            Set(Constants.DictionaryKeys.Annotation.AS, state);
+        }
+
+        public static AnnotationDictionary FromDictionary(Dictionary annotationDictionary)
+        {
+            ArgumentNullException.ThrowIfNull(annotationDictionary);
+
+            if (!annotationDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.Annot)
+            {
+                throw new ArgumentException("Supplied argument is not an annotation dictionary.", nameof(annotationDictionary));
+            }
+
+            return new(annotationDictionary);
+        }
     }
 }

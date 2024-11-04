@@ -1,34 +1,29 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes;
 
 public class Checkbox
 {
-    private readonly IIndirectObjectDictionary _indirectObjectDictionary;
+    private readonly Action<Name> _onChange;
 
-    internal Checkbox(Name? value, IIndirectObjectDictionary indirectObjectDictionary)
+    internal Checkbox(Name value, bool @checked, Action<Name> onChange)
     {
         Value = value;
-        
-        _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
+        Checked = @checked;
+
+        _onChange = onChange;
     }
-
-    public bool Checked => Value != Constants.CheckboxStates.NotChecked;
-
-    public Name? Value { get; }
+    
+    public bool Checked { get; }
+    public Name Value { get; }
 
     public void Check()
     {
-        _indirectObjectDictionary.EnsureEditable();
-
-        // TODO
+        _onChange(Value);
     }
 
     public void Uncheck()
     {
-        _indirectObjectDictionary.EnsureEditable();
-
-        // TODO
+        _onChange(Value);
     }
 }

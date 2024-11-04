@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.InteractiveFeatures.Annotations
 {
@@ -62,6 +63,21 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// </summary>
         public Dictionary? Parent => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.Parent);
 
-        public static WidgetAnnotationDictionary FromDictionary(Dictionary dict) => new(dict);
+        new public static WidgetAnnotationDictionary FromDictionary(Dictionary annotationDictionary)
+        {
+            ArgumentNullException.ThrowIfNull(annotationDictionary);
+
+            if (
+                !annotationDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
+                || (Name)type != Constants.DictionaryTypes.Annot
+                || !annotationDictionary.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subType)
+                || (Name)subType != Subtypes.Widget
+                )
+            {
+                throw new ArgumentException("Supplied argument is not a widget annotation dictionary.", nameof(annotationDictionary));
+            }
+
+            return new(annotationDictionary);
+        }
     }
 }
