@@ -41,7 +41,7 @@ using ZingPDF.Elements.Forms.FieldTypes;
 
 //await RotateWholeDocument();
 
-await CompleteForm("complex-form.pdf", "output.pdf");
+await CompleteForm("form.pdf", "output.pdf");
 
 static async Task CompleteForm(string input, string output)
 {
@@ -62,10 +62,7 @@ static async Task CompleteForm(string input, string output)
         }
         else if (field is CheckboxFormField cbField)
         {
-            foreach(Checkbox cb in cbField.Checkboxes)
-            {
-                Console.WriteLine(cb.Checked);
-            }
+            cbField.Checkboxes[0].Check();
         }
     }
 
