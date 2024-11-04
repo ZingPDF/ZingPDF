@@ -23,7 +23,7 @@ namespace ZingPDF.Syntax.Objects
         /// <summary>
         /// Adds an item to the <see cref="ArrayObject"/>.
         /// </summary>
-        public void Add<T>(T item) where T : PdfObject
+        public void Add<T>(T item) where T : IPdfObject
             => _values.Add(item);
 
         public void Remove<T>(Predicate<T> match) where T : IPdfObject
@@ -31,8 +31,12 @@ namespace ZingPDF.Syntax.Objects
             _values.OfType<T>().ToList().RemoveAll(match);
         }
 
-        public T? Get<T>(int index) where T : PdfObject
-            => _values[index] as T;
+        public T? Get<T>(int index) where T : class, IPdfObject
+        {
+            return _values.Count > index
+                ? _values[index] as T
+                : null;
+        }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -59,5 +63,11 @@ namespace ZingPDF.Syntax.Objects
         public static ArrayObject Empty { get => _empty; }
 
         public static implicit operator ArrayObject(IPdfObject[] items) => new(items);
+
+        public IPdfObject this[int index]
+        {
+            get => Get<IPdfObject>(index) ?? throw new ArgumentOutOfRangeException(nameof(index));
+            set => _values[index] = value;
+        }
     }
 }

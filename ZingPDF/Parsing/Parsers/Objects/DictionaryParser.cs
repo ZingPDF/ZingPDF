@@ -1,6 +1,8 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Elements.Drawing;
+using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
@@ -169,6 +171,13 @@ namespace ZingPDF.Parsing.Parsers.Objects
                         case Constants.DictionaryTypes.ObjStm:
                             output = ObjectStreamDictionary.FromDictionary(dict);
                             break;
+                        case Constants.DictionaryTypes.Annot:
+                            output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
+                            {
+                                AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict),
+                                _ => AnnotationDictionary.FromDictionary(dict),
+                            };
+                            break;
                     }
                 }
 
@@ -185,6 +194,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
                 {
                     output = LinearizationParameterDictionary.FromDictionary(dict);
+                }
+
+                if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N)
+                    && !(dict.ContainsKey(Constants.DictionaryKeys.Type) && (Name)dict[Constants.DictionaryKeys.Type] == Constants.DictionaryTypes.ObjStm))
+                {
+                    output = AppearanceDictionary.FromDictionary(dict);
                 }
 
                 output ??= dict;
