@@ -11,7 +11,8 @@ using ZingPDF.FromHTML;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
 using ZingPDF.Elements;
-using ZingPDF.Elements.Forms.FieldTypes;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
+using ZingPDF.Elements.Forms.FieldTypes.Button;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -41,7 +42,7 @@ using ZingPDF.Elements.Forms.FieldTypes;
 
 //await RotateWholeDocument();
 
-await CompleteForm("form.pdf", "output.pdf");
+await CompleteForm("complex-form.pdf", "output.pdf");
 
 static async Task CompleteForm(string input, string output)
 {
