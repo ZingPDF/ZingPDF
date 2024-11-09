@@ -1,11 +1,11 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes
+namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 {
-    public class PushButtonFormField : FormField<IPdfObject> // TODO
+    public class ComboBoxFormField : FormField<ArrayObject>
     {
-        public PushButtonFormField(
+        public ComboBoxFormField(
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
@@ -13,11 +13,6 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             )
             : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
-        }
-
-        protected override IPdfObject? GetValue()
-        {
-            throw new NotImplementedException();
         }
     }
 }
