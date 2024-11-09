@@ -44,7 +44,7 @@ public class CheckboxFormField : FormField<Name>
         {
             Name exportValue = GetExportValue(widgetDict);
 
-            var @checked = _fieldDictionary.V == exportValue;
+            var @checked = _fieldDictionary.V is not null && (Name)_fieldDictionary.V == exportValue;
 
             return new Checkbox(exportValue, @checked, (val) =>
             {
