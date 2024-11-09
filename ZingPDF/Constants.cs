@@ -202,6 +202,8 @@ internal static class Constants
             public const string V = "V";
             public const string DV = "DV";
             public const string AA = "AA";
+            public const string Opt = "Opt";
+            public const string TI = "TI";
         }
 
         public static class Annotation

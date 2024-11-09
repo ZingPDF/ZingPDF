@@ -1,11 +1,11 @@
 ﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes
+namespace ZingPDF.Elements.Forms.FieldTypes.Button
 {
-    public class ComboBoxFormField : FormField<ArrayObject>
+    public class RadioButtonFormField : FormField<BooleanObject>
     {
-        public ComboBoxFormField(
+        public RadioButtonFormField(
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
@@ -13,11 +13,6 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             )
             : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
-        }
-
-        protected override ArrayObject? GetValue()
-        {
-            throw new NotImplementedException();
         }
     }
 }
