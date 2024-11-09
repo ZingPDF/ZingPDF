@@ -1,11 +1,11 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes
+namespace ZingPDF.Elements.Forms.FieldTypes.Button
 {
-    public class RadioButtonFormField : FormField<BooleanObject>
+    public class PushButtonFormField : FormField<IPdfObject> // TODO
     {
-        public RadioButtonFormField(
+        public PushButtonFormField(
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
@@ -13,11 +13,6 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             )
             : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
-        }
-
-        protected override BooleanObject? GetValue()
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using ZingPDF.Syntax.Objects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes;
+namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 public class Checkbox
 {
@@ -13,7 +13,7 @@ public class Checkbox
 
         _onChange = onChange;
     }
-    
+
     public bool Checked { get; }
     public Name Value { get; }
 

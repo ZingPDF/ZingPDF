@@ -8,7 +8,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
 
-namespace ZingPDF.Elements.Forms.FieldTypes
+namespace ZingPDF.Elements.Forms.FieldTypes.Text
 {
     public class TextFormField : FormField<LiteralString>
     {
@@ -26,34 +26,21 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             _fontResourceName = fontResourceName;
         }
 
-        protected override LiteralString? GetValue()
+        public string? Value
         {
-            switch (_fieldDictionary.V)
+            get => _fieldDictionary.V as LiteralString;
+            set
             {
-                case null:
-                    return null;
-                case LiteralString stringValue:
-                    return stringValue;
-                case IndirectObjectReference ior:
-                    {
-                        var stream = _indirectObjectDictionary.GetAsync(ior);
+                SetValue(value);
 
-                        throw new NotImplementedException();
-                    }
-                default:
-                    throw new InvalidOperationException();
+                AddAppearanceStream();
             }
-        }
-
-        protected override void OnChange()
-        {
-            AddAppearanceStream();
         }
 
         private void AddAppearanceStream()
         {
             var fieldDict = _fieldIndirectObject.Get<FieldDictionary>();
-            
+
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
             var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
 

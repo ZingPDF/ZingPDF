@@ -82,6 +82,29 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </summary>
         public IPdfObject? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
 
+        /// <summary>
+        /// <para>For Button fields (checkboxes/radio buttons):</para>
+        /// <para>(Optional; inheritable; PDF 1.4) An array containing one entry for each widget annotation 
+        /// in the Kids array of the radio button or check box field. Each entry shall be a text string 
+        /// representing the on state of the corresponding widget annotation.</para>
+        /// <para>When this entry is present, the names used to represent the on state in the AP dictionary 
+        /// of each annotation may use numerical position (starting with 0) of the annotation in the Kids 
+        /// array, encoded as a name object (for example: /0, /1). This allows distinguishing between the 
+        /// annotations even if two or more of them have the same value in the Opt array.</para>
+        /// <para>For Choice fields (list/combo boxes):</para>
+        /// <para>(Optional) An array of options that shall be presented to the user. Each element of the array 
+        /// is either a text string representing one of the available options or an array consisting of two 
+        /// text strings: the option’s export value and the text that shall be displayed as the name of the option.</para>
+        /// <para>If this entry is not present, no choices should be presented to the user.</para>
+        /// </summary>
+        public ArrayObject? Opt => Get<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
+
+        /// <summary>
+        /// (Optional) For scrollable list boxes, the top index (the index in the Opt array of the first 
+        /// option visible in the list). Default value: 0.
+        /// </summary>
+        public Integer? TI => Get<Integer>(Constants.DictionaryKeys.Field.TI);
+
         public void SetValue(IPdfObject value)
         {
             ArgumentNullException.ThrowIfNull(value);

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using ZingPDF.Extensions;
 
 namespace ZingPDF.Syntax.Objects
@@ -54,6 +55,21 @@ namespace ZingPDF.Syntax.Objects
             return Value == other.Value;
         }
 
+        public static bool operator ==(Name left, Name right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+
+            if (left is null || right is null)
+                return false;
+
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Name left, Name right)
+        {
+            return !(left == right);
+        }
 
         public override int GetHashCode() => HashCode.Combine(Value);
 

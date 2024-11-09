@@ -1,5 +1,8 @@
 ﻿using Nito.AsyncEx;
-using ZingPDF.Elements.Forms.FieldTypes;
+using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Elements.Forms.FieldTypes.Signature;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;

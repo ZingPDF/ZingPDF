@@ -1,11 +1,11 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes
+namespace ZingPDF.Elements.Forms.FieldTypes.Signature
 {
-    public class ListBoxFormField : FormField<ArrayObject>
+    public class SignatureFormField : FormField<IPdfObject>
     {
-        public ListBoxFormField(
+        public SignatureFormField(
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
@@ -13,11 +13,6 @@ namespace ZingPDF.Elements.Forms.FieldTypes
             )
             : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
-        }
-
-        protected override ArrayObject? GetValue()
-        {
-            throw new NotImplementedException();
         }
     }
 }
