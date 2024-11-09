@@ -31,11 +31,14 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
                             value = text;
                         }
 
-                        return new ChoiceItem(text, value);
-                    })
+                        return new ChoiceItem(text, value, (val) =>
+                        {
+                            // TODO...
+                        });
+                    }).ToList()
                 : [];
         }
 
-        public IEnumerable<ChoiceItem> Options { get; }
+        public IList<ChoiceItem> Options { get; }
     }
 }
