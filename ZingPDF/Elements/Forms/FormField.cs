@@ -12,7 +12,6 @@ namespace ZingPDF.Elements.Forms
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
         protected readonly IIndirectObjectDictionary _indirectObjectDictionary;
-        private TValue? _value;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
@@ -28,7 +27,6 @@ namespace ZingPDF.Elements.Forms
 
             Name = name;
             Description = _fieldDictionary.TU;
-            _value = (TValue)_fieldDictionary.V;
             Properties = new FieldProperties(_fieldDictionary.Ff ?? 0);
 
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
@@ -43,11 +41,9 @@ namespace ZingPDF.Elements.Forms
         {
             _indirectObjectDictionary.EnsureEditable();
 
-            _value = value;
-
-            if (_value is not null)
+            if (value is not null)
             {
-                _fieldDictionary.SetValue(_value);
+                _fieldDictionary.SetValue(value);
             }
 
             IndirectObjects.Update(_fieldIndirectObject);
