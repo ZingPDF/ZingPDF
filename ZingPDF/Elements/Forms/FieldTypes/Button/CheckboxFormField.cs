@@ -1,9 +1,8 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.InteractiveFeatures.Annotations;
+﻿using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Elements.Forms.FieldTypes;
+namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 /// <summary>
 /// ISO 32000-2:2020 12.7.5.2.3 - Check boxes
@@ -31,21 +30,6 @@ public class CheckboxFormField : FormField<Name>
 
     public IList<Checkbox> Checkboxes { get; private set; } = [];
 
-    protected override Name? GetValue()
-    {
-        // TODO: ignoring the Opt array for now, which I think is only used for very rare multi-state checkboxes
-
-        // The V entry contains the 'export' value for the checkbox field.
-        // If the box (or all boxes) are unchecked, this will be null or contain /Off.
-        // If checked, this will be the unique value for the selected box.
-        return _fieldDictionary.V switch
-        {
-            null => null,
-            Name value => value,
-            _ => throw new InvalidOperationException(),
-        };
-    }
-
     /// <summary>
     /// Sets up a <see cref="Checkbox"/> instance for each child checkbox of this field.
     /// This allows the user to easily check/uncheck each checkbox.
@@ -54,29 +38,24 @@ public class CheckboxFormField : FormField<Name>
     /// </summary>
     private void InitCheckboxes()
     {
-        var fieldValue = GetValue();
-
         List<Checkbox> checkBoxes = [];
 
         Checkboxes = CheckboxDictionaries.Select(widgetDict =>
         {
             Name exportValue = GetExportValue(widgetDict);
 
-            var @checked = fieldValue == exportValue;
+            var @checked = _fieldDictionary.V == exportValue;
 
             return new Checkbox(exportValue, @checked, (val) =>
             {
-                _indirectObjectDictionary.EnsureEditable();
-
                 // When checked
                 // - The checkbox field dictionary value must be updated to the export value of the box
                 // - The AS value of the widget annotation of the checked box must also have the same value
                 // - The AS values of all other checkboxes in the field must be set to /Off
 
-                // TODO: figure out how to make each checkbox instance update its checked property to false when another box is checked
-                Value = val;
+                SetValue(val);
 
-                if (_kids is null)
+                if (_kids.Count() == 0)
                 {
                     _fieldDictionary.SetAppearanceState(val);
                 }
@@ -113,17 +92,18 @@ public class CheckboxFormField : FormField<Name>
             if (widgetDict.AP.N is IndirectObject)
             {
                 // TODO: handle the case where N is a stream
+                throw new NotSupportedException("Widget annotation appearance dictionary contains stream-based properties. Contact support for further info.");
             }
             else
             {
-                value = (widgetDict.AP.N as Dictionary).First().Key;
+                value = (widgetDict.AP.N as Dictionary).Keys.First(k => k != Constants.CheckboxStates.NotChecked);
             }
         }
 
         return value;
     }
 
-    private IEnumerable<WidgetAnnotationDictionary> CheckboxDictionaries => _kids is null
+    private IEnumerable<WidgetAnnotationDictionary> CheckboxDictionaries => _kids.Count() == 0
         ? [_fieldDictionary]
         : _kids.Select(k => k.Get<WidgetAnnotationDictionary>());
 
