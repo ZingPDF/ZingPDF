@@ -14,6 +14,7 @@ using ZingPDF.Graphics;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
 
 XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -72,6 +73,10 @@ static async Task CompleteForm(string input, string output)
         else if (field is CheckboxFormField cbField)
         {
             cbField.Checkboxes[0].Check();
+        }
+        else if (field is ListBoxFormField listBoxFormField)
+        {
+            var test = listBoxFormField.Options.ElementAt(0);
         }
     }
 
