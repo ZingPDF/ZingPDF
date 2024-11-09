@@ -13,6 +13,7 @@ using ZingPDF.Graphics;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -64,6 +65,10 @@ static async Task CompleteForm(string input, string output)
         else if (field is CheckboxFormField cbField)
         {
             cbField.Checkboxes[0].Check();
+        }
+        else if (field is ListBoxFormField listBoxFormField)
+        {
+            var test = listBoxFormField.Options.ElementAt(0);
         }
     }
 
