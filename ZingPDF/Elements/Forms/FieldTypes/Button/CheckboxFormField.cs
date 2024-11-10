@@ -55,7 +55,7 @@ public class CheckboxFormField : FormField<Name>
 
                 SetValue(val);
 
-                if (_kids.Count() == 0)
+                if (!_kids.Any())
                 {
                     _fieldDictionary.SetAppearanceState(val);
                 }
@@ -103,7 +103,7 @@ public class CheckboxFormField : FormField<Name>
         return value;
     }
 
-    private IEnumerable<WidgetAnnotationDictionary> CheckboxDictionaries => _kids.Count() == 0
+    private IEnumerable<WidgetAnnotationDictionary> CheckboxDictionaries => !_kids.Any()
         ? [_fieldDictionary]
         : _kids.Select(k => k.Get<WidgetAnnotationDictionary>());
 

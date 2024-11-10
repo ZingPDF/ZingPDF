@@ -2,6 +2,7 @@
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
+// TODO: consider if this is ChoiceItem are semantically similar enough to be merged
 public class Checkbox
 {
     private readonly Action<Name> _onChange;
@@ -24,6 +25,6 @@ public class Checkbox
 
     public void Uncheck()
     {
-        _onChange(Value);
+        _onChange(Constants.CheckboxStates.NotChecked);
     }
 }
