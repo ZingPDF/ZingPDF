@@ -68,7 +68,9 @@ static async Task CompleteForm(string input, string output)
         }
         else if (field is ListBoxFormField listBoxFormField)
         {
-            var test = listBoxFormField.Options.ElementAt(0);
+            var test = listBoxFormField.Options.ElementAt(3);
+
+            test.Select();
         }
     }
 
