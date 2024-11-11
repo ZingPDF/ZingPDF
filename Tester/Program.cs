@@ -14,6 +14,8 @@ using ZingPDF.Elements;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Extensions;
+using System;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -25,15 +27,16 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 //await CreateNewPdfAndValidate("output.pdf");
 
 //await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("Ghostscript.pdf", "output.pdf");
-//await ParseResaveValidate("GS9_Color_Management.pdf", "output.pdf");
+//await ParseResaveValidate("testfiles/pdf/Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("testfiles/pdf/GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
-//await ParseResaveValidate("form.pdf", "output.pdf");
-//await ParseResaveValidate("test.pdf", "output.pdf");
+//await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
+//await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
-//await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
+await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
+//await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");
 
-//await AddPage("test.pdf", "output.pdf");
+//await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
 //await AddTextToPage();
 
@@ -43,7 +46,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 
 //await RotateWholeDocument();
 
-await CompleteForm("complex-form.pdf", "output.pdf");
+//await CompleteForm("complex-form.pdf", "output.pdf");
 
 static async Task CompleteForm(string input, string output)
 {
@@ -68,9 +71,7 @@ static async Task CompleteForm(string input, string output)
         }
         else if (field is ListBoxFormField listBoxFormField)
         {
-            var test = listBoxFormField.Options.ElementAt(3);
-
-            test.Select();
+            listBoxFormField.Options[3].Select();
         }
     }
 
@@ -141,6 +142,18 @@ static async Task ConvertFromHTML(Uri uri, string output)
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
     using var pdfStream = await Converter.ToPdfAsync(uri);
+
+    await pdfStream.CopyToAsync(outputFileStream);
+}
+
+static async Task ConvertFromHTMLContent(string htmlFilePath, string output)
+{
+    using var inputFileStream = new FileStream(htmlFilePath, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var htmlContent = await inputFileStream.ReadToEndAsync();
+
+    using var pdfStream = await Converter.ToPdfAsync(Encoding.UTF8.GetString(htmlContent));
 
     await pdfStream.CopyToAsync(outputFileStream);
 }
