@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Elements.Drawing;
+using ZingPDF.Extensions;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
@@ -139,8 +140,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                         var ary = (ArrayObject)val;
 
                         val = new Rectangle(
-                            new Coordinate((RealNumber)ary.ElementAt(0), (RealNumber)ary.ElementAt(1)),
-                            new Coordinate((RealNumber)ary.ElementAt(2), (RealNumber)ary.ElementAt(3))
+                            new Coordinate(ary[0].ToRealNumber(), ary[1].ToRealNumber()),
+                            new Coordinate(ary[2].ToRealNumber(), ary[3].ToRealNumber())
                             );
                     }
 
