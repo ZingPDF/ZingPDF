@@ -41,7 +41,7 @@ using System;
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
 
-await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
+//await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 //await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");
 
 //await AddPage("testfiles/pdf/test.pdf", "output.pdf");
@@ -54,7 +54,8 @@ await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 
 //await RotateWholeDocument();
 
-//await CompleteForm("complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
 static async Task CompleteForm(string input, string output)
 {
@@ -80,6 +81,11 @@ static async Task CompleteForm(string input, string output)
         else if (field is ListBoxFormField listBoxFormField)
         {
             listBoxFormField.Options[3].Select();
+        }
+        else if (field is ComboBoxFormField comboBoxFormField)
+        {
+            //comboBoxFormField.Options[1].Select();
+            comboBoxFormField.SelectCustomValue("TEST");
         }
     }
 

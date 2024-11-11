@@ -1,9 +1,8 @@
-﻿using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 {
-    public class ComboBoxFormField : FormField<ArrayObject>
+    public class ComboBoxFormField : ChoiceFormField
     {
         public ComboBoxFormField(
             IndirectObject fieldIndirectObject,
@@ -13,6 +12,16 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             )
             : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
         {
+        }
+
+        public void SelectCustomValue(string value)
+        {
+            SelectOption(value);
+        }
+
+        public void DeselectCustomValue(string value)
+        {
+            DeselectOption(value);
         }
     }
 }
