@@ -21,6 +21,7 @@ namespace ZingPDF.Syntax.Objects
         public static implicit operator RealNumber(double value) => new(value);
         public static implicit operator RealNumber(long value) => new(value);
         public static implicit operator RealNumber(int value) => new(value);
+        public static implicit operator RealNumber(Integer value) => new(value);
 
         public static implicit operator double(RealNumber value) => value.Value;
         public static implicit operator long(RealNumber value) => (long)value.Value;
