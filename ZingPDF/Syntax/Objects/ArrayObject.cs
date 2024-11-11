@@ -34,7 +34,7 @@ namespace ZingPDF.Syntax.Objects
         public T? Get<T>(int index) where T : class, IPdfObject
         {
             return _values.Count > index
-                ? _values[index] as T
+                ? (T)_values[index]
                 : null;
         }
 
