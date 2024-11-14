@@ -68,7 +68,11 @@ static async Task CompleteForm(string input, string output)
         }
         else if (field is CheckboxFormField cbField)
         {
-            cbField.Checkboxes[0].Check();
+            cbField.Options[0].Select();
+        }
+        else if (field is RadioButtonFormField rbField)
+        {
+            rbField.Options[0].Select();
         }
         else if (field is ListBoxFormField listBoxFormField)
         {

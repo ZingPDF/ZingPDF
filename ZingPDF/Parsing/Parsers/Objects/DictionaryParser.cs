@@ -152,7 +152,6 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 {
                     switch ((Name)dict[Constants.DictionaryKeys.Type])
                     {
-                        // TODO: check this: can we just cast rather than construct?
                         case Constants.DictionaryTypes.Catalog:
                             output = DocumentCatalogDictionary.FromDictionary(dict);
                             break;
