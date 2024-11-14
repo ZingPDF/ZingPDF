@@ -245,16 +245,12 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _indirectObjectDictionary,
+                    kids
                 );
             }
             else
             {
-                // kids is widget annotations for each checkbox.
-                // widget annotation should have AP dictionary.
-                // AP dictionary contains N (normal) and D for down.
-                // TODO: consider returning info from these dictionaries
-
                 return new CheckboxFormField(
                     fieldIndirectObject,
                     fullFieldName,
