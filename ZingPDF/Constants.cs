@@ -55,10 +55,10 @@ internal static class Constants
     public static readonly char[] WhitespaceCharacters = [Space, HorizontalTab, LineFeed, CarriageReturn, FormFeed];
     public static readonly char[] EndOfLineCharacters = [CarriageReturn, LineFeed];
 
-    public static class CheckboxStates
+    public static class ButtonStates
     {
-        public static readonly Name Checked = "Yes";
-        public static readonly Name NotChecked = "Off";
+        public static readonly Name On = "Yes";
+        public static readonly Name Off = "Off";
     }
 
     public static class Filters
