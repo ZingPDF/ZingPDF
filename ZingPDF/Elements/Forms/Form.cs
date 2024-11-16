@@ -29,7 +29,7 @@ namespace ZingPDF.Elements.Forms
                     ?? throw new InvalidPdfException("Unable to resolve form reference"));
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
-                => (await _acroForm).Get<InteractiveFormDictionary>());
+                => (InteractiveFormDictionary)(await _acroForm).Object);
         }
 
         private IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
@@ -62,7 +62,7 @@ namespace ZingPDF.Elements.Forms
             foreach (var field in fields)
             {
                 // A field without a name is considered a widget annotation, and not a form field
-                if (field.Children[0] is not FieldDictionary fieldDict || fieldDict.T is null)
+                if (field.Object is not FieldDictionary fieldDict || fieldDict.T is null)
                 {
                     continue;
                 }
@@ -101,7 +101,7 @@ namespace ZingPDF.Elements.Forms
 
             foreach (var kid in kids)
             {
-                var kidDict = (Dictionary)kid.Children[0];
+                var kidDict = (Dictionary)kid.Object;
 
                 if (kidDict.ContainsKey(Constants.DictionaryKeys.Field.FT))
                 {

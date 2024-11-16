@@ -46,7 +46,7 @@ public class PdfParser
 
         // 5. Get the trailer dictionary, either from the trailer, or the xref stream dictionary
         var trailerDictionary = trailer?.Dictionary
-            ?? xrefStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
+            ?? ((IStreamObject<IStreamDictionary>)xrefStream.Object).Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
@@ -113,7 +113,7 @@ public class PdfParser
         var xrefObject = await GetXrefObjectAsync(pdfStream);
 
         if (xrefObject is IndirectObject io
-            && io.Children.First() is IStreamObject<IStreamDictionary> so
+            && io.Object is IStreamObject<IStreamDictionary> so
             && so.Dictionary is CrossReferenceStreamDictionary)
         {
             Logger.Log(LogLevel.Trace, $"Found cross reference stream dictionary");
@@ -143,8 +143,6 @@ public class PdfParser
 
         pdfStream.Position = 0;
 
-        List<PdfObject> items = [];
-
         var limit = Math.Min(1024, pdfStream.Length);
 
         while (pdfStream.Position < limit)
@@ -158,7 +156,7 @@ public class PdfParser
 
             var item = await Parser.For(type).ParseAsync(pdfStream);
 
-            if (item is IndirectObject o && o.Children.FirstOrDefault() is LinearizationParameterDictionary dict)
+            if (item is IndirectObject o && o.Object is LinearizationParameterDictionary dict)
             {
                 Logger.Log(LogLevel.Trace, $"Found linearisation dictionary");
 

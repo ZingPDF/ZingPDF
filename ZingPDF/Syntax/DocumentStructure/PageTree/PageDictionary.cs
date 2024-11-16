@@ -253,7 +253,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             if (resources is IndirectObjectReference resourceRef)
             {
                 var resourcesIndirectObject = await indirectObjectManager.GetAsync(resourceRef);
-                var resourceDict = resourcesIndirectObject!.Get<ResourceDictionary>();
+                var resourceDict = (ResourceDictionary)resourcesIndirectObject.Object;
 
                 resourceDict.AddXObject(name, reference);
             }

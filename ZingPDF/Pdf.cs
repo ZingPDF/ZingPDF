@@ -3,6 +3,7 @@ using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Parsing;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
@@ -11,6 +12,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF;
 
 // TODO: consider inheriting from ReadOnlyPdf
+// Actually no, this IS NOT a ReadOnlyPDF. There should perhaps be a base type or interface for Pdf and ReadOnlyPdf
 public class Pdf : IEditablePdf
 {
     private readonly IPdf _sourcePdf;
@@ -36,6 +38,7 @@ public class Pdf : IEditablePdf
         ResetPages();
     }
 
+    // TODO: we don't call this anywhere except the constructor. Check if pages added are present in the count etc.
     private void ResetPages()
     {
         _pages = new AsyncLazy<List<IndirectObject>>(async () =>
@@ -66,6 +69,8 @@ public class Pdf : IEditablePdf
             ? throw new InvalidOperationException()
             : new Page(pageIndirectObject, _indirectObjectManager);
     }
+
+    async Task<IEnumerable<IndirectObject>> IPdf.GetAllPagesAsync() => await _pages!;
 
     public async Task<int> GetPageCountAsync() => (await _rootPageTreeNode).PageCount;
 
@@ -114,7 +119,7 @@ public class Pdf : IEditablePdf
 
         var pageIndirectObject = _indirectObjectManager.Add(page);
 
-        var rootPageTreeNode = rootPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
+        var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
         // TODO: For now, to simplify adding pages,
         // new pages are appended to the root page tree node.
@@ -142,7 +147,7 @@ public class Pdf : IEditablePdf
         var parentIndirectObject = await IndirectObjects.GetAsync(page.Dictionary.Parent)
             ?? throw new InvalidPdfException("Unable to find parent page tree node of requested page");
 
-        var parent = (parentIndirectObject.Children.First() as PageTreeNodeDictionary)!;
+        var parent = (PageTreeNodeDictionary)parentIndirectObject.Object;
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
@@ -177,7 +182,7 @@ public class Pdf : IEditablePdf
         var pageAtNumber = await GetPageAsync(pageNumber);
 
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageAtNumber.Dictionary.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
+        var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
 
@@ -213,84 +218,10 @@ public class Pdf : IEditablePdf
         // i.e. you can't just set an inheritable property on the root page tree node.
         foreach (var page in await _pages!)
         {
-            page.Get<PageDictionary>().SetRotation(rotation);
+            ((PageDictionary)page.Object).SetRotation(rotation);
             _indirectObjectManager.Update(page);
         }
     }
-    
-    //// TODO: support for all field types?
-    //public async Task CompleteFormAsync(IDictionary<string, string> formValues)
-    //{
-    //    if (DocumentCatalog.AcroForm is null)
-    //    {
-    //        throw new InvalidOperationException("PDF does not contain a form");
-    //    }
-
-    //    var acroFormIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.AcroForm)
-    //        ?? throw new InvalidPdfException("Unable to resolve form reference");
-
-    //    var acroForm = acroFormIndirectObject.Get<InteractiveFormDictionary>();
-
-    //    // Ensure compliant PDF viewers use the provided appearance stream for each field
-    //    // This setting applies to pre-PDF2.0 documents.
-    //    acroForm.SetNeedAppearances(false);
-
-    //    _indirectObjectManager.Update(acroFormIndirectObject);
-
-    //    // TODO: can we reuse an existing font?
-    //    var font = new Type1FontDictionary("Helvetica");
-    //    var fontIndirectObject = _indirectObjectManager.Add(font);
-
-    //    var fontResourceName = UniqueStringGenerator.Generate();
-    //    var fontMap = new Dictionary<Name, IPdfObject> { { fontResourceName, fontIndirectObject.Id.Reference } };
-
-    //    var fields = await new FormManager().GetFieldsAsync(IndirectObjects, acroForm.Fields.Cast<IndirectObjectReference>());
-
-    //    foreach (var kvp in formValues)
-    //    {
-    //        var fieldIndirectObject = fields[kvp.Key];
-
-    //        var fieldDict = fieldIndirectObject.Get<FieldDictionary>();
-
-    //        // TODO: process field flags
-    //        var flags = new FieldProperties(fieldDict.Ff ?? 0);
-
-    //        if (flags.IsPassword)
-    //        {
-    //            // To protect password confidentiality, it is imperative that PDF processors never
-    //            // store the value of the text field in the PDF file if this flag is set.
-    //            continue;
-    //        }
-
-    //        fieldDict.SetValue(kvp.Value!);
-
-    //        // TODO: do we need to account for fields which already have an appearance stream? or always replace?
-    //        var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
-
-    //        var textObject = new TextObject(
-    //            kvp.Value!,
-    //            fieldSizeRect,
-    //            new Coordinate(2, 5), // TODO: calculate this
-    //            new TextObject.FontOptions(fontResourceName, 12, RGBColour.Black)
-    //            );
-
-    //        var resourceDict = new ResourceDictionary(font: fontMap);
-
-    //        var apFormXObject = new FormXObject(
-    //            fieldSizeRect,
-    //            [textObject],
-    //            resourceDict,
-    //            filters: null,
-    //            sourceDataIsCompressed: false
-    //            );
-
-    //        var apIndirectObject = _indirectObjectManager.Add(apFormXObject);
-
-    //        fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
-
-    //        _indirectObjectManager.Update(fieldIndirectObject);
-    //    }
-    //}
 
     // TODO: duplicate logic in ReadOnlyPdf. See if we can share it.
     public Form? GetForm()
@@ -328,7 +259,36 @@ public class Pdf : IEditablePdf
         throw new NotImplementedException();
     }
 
-    public void AppendPdf(Stream stream)
+    public async Task AppendPdfAsync(Stream stream)
+    {
+        // Keeping this simple for now...
+        // 1. Parse supplied PDF
+        // 2. Append all pages to this PDF
+        // 3. Copy all referenced page resources
+
+        var sourcePdf = await PdfParser.OpenReadOnlyAsync(stream);
+
+        List<PageDictionary> pagesToAdd = [];
+        HashSet<IndirectObject> objectsToAdd = [];
+
+        foreach (var pageObject in await ((IPdf)sourcePdf).GetAllPagesAsync())
+        {
+            var page = (PageDictionary)pageObject.Object;
+
+            pagesToAdd.Add(page);
+
+            foreach(var resource in FindResources(page))
+            {
+                objectsToAdd.Add(resource);
+            }
+        }
+
+        _indirectObjectManager.AddRange(pagesToAdd);
+        _indirectObjectManager.AddRange(objectsToAdd.Select(o => o.Object));
+    }
+
+    // Returning resources as indirect objects allows us to de-dupe them by ID.
+    private IEnumerable<IndirectObject> FindResources(PageDictionary page)
     {
         throw new NotImplementedException();
     }
@@ -347,7 +307,7 @@ public class Pdf : IEditablePdf
         }
 
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
+        var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.IncrementCount();
 
@@ -368,7 +328,7 @@ public class Pdf : IEditablePdf
         }
 
         var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
-        var parentPageTreeNode = parentPageTreeNodeIndirectObject!.Get<PageTreeNodeDictionary>();
+        var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.DecrementCount();
 

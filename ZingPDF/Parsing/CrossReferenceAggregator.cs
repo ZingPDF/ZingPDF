@@ -59,7 +59,7 @@ internal class CrossReferenceAggregator
         var item = await Parser.For(type).ParseAsync(pdfStream);
 
         if (item is IndirectObject io
-            && io.Children.First() is IStreamObject<IStreamDictionary> streamObject
+            && io.Object is IStreamObject<IStreamDictionary> streamObject
             && streamObject.Dictionary is CrossReferenceStreamDictionary)
         {
             //UsingXrefStreams = true;

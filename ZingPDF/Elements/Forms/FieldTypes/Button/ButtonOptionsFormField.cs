@@ -89,7 +89,7 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
 
         Options = WidgetAnnotationObjects.Select(annot =>
         {
-            var widgetDict = annot.Get<WidgetAnnotationDictionary>();
+            var widgetDict = (WidgetAnnotationDictionary)annot.Object;
             Name exportValue = GetExportValue(widgetDict);
 
             var @checked = _fieldDictionary.V is not null && (Name)_fieldDictionary.V == exportValue;
@@ -138,5 +138,5 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
             : _kids;
 
     protected IEnumerable<WidgetAnnotationDictionary> WidgetAnnotations
-        => WidgetAnnotationObjects.Select(k => k.Get<WidgetAnnotationDictionary>());
+        => WidgetAnnotationObjects.Select(k => (WidgetAnnotationDictionary)k.Object);
 }

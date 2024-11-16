@@ -35,7 +35,7 @@ public class IndirectObjectParserTests
 
         output.Id.Index.Should().Be(12);
         output.Id.GenerationNumber.Should().Be(0);
-        output.Children.Should().HaveCount(1);
+        output.Object.Should().NotBeNull();
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class IndirectObjectParserTests
 
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);
-        output.Children.Should().HaveCount(1);
-        output.Children.First().Should().BeAssignableTo<IStreamObject<IStreamDictionary>>();
+        output.Object.Should().NotBeNull();
+        output.Object.Should().BeAssignableTo<IStreamObject<IStreamDictionary>>();
     }
 }
