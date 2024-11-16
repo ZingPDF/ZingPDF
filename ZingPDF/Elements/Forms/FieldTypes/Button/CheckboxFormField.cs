@@ -32,7 +32,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         foreach (var annot in WidgetAnnotationObjects)
         {
-            var widgetDictionary = annot.Get<WidgetAnnotationDictionary>();
+            var widgetDictionary = (WidgetAnnotationDictionary)annot.Object;
 
             if (option.Value == GetExportValue(widgetDictionary))
             {
@@ -55,7 +55,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         SetValue(Constants.ButtonStates.Off);
 
-        var widgetAnnotation = option.AssociatedDictionary.Get<WidgetAnnotationDictionary>();
+        var widgetAnnotation = (WidgetAnnotationDictionary)option.AssociatedDictionary.Object;
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 

@@ -7,18 +7,20 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     /// 
     /// Wraps any object with an identifier so that it may be referenced by other objects.
     /// </summary>
+    /// TODO: see if this works as a generic class
     public class IndirectObject : PdfObject, IEquatable<IndirectObject?>
     {
-        public IndirectObject(IndirectObjectId id, params IPdfObject[] children)
+        public IndirectObject(IndirectObjectId id, IPdfObject obj)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id));
-            Children = children?.ToList() ?? throw new ArgumentNullException(nameof(children));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(obj, nameof(obj));
+
+            Id = id;
+            Object = obj;
         }
 
         public IndirectObjectId Id { get; }
-        public List<IPdfObject> Children { get; }
-
-        public T Get<T>(int index = 0) => (T)Children[index];
+        public IPdfObject Object { get; protected set; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -38,10 +40,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             await stream.WriteTextAsync(Constants.ObjStart);
             await stream.WriteNewLineAsync();
 
-            foreach (var child in Children)
-            {
-                await child.WriteAsync(stream);
-            }
+            await Object.WriteAsync(stream);
 
             await stream.WriteNewLineAsync();
             await stream.WriteTextAsync(Constants.ObjEnd);
