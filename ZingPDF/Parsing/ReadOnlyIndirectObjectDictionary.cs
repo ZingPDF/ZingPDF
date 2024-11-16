@@ -43,7 +43,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
                 var objStreamIndirectObject = await GetAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)))
                     ?? throw new InvalidOperationException($"Error attempting to parse {key}. Unable to find parent object stream {xref.Value1}");
 
-                var objectStream = objStreamIndirectObject.Get<IStreamObject<IStreamDictionary>>()!;
+                var objectStream = (IStreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
                 var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
                 // TODO: cache decompressed stream data?
@@ -87,15 +87,11 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
         return indirectObject;
     }
 
-    /// <summary>
-    /// When you know the indirect object contains a single object of a specific type, 
-    /// this method provides strongly typed access to it.
-    /// </summary>
     public async Task<T?> GetAsync<T>(IndirectObjectReference key)
     {
         var io = await GetAsync(key);
 
-        return io == null ? default : (T)io.Children.First();
+        return io == null ? default : (T)io.Object;
     }
 
     public List<IndirectObjectId> GetFreeIds()

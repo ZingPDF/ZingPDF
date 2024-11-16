@@ -23,7 +23,7 @@ namespace ZingPDF.Elements.Forms
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 
             _fieldIndirectObject = fieldIndirectObject ?? throw new ArgumentNullException(nameof(fieldIndirectObject));
-            _fieldDictionary = fieldIndirectObject.Get<FieldDictionary>();
+            _fieldDictionary = (FieldDictionary)fieldIndirectObject.Object;
 
             Name = name;
             Description = _fieldDictionary.TU;

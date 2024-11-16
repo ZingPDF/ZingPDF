@@ -15,6 +15,7 @@ public interface IPdf
 
     ITrailerDictionary TrailerDictionary { get; }
 
+    Task<IEnumerable<IndirectObject>> GetAllPagesAsync();
     Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();
 
