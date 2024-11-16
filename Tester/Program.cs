@@ -48,14 +48,14 @@ using System;
 
 //await AddTextToPage();
 
-//await AddImageToPage();
+await AddImageToPage();
 
 //await RotatePage();
 
 //await RotateWholeDocument();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
-await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
 static async Task CompleteForm(string input, string output)
 {
@@ -129,7 +129,7 @@ static async Task RotateWholeDocument()
 
 static async Task RotatePage()
 {
-    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
@@ -143,14 +143,14 @@ static async Task RotatePage()
 
 static async Task AddImageToPage()
 {
-    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
     var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
 
-    await page.AddImageAsync(Image.FromFile("cat.jpg", Rectangle.FromSize(200, 200)));
+    await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromSize(200, 200)));
 
     await pdf.SaveAsync(outputFileStream);
 }

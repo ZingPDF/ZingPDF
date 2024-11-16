@@ -66,7 +66,7 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         var indirectObject = await GetAsync(key)
             ?? throw new InvalidOperationException($"Unable to dereference indirect object: {key}");
 
-        return indirectObject.Get<T>();
+        return (T)indirectObject.Object;
     }
 
     public IndirectObject Add(IPdfObject pdfObject)
@@ -80,6 +80,16 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         NewObjects.Add(indirectObject);
 
         return indirectObject;
+    }
+
+    public void AddRange(IEnumerable<IPdfObject> pdfObjects)
+    {
+        ArgumentNullException.ThrowIfNull(pdfObjects);
+
+        foreach (var pdfObject in pdfObjects)
+        {
+            _ = Add(pdfObject);
+        }
     }
 
     public void Update(IndirectObject indirectObject)
