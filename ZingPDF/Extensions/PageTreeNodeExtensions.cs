@@ -26,11 +26,11 @@ namespace ZingPDF.Extensions
                 var obj = await indirectObjectDictionary.GetAsync(ior)
                     ?? throw new InvalidPdfException("Unable to find referenced page");
 
-                if (obj.Children.First() is PageDictionary)
+                if (obj.Object is PageDictionary)
                 {
                     pages.Add(obj);
                 }
-                else if (obj.Children.First() is PageTreeNodeDictionary ptn)
+                else if (obj.Object is PageTreeNodeDictionary ptn)
                 {
                     pages.AddRange(await ptn.GetSubPagesAsync(indirectObjectDictionary));
                 }

@@ -68,8 +68,10 @@ public class ReadOnlyPdf : IPdf, IDisposable
     public DocumentCatalogDictionary DocumentCatalog { get; }
 
     public ITrailerDictionary TrailerDictionary => Trailer?.Dictionary
-        ?? CrossReferenceStream?.Get<IStreamObject<IStreamDictionary>>().Dictionary as ITrailerDictionary
+        ?? (CrossReferenceStream?.Object as IStreamObject<IStreamDictionary>)?.Dictionary as ITrailerDictionary
         ?? throw new ParserException("Unable to find trailer dictionary");
+
+    async Task<IEnumerable<IndirectObject>> IPdf.GetAllPagesAsync() => await _pages!;
 
     public async Task<Page> GetPageAsync(int pageNumber)
     {

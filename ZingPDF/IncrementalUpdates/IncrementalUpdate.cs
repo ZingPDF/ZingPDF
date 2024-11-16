@@ -85,8 +85,7 @@ namespace ZingPDF.IncrementalUpdates
                     sourceDataIsCompressed: false
                     );
 
-                xrefStreamIndirectObject.Children.Clear();
-                xrefStreamIndirectObject.Children.Add(xrefStream);
+                xrefStreamIndirectObject.SetObject(xrefStream);
 
                 await xrefStreamIndirectObject.WriteAsync(stream);
 
@@ -131,9 +130,22 @@ namespace ZingPDF.IncrementalUpdates
         private class DummyIndirectObject : IndirectObject
         {
             public DummyIndirectObject(IndirectObjectId id, long byteOffset)
-                : base(id)
+                : base(id, new DummyObject())
             {
                 ByteOffset = byteOffset;
+            }
+
+            public void SetObject(IPdfObject pdfObject) => Object = pdfObject; 
+
+            private class DummyObject : IPdfObject
+            {
+                public long? ByteOffset => throw new NotImplementedException();
+                public bool Written => throw new NotImplementedException();
+
+                public Task WriteAsync(Stream stream)
+                {
+                    throw new NotImplementedException();
+                }
             }
         }
     }

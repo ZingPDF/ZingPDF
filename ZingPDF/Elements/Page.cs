@@ -21,7 +21,7 @@ namespace ZingPDF.Elements
         private IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
 
         public IndirectObject IndirectObject { get; }
-        public PageDictionary Dictionary => IndirectObject.Get<PageDictionary>();
+        public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
 
         public void AddText(TextObject text)
         {
