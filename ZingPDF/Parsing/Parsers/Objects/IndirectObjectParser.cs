@@ -55,18 +55,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     break;
                 }
 
-                if (item is IStreamObject<IStreamDictionary>)
-                {
-                    // TODO: is this reachable?
-                    break;
-                }
-
                 items.Add(item);
 
             }
             while (stream.Position < stream.Length);
 
-            return new IndirectObject(new IndirectObjectId(id, genNumber), [.. items]) { ByteOffset = initialStreamPosition };
+            return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
     }
 }

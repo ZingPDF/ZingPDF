@@ -39,7 +39,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
 
         private void AddAppearanceStream()
         {
-            var fieldDict = _fieldIndirectObject.Get<FieldDictionary>();
+            var fieldDict = (FieldDictionary)_fieldIndirectObject.Object ;
 
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
             var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);

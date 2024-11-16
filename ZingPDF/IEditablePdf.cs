@@ -15,5 +15,5 @@ public interface IEditablePdf : IPdf
     void Encrypt();
     void Decrypt();
     void Sign();
-    void AppendPdf(Stream stream);
+    Task AppendPdfAsync(Stream stream);
 }

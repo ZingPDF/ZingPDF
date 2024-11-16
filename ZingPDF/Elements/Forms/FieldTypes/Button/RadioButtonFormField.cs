@@ -3,6 +3,9 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
+/// <summary>
+/// <para>ISO 32000-2:2020 12.7.5.2.4 - Radio buttons</para>
+/// </summary>
 internal class RadioButtonFormField : ButtonOptionsFormField
 {
     public RadioButtonFormField(
@@ -32,7 +35,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         foreach (var annot in WidgetAnnotationObjects)
         {
-            var widgetDictionary = annot.Get<WidgetAnnotationDictionary>();
+            var widgetDictionary = (WidgetAnnotationDictionary)annot.Object;
             var exportValue = GetExportValue(widgetDictionary);
 
             if (option.Value == exportValue)
@@ -72,7 +75,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         SetValue(Constants.ButtonStates.Off);
 
-        var widgetAnnotation = option.AssociatedDictionary.Get<WidgetAnnotationDictionary>();
+        var widgetAnnotation = (WidgetAnnotationDictionary)option.AssociatedDictionary.Object;
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
