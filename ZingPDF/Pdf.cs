@@ -1,12 +1,15 @@
-﻿using Nito.AsyncEx;
+﻿using System.Runtime.CompilerServices;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
@@ -18,9 +21,6 @@ public class Pdf : IEditablePdf
     private readonly IPdf _sourcePdf;
     private readonly IndirectObjectManager _indirectObjectManager;
 
-    private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
-    private AsyncLazy<List<IndirectObject>>? _pages;
-
     /// <summary>
     /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
     /// </summary>
@@ -29,24 +29,7 @@ public class Pdf : IEditablePdf
         _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
         _indirectObjectManager = new IndirectObjectManager(sourcePdf.IndirectObjects);
 
-        _rootPageTreeNode = new AsyncLazy<PageTreeNodeDictionary>(async () =>
-        {
-            return await IndirectObjects.GetAsync<PageTreeNodeDictionary>(DocumentCatalog.Pages)
-                ?? throw new InvalidPdfException("Unable to find root page tree node");
-        });
-
-        ResetPages();
-    }
-
-    // TODO: we don't call this anywhere except the constructor. Check if pages added are present in the count etc.
-    private void ResetPages()
-    {
-        _pages = new AsyncLazy<List<IndirectObject>>(async () =>
-        {
-            var rootPageTreeNode = await _rootPageTreeNode;
-
-            return await rootPageTreeNode.GetSubPagesAsync(IndirectObjects);
-        });
+        PageTree = new PageTree(_indirectObjectManager, DocumentCatalog.Pages);
     }
 
     #region IPdf
@@ -55,6 +38,7 @@ public class Pdf : IEditablePdf
     public Trailer? Trailer => _sourcePdf.Trailer;
     public IndirectObject? CrossReferenceStream => _sourcePdf.CrossReferenceStream;
     public DocumentCatalogDictionary DocumentCatalog => _sourcePdf.DocumentCatalog;
+    public PageTree PageTree { get; }
 
     public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
 
@@ -63,16 +47,16 @@ public class Pdf : IEditablePdf
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
 
-        var pageIndirectObject = (await _pages!)[pageNumber - 1];
+        var pageIndirectObject = (await PageTree.GetPagesAsync())[pageNumber - 1];
 
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
             : new Page(pageIndirectObject, _indirectObjectManager);
     }
 
-    async Task<IEnumerable<IndirectObject>> IPdf.GetAllPagesAsync() => await _pages!;
+    Task<IList<IndirectObject>> IPdf.GetAllPagesAsync() => PageTree.GetPagesAsync();
 
-    public async Task<int> GetPageCountAsync() => (await _rootPageTreeNode).PageCount;
+    public Task<int> GetPageCountAsync() => PageTree.GetPageCountAsync();
 
     /// <summary>
     /// Save the PDF to the provided output stream.
@@ -216,7 +200,7 @@ public class Pdf : IEditablePdf
 
         // Each page may have a rotation property already, therefore a loop is required to set all.
         // i.e. you can't just set an inheritable property on the root page tree node.
-        foreach (var page in await _pages!)
+        foreach (var page in await PageTree.GetPagesAsync())
         {
             ((PageDictionary)page.Object).SetRotation(rotation);
             _indirectObjectManager.Update(page);
@@ -268,30 +252,47 @@ public class Pdf : IEditablePdf
 
         var sourcePdf = await PdfParser.OpenReadOnlyAsync(stream);
 
-        List<PageDictionary> pagesToAdd = [];
-        HashSet<IndirectObject> objectsToAdd = [];
+        List<IndirectObject> pagesToAdd = [];
+        //HashSet<IndirectObject> objectsToAdd = [];
 
-        foreach (var pageObject in await ((IPdf)sourcePdf).GetAllPagesAsync())
+        // Simple document merging...
+        // - We're going to visit every page and page tree node in the new PDF
+        // - All pages we find will be added to this document
+        // - Along the way we'll build a resource dictionary from all encountered nodes
+
+        var mergedResourceDictionary = new Dictionary<Name, IPdfObject>();
+        var nodes = await sourcePdf.PageTree.GetAllNodesAsync();
+
+        foreach (var node in nodes)
         {
-            var page = (PageDictionary)pageObject.Object;
+            var resources = ((Dictionary?)node.Object)?.Get<Dictionary>(Constants.DictionaryKeys.Page.Resources);
 
-            pagesToAdd.Add(page);
-
-            foreach(var resource in FindResources(page))
+            if (resources != null)
             {
-                objectsToAdd.Add(resource);
+                mergedResourceDictionary = resources?.MergeInto(mergedResourceDictionary!);
+            }
+
+            if (node.Object is PageDictionary)
+            {
+                pagesToAdd.Add(node);
             }
         }
 
         _indirectObjectManager.AddRange(pagesToAdd);
-        _indirectObjectManager.AddRange(objectsToAdd.Select(o => o.Object));
+        
+        // TODO: add merged resource dictionary
+        // TODO: add referenced resource objects
     }
 
-    // Returning resources as indirect objects allows us to de-dupe them by ID.
-    private IEnumerable<IndirectObject> FindResources(PageDictionary page)
-    {
-        throw new NotImplementedException();
-    }
+    //// Returning resources as indirect objects allows us to de-dupe them by ID.
+    //private IEnumerable<IndirectObject> FindResources(PageDictionary page)
+    //{
+    //    // 1. Page resources
+    //    if (page.Resources is not null)
+    //    {
+    //        // Don't bother considering property inheritance as 
+    //    }
+    //}
 
     #endregion
 
