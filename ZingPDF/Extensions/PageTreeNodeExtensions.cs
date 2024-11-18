@@ -6,18 +6,16 @@ namespace ZingPDF.Extensions
     internal static class PageTreeNodeExtensions
     {
         /// <summary>
-        /// Recursively get all descendant subpages from the supplied <see cref="PageTreeNodeDictionary"/>.
+        /// Recursively get all descendant nodes from the supplied <see cref="PageTreeNodeDictionary"/>.
         /// </summary>
-        public static async Task<List<IndirectObject>> GetSubPagesAsync(
+        public static async Task<IList<IndirectObject>> GetSubNodesAsync(
             this PageTreeNodeDictionary pageTreeNode,
             IIndirectObjectDictionary indirectObjectDictionary
             )
         {
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
-            // TODO: we're parsing all pages and nodes in full. Is there a more performant way to index all pages?
-
-            List<IndirectObject> pages = [];
+            List<IndirectObject> nodes = [];
 
             foreach (var refObj in pageTreeNode.Kids)
             {
@@ -26,17 +24,15 @@ namespace ZingPDF.Extensions
                 var obj = await indirectObjectDictionary.GetAsync(ior)
                     ?? throw new InvalidPdfException("Unable to find referenced page");
 
-                if (obj.Object is PageDictionary)
+                nodes.Add(obj);
+
+                if (obj.Object is PageTreeNodeDictionary ptn)
                 {
-                    pages.Add(obj);
-                }
-                else if (obj.Object is PageTreeNodeDictionary ptn)
-                {
-                    pages.AddRange(await ptn.GetSubPagesAsync(indirectObjectDictionary));
+                    nodes.AddRange(await ptn.GetSubNodesAsync(indirectObjectDictionary));
                 }
             }
 
-            return pages;
+            return nodes;
         }
     }
 }
