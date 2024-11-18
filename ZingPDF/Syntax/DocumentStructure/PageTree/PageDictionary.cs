@@ -1,4 +1,5 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.Elements;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -351,6 +352,25 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             public Rectangle? MediaBox { get; set; }
 
             public static readonly PageCreationOptions Default = _default;
+
+            public static PageCreationOptions Initialize(Action<PageCreationOptions>? configure)
+            {
+                var options = Default.Clone();
+                configure?.Invoke(options);
+                return options;
+            }
+
+            public PageCreationOptions Clone()
+            {
+                var deepCopy = new PageCreationOptions();
+
+                if (MediaBox != null)
+                {
+                    deepCopy.MediaBox = new Rectangle(MediaBox.LowerLeft, MediaBox.UpperRight);
+                }
+
+                return deepCopy;
+            }
         }
     }
 }

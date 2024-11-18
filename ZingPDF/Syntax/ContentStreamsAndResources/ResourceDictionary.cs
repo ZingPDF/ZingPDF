@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-using System.Xml.Linq;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources
@@ -111,7 +109,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             Set<Dictionary>(Constants.DictionaryKeys.Resource.Font, fontMapDict);
         }
 
-        new public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
+        public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
         {
             return resourceDictionary is null
                 ? throw new ArgumentNullException(nameof(resourceDictionary))
