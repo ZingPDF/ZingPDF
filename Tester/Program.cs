@@ -44,11 +44,11 @@ using System;
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 //await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");
 
-//await AddPage("testfiles/pdf/test.pdf", "output.pdf");
+await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
 //await AddTextToPage();
 
-await AddImageToPage();
+//await AddImageToPage();
 
 //await RotatePage();
 
