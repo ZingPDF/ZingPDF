@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.CommonDataStructures;
+﻿using ZingPDF.Elements;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -7,7 +8,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
     /// <summary>
     /// ISO 32000-2:2020 7.7.3.2 - Page tree nodes
     /// </summary>
-    internal class PageTreeNodeDictionary : Dictionary
+    public class PageTreeNodeDictionary : Dictionary
     {
         private PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary) : base(pageTreeNodeDictionary) { }
 

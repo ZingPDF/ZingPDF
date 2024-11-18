@@ -1,7 +1,6 @@
-﻿using Nito.AsyncEx;
-using ZingPDF.Elements;
+﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
-using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Linearization;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
@@ -24,9 +23,6 @@ public class ReadOnlyPdf : IPdf, IDisposable
     private readonly Stream _pdfInputStream;
     private readonly LinearizationParameterDictionary? _linearizationDictionary;
 
-    private readonly AsyncLazy<PageTreeNodeDictionary> _rootPageTreeNode;
-    private readonly AsyncLazy<List<IndirectObject>> _pages;
-
     /// <summary>
     /// Internal constructor for creating a <see cref="ReadOnlyPdf"/> from its constituent parts.
     /// </summary>
@@ -46,18 +42,7 @@ public class ReadOnlyPdf : IPdf, IDisposable
         IndirectObjects = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
         _linearizationDictionary = linearizationDictionary;
 
-        _rootPageTreeNode = new AsyncLazy<PageTreeNodeDictionary>(async () =>
-        {
-            return await IndirectObjects.GetAsync<PageTreeNodeDictionary>(documentCatalog.Pages)
-                ?? throw new InvalidPdfException("Unable to find root page tree node");
-        });
-
-        _pages = new AsyncLazy<List<IndirectObject>>(async () =>
-        {
-            var rootPageTreeNode = await _rootPageTreeNode;
-
-            return await rootPageTreeNode.GetSubPagesAsync(IndirectObjects);
-        });
+        PageTree = new PageTree(indirectObjectDictionary, DocumentCatalog.Pages);
     }
 
     #region IPdf
@@ -66,28 +51,26 @@ public class ReadOnlyPdf : IPdf, IDisposable
     public Trailer? Trailer { get; }
     public IndirectObject? CrossReferenceStream { get; }
     public DocumentCatalogDictionary DocumentCatalog { get; }
+    public PageTree PageTree { get; }
 
     public ITrailerDictionary TrailerDictionary => Trailer?.Dictionary
         ?? (CrossReferenceStream?.Object as IStreamObject<IStreamDictionary>)?.Dictionary as ITrailerDictionary
         ?? throw new ParserException("Unable to find trailer dictionary");
 
-    async Task<IEnumerable<IndirectObject>> IPdf.GetAllPagesAsync() => await _pages!;
+    async Task<IList<IndirectObject>> IPdf.GetAllPagesAsync() => await PageTree.GetPagesAsync();
 
     public async Task<Page> GetPageAsync(int pageNumber)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
 
-        var pageIndirectObject = (await _pages!)[pageNumber - 1];
+        var pageIndirectObject = (await PageTree.GetPagesAsync())[pageNumber - 1];
 
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
             : new Page(pageIndirectObject, IndirectObjects);
     }
 
-    public async Task<int> GetPageCountAsync()
-    {
-        return (await _rootPageTreeNode).PageCount;
-    }
+    public Task<int> GetPageCountAsync() => PageTree.GetPageCountAsync();
 
     // TODO: duplicate logic in Pdf. See if we can share it.
     public Form? GetForm()

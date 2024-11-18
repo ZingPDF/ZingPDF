@@ -38,13 +38,15 @@ using System;
 //await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
 //await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
+await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
+
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
 
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 //await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");
 
-await AddPage("testfiles/pdf/test.pdf", "output.pdf");
+//await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
 //await AddTextToPage();
 
@@ -56,6 +58,19 @@ await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+static async Task AppendPdf(string input1, string input2, string output)
+{
+    using var inputFileStream1 = new FileStream(input1, FileMode.Open);
+    using var inputFileStream2 = new FileStream(input2, FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream1);
+
+    await pdf.AppendPdfAsync(inputFileStream2);
+
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task CompleteForm(string input, string output)
 {
@@ -103,7 +118,7 @@ static async Task AddTextToPage()
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
+    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
     page.AddText(new ZingPDF.Text.TextObject(
         "test",
@@ -148,7 +163,7 @@ static async Task AddImageToPage()
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var page = await pdf.InsertPageAsync(1, new PageDictionary.PageCreationOptions { MediaBox = Rectangle.FromSize(200, 200) });
+    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
     await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromSize(200, 200)));
 
