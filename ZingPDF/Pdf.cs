@@ -108,9 +108,9 @@ public class Pdf : IEditablePdf
 
     #region IEditablePdf
 
-    public async Task<Page> AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions = null)
+    public async Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
-        pageCreationOptions ??= PageDictionary.PageCreationOptions.Default;
+        var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
 
         var rootPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.Pages)
             ?? throw new InvalidPdfException("Unable to find root page tree node");
@@ -159,7 +159,7 @@ public class Pdf : IEditablePdf
         _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
     }
 
-    public async Task<Page> InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions = null)
+    public async Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
         // get page at number
         // get parent page tree node
@@ -170,7 +170,7 @@ public class Pdf : IEditablePdf
 
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
 
-        pageCreationOptions ??= PageDictionary.PageCreationOptions.Default;
+        var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
 
         var count = await GetPageCountAsync();
 

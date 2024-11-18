@@ -5,8 +5,8 @@ namespace ZingPDF;
 
 public interface IEditablePdf : IPdf
 {
-    Task<Page> AppendPageAsync(PageDictionary.PageCreationOptions? pageCreationOptions);
-    Task<Page> InsertPageAsync(int pageNumber, PageDictionary.PageCreationOptions? pageCreationOptions);
+    Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null);
+    Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null);
     Task DeletePageAsync(int pageNumber);
     Task SetRotationAsync(Rotation rotation);
 

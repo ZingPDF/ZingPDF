@@ -1,6 +1,6 @@
 ﻿using ZingPDF.Syntax.Objects;
 
-namespace ZingPDF.Syntax.DocumentStructure.PageTree
+namespace ZingPDF.Elements
 {
     public class Rotation
     {
