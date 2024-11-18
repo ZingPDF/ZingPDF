@@ -5,7 +5,7 @@
         /// <summary>
         /// Creates a new dictionary from the target dictionary, overriden with values from the source dictionary.
         /// </summary>
-        public static IReadOnlyDictionary<TKey, TValue> MergeInto<TKey, TValue>(
+        public static Dictionary<TKey, TValue> MergeInto<TKey, TValue>(
             this IEnumerable<KeyValuePair<TKey, TValue>> source,
             IEnumerable<KeyValuePair<TKey, TValue>> target
             ) where TKey : notnull
