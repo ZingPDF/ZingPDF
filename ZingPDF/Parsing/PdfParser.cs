@@ -13,8 +13,17 @@ namespace ZingPDF.Parsing;
 
 public class PdfParser
 {
+    public static Task<Pdf> OpenAsync(string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
+
+        return OpenAsync(File.Open("TestFiles/minimal.pdf", FileMode.Open));
+    }
+
     public static async Task<Pdf> OpenAsync(Stream pdfInputStream)
     {
+        ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
+
         if (!pdfInputStream.CanSeek)
         {
             throw new ArgumentException("Stream must be seekable", nameof(pdfInputStream));
@@ -25,6 +34,8 @@ public class PdfParser
 
     public static async Task<ReadOnlyPdf> OpenReadOnlyAsync(Stream pdfInputStream)
     {
+        ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
+
         if (!pdfInputStream.CanSeek)
         {
             throw new ArgumentException("Stream must be seekable", nameof(pdfInputStream));
