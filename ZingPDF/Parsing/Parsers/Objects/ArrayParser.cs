@@ -10,38 +10,39 @@ namespace ZingPDF.Parsing.Parsers.Objects
     {
         public async ITask<ArrayObject> ParseAsync(Stream stream)
         {
-            Logger.Log(LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            //Logger.Log(LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            // An array is a collection of any type of PDF object
+            long initialStreamPosition = stream.Position;
+            long arrayStart = 0;
+            long arrayEnd = 0;
 
-            var initialStreamPosition = stream.Position;
-            var arrayStart = 0L;
-            var arrayEnd = 0L;
-
-            var content = string.Empty;
+            var contentBuilder = new StringBuilder();
             int countStart = 0;
             int countEnd = 0;
 
-            var bufferSize = 1024;
-            var buffer = new byte[bufferSize];
+            var buffer = new byte[1024];
 
             do
             {
-                int i = content.Length;
-                var read = await stream.ReadAsync(buffer.AsMemory());
+                // Track where we are in content relative to previous buffer reads
+                int contentOffset = contentBuilder.Length;
 
-                content += Encoding.ASCII.GetString(buffer, 0, read);
+                // Read the next chunk of the stream
+                int read = await stream.ReadAsync(buffer.AsMemory());
+                if (read == 0) break; // EOF
 
-                for (; i < content.Length; i++)
+                // Append the read content
+                contentBuilder.Append(Encoding.ASCII.GetString(buffer, 0, read));
+                var content = contentBuilder.ToString();
+
+                // Parse characters for array delimiters
+                for (int i = contentOffset; i < content.Length; i++)
                 {
-                    // TODO: consider if objects can contain escaped array delimiters which may break this logic, write tests
-
                     char c = content[i];
 
                     if (c == Constants.LeftSquareBracket)
                     {
                         countStart++;
-
                         if (countStart == 1)
                         {
                             arrayStart = initialStreamPosition + i + 1;
@@ -51,41 +52,47 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     if (c == Constants.RightSquareBracket)
                     {
                         countEnd++;
-
                         if (countEnd == countStart)
                         {
-                            // TODO: this is used to build a substream, and move past the array
-                            //      but i is a character count, not a byte count. Use the proper byte length of the content.
-
                             arrayEnd = initialStreamPosition + i;
-
-                            break;
+                            goto ReadyToParse; // Exit both loop and do-while
                         }
                     }
                 }
             }
             while (countStart != countEnd && stream.Position < stream.Length);
 
+        ReadyToParse:
+            if (countStart != countEnd)
+            {
+                throw new ParserException("Mismatched array delimiters. PDF may be corrupt.");
+            }
+
             ArrayObject output;
 
+            // Determine array content
             if (arrayEnd - arrayStart <= 1)
             {
                 output = Array.Empty<PdfObject>();
             }
             else
             {
+                // Create substream for parsing array contents
                 var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
+                // Parse objects inside the array
                 var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
 
                 output = objectGroup.Objects.ToArray();
             }
 
+            // Move the stream position past the array
             stream.Position = arrayEnd + 1;
 
             Logger.Log(LogLevel.Trace, $"Parsed ArrayObject between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;
         }
+
     }
 }

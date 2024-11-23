@@ -25,7 +25,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             var initialStreamPosition = stream.Position;
 
-            Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
+            //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
             var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
 
@@ -43,7 +43,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             stream.Position += streamLength;
 
-            Logger.Log(LogLevel.Trace, $"Finished parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
+            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
 
             return new SubStreamObject(
                 stream,

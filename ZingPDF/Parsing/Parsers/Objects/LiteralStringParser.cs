@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -24,6 +25,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         public async ITask<LiteralString> ParseAsync(Stream stream)
         {
+            //Logger.Log(LogLevel.Trace, $"Parsing literal string from {stream.GetType().Name} at offset: {stream.Position}.");
+
             await stream.AdvanceBeyondNextAsync(Constants.LeftParenthesis);
 
             var stringStart = stream.Position;
@@ -181,6 +184,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
             {
                 output = encodingResult.StringEncoding.GetString(Encoding.ASCII.GetBytes(output));
             }
+
+            Logger.Log(LogLevel.Trace, $"Parsed LiteralString: {{{output}}}. {stream.GetType().Name} now at: {stream.Position}.");
 
             return new LiteralString(output, EnumFromEncoding(encodingResult.StringEncoding));
         }
