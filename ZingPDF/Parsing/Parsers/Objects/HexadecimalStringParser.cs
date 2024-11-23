@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -8,11 +9,17 @@ namespace ZingPDF.Parsing.Parsers.Objects
     {
         public async ITask<HexadecimalString> ParseAsync(Stream stream)
         {
+            //Logger.Log(LogLevel.Trace, $"Parsing Hexadecimal string from {stream.GetType().Name} at offset: {stream.Position}.");
+
             await stream.AdvanceBeyondNextAsync(Constants.LessThan);
 
             var content = await stream.ReadUpToIncludingAsync(Constants.GreaterThan);
 
-            return content[..^1];
+            var value = content[..^1];
+
+            Logger.Log(LogLevel.Trace, $"Parsed HexadecimalString: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
+
+            return value;
         }
     }
 }

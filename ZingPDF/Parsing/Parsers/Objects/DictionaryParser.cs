@@ -25,6 +25,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
     /// </remarks>
     internal class DictionaryParser : IPdfObjectParser<Dictionary>
     {
+        private static readonly List<char> _halfDelimiters = [Constants.LessThan, Constants.GreaterThan];
+
         // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
         private readonly List<Name> _rectKeys =
         [
@@ -39,82 +41,87 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         public async ITask<Dictionary> ParseAsync(Stream stream)
         {
-            Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
+            //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
 
             // A dictionary is a key-value collection, where the key is always a 'Name' object
             // and the value can be any type of PDF object
 
             // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
 
-            var initialStreamPosition = stream.Position;
-            var dictStart = 0L;
-            var dictEnd = 0L;
+            var initialStreamPosition = stream.Position; // Reference starting point for output
+            
+            var buffer = new byte[1024];
 
-            // Find end of dictionary
-            var content = string.Empty;
-            int countStart = 0;
-            int countEnd = 0;
+            var countStart = 0;                          // Tracks "<<" occurrences
+            var countEnd = 0;                            // Tracks ">>" occurrences
 
-            var bufferSize = 1024;
-            var buffer = new byte[bufferSize];
+            long dictStart = 0;                          // Byte offset for dictionary start
+            long dictEnd = 0;                            // Byte offset for dictionary end
+
+            var lastEncounteredDelimiterEndsAt = 0;
 
             do
             {
-                int i = content.Length;
+                // Read from the stream
                 var read = await stream.ReadAsync(buffer.AsMemory());
 
-                content += Encoding.ASCII.GetString(buffer, 0, read);
+                // Convert the buffer to a string and prepend the carryover
+                string currentContent = Encoding.ASCII.GetString(buffer, 0, read);
 
-                Logger.Log(LogLevel.Trace, content[..Math.Min(100, read)]);
+                //Logger.Log(LogLevel.Trace, currentContent[..Math.Min(currentContent.Length, 100)]);
 
-                for (; i < content.Length - 1; i++)
+                for (var i = 0; i < currentContent.Length - 1; i++)
                 {
-                    // TODO: consider if objects can contain escaped dictionary delimiters which may break this logic, write tests
+                    var processedContent = currentContent[..i];
+                    var byteOffsetForDecodedPosition = Encoding.ASCII.GetByteCount(processedContent);
 
-                    var c = content[i..(i + 2)];
+                    // Check for dictionary delimiters
+                    var c = currentContent[i..(i+2)]; // Extract two characters starting at i
 
                     if (c == Constants.DictionaryStart)
                     {
                         countStart++;
+                        lastEncounteredDelimiterEndsAt = i + 2;
 
                         if (countStart == 1)
                         {
-                            dictStart = initialStreamPosition + i + 2;
+                            dictStart = stream.Position - read + byteOffsetForDecodedPosition + 2;
                         }
 
-                        i++; // increment so that nested dictionaries don't cause false positives <<<<
+                        i++; // Increment past current delimiter
                     }
-
-                    if (c == Constants.DictionaryEnd)
+                    else if (c == Constants.DictionaryEnd)
                     {
                         countEnd++;
+                        lastEncounteredDelimiterEndsAt = i + 2;
 
                         if (countEnd == countStart)
                         {
-                            // TODO: this is used to build a substream, and move past the array
-                            //      but i is a character count, not a byte count. Use the proper byte length of the content.
+                            dictEnd = stream.Position - read + byteOffsetForDecodedPosition;
 
-                            dictEnd = initialStreamPosition + i;
-
-                            break;
+                            goto ReadyToParse;
                         }
 
-                        i++; // increment so that nested dictionaries don't cause false positives >>>>
+                        i++; // Increment past current delimiter
                     }
+                }
 
-                    if (countStart > 0 && countEnd == countStart)
-                    {
-                        break;
-                    }
+                // If a delimiter straddles the buffer boundary, we must ensure it is counted.
+                // Identifying this is tricky. We can't just check the last 2 characters to see if the 2nd is a '<' or '>',
+                // as nested dictionaries cause sequences like this >>>>>>.
+                if (IsHalfADelimiter(currentContent.Last()) && lastEncounteredDelimiterEndsAt != stream.Position)
+                {
+                    stream.Position--;
                 }
             }
             while (countStart != countEnd && stream.Position < stream.Length);
 
             if (countStart != countEnd)
             {
-                throw new ParserException($"Unable to find end of dictionary. PDF may be corrupt.");
+                throw new ParserException($"Unable to find end of dictionary. Start Count: {countStart}, End Count: {countEnd}, Stream Position: {stream.Position}.");
             }
 
+            ReadyToParse:
             Dictionary? output = null;
             
             if (dictEnd - dictStart > 1)
@@ -154,52 +161,55 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     {
                         case Constants.DictionaryTypes.Catalog:
                             output = DocumentCatalogDictionary.FromDictionary(dict);
-                            break;
+                            goto DictionaryParsed;
 
                         case Constants.DictionaryTypes.Page:
                             output = PageDictionary.FromDictionary(dict);
-                            break;
+                            goto DictionaryParsed;
 
                         case Constants.DictionaryTypes.Pages:
                             output = PageTreeNodeDictionary.FromDictionary(dict);
-                            break;
+                            goto DictionaryParsed;
 
                         case Constants.DictionaryTypes.XRef:
                             output = CrossReferenceStreamDictionary.FromDictionary(dict);
-                            break;
+                            goto DictionaryParsed;
 
                         case Constants.DictionaryTypes.ObjStm:
                             output = ObjectStreamDictionary.FromDictionary(dict);
-                            break;
+                            goto DictionaryParsed;
                         case Constants.DictionaryTypes.Annot:
                             output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
                             {
                                 AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict),
                                 _ => AnnotationDictionary.FromDictionary(dict),
                             };
-                            break;
+                            goto DictionaryParsed;
                     }
                 }
 
                 if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
                 {
                     output = InteractiveFormDictionary.FromDictionary(dict);
+                    goto DictionaryParsed;
                 }
 
                 if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
                 {
                     output = FieldDictionary.FromDictionary(dict);
+                    goto DictionaryParsed;
                 }
 
                 if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
                 {
                     output = LinearizationParameterDictionary.FromDictionary(dict);
+                    goto DictionaryParsed;
                 }
 
-                if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N)
-                    && !(dict.ContainsKey(Constants.DictionaryKeys.Type) && (Name)dict[Constants.DictionaryKeys.Type] == Constants.DictionaryTypes.ObjStm))
+                if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N))
                 {
                     output = AppearanceDictionary.FromDictionary(dict);
+                    goto DictionaryParsed;
                 }
 
                 output ??= dict;
@@ -207,13 +217,16 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             output ??= Dictionary.Empty;
 
+        DictionaryParsed:
             stream.Position = dictEnd + 2;
 
             output!.ByteOffset = initialStreamPosition;
 
-            Logger.Log(LogLevel.Trace, $"Parsed Dictionary between offsets: {initialStreamPosition} - {stream.Position}");
+            Logger.Log(LogLevel.Trace, $"Parsed Dictionary from {stream.GetType().Name} between offsets: {initialStreamPosition} - {stream.Position}");
 
             return output;
         }
+
+        private static bool IsHalfADelimiter(char c) => _halfDelimiters.Contains(c);
     }
 }

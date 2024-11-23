@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -10,11 +11,17 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             stream.AdvancePastWhitepace();
 
+            //Logger.Log(LogLevel.Trace, $"Parsing Integer from {stream.GetType().Name} at offset: {stream.Position}.");
+
             var content = await stream.ReadUntilAsync(c => !c.IsInteger() && c != '-');
 
             content = content.TrimStart();
 
-            return int.Parse(content);
+            var value = int.Parse(content);
+
+            Logger.Log(LogLevel.Trace, $"Parsed Integer: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
+
+            return value;
         }
     }
 }

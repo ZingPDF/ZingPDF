@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -11,6 +12,8 @@ internal class NameParser : IPdfObjectParser<Name>
 
     public async ITask<Name> ParseAsync(Stream stream)
     {
+        //Logger.Log(LogLevel.Trace, $"Parsing Name from {stream.GetType().Name} at offset: {stream.Position}.");
+
         await stream.AdvanceBeyondNextAsync(Constants.Solidus);
 
         var nameStart = stream.Position;
@@ -48,6 +51,10 @@ internal class NameParser : IPdfObjectParser<Name>
         }
         while (stream.Position < stream.Length);
 
-        return content.ToString().ReplaceHexCodes();
+        var value = content.ToString().ReplaceHexCodes();
+
+        Logger.Log(LogLevel.Trace, $"Parsed Name: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
+
+        return value;
     }
 }

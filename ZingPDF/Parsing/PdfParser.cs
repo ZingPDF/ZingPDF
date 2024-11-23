@@ -8,6 +8,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Extensions;
 
 namespace ZingPDF.Parsing;
 
@@ -17,7 +18,7 @@ public class PdfParser
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
 
-        return OpenAsync(File.Open("TestFiles/minimal.pdf", FileMode.Open));
+        return OpenAsync(File.Open(filePath, FileMode.Open));
     }
 
     public static async Task<Pdf> OpenAsync(Stream pdfInputStream)
@@ -41,23 +42,64 @@ public class PdfParser
             throw new ArgumentException("Stream must be seekable", nameof(pdfInputStream));
         }
 
+        // TODO: Check the efficiency of this method, ensure we're traversing the file properly and not parsing things twice.
+
         // Parse PDF for various core elements
 
         // 1. Is there a linearization parameter dictionary
         var linearizationDictionary = await GetLinearizationDictionaryAsync(pdfInputStream);
 
-        // 2. Aggregate cross references to get the latest versions of all indirect objects
-        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, linearizationDictionary);
+        // PDF is linearized if there is a linearization dictionary, AND
+        // the length value (L) is identical to the length of the stream.
+        // A mismatch indicates the file has had at least one incremental update applied,
+        // and should be considered to not be linearized.
+        var isLinearized = linearizationDictionary != null && linearizationDictionary.L == pdfInputStream.Length;
 
-        // 3. Get trailer, if it exists
-        var trailer = await GetTrailerAsync(pdfInputStream);
+        return isLinearized
+            ? await ParseLinearizedAsync(pdfInputStream, linearizationDictionary, pdfInputStream.Position)
+            : await ParseNonLinearizedAsync(pdfInputStream);
+    }
 
-        // 4. Get xref stream dictionary, if it exists
+    private static async Task<ReadOnlyPdf> ParseNonLinearizedAsync(Stream pdfInputStream)
+    {
+        var offset = await new ObjectFinder().FindAsync(pdfInputStream, Constants.StartXref, forwards: false)
+                ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
+
+        pdfInputStream.Position = offset;
+        await pdfInputStream.AdvanceBeyondNextAsync(Constants.StartXref);
+
+        var xrefLocation = await Parser.For<Integer>().ParseAsync(pdfInputStream);
+
+        var trailer = await GetFooterTrailerAsync(pdfInputStream);
+
         var xrefStream = await GetXrefStreamAsync(pdfInputStream);
 
-        // 5. Get the trailer dictionary, either from the trailer, or the xref stream dictionary
         var trailerDictionary = trailer?.Dictionary
-            ?? ((IStreamObject<IStreamDictionary>)xrefStream.Object).Dictionary as ITrailerDictionary
+            ?? ((IStreamObject<IStreamDictionary>)xrefStream?.Object).Dictionary as ITrailerDictionary
+            ?? throw new ParserException("Unable to find trailer dictionary");
+
+        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
+
+        var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
+            ?? throw new ParserException("Unable to find document catalog dictionary");
+
+        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, null);
+    }
+
+    private static async Task<ReadOnlyPdf> ParseLinearizedAsync(
+        Stream pdfInputStream,
+        LinearizationParameterDictionary? linearizationDictionary,
+        long xrefLocation
+        )
+    {
+        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
+
+        var xrefStream = await GetXrefStreamAsync(pdfInputStream);
+
+        var trailer = await GetLeadingTrailerAsync(pdfInputStream);
+
+        var trailerDictionary = trailer?.Dictionary
+            ?? ((IStreamObject<IStreamDictionary>)xrefStream?.Object).Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
@@ -66,7 +108,13 @@ public class PdfParser
         return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
     }
 
-    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream)
+    private static Task<Trailer?> GetFooterTrailerAsync(Stream pdfStream)
+        => GetTrailerAsync(pdfStream, false);
+
+    private static Task<Trailer?> GetLeadingTrailerAsync(Stream pdfStream)
+        => GetTrailerAsync(pdfStream, true);
+
+    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream, bool fromTop)
     {
         Logger.Log(LogLevel.Trace, $"Searching for root trailer");
 
@@ -79,7 +127,7 @@ public class PdfParser
 
         var objectFinder = new ObjectFinder();
 
-        var trailerOffset = await objectFinder.FindAsync(pdfStream, Constants.Trailer, forwards: false);
+        var trailerOffset = await objectFinder.FindAsync(pdfStream, Constants.Trailer, forwards: fromTop);
 
         if (trailerOffset is null)
         {
