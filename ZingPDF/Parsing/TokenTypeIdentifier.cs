@@ -10,6 +10,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Extensions;
 
 namespace ZingPDF.Parsing
 {
@@ -50,43 +51,59 @@ namespace ZingPDF.Parsing
 
         public static async Task<Type?> TryIdentifyAsync(Stream stream)
         {
-            var buffer = new byte[_bufferSize];
+            // Save the original position to reset after processing
+            long originalPosition = stream.Position;
 
-            var read = await stream.ReadAsync(buffer.AsMemory(0, _bufferSize));
-            stream.Position -= read;
-
-            var content = Encoding.UTF8.GetString(buffer, 0, read).TrimStart();
-
-            if (string.IsNullOrWhiteSpace(content))
+            try
             {
-                return null;
-            }
+                var buffer = new byte[_bufferSize];
+                var read = await stream.ReadAsync(buffer.AsMemory(0, _bufferSize));
 
-            Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
-            Logger.Log(LogLevel.Trace, content[..Math.Min(50, content.Length)]);
+                // Reset stream position for reuse
+                stream.Position = originalPosition;
 
-            foreach (var pattern in _regexPatterns)
-            {
-                if (pattern.Key.IsMatch(content))
+                // Decode and trim the content (ASCII encoding is assumed)
+                var content = Encoding.UTF8.GetString(buffer, 0, read).TrimStart();
+
+                if (string.IsNullOrWhiteSpace(content))
                 {
-                    Logger.Log(LogLevel.Trace, $"Identified as: {pattern.Value.Name}");
-
-                    return pattern.Value;
+                    return null; // No meaningful content to process
                 }
-            }
 
-            foreach (var pattern in _startsWithPatterns)
-            {
-                if (content.StartsWith(pattern.Key))
+                Logger.Log(LogLevel.Trace, "TokenTypeIdentifier.TryIdentify:");
+                Logger.Log(LogLevel.Trace, content[..Math.Min(120, content.Length)]);
+
+                // First-pass: Match regex patterns
+                foreach (var (regex, type) in _regexPatterns)
                 {
-                    Logger.Log(LogLevel.Trace, $"Identified as: {pattern.Value.Name}");
+                    if (regex.IsMatch(content))
+                    {
+                        Logger.Log(LogLevel.Trace, $"Identified as: {type.Name}");
 
-                    return pattern.Value;
+                        return type;
+                    }
                 }
-            }
 
-            // TODO: consider returning null here.
-            throw new ParserException("Unable to identify token from stream");
+                // Second-pass: Match starts-with patterns
+                foreach (var (prefix, type) in _startsWithPatterns)
+                {
+                    if (content.StartsWith(prefix))
+                    {
+                        Logger.Log(LogLevel.Trace, $"Identified as: {type.Name}");
+
+                        return type;
+                    }
+                }
+
+                // Throw exception in development to catch bugs in identification logic
+                throw new ParserException("Unable to identify token from stream");
+            }
+            finally
+            {
+                // Ensure stream is restored to its original position
+                stream.Position = originalPosition;
+            }
         }
+
     }
 }

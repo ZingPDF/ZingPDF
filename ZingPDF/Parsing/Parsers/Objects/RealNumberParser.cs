@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -10,9 +11,15 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             stream.AdvancePastWhitepace();
 
-            var content = await stream.ReadUpToExcludingAsync(Constants.WhitespaceCharacters);
+            //Logger.Log(LogLevel.Trace, $"Parsing real number from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            return double.Parse(content);
+            var content = await stream.ReadUpToExcludingAsync([..Constants.Delimiters, ..Constants.WhitespaceCharacters]);
+
+            var value = double.Parse(content);
+
+            Logger.Log(LogLevel.Trace, $"Parsed RealNumber: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
+
+            return value;
         }
     }
 }
