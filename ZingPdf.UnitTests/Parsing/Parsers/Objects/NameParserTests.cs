@@ -25,6 +25,7 @@ public class NameParserTests
     [InlineData("/Lime#20Green ", "Lime Green")]
     [InlineData("/paired#28#29parentheses ", "paired()parentheses")]
     [InlineData("/The_Key_of_F#23_Minor ", "The_Key_of_F#_Minor")]
+    [InlineData("/0", "0")]
     public async Task ParseBasic_CorrectContent(string content, string expected)
     {
         using var input = content.ToStream();
@@ -53,6 +54,7 @@ public class NameParserTests
     [InlineData("/Lime#20Green ", 13)]
     [InlineData("/paired#28#29parentheses ", 24)]
     [InlineData("/The_Key_of_F#23_Minor ", 22)]
+    [InlineData("/0", 2)]
     public async Task ParseBasic_CorrectStreamPosition(string content, int expectedPosition)
     {
         using var input = content.ToStream();
