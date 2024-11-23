@@ -38,7 +38,9 @@ using System;
 //await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
 //await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
-await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
+//await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
+
+await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -58,6 +60,15 @@ await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf"
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+static async Task Parse(string input)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+
+    var pdf = await PdfParser.OpenAsync(inputFileStream);
+
+    var pageCount = await pdf.GetPageCountAsync();
+}
 
 static async Task AppendPdf(string input1, string input2, string output)
 {
