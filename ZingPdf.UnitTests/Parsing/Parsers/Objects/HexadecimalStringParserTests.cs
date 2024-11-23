@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects;
@@ -19,5 +20,17 @@ public class HexadecimalStringParserTests
         var output = await new HexadecimalStringParser().ParseAsync(input);
 
         output.Should().BeEquivalentTo(expectedHexString);
+    }
+
+    [Theory]
+    [InlineData("<FEFF0044003A00320030003200340031003100310038003000320033003600310033005A>")]
+    [InlineData("<FEFF0078006D0070002E006400690064003A00630036003800330035003900300034002D0032006500660035002D0034003400300036002D0061003700310036002D006600640033006100360035006100370065003700310065>")]
+    public async Task Parse_CorrectStreamPosition(string content)
+    {
+        using var input = content.ToStream();
+
+        var output = await new HexadecimalStringParser().ParseAsync(input);
+
+        input.Position.Should().Be(Encoding.UTF8.GetByteCount(content));
     }
 }
