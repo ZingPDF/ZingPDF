@@ -135,20 +135,35 @@ internal static class StreamExtensions
     {
         var bufferSize = 128;
         var buffer = new byte[bufferSize];
+        var builder = new StringBuilder();
+        Decoder decoder = _defaultEncoding.GetDecoder();
 
-        string content = string.Empty;
-        do
+        var charBuffer = new char[bufferSize];
+        var remainingBytes = new List<byte>();
+
+        while (true)
         {
-            var read = await stream.ReadAsync(buffer.AsMemory(0, bufferSize));
-
+            var read = await stream.ReadAsync(buffer.AsMemory());
             if (read == 0)
             {
-                break;
+                break; // End of stream
             }
 
-            content += _defaultEncoding.GetString(buffer, 0, read);
+            // Handle leftover bytes from the previous read
+            if (remainingBytes.Count > 0)
+            {
+                buffer = [.. remainingBytes, .. buffer.Take(read)];
+                read += remainingBytes.Count;
+                remainingBytes.Clear();
+            }
 
-            var index = content.IndexOfAny(c);
+            // Decode bytes into characters
+            int charsDecoded = decoder.GetChars(buffer, 0, read, charBuffer, 0, false);
+            string chunk = new(charBuffer, 0, charsDecoded);
+            builder.Append(chunk);
+
+            // Look for the target characters
+            int index = builder.ToString().IndexOfAny(c);
             if (index != -1)
             {
                 if (includeValueInOutput)
@@ -156,13 +171,18 @@ internal static class StreamExtensions
                     index++;
                 }
 
-                stream.Position -= read - index;
-                return content[..index];
+                // Handle leftover bytes and reset the stream position if seekable
+                if (stream.CanSeek)
+                {
+                    var extraBytes = Encoding.UTF8.GetByteCount(builder.ToString(index, builder.Length - index));
+                    stream.Position -= extraBytes;
+                }
+
+                return builder.ToString(0, index);
             }
         }
-        while (stream.Position < stream.Length);
 
-        return content;
+        return builder.ToString();
     }
 
     /// <summary>

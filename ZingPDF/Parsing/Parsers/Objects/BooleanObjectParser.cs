@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -10,7 +11,13 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             stream.AdvancePastWhitepace();
 
-            return bool.Parse(await stream.ReadUpToExcludingAsync(Constants.WhitespaceCharacters));
+            //Logger.Log(LogLevel.Trace, $"Parsing Boolean from {stream.GetType().Name} at offset: {stream.Position}.");
+
+            var parsed = bool.Parse(await stream.ReadUpToExcludingAsync([..Constants.Delimiters, ..Constants.WhitespaceCharacters]));
+            
+            Logger.Log(LogLevel.Trace, $"Parsed Boolean: {{{parsed}}}. {stream.GetType().Name} now at {stream.Position}.");
+
+            return parsed;
         }
     }
 }
