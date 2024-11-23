@@ -15,35 +15,14 @@ internal class CrossReferenceAggregator
 {
     public async Task<ReadOnlyIndirectObjectDictionary> AggregateAsync(
         Stream pdfInputStream,
-        LinearizationParameterDictionary? linearizationDictionary
+        long xrefLocation
         )
     {
         Logger.Log(LogLevel.Trace, $"Aggregating cross references");
+
+        pdfInputStream.Position = xrefLocation;
          
         Dictionary<int, CrossReferenceEntry> xrefs = [];
-
-        // PDF is linearized if there is a linearization dictionary, AND
-        // the length value (L) is identical to the length of the stream.
-        // A mismatch indicates the file has had at least one incremental update applied,
-        // and should be considered to not be linearized.
-        var isLinearized = linearizationDictionary != null && linearizationDictionary.L == pdfInputStream.Length;
-
-        // If linearized, the T property contains the offset of the main xref table.
-        // However we don't use the T property. Linearized PDFs have an xref table/stream
-        // immediately following the linearization dictionary for objects required by the first page.
-        // The stream should already be positioned correctly to parse this.
-        // The prev property of that xref table/stream will point to the main table.
-        // Otherwise, the offset we need is specified by the startxref value, found by searching from the bottom of the PDF.
-        if (!isLinearized)
-        {
-            var offset = await new ObjectFinder().FindAsync(pdfInputStream, Constants.StartXref, forwards: false)
-                ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
-
-            pdfInputStream.Position = offset;
-            await pdfInputStream.AdvanceBeyondNextAsync(Constants.StartXref);
-
-            pdfInputStream.Position = await Parser.For<Integer>().ParseAsync(pdfInputStream);
-        }
 
         await ParseCrossReferencesAsync(pdfInputStream, xrefs);
 
@@ -149,13 +128,14 @@ internal class CrossReferenceAggregator
 
         foreach (var section in xrefTable.Sections)
         {
-            var maxIndex = section.Index.StartIndex + section.Entries.Count;
-
-            for (var i = section.Index.StartIndex; i < maxIndex; i++)
+            for (var i = 0; i < section.Entries.Count; i++)
             {
                 var entry = section.Entries[i];
 
-                xrefs.TryAdd(i, entry);
+                if (!xrefs.TryAdd(section.Index.StartIndex + i, entry))
+                {
+                    Console.WriteLine("Entry already present in xrefs: " + entry);
+                }
             }
         }
 

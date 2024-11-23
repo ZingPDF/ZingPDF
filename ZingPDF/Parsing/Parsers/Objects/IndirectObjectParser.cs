@@ -14,7 +14,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             stream.AdvancePastWhitepace();
 
-            Logger.Log(LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
+            //Logger.Log(LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             var initialStreamPosition = stream.Position;
 
@@ -59,6 +59,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             }
             while (stream.Position < stream.Length);
+
+            Logger.Log(LogLevel.Trace, $"Parsed IndirectObject {{{id.Value} {genNumber.Value} obj}} between offsets: {initialStreamPosition} - {stream.Position}.");
 
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
