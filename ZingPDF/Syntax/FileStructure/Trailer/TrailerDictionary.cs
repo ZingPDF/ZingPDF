@@ -64,11 +64,6 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
                 throw new ArgumentException($"Missing required {DictionaryKeys.Size} entry in {trailerDictionary}", nameof(trailerDictionary));
             }
 
-            if (trailerDictionary.Get<IndirectObjectReference>(DictionaryKeys.Root) is null)
-            {
-                throw new ArgumentException($"Missing required {DictionaryKeys.Root} entry in {trailerDictionary}", nameof(trailerDictionary));
-            }
-
             return new TrailerDictionary(trailerDictionary);
         }
 
