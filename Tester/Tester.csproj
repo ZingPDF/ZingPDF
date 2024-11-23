@@ -18,31 +18,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="testfiles\image\cat.jpg">
+    <None Include="..\testfiles\image\cat.jpg" Link="testfiles\image\cat.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\pdf\combobox-form.pdf">
+    <None Include="..\testfiles\pdf\combobox-form.pdf" Link="testfiles\pdf\combobox-form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\pdf\complex-form.pdf">
+	  <None Include="..\testfiles\pdf\complex-form.pdf" Link="testfiles\pdf\complex-form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\html\form-test.html">
+	  <None Include="..\testfiles\html\form-test.html" Link="testfiles\html\form-test.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\pdf\form.pdf">
+	  <None Include="..\testfiles\pdf\form.pdf" Link="testfiles\pdf\form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\pdf\Ghostscript.pdf">
+	  <None Include="..\testfiles\pdf\Ghostscript.pdf" Link="testfiles\pdf\Ghostscript.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="GS9_Color_Management.pdf">
+	  <None Include="..\testfiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="testfiles\pdf\MikeyFlemingFreelance_Folio.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="testfiles\pdf\test.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="test2.pdf">
+	  <None Include="..\testfiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
