@@ -12,7 +12,7 @@ public class PdfTests
     [Fact]
     public async Task AppendPage_PageCount()
     {
-        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.Minimal));
+        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.ConcurrentRead("testfiles/pdf/minimal.pdf")));
 
         var pageCount1 = await pdf.GetPageCountAsync();
 
@@ -26,7 +26,7 @@ public class PdfTests
     [Fact]
     public async Task AppendPage_CanRetrieveAfterAdding()
     {
-        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.Minimal));
+        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.ConcurrentRead("testfiles/pdf/minimal.pdf")));
 
         _ = await pdf.AppendPageAsync();
 
@@ -38,7 +38,7 @@ public class PdfTests
     [Fact]
     public async Task InsertPage_PageCount()
     {
-        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.Minimal));
+        var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.ConcurrentRead("testfiles/pdf/minimal.pdf")));
 
         var pageCount1 = await pdf.GetPageCountAsync();
 
