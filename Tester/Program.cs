@@ -38,9 +38,9 @@ using System;
 //await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
 //await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
-//await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
+await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
 
-await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/Ghostscript.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
