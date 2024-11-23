@@ -49,4 +49,26 @@ public class StreamExtensionsTests
 
         inputStream.Position.Should().Be(4);
     }
+
+    [Theory]
+    [InlineData(" ", 1)]
+    [InlineData("\r", 1)]
+    [InlineData("\n", 1)]
+    [InlineData("\r\n", 2)]
+    [InlineData("\f", 1)]
+    [InlineData("\t", 1)]
+    [InlineData(" 123", 1)]
+    [InlineData("\r123", 1)]
+    [InlineData("\n123", 1)]
+    [InlineData("\r\n123", 2)]
+    [InlineData("\f123", 1)]
+    [InlineData("\t123", 1)]
+    public void AdvancePastWhitespace_SetsCorrectPosition(string contentString, int expectedPosition)
+    {
+        var inputStream = contentString.ToStream();
+
+        inputStream.AdvancePastWhitepace();
+
+        inputStream.Position.Should().Be(expectedPosition);
+    }
 }
