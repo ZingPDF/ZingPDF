@@ -24,12 +24,48 @@ public class TokenTypeIdentifierTests
     [InlineData("0.000000", typeof(RealNumber))]
     [InlineData(" ", null)]
     [InlineData("<4E6F762073686D6F7A206B6120706F702E>", typeof(HexadecimalString))]
-    public async Task TryIdentifyBasicAsync(string token, Type expectedType)
+    [InlineData("<</ArtBox[0.0 0.0 841.89 595.276]/BleedBox[0.0 0.0 841.89 595.276]/", typeof(Dictionary))]
+    public async Task TryIdentify_Basic(string token, Type expectedType)
     {
         using var input = token.ToStream();
 
         var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
 
         output.Should().Be(expectedType);
+
+        input.Position.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData("\rendobj", typeof(Keyword))]
+    [InlineData("\r\nendobj", typeof(Keyword))]
+    public async Task TryIdentify_LeadingWhitespace(string token, Type expectedType)
+    {
+        using var input = token.ToStream();
+
+        var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+
+        output.Should().Be(expectedType);
+
+        input.Position.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData("endobj\r", typeof(Keyword))]
+    [InlineData("endobj ", typeof(Keyword))]
+    [InlineData("\rendobj\r", typeof(Keyword))]
+    [InlineData("\r\nendobj\r", typeof(Keyword))]
+    [InlineData("endobj\r\n", typeof(Keyword))]
+    [InlineData("\rendobj\r\n", typeof(Keyword))]
+    [InlineData("\r\nendobj\r\n", typeof(Keyword))]
+    public async Task TryIdentify_TrailingWhitespace(string token, Type expectedType)
+    {
+        using var input = token.ToStream();
+
+        var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+
+        output.Should().Be(expectedType);
+
+        input.Position.Should().Be(0);
     }
 }
