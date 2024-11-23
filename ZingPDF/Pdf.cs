@@ -245,31 +245,28 @@ public class Pdf : IEditablePdf
 
     public async Task AppendPdfAsync(Stream stream)
     {
-        // Keeping this simple for now...
-        // 1. Parse supplied PDF
-        // 2. Append all pages to this PDF
-        // 3. Copy all referenced page resources
-
         var sourcePdf = await PdfParser.OpenReadOnlyAsync(stream);
-
-        List<IndirectObject> pagesToAdd = [];
-        //HashSet<IndirectObject> objectsToAdd = [];
 
         // Simple document merging...
         // - We're going to visit every page and page tree node in the new PDF
         // - All pages we find will be added to this document
-        // - Along the way we'll build a resource dictionary from all encountered nodes
+        // - Along the way we'll add all indirect object references to a hash set, dereference and copy objects
 
-        var mergedResourceDictionary = new Dictionary<Name, IPdfObject>();
+        var pagesToAdd = new List<IndirectObject>();
+        var namedResources = new HashSet<IndirectObjectReference>();
         var nodes = await sourcePdf.PageTree.GetAllNodesAsync();
-
+        
         foreach (var node in nodes)
         {
-            var resources = ((Dictionary?)node.Object)?.Get<Dictionary>(Constants.DictionaryKeys.Page.Resources);
+            var pageNodeDictionary = node.Object as Dictionary
+                ?? throw new InvalidOperationException("Something went wrong");
 
+            var resources = pageNodeDictionary.Get<Dictionary>(Constants.DictionaryKeys.Page.Resources);
             if (resources != null)
             {
-                mergedResourceDictionary = resources?.MergeInto(mergedResourceDictionary!);
+                var resourceDictionary = ResourceDictionary.FromDictionary(resources);
+
+                // TODO: go through entries and add resources to namedResources hash set
             }
 
             if (node.Object is PageDictionary)
@@ -278,21 +275,34 @@ public class Pdf : IEditablePdf
             }
         }
 
-        _indirectObjectManager.AddRange(pagesToAdd);
-        
-        // TODO: add merged resource dictionary
-        // TODO: add referenced resource objects
-    }
+        // TODO: when adding resources, add as new indirect objects and update each page resource reference to the new references
 
-    //// Returning resources as indirect objects allows us to de-dupe them by ID.
-    //private IEnumerable<IndirectObject> FindResources(PageDictionary page)
-    //{
-    //    // 1. Page resources
-    //    if (page.Resources is not null)
-    //    {
-    //        // Don't bother considering property inheritance as 
-    //    }
-    //}
+        // Dereference resources
+        List<IndirectObject> resourceObjects = [];
+        foreach (var ior in namedResources)
+        {
+            resourceObjects.Add(await _indirectObjectManager.GetAsync(ior));
+        }
+
+        // Add resources to PDF
+        _indirectObjectManager.AddRange(resourceObjects);
+
+        // Create a new page tree node
+        var parent = PageTreeNodeDictionary.CreateNew(pagesToAdd.Select(p => p.Id.Reference).ToArray());
+        var parentIndirectObject = _indirectObjectManager.Add(parent);
+
+        _indirectObjectManager.AddRange(pagesToAdd);
+
+        // Add to root page tree node
+        var rootPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.Pages)
+            ?? throw new InvalidPdfException("Unable to find root page tree node");
+
+        var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
+
+        //rootPageTreeNode.AddChild();
+
+        _indirectObjectManager.Update(rootPageTreeNodeIndirectObject);
+    }
 
     #endregion
 
