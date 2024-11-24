@@ -1,6 +1,4 @@
-﻿using ZingPDF.Elements;
-using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree
@@ -8,58 +6,49 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
     /// <summary>
     /// ISO 32000-2:2020 7.7.3.2 - Page tree nodes
     /// </summary>
-    public class PageTreeNodeDictionary : Dictionary
+    public class PageTreeNodeDictionary : PageNode
     {
         private PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary) : base(pageTreeNodeDictionary) { }
 
-        public IndirectObjectReference? Parent => Get<IndirectObjectReference>(Constants.DictionaryKeys.PageTreeNode.Parent);
+        public ArrayObject Kids => Get<ArrayObject>(Constants.DictionaryKeys.PageTree.PageTreeNode.Kids)!;
 
-        public ArrayObject Kids => Get<ArrayObject>(Constants.DictionaryKeys.PageTreeNode.Kids)!;
-
-        #region Inheritable properties
-
-        /// <summary>
-        /// The boundaries of the physical medium on which the page shall be displayed or printed.
-        /// </summary>
-        public Rectangle? MediaBox => Get<Rectangle>(Constants.DictionaryKeys.Page.MediaBox);
-
-        #endregion
-
-        public Integer PageCount => Get<Integer>(Constants.DictionaryKeys.PageTreeNode.Count)!;
+        public Integer PageCount => Get<Integer>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count)!;
 
         public void AddChild(IndirectObjectReference key)
         {
-            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
 
             Kids.Add(key);
 
-            Set(Constants.DictionaryKeys.PageTreeNode.Count, new Integer(PageCount + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount + 1));
         }
 
         public void RemoveChild(IndirectObjectReference key)
         {
-            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
 
             Kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);   
 
-            Set(Constants.DictionaryKeys.PageTreeNode.Count, new Integer(PageCount - 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount - 1));
+        }
+
+        public void ReplaceAllChildren(IEnumerable<IndirectObjectReference> kids)
+        {
+            ArgumentNullException.ThrowIfNull(kids, nameof(kids));
+
+            Kids.Clear();
+
+            Kids.AddRange(kids);
         }
 
         public void IncrementCount()
         {
-            Set(Constants.DictionaryKeys.PageTreeNode.Count, new Integer(PageCount + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount + 1));
         }
 
         public void DecrementCount()
         {
-            Set(Constants.DictionaryKeys.PageTreeNode.Count, new Integer(PageCount - 1));
-        }
-
-        public void SetRotation(Rotation rotation)
-        {
-            ArgumentNullException.ThrowIfNull(rotation);
-
-            Set<Integer>(Constants.DictionaryKeys.Page.Rotate, rotation);
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount - 1));
         }
 
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences)
@@ -67,8 +56,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             return new(new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Pages) },
-                { Constants.DictionaryKeys.PageTreeNode.Kids, pageReferences },
-                { Constants.DictionaryKeys.PageTreeNode.Count, new Integer(pageReferences.Count()) },
+                { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
+                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(pageReferences.Count()) },
             });
         }
 
