@@ -32,6 +32,8 @@ public class Pdf : IEditablePdf
         PageTree = new PageTree(_indirectObjectManager, DocumentCatalog.Pages);
     }
 
+    public IndirectObjectManager IndirectObjectManager => _indirectObjectManager;
+
     #region IPdf
 
     public IIndirectObjectDictionary IndirectObjects => _indirectObjectManager;
@@ -96,8 +98,7 @@ public class Pdf : IEditablePdf
     {
         var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
 
-        var rootPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.Pages)
-            ?? throw new InvalidPdfException("Unable to find root page tree node");
+        var rootPageTreeNodeIndirectObject = await PageTree.GetRootPageTreeNodeAsync();
 
         var page = PageDictionary.CreateNew(DocumentCatalog.Pages, pageCreationOptions);
 
@@ -245,67 +246,11 @@ public class Pdf : IEditablePdf
 
     public async Task AppendPdfAsync(Stream stream)
     {
-        var sourcePdf = await PdfParser.OpenReadOnlyAsync(stream);
-
-        // Simple document merging...
-        // - We're going to visit every page and page tree node in the new PDF
-        // - All pages we find will be added to this document
-        // - Along the way we'll add all indirect object references to a hash set, dereference and copy objects
-
-        var pagesToAdd = new List<IndirectObject>();
-        var namedResources = new HashSet<IndirectObjectReference>();
-        var nodes = await sourcePdf.PageTree.GetAllNodesAsync();
-        
-        foreach (var node in nodes)
-        {
-            var pageNodeDictionary = node.Object as Dictionary
-                ?? throw new InvalidOperationException("Something went wrong");
-
-            var resources = pageNodeDictionary.Get<Dictionary>(Constants.DictionaryKeys.Page.Resources);
-            if (resources != null)
-            {
-                var resourceDictionary = ResourceDictionary.FromDictionary(resources);
-
-                // TODO: go through entries and add resources to namedResources hash set
-            }
-
-            if (node.Object is PageDictionary)
-            {
-                pagesToAdd.Add(node);
-            }
-        }
-
-        // TODO: when adding resources, add as new indirect objects and update each page resource reference to the new references
-
-        // Dereference resources
-        List<IndirectObject> resourceObjects = [];
-        foreach (var ior in namedResources)
-        {
-            resourceObjects.Add(await _indirectObjectManager.GetAsync(ior));
-        }
-
-        // Add resources to PDF
-        _indirectObjectManager.AddRange(resourceObjects);
-
-        // Create a new page tree node
-        var parent = PageTreeNodeDictionary.CreateNew(pagesToAdd.Select(p => p.Id.Reference).ToArray());
-        var parentIndirectObject = _indirectObjectManager.Add(parent);
-
-        _indirectObjectManager.AddRange(pagesToAdd);
-
-        // Add to root page tree node
-        var rootPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(DocumentCatalog.Pages)
-            ?? throw new InvalidPdfException("Unable to find root page tree node");
-
-        var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
-
-        //rootPageTreeNode.AddChild();
-
-        _indirectObjectManager.Update(rootPageTreeNodeIndirectObject);
+        await new PdfMerger(this, await PdfParser.OpenReadOnlyAsync(stream)).AppendAsync();
     }
 
     #endregion
-
+    
     // TODO: move to testable class?
     /// <summary>
     /// Recursively increment the page count of this page tree node and all its ancestors
