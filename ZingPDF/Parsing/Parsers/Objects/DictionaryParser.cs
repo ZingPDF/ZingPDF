@@ -30,11 +30,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
         // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
         private readonly List<Name> _rectKeys =
         [
-            Constants.DictionaryKeys.Page.MediaBox,
-            Constants.DictionaryKeys.Page.CropBox,
-            Constants.DictionaryKeys.Page.BleedBox,
-            Constants.DictionaryKeys.Page.TrimBox,
-            Constants.DictionaryKeys.Page.ArtBox,
+            Constants.DictionaryKeys.PageTree.MediaBox,
+            Constants.DictionaryKeys.PageTree.CropBox,
+            Constants.DictionaryKeys.PageTree.Page.BleedBox,
+            Constants.DictionaryKeys.PageTree.Page.TrimBox,
+            Constants.DictionaryKeys.PageTree.Page.ArtBox,
             Constants.DictionaryKeys.Annotation.Rect,
             Constants.DictionaryKeys.Form.Type1.BBox,
         ];

@@ -74,7 +74,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// <para>(Optional; deprecated in PDF 2.0)</para>
         /// <para>An array of predefined procedure set names (see 14.2, "Procedure sets").</para>
         /// </summary>
-        public Dictionary? ProcSet => Get<Dictionary>(Constants.DictionaryKeys.Resource.ProcSet);
+        public ArrayObject? ProcSet => Get<ArrayObject>(Constants.DictionaryKeys.Resource.ProcSet);
 
         /// <summary>
         /// <para>(Optional; PDF 1.2)</para>

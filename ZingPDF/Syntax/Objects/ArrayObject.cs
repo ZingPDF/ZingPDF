@@ -26,6 +26,9 @@ namespace ZingPDF.Syntax.Objects
         public void Add<T>(T item) where T : IPdfObject
             => _values.Add(item);
 
+        public void AddRange(IEnumerable<IPdfObject> items)
+            => _values.AddRange(items);
+
         public void Remove<T>(Predicate<T> match) where T : IPdfObject
         {
             _values.OfType<T>().ToList().RemoveAll(match);
@@ -37,6 +40,8 @@ namespace ZingPDF.Syntax.Objects
                 ? (T)_values[index]
                 : null;
         }
+
+        public void Clear() => _values.Clear();
 
         protected override async Task WriteOutputAsync(Stream stream)
         {

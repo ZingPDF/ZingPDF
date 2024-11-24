@@ -124,46 +124,49 @@ internal static class Constants
             public const string W = "W";
         }
 
-        public static class PageTreeNode
-        {
-            public const string Parent = "Parent";
-            public const string Kids = "Kids";
-            public const string Count = "Count";
-        }
-
-        public static class Page
+        public static class PageTree
         {
             public const string Parent = "Parent";
             public const string Resources = "Resources";
             public const string MediaBox = "MediaBox";
             public const string CropBox = "CropBox";
-            public const string BleedBox = "BleedBox";
-            public const string TrimBox = "TrimBox";
-            public const string ArtBox = "ArtBox";
-            public const string BoxColorInfo = "BoxColorInfo";
-            public const string Contents = "Contents";
             public const string Rotate = "Rotate";
-            public const string Group = "Group";
-            public const string Thumb = "Thumb";
-            public const string B = "B";
-            public const string Dur = "Dur";
-            public const string Trans = "Trans";
-            public const string Annots = "Annots";
-            public const string AA = "AA";
-            public const string Metadata = "Metadata";
-            public const string PieceInfo = "PieceInfo";
-            public const string StructParents = "StructParents";
-            public const string ID = "ID";
-            public const string PZ = "PZ";
-            public const string SeparationInfo = "SeparationInfo";
-            public const string Tabs = "Tabs";
-            public const string TemplateInstantiated = "TemplateInstantiated";
-            public const string PresSteps = "PresSteps";
-            public const string UserUnit = "UserUnit";
-            public const string VP = "VP";
-            public const string AF = "AF";
-            public const string OutputIntents = "OutputIntents";
-            public const string DPart = "DPart";
+
+            public static class PageTreeNode
+            {
+                public const string Kids = "Kids";
+                public const string Count = "Count";
+            }
+
+            public static class Page
+            {
+                public const string BleedBox = "BleedBox";
+                public const string TrimBox = "TrimBox";
+                public const string ArtBox = "ArtBox";
+                public const string BoxColorInfo = "BoxColorInfo";
+                public const string Contents = "Contents";
+                public const string Group = "Group";
+                public const string Thumb = "Thumb";
+                public const string B = "B";
+                public const string Dur = "Dur";
+                public const string Trans = "Trans";
+                public const string Annots = "Annots";
+                public const string AA = "AA";
+                public const string Metadata = "Metadata";
+                public const string PieceInfo = "PieceInfo";
+                public const string StructParents = "StructParents";
+                public const string ID = "ID";
+                public const string PZ = "PZ";
+                public const string SeparationInfo = "SeparationInfo";
+                public const string Tabs = "Tabs";
+                public const string TemplateInstantiated = "TemplateInstantiated";
+                public const string PresSteps = "PresSteps";
+                public const string UserUnit = "UserUnit";
+                public const string VP = "VP";
+                public const string AF = "AF";
+                public const string OutputIntents = "OutputIntents";
+                public const string DPart = "DPart";
+            }
         }
 
         public static class Resource
