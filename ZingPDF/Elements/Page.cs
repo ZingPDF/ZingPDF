@@ -3,7 +3,9 @@ using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
 
 namespace ZingPDF.Elements
@@ -51,14 +53,14 @@ namespace ZingPDF.Elements
                 filters = [FilterFactory.Create(filter, null)];
             }
 
-            var imageXObject = new ImageXObject(
-                image.ImageData,
-                imageMetadata.Width,
-                imageMetadata.Height,
-                imageMetadata.ColorSpace,
-                imageMetadata.BitDepth,
-                filters,
-                sourceDataIsCompressed: true
+            var imageXObject = new StreamObject<ImageDictionary>(
+                new StreamData(image.ImageData, true, filters),
+                new ImageDictionary(
+                    imageMetadata.Width,
+                    imageMetadata.Height,
+                    (Name)imageMetadata.ColorSpace.ToString(),
+                    imageMetadata.BitDepth
+                    )
                 );
 
             var imageXObjectIndirectObject = IndirectObjects.Add(imageXObject);

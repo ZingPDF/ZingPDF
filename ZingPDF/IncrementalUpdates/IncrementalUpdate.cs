@@ -43,7 +43,7 @@ namespace ZingPDF.IncrementalUpdates
                 await entry.WriteAsync(stream);
             }
 
-            var size = _indirectObjectManager.Count + _indirectObjectManager.NewObjects.Count;
+            var size = _indirectObjectManager.Count;
 
             // The prev value points to the previous latest xref table or stream.
             // If the current PDF has a trailer, prev should be the same as the current startxref value.
@@ -71,18 +71,14 @@ namespace ZingPDF.IncrementalUpdates
                 // +1 because the new xref stream should be included in the count
                 size++;
 
-                var xrefStream = new CrossReferenceStream(
+                var xrefStream = CrossReferenceStreamFactory.Create(
                     xrefSections,
-                    null,
-                    //new[] { new FlateDecodeFilter(filterParams: null) },
-                    //new[] { new ASCIIHexDecodeFilter() },
                     size,
                     prev,
                     _sourcePdf.TrailerDictionary.Root,
                     _sourcePdf.TrailerDictionary.Encrypt,
                     _sourcePdf.TrailerDictionary.Info,
-                    _sourcePdf.TrailerDictionary.ID,
-                    sourceDataIsCompressed: false
+                    _sourcePdf.TrailerDictionary.ID
                     );
 
                 xrefStreamIndirectObject.SetObject(xrefStream);

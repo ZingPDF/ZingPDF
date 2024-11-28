@@ -40,7 +40,7 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         }
     }
 
-    public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
+    public async Task<IndirectObject?> GetAsync(IndirectObjectReference key)
     {
         foreach (var obj in NewOrUpdatedObjects)
         {
@@ -61,12 +61,12 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         return await _sourceDictionary.GetAsync(key);
     }
 
-    public async Task<T> GetAsync<T>(IndirectObjectReference key)
+    public async Task<T?> GetAsync<T>(IndirectObjectReference key)
+        where T : class, IPdfObject
     {
-        var indirectObject = await GetAsync(key)
-            ?? throw new InvalidOperationException($"Unable to dereference indirect object: {key}");
+        var indirectObject = await GetAsync(key);
 
-        return (T)indirectObject.Object;
+        return indirectObject?.Object as T;
     }
 
     public IndirectObject Add(IPdfObject pdfObject)
