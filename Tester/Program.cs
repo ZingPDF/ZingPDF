@@ -18,7 +18,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Extensions;
 using System;
 
-//XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
+XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -42,7 +42,8 @@ await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf"
 
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
-//LoadAndValidateUsingAbcpdf("testfiles/pdf/Ghostscript.pdf");
+//LoadAndValidateUsingAbcpdf("testfiles/pdf/test.pdf");
+//LoadAndValidateUsingAbcpdf("testfiles/pdf/form.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
 
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
