@@ -1,7 +1,12 @@
-﻿using ZingPDF.Syntax.ContentStreamsAndResources;
+﻿using System.Runtime.InteropServices.JavaScript;
+using ZingPDF.Extensions;
+using ZingPDF.Parsing.Parsers.Objects;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF
 {
@@ -133,7 +138,21 @@ namespace ZingPDF
                     await CopyResourcesAsync(obj.Object as Dictionary);
                 }
 
-                var newObj = _mainPdf.IndirectObjectManager.Add(obj.Object);
+                IPdfObject target = obj.Object;
+
+                // If the object is a stream, copy the stream contents. For performance reasons, the content is not
+                // contained within the parsed stream object itself, but has a reference to its location in the file. This 
+                // won't work when trying to save the merged file as the data is in the target file.
+                if (obj.Object is StreamObject<IStreamDictionary> ssObject)
+                {
+                    var ms = new MemoryStream();
+                    await ssObject.Data.Data.CopyToAsync(ms);
+                    var contents = new StreamData(ms, ssObject.Data.Compressed, ssObject.Data.Filters);
+
+                    target = new StreamObject<IStreamDictionary>(contents, ssObject.Dictionary);
+                }
+
+                var newObj = _mainPdf.IndirectObjectManager.Add(target);
 
                 _oldToNewMap.Add(reference, newObj.Id.Reference);
             }

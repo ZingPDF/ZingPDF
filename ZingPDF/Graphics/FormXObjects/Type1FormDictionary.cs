@@ -2,6 +2,7 @@
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Graphics.FormXObjects
 {
@@ -78,7 +79,7 @@ namespace ZingPDF.Graphics.FormXObjects
         /// <summary>
         /// (Optional; PDF 1.4) A metadata stream containing metadata for the form XObject (see 14.3.2, "Metadata streams").
         /// </summary>
-        public MetadataStream? Metadata => Get<MetadataStream>(Constants.DictionaryKeys.Form.Type1.Metadata);
+        public StreamObject<MetadataStreamDictionary>? Metadata => Get<StreamObject<MetadataStreamDictionary>>(Constants.DictionaryKeys.Form.Type1.Metadata);
 
         // TODO: page piece dictionary type
         /// <summary>

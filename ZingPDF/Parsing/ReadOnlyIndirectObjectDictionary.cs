@@ -5,6 +5,7 @@ using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing;
 
@@ -49,7 +50,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
                 // TODO: cache decompressed stream data?
                 // Decompress stream, read bytes up to first object.
                 // These bytes contain pairs of integers, identifying each object number and byte offset.          
-                Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
+                Stream decompressedObjectStream = await objectStream.Data.GetDecompressedDataAsync();
                 var decompressedData = new byte[objectStreamDictionary.First];
                 await decompressedObjectStream.ReadExactlyAsync(decompressedData, 0, objectStreamDictionary.First);
 
@@ -88,6 +89,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
     }
 
     public async Task<T?> GetAsync<T>(IndirectObjectReference key)
+        where T : class, IPdfObject
     {
         var io = await GetAsync(key);
 
