@@ -1,81 +1,36 @@
-﻿using ZingPDF.Syntax.Filters;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 
-/// <summary>
-/// ISO 32000-2:2020 7.5.8 - Cross-reference streams
-/// </summary>
-internal class CrossReferenceStream : StreamObject<CrossReferenceStreamDictionary>
+internal static class CrossReferenceStreamFactory
 {
-    private readonly IEnumerable<CrossReferenceSection> _xrefSections;
-    private readonly Integer _size;
-    private readonly Integer? _prev;
-    private readonly IndirectObjectReference _root;
-    private readonly Dictionary? _encrypt;
-    private readonly IndirectObjectReference? _info;
-    private readonly ArrayObject? _id;
-
-    public CrossReferenceStream(
-        IEnumerable<CrossReferenceSection> xrefSections,
-        IEnumerable<IFilter>? filters,
+    public static StreamObject<CrossReferenceStreamDictionary> Create(
+        IEnumerable<CrossReferenceSection> _xrefSections,
         Integer size,
         Integer? prev,
         IndirectObjectReference root,
         Dictionary? encrypt,
         IndirectObjectReference? info,
-        ArrayObject? id,
-        bool sourceDataIsCompressed
+        ArrayObject? id
         )
-        : base(filters, sourceDataIsCompressed)
     {
-        _xrefSections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
-        _size = size ?? throw new ArgumentNullException(nameof(size));
-        _prev = prev;
-        _root = root ?? throw new ArgumentNullException(nameof(root));
-        _encrypt = encrypt;
-        _info = info;
-        _id = id;
-    }
-
-    protected override Task<Stream> GetSourceDataAsync(CrossReferenceStreamDictionary dictionary)
-    {
-        var ms = new MemoryStream();
-
-        _xrefSections
-            .SelectMany(section => section.Entries)
-            .ToList()
-            .ForEach(async entry =>
-            {
-                await WriteEntryAsync(
-                    ms,
-                    entry,
-                    dictionary.Field1Size,
-                    dictionary.Field2Size,
-                    dictionary.Field3Size
-                    );
-            });
-
-        ms.Position = 0;
-
-        return Task.FromResult<Stream>(ms);
-    }
-
-    protected override CrossReferenceStreamDictionary GetSpecialisedDictionary()
-    {
-        var index = (ArrayObject)_xrefSections.SelectMany(s => new Integer[] { s.Index.StartIndex, s.Index.Count }).ToArray();
-
         var allEntries = _xrefSections.SelectMany(x => x.Entries);
 
         var field1Size = 1; // TODO: consider supporting 0 if all entries are in use
         var field2Size = GetFieldSize(allEntries, entry => entry.Value1);
         var field3Size = GetFieldSize(allEntries, entry => entry.Value2);
 
+        var index = (ArrayObject)_xrefSections.SelectMany(s => new Integer[] { s.Index.StartIndex, s.Index.Count }).ToArray();
+
         var w = (ArrayObject)new Integer[] { field1Size, field2Size, field3Size };
 
-        return CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
+        var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, size, prev, root, encrypt, info, id);
+
+        var data = CreateStreamData(_xrefSections, field1Size, field2Size, field3Size);
+
+        return new StreamObject<CrossReferenceStreamDictionary>(data, dictionary);
     }
 
     // Method to get the size of the field based on the entries
@@ -89,6 +44,29 @@ internal class CrossReferenceStream : StreamObject<CrossReferenceStreamDictionar
 
         // Ensure a minimum size of 1 byte
         return Math.Max(size, 1);
+    }
+
+    private static StreamData CreateStreamData(IEnumerable<CrossReferenceSection> xrefSections, int field1Size, int field2Size, int field3Size)
+    {
+        var ms = new MemoryStream();
+
+        xrefSections
+            .SelectMany(section => section.Entries)
+            .ToList()
+            .ForEach(async entry =>
+            {
+                await WriteEntryAsync(
+                    ms,
+                    entry,
+                    field1Size,
+                    field2Size,
+                    field3Size
+                    );
+            });
+
+        ms.Position = 0;
+
+        return new StreamData(ms, dataIsCompressed: false);
     }
 
     // Method to write a single entry

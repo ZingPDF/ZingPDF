@@ -3,6 +3,7 @@ using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -45,13 +46,24 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
 
-            return new SubStreamObject(
-                stream,
-                streamDataOffset,
-                streamDataOffset + streamLength,
-                streamDict
+            var filters = FilterFactory.CreateFilterInstances(streamDict);
+
+            return new StreamObject<IStreamDictionary>(
+                new StreamData(
+                    new SubStream(
+                        stream,
+                        streamDataOffset,
+                        streamDataOffset + streamLength,
+                        setToStart: false
+                        ),
+                        dataIsCompressed: filters.Any(),
+                        filters
+                    ), streamDict
                 )
-            { ByteOffset = initialStreamPosition };
+            {
+                ByteOffset = initialStreamPosition
+            };
         }
     }
 }
+
