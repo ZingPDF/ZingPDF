@@ -52,16 +52,23 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
         public void SetParent(IndirectObjectReference parent)
         {
-            ArgumentNullException.ThrowIfNull(nameof(parent));
+            ArgumentNullException.ThrowIfNull(parent, nameof(parent));
 
             Set(Constants.DictionaryKeys.PageTree.Parent, parent);
         }
 
         public void SetRotation(Rotation rotation)
         {
-            ArgumentNullException.ThrowIfNull(rotation);
+            ArgumentNullException.ThrowIfNull(rotation, nameof(rotation));
 
             Set<Integer>(Constants.DictionaryKeys.PageTree.Rotate, rotation);
+        }
+
+        public void SetResources(ResourceDictionary resourceDictionary)
+        {
+            ArgumentNullException.ThrowIfNull(resourceDictionary, nameof(resourceDictionary));
+
+            Set(Constants.DictionaryKeys.PageTree.Resources, resourceDictionary);
         }
 
         public async Task AddXObjectResourceAsync(
