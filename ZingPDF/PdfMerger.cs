@@ -146,6 +146,8 @@ namespace ZingPDF
                 if (obj.Object is StreamObject<IStreamDictionary> ssObject)
                 {
                     var ms = new MemoryStream();
+
+                    ssObject.Data.Data.Position = 0;
                     await ssObject.Data.Data.CopyToAsync(ms);
                     var contents = new StreamData(ms, ssObject.Data.Compressed, ssObject.Data.Filters);
 
