@@ -14,6 +14,7 @@ using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
@@ -142,7 +143,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     var key = (Name)objectGroup.Objects[j];
                     var val = objectGroup.Objects[j + 1];
 
-                    if (_rectKeys.Contains(key))
+                    if (_rectKeys.Contains(key) && val is not IndirectObjectReference)
                     {
                         var ary = (ArrayObject)val;
 
