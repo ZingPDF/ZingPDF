@@ -1,8 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using ZingPDF.Extensions;
-using ZingPDF.Parsing.Parsers.Objects;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.ContentStreamsAndResources;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -46,8 +42,7 @@ namespace ZingPDF
             //      - Add it to the dictionary to map the old to new reference (This way, for each reference we process, we can check if we've already created a new indirect object)
             //      - Update the reference in the resource dictionary to the new reference
             // - Now that we have new indirect objects for all nodes, perform another loop to update all kids arrays with new references
-            // - Add a new page tree node to act as parent for all new pages
-            // - Add new parent to root page tree node
+            // - Add incoming root page tree node as a new child of this PDF's root
 
             // Get all pages and page tree nodes
             var nodes = await _pdfToAppend.PageTree.GetAllNodesAsync();
@@ -70,21 +65,9 @@ namespace ZingPDF
                 _newPageNodes.Add(newObj);
 
                 // Also add it to the old-new map so it can be used as a parent in a future iteration
-                _oldToNewMap.Add(node.Id.Reference, newObj.Id.Reference);
+                _oldToNewMap.TryAdd(node.Id.Reference, newObj.Id.Reference);
 
-                // Create a new reference for each resource
-                if (pageNodeDictionary.Resources is Dictionary resources)
-                {
-                    var resourceDictionary = ResourceDictionary.FromDictionary(resources);
-
-                    await CopyResourcesAsync(resourceDictionary.ExtGState);
-                    await CopyResourcesAsync(resourceDictionary.ColorSpace);
-                    await CopyResourcesAsync(resourceDictionary.Pattern);
-                    await CopyResourcesAsync(resourceDictionary.Shading);
-                    await CopyResourcesAsync(resourceDictionary.XObject);
-                    await CopyResourcesAsync(resourceDictionary.Font);
-                    await CopyResourcesAsync(resourceDictionary.Properties);
-                }
+                pageNodeDictionary = (PageNode)await CopyReferencesAsync(pageNodeDictionary);
             }
 
             // Now that we have new objects for all page nodes, update all Kids arrays with new references
@@ -101,63 +84,89 @@ namespace ZingPDF
                 }
             }
 
-            // Create a new page tree node
-            var parent = PageTreeNodeDictionary.CreateNew(_newPageNodes.Select(p => p.Id.Reference).ToArray());
-            var parentIndirectObject = _mainPdf.IndirectObjectManager.Add(parent);
-
-            rootPageTreeNode.AddChild(parentIndirectObject.Id.Reference);
+            // Add incoming root page tree node as a child of this PDF's root page tree node.
+            rootPageTreeNode.AddChild(_oldToNewMap[_pdfToAppend.DocumentCatalog.Pages]);
 
             _mainPdf.IndirectObjectManager.Update(rootPageTreeNodeIndirectObject);
         }
 
-        // For the given dictionary, find all indirect object references, dereference, copy, recurse.
-        private async Task CopyResourcesAsync(Dictionary? resources)
+        private async Task<IPdfObject> CopyReferencesAsync(IPdfObject obj)
         {
-            if (resources is null)
+            if (obj is Dictionary dict)
             {
-                return;
+                return await CopyDictionaryReferencesAsync(dict);
+            }
+            else if (obj is ArrayObject ary)
+            {
+                return await CopyArrayReferencesAsync(ary);
+            }
+            else if (obj is IndirectObjectReference ior)
+            {
+                return await CopyReferenceAsync(ior);
             }
 
+            return obj;
+        }
+
+        private async Task<Dictionary> CopyDictionaryReferencesAsync(Dictionary resources)
+        {
             foreach (var entry in resources)
             {
-                if (entry.Value is not IndirectObjectReference reference)
-                {
-                    continue;
-                }
-
-                if (_oldToNewMap.ContainsKey(reference))
-                {
-                    continue;
-                }
-
-                var obj = await _pdfToAppend.IndirectObjects.GetAsync(reference)
-                        ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
-
-                if (obj.Object is Dictionary)
-                {
-                    await CopyResourcesAsync(obj.Object as Dictionary);
-                }
-
-                IPdfObject target = obj.Object;
-
-                // If the object is a stream, copy the stream contents. For performance reasons, the content is not
-                // contained within the parsed stream object itself, but has a reference to its location in the file. This 
-                // won't work when trying to save the merged file as the data is in the target file.
-                if (obj.Object is StreamObject<IStreamDictionary> ssObject)
-                {
-                    var ms = new MemoryStream();
-
-                    ssObject.Data.Data.Position = 0;
-                    await ssObject.Data.Data.CopyToAsync(ms);
-                    var contents = new StreamData(ms, ssObject.Data.Compressed, ssObject.Data.Filters);
-
-                    target = new StreamObject<IStreamDictionary>(contents, ssObject.Dictionary);
-                }
-
-                var newObj = _mainPdf.IndirectObjectManager.Add(target);
-
-                _oldToNewMap.Add(reference, newObj.Id.Reference);
+                resources[entry.Key] = await CopyReferencesAsync(entry.Value);
             }
+
+            return resources;
+        }
+
+        private async Task<ArrayObject> CopyArrayReferencesAsync(ArrayObject ary)
+        {
+            var newArray = new ArrayObject();
+
+            foreach (var item in ary)
+            {
+                newArray.Add(await CopyReferencesAsync(item));
+            }
+
+            return newArray;
+        }
+
+        private async Task<IndirectObjectReference> CopyReferenceAsync(IndirectObjectReference reference)
+        {
+            Console.WriteLine($"Copying {reference}");
+
+            if (_oldToNewMap.TryGetValue(reference, out IndirectObjectReference? value))
+            {
+                return value;
+            }
+
+            _oldToNewMap.Add(reference, new IndirectObjectReference(new IndirectObjectId(0, 0)));
+
+            var obj = await _pdfToAppend.IndirectObjects.GetAsync(reference)
+                ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
+
+            IPdfObject target = obj.Object;
+
+            // If the object is a stream, copy the stream contents. For performance reasons, the content is not
+            // contained within the parsed stream object itself, but has a reference to its location in the file. This 
+            // won't work when trying to save the merged file as the data is in the target file.
+            if (obj.Object is StreamObject<IStreamDictionary> ssObject)
+            {
+                var ms = new MemoryStream();
+
+                ssObject.Data.Data.Position = 0;
+                await ssObject.Data.Data.CopyToAsync(ms);
+                var contents = new StreamData(ms, ssObject.Data.Compressed, ssObject.Data.Filters);
+
+                target = new StreamObject<IStreamDictionary>(contents, ssObject.Dictionary);
+            }
+
+            target = await CopyReferencesAsync(target);
+
+            var newObj = _mainPdf.IndirectObjectManager.Add(target);
+
+            _oldToNewMap[reference] = newObj.Id.Reference;
+
+            return newObj.Id.Reference;
         }
     }
 }
