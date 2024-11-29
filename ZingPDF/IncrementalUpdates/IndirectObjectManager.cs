@@ -116,7 +116,7 @@ public class IndirectObjectManager : IIndirectObjectDictionary
         }
 
         return new IndirectObjectId(Count + 1, 0);
-    }
+    } 
 
     public List<IndirectObjectId> GetFreeIds()
     {

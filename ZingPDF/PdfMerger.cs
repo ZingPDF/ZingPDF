@@ -139,12 +139,14 @@ namespace ZingPDF
                 return value;
             }
 
-            _oldToNewMap.Add(reference, new IndirectObjectReference(new IndirectObjectId(0, 0)));
-
             var obj = await _pdfToAppend.IndirectObjects.GetAsync(reference)
                 ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
 
             IPdfObject target = obj.Object;
+
+            var newObj = _mainPdf.IndirectObjectManager.Add(target);
+
+            _oldToNewMap.Add(reference, new IndirectObjectReference(new IndirectObjectId(0, 0)));
 
             // If the object is a stream, copy the stream contents. For performance reasons, the content is not
             // contained within the parsed stream object itself, but has a reference to its location in the file. This 
