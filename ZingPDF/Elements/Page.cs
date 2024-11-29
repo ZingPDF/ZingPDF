@@ -3,9 +3,7 @@ using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Filters;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
 
 namespace ZingPDF.Elements
@@ -44,7 +42,7 @@ namespace ZingPDF.Elements
 
             var imageMetadata = await new ImageSharpMetadataRetriever().GetAsync(image.ImageData);
 
-            List<IFilter>? filters = null;
+            List<IFilter> filters = [];
             var filter = imageMetadata.CompressionType.ToPDFFilterName();
 
             if (filter != null)
@@ -53,15 +51,16 @@ namespace ZingPDF.Elements
                 filters = [FilterFactory.Create(filter, null)];
             }
 
-            var imageXObject = new StreamObject<ImageDictionary>(
-                new StreamData(image.ImageData, true, filters),
-                new ImageDictionary(
-                    imageMetadata.Width,
-                    imageMetadata.Height,
-                    (Name)imageMetadata.ColorSpace.ToString(),
-                    imageMetadata.BitDepth
-                    )
-                );
+            var imageXObject = new ImageXObjectFactory(
+                image.ImageData,
+                imageMetadata.Width,
+                imageMetadata.Height,
+                imageMetadata.ColorSpace,
+                imageMetadata.BitDepth,
+                filters,
+                sourceDataIsCompressed: filters.Count > 0 // TODO: This might be wrong. Test image adding
+                )
+                .Create();
 
             var imageXObjectIndirectObject = IndirectObjects.Add(imageXObject);
 
