@@ -4,17 +4,44 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 
-internal static class CrossReferenceStreamFactory
+/// <summary>
+/// ISO 32000-2:2020 7.5.8 - Cross-reference streams
+/// </summary>
+internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReferenceStreamDictionary>
 {
-    public static StreamObject<CrossReferenceStreamDictionary> Create(
-        IEnumerable<CrossReferenceSection> _xrefSections,
+    private readonly IEnumerable<CrossReferenceSection> _xrefSections;
+    private readonly Integer _size;
+    private readonly Integer? _prev;
+    private readonly IndirectObjectReference _root;
+    private readonly Dictionary? _encrypt;
+    private readonly IndirectObjectReference? _info;
+    private readonly ArrayObject? _id;
+
+    public CrossReferenceStreamFactory(
+        IEnumerable<CrossReferenceSection> xrefSections,
         Integer size,
-        Integer? prev,
         IndirectObjectReference root,
+        Integer? prev,
         Dictionary? encrypt,
         IndirectObjectReference? info,
         ArrayObject? id
         )
+    {
+        ArgumentNullException.ThrowIfNull(xrefSections, nameof(xrefSections));
+        ArgumentNullException.ThrowIfNull(size, nameof(size));
+        ArgumentNullException.ThrowIfNull(root, nameof(root));
+
+
+        _xrefSections = xrefSections;
+        _size = size;
+        _root = root;
+        _prev = prev;    
+        _encrypt = encrypt;
+        _info = info;
+        _id = id;
+    }
+
+    public StreamObject<CrossReferenceStreamDictionary> Create()
     {
         var allEntries = _xrefSections.SelectMany(x => x.Entries);
 
@@ -26,7 +53,7 @@ internal static class CrossReferenceStreamFactory
 
         var w = (ArrayObject)new Integer[] { field1Size, field2Size, field3Size };
 
-        var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, size, prev, root, encrypt, info, id);
+        var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
 
         var data = CreateStreamData(_xrefSections, field1Size, field2Size, field3Size);
 
@@ -115,4 +142,6 @@ internal static class CrossReferenceStreamFactory
             await stream.WriteAsync(fieldBytes);
         }
     }
+
+
 }

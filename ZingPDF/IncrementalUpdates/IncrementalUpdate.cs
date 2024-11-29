@@ -71,15 +71,16 @@ namespace ZingPDF.IncrementalUpdates
                 // +1 because the new xref stream should be included in the count
                 size++;
 
-                var xrefStream = CrossReferenceStreamFactory.Create(
+                var xrefStream = new CrossReferenceStreamFactory(
                     xrefSections,
                     size,
-                    prev,
                     _sourcePdf.TrailerDictionary.Root,
+                    prev,
                     _sourcePdf.TrailerDictionary.Encrypt,
                     _sourcePdf.TrailerDictionary.Info,
                     _sourcePdf.TrailerDictionary.ID
-                    );
+                    )
+                    .Create();
 
                 xrefStreamIndirectObject.SetObject(xrefStream);
 

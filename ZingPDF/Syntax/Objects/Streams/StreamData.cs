@@ -33,6 +33,8 @@ internal class StreamData : PdfObject
             return Data;
         }
 
+        Data.Position = 0;
+
         var workingData = await Data.ReadToEndAsync();
 
         foreach (var filter in Filters)
@@ -82,6 +84,16 @@ internal class StreamData : PdfObject
     {
         var streamDictionary = new Dictionary<Name, IPdfObject>();
 
+        if (Compressed)
+        {
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.Length, (Integer)Data.Length);
+        }
+        else
+        {
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.Length, (Integer)Data.Length);
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.DL, (Integer)Data.Length);
+        }
+
         if (Filters.Count == 0)
         {
             return StreamDictionary.FromDictionary(streamDictionary);
@@ -109,16 +121,6 @@ internal class StreamData : PdfObject
                     }
                 }).ToArray()));
             }
-        }
-
-        if (Compressed)
-        {
-            streamDictionary.Add(Constants.DictionaryKeys.Stream.Length, (Integer)Data.Length);
-        }
-        else
-        {
-            streamDictionary.Add(Constants.DictionaryKeys.Stream.Length, (Integer)Data.Length);
-            streamDictionary.Add(Constants.DictionaryKeys.Stream.DL, (Integer)Data.Length);
         }
 
         return StreamDictionary.FromDictionary(streamDictionary);

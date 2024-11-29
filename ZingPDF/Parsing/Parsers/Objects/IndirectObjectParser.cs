@@ -37,7 +37,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     continue;
                 }
 
-                if (type == typeof(IStreamObject<IStreamDictionary>))
+                if (type == typeof(StreamObject<IStreamDictionary>))
                 {
                     // It's difficult to reliably identify a stream, which is a dictionary followed by the stream contents.
                     // The token identifier will recognise the stream keyword, at which point we've already parsed the dictionary.

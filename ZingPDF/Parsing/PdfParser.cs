@@ -75,7 +75,7 @@ public class PdfParser
         var xrefStream = await GetXrefStreamAsync(pdfInputStream);
 
         var trailerDictionary = trailer?.Dictionary
-            ?? ((IStreamObject<IStreamDictionary>)xrefStream?.Object).Dictionary as ITrailerDictionary
+            ?? ((StreamObject<IStreamDictionary>)xrefStream?.Object!).Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
         var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
@@ -99,7 +99,7 @@ public class PdfParser
         var trailer = await GetLeadingTrailerAsync(pdfInputStream);
 
         var trailerDictionary = trailer?.Dictionary
-            ?? ((IStreamObject<IStreamDictionary>)xrefStream?.Object).Dictionary as ITrailerDictionary
+            ?? ((StreamObject<IStreamDictionary>)xrefStream?.Object!).Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
@@ -172,7 +172,7 @@ public class PdfParser
         var xrefObject = await GetXrefObjectAsync(pdfStream);
 
         if (xrefObject is IndirectObject io
-            && io.Object is IStreamObject<IStreamDictionary> so
+            && io.Object is StreamObject<IStreamDictionary> so
             && so.Dictionary is CrossReferenceStreamDictionary)
         {
             Logger.Log(LogLevel.Trace, $"Found cross reference stream dictionary");

@@ -1,8 +1,10 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree
 {
@@ -202,8 +204,6 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             ArgumentNullException.ThrowIfNull(content, nameof(content));
             ArgumentNullException.ThrowIfNull(indirectObjectManager, nameof(indirectObjectManager));
 
-            var contentStream = new ContentStream(content, filters: null, sourceDataIsCompressed: false);
-
             if (Contents is null)
             {
                 Set(Constants.DictionaryKeys.PageTree.Page.Contents, ArrayObject.Empty);
@@ -212,6 +212,12 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 Set(Constants.DictionaryKeys.PageTree.Page.Contents, new ArrayObject([ior]));
             }
+
+            var contentStream = new ContentStreamFactory<StreamDictionary>(
+                content,
+                StreamDictionary.FromDictionary(Empty)
+                )
+                .Create();
 
             var contentObject = indirectObjectManager.Add(contentStream);
 

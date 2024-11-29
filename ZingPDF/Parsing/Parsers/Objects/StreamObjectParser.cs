@@ -9,7 +9,7 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class StreamObjectParser : IPdfObjectParser<IStreamObject<IStreamDictionary>>
+    internal class StreamObjectParser : IPdfObjectParser<StreamObject<IStreamDictionary>>
     {
         private readonly Dictionary? _dict;
 
@@ -22,7 +22,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             _dict = dict ?? throw new ArgumentNullException(nameof(dict));
         }
 
-        public async ITask<IStreamObject<IStreamDictionary>> ParseAsync(Stream stream)
+        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream)
         {
             var initialStreamPosition = stream.Position;
 

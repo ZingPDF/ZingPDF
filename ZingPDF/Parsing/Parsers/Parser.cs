@@ -66,7 +66,7 @@ namespace ZingPDF.Parsing.Parsers
                 Type t when t == typeof(CrossReferenceSectionIndex) => _xrefSectionIndexParser,
                 Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
                 Type t when t == typeof(Date) => _dateParser,
-                Type t when t == typeof(IStreamObject<IStreamDictionary>) => _streamParser,
+                Type t when t == typeof(StreamObject<IStreamDictionary>) => _streamParser,
                 Type t when t == typeof(Trailer) => _trailerParser,
                 _ => throw new ParserException()
             };
