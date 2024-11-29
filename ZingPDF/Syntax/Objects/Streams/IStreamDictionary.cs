@@ -3,7 +3,7 @@
     /// <summary>
     /// ISO 32000-2:2020 - 7.3.8.2 Stream extent
     /// </summary>
-    public interface IStreamDictionary : IPdfObject, IReadOnlyDictionary<Name, IPdfObject>
+    public interface IStreamDictionary : IPdfObject, IDictionary<Name, IPdfObject>
     {
         /// <summary>
         /// (Required) The number of bytes from the beginning of the line following the keyword 
