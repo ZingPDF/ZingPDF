@@ -8,7 +8,7 @@ namespace ZingPDF.Syntax.Objects.Streams;
 /// <remarks>
 /// A Stream object consists of a stream dictionary, followed by the stream data.
 /// </remarks>
-internal class StreamObject<TDictionary> : PdfObject, IStreamObject<TDictionary>
+internal sealed class StreamObject<TDictionary> : PdfObject
     where TDictionary : class, IStreamDictionary
 {
     public StreamObject(StreamData data, TDictionary dictionary)
@@ -30,6 +30,8 @@ internal class StreamObject<TDictionary> : PdfObject, IStreamObject<TDictionary>
         await Dictionary.WriteAsync(stream);
 
         await stream.WriteNewLineAsync();
+
+        Data.Data.Position = 0;
 
         await Data.WriteAsync(stream);
     }
