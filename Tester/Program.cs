@@ -39,6 +39,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
 await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
+LoadAndValidateUsingAbcpdf("output.pdf");
 
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
