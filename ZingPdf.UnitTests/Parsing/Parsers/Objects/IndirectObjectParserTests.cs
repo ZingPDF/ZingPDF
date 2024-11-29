@@ -52,6 +52,6 @@ public class IndirectObjectParserTests
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);
         output.Object.Should().NotBeNull();
-        output.Object.Should().BeAssignableTo<IStreamObject<IStreamDictionary>>();
+        output.Object.Should().BeAssignableTo<StreamObject<IStreamDictionary>>();
     }
 }

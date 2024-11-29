@@ -38,7 +38,7 @@ internal class CrossReferenceAggregator
         var item = await Parser.For(type).ParseAsync(pdfStream);
 
         if (item is IndirectObject io
-            && io.Object is IStreamObject<IStreamDictionary> streamObject
+            && io.Object is StreamObject<IStreamDictionary> streamObject
             && streamObject.Dictionary is CrossReferenceStreamDictionary)
         {
             //UsingXrefStreams = true;
@@ -55,7 +55,7 @@ internal class CrossReferenceAggregator
         }
     }
 
-    private static async Task ParseCrossReferenceStreamAsync(Stream pdfStream, IStreamObject<IStreamDictionary> crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
+    private static async Task ParseCrossReferenceStreamAsync(Stream pdfStream, StreamObject<IStreamDictionary> crossReferenceStream, Dictionary<int, CrossReferenceEntry> xrefs)
     {
         var xrefStreamDictionary = (crossReferenceStream.Dictionary as CrossReferenceStreamDictionary)!;
 
@@ -81,7 +81,7 @@ internal class CrossReferenceAggregator
             }
         }
 
-        var xrefData = await (await crossReferenceStream.GetDecompressedDataAsync()).ReadToEndAsync();
+        var xrefData = await (await crossReferenceStream.Data.GetDecompressedDataAsync()).ReadToEndAsync();
         var entrySize = xrefStreamDictionary.W.Sum(x => (x as Integer)!);
 
         var field1Size = xrefStreamDictionary.W.Get<Integer>(0)!;
