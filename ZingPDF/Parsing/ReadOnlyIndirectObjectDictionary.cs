@@ -44,7 +44,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
                 var objStreamIndirectObject = await GetAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)))
                     ?? throw new InvalidOperationException($"Error attempting to parse {key}. Unable to find parent object stream {xref.Value1}");
 
-                var objectStream = (IStreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
+                var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
                 var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
                 // TODO: cache decompressed stream data?
