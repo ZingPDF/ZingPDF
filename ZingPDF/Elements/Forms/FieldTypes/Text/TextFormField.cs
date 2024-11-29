@@ -4,6 +4,7 @@ using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
@@ -53,13 +54,11 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 new TextObject.FontOptions(_fontResourceName, 12, RGBColour.Black)
                 );
 
-            var apFormXObject = new FormXObject(
-                fieldSizeRect,
+            var apFormXObject = new ContentStreamFactory<Type1FormDictionary>(
                 [visualContent],
-                null,
-                filters: null,
-                sourceDataIsCompressed: false
-                );
+                new Type1FormDictionary(fieldSizeRect)
+                )
+                .Create();
 
             var apIndirectObject = IndirectObjects.Add(apFormXObject);
 
