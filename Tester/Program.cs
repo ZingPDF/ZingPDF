@@ -40,6 +40,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
 LoadAndValidateUsingAbcpdf("output.pdf");
+LoadUsingAbcpdf("output.pdf");
 
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
@@ -283,6 +284,12 @@ static async Task ParseResaveValidate(string input, string output)
     {
         Console.WriteLine(error);
     }
+}
+
+static void LoadUsingAbcpdf(string inputPath)
+{
+    var doc = new Doc();
+    doc.Read(inputPath);
 }
 
 static void LoadAndSaveUsingAbcpdf(string inputPath, string outputPath)
