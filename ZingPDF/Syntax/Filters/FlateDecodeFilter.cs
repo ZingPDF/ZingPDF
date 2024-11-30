@@ -13,11 +13,11 @@ namespace ZingPDF.Syntax.Filters
 
         public FlateDecodeFilter(Dictionary? filterParams)
         {
-            Params = filterParams ?? Dictionary.Empty;
+            Params = filterParams;
         }
 
         public Name Name => Constants.Filters.Flate;
-        public Dictionary Params { get; }
+        public Dictionary? Params { get; }
 
         public byte[] Decode(byte[] data)
         {
@@ -32,10 +32,10 @@ namespace ZingPDF.Syntax.Filters
 
             return PngPredictor.Decode(
                 output.ToArray(),
-                Params.Get<Integer>("Predictor") ?? _defaultPredictor,
-                Params.Get<Integer>("Columns") ?? _defaultColumns,
-                Params.Get<Integer>("Colors") ?? _defaultColors,
-                Params.Get<Integer>("BitsPerComponent") ?? _defaultBitsPerComponent
+                Params?.Get<Integer>("Predictor") ?? _defaultPredictor,
+                Params?.Get<Integer>("Columns") ?? _defaultColumns,
+                Params?.Get<Integer>("Colors") ?? _defaultColors,
+                Params?.Get<Integer>("BitsPerComponent") ?? _defaultBitsPerComponent
                 );
         }
 
