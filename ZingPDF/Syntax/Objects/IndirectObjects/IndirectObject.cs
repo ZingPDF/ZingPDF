@@ -20,7 +20,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
         }
 
         public IndirectObjectId Id { get; }
-        public IPdfObject Object { get; protected set; }
+        public IPdfObject Object { get; internal set; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
