@@ -359,6 +359,18 @@ internal static class Constants
                 public const string ToUnicode = "ToUnicode";
             }
         }
+
+        public static class Encryption
+        {
+            public const string Filter = "Filter";
+            public const string SubFilter = "SubFilter";
+            public const string V = "V";
+            public const string Length = "Length";
+            public const string CF = "CF";
+            public const string StmF = "StmF";
+            public const string StrF = "StrF";
+            public const string EFF = "EFF";
+        }
     }
 
     public static class DictionaryTypes
