@@ -46,6 +46,9 @@
 	<None Include="..\testfiles\pdf\minimal3.pdf" Link="testfiles\pdf\minimal3.pdf">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
+	<None Include="..\testfiles\pdf\encrypted.pdf" Link="testfiles\pdf\encrypted.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
 </Project>
