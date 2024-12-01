@@ -56,7 +56,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                         streamDataOffset + streamLength,
                         setToStart: false
                         ),
-                        dataIsCompressed: filters.Any(),
+                        dataIsCompressed: filters?.Any() ?? false,
                         filters
                     ), streamDict
                 )

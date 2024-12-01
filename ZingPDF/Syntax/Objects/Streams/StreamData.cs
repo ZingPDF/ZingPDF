@@ -99,7 +99,15 @@ internal class StreamData : PdfObject
             return StreamDictionary.FromDictionary(streamDictionary);
         }
 
-        streamDictionary.Add(Constants.DictionaryKeys.Stream.Filter, new ArrayObject(Filters.Select(f => f.Name).ToArray()));
+        // TODO: consider encapsulating this common logic, there are many properties which can be a single item or array of such.
+        if (Filters.Count == 1)
+        {
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.Filter, Filters.First().Name);
+        }
+        else
+        {
+            streamDictionary.Add(Constants.DictionaryKeys.Stream.Filter, new ArrayObject(Filters.Select(f => f.Name).ToArray()));
+        }
 
         if (Filters.Any(f => f.Params != null))
         {
