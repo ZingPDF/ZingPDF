@@ -134,7 +134,7 @@ internal class CrossReferenceAggregator
 
                 if (!xrefs.TryAdd(section.Index.StartIndex + i, entry))
                 {
-                    Console.WriteLine("Entry already present in xrefs: " + entry);
+                    Console.WriteLine($"Entry already present in xrefs {section.Index.StartIndex + i}:{entry.Value1}:{entry.Value2}");
                 }
             }
         }

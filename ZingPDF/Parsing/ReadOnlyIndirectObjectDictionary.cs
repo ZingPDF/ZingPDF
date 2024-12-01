@@ -99,7 +99,7 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
     public List<IndirectObjectId> GetFreeIds()
     {
         return xrefs
-            .Where(x => !x.Value.InUse && x.Value.Value1 != 0)
+            .Where(x => !x.Value.InUse && x.Value.Value2 != CrossReferenceEntry.RootFreeEntry.Value2)
             .Select(x => new IndirectObjectId((int)x.Value.Value1, x.Value.Value2))
             .ToList();
     }
