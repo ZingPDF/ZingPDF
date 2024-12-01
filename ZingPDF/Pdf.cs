@@ -1,15 +1,10 @@
-﻿using System.Runtime.CompilerServices;
-using ZingPDF.Elements;
+﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
-using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
