@@ -1,4 +1,5 @@
-﻿using ZingPDF.Extensions;
+﻿using System.Text;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -50,6 +51,11 @@ namespace ZingPDF.IncrementalUpdates
             // If the current PDF instead uses an xref stream dictionary, prev is going to be the offset of the stream dictionary
             long prev = _sourcePdf.Trailer?.XrefTableByteOffset ?? _sourcePdf.CrossReferenceStream!.ByteOffset!.Value;
 
+            // Build file identifier
+            var originalId = _sourcePdf.TrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
+            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
+            var fileIdentifier = new ArrayObject([originalId, updateId]);
+
             if (_options.RenderCrossReferencesAsStream)
             {
                 // When rendering as an xref stream, the stream itself needs to be present as a reference within itself.
@@ -78,7 +84,7 @@ namespace ZingPDF.IncrementalUpdates
                     prev,
                     _sourcePdf.TrailerDictionary.Encrypt,
                     _sourcePdf.TrailerDictionary.Info,
-                    _sourcePdf.TrailerDictionary.ID
+                    fileIdentifier
                     )
                     .Create();
 
@@ -111,7 +117,7 @@ namespace ZingPDF.IncrementalUpdates
                         _sourcePdf.TrailerDictionary.Root,
                         _sourcePdf.TrailerDictionary.Encrypt,
                         _sourcePdf.TrailerDictionary.Info,
-                        _sourcePdf.TrailerDictionary.ID
+                        fileIdentifier
                         ),
                     xrefTable.ByteOffset!.Value
                     );
