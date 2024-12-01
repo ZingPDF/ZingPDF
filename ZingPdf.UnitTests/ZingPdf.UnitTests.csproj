@@ -55,6 +55,12 @@
 		<None Include="..\testfiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Include="..\testfiles\pdf\minimal2.pdf" Link="testfiles\pdf\minimal2.pdf">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\testfiles\pdf\minimal3.pdf" Link="testfiles\pdf\minimal3.pdf">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>
