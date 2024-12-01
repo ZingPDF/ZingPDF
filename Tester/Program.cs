@@ -38,10 +38,19 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
 //await ParseResaveValidate("testfiles/pdf/test.pdf", "output.pdf");
 
+//await AppendPdf("testfiles/pdf/minimal3.pdf", "testfiles/pdf/minimal.pdf", "output.pdf");
+//await AppendPdf("testfiles/pdf/minimal.pdf", "testfiles/pdf/form.pdf", "output.pdf");
 await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
-LoadAndValidateUsingAbcpdf("output.pdf");
-LoadUsingAbcpdf("output.pdf");
+//await AppendPdf("testfiles/pdf/combobox-form.pdf", "testfiles/pdf/test.pdf", "output.pdf");
+//await AppendPdf("testfiles/pdf/minimal.pdf", "testfiles/pdf/minimal2.pdf", "output.pdf");
+//LoadAndValidateUsingAbcpdf("output.pdf");
+//LoadUsingAbcpdf("output.pdf");
 
+//await Parse("testfiles/pdf/minimal.pdf");
+//await Parse("testfiles/pdf/minimal3.pdf");
+//await Parse("testfiles/pdf/test.pdf");
+//await Parse("testfiles/pdf/form.pdf");
+//await Parse("output.pdf");
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/test.pdf");
@@ -172,12 +181,14 @@ static async Task RotatePage()
 
 static async Task AddImageToPage()
 {
-    using var inputFileStream = new FileStream("testfiles/pdf/test.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/minimal.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = await PdfParser.OpenAsync(inputFileStream);
 
-    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
+    var page = await pdf.GetPageAsync(1);
+
+    //var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
     await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromSize(200, 200)));
 
