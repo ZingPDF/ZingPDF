@@ -12,6 +12,8 @@ public class SmokeTests
     [InlineData("testfiles/pdf/Ghostscript.pdf")]
     [InlineData("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf")]
     [InlineData("testfiles/pdf/minimal.pdf")]
+    [InlineData("testfiles/pdf/minimal2.pdf")]
+    [InlineData("testfiles/pdf/minimal3.pdf")]
     [InlineData("testfiles/pdf/test.pdf")]
     public async Task Parse(string filePath)
     {

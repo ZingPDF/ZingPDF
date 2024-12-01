@@ -19,24 +19,33 @@
     <None Include="..\testfiles\pdf\combobox-form.pdf" Link="testfiles\pdf\combobox-form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\pdf\complex-form.pdf" Link="testfiles\pdf\complex-form.pdf">
+	<None Include="..\testfiles\pdf\complex-form.pdf" Link="testfiles\pdf\complex-form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\html\form-test.html" Link="testfiles\html\form-test.html">
+	<None Include="..\testfiles\html\form-test.html" Link="testfiles\html\form-test.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\pdf\form.pdf" Link="testfiles\pdf\form.pdf">
+	<None Include="..\testfiles\pdf\form.pdf" Link="testfiles\pdf\form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\pdf\Ghostscript.pdf" Link="testfiles\pdf\Ghostscript.pdf">
+	<None Include="..\testfiles\pdf\Ghostscript.pdf" Link="testfiles\pdf\Ghostscript.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="testfiles\pdf\MikeyFlemingFreelance_Folio.pdf">
+	<None Include="..\testfiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="testfiles\pdf\MikeyFlemingFreelance_Folio.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	  <None Include="..\testfiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
+	<None Include="..\testfiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	<None Include="..\testfiles\pdf\minimal.pdf" Link="testfiles\pdf\minimal.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\testfiles\pdf\minimal2.pdf" Link="testfiles\pdf\minimal2.pdf">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\testfiles\pdf\minimal3.pdf" Link="testfiles\pdf\minimal3.pdf">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
 </Project>
