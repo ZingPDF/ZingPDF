@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -43,6 +42,10 @@ namespace ZingPDF
             var rootPageTreeNodeIndirectObject = await _mainPdf.PageTree.GetRootPageTreeNodeAsync();
             var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
+            // The old root page tree node won't have had a parent, set it to the new root.
+            // N.B. This part is vital for correct display in Acrobat Reader.
+            ((PageTreeNodeDictionary)newObj.Object).SetParent(rootPageTreeNodeIndirectObject.Id.Reference);
+
             // Add incoming root page tree node as a child of this PDF's root page tree node.
             rootPageTreeNode.AddChild(_oldToNewMap[rootPageTreeNodeToAppend.Id.Reference]);
 
@@ -76,14 +79,14 @@ namespace ZingPDF
             return obj;
         }
 
-        private async Task<Dictionary> CopyDictionaryReferencesAsync(Dictionary resources)
+        private async Task<Dictionary> CopyDictionaryReferencesAsync(Dictionary dictionary)
         {
-            foreach (var entry in resources)
+            foreach (var entry in dictionary)
             {
-                resources[entry.Key] = await CopyReferencesAsync(entry.Value);
+                dictionary[entry.Key] = await CopyReferencesAsync(entry.Value);
             }
 
-            return resources;
+            return dictionary;
         }
 
         private async Task<StreamObject<IStreamDictionary>> CopyStreamObjectReferencesAsync(StreamObject<IStreamDictionary> streamObject)
@@ -114,8 +117,6 @@ namespace ZingPDF
             {
                 return value;
             }
-
-            Console.WriteLine($"Copying {reference}");
 
             var obj = await _pdfToAppend.IndirectObjects.GetAsync(reference)
                 ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
