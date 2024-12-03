@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
+using ZingPDF.Linearization;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.Trailer;
@@ -9,10 +10,13 @@ namespace ZingPDF;
 
 public interface IPdf
 {
+    bool Linearized { get; }
+
     IIndirectObjectDictionary IndirectObjects { get; }
     Trailer? Trailer { get; }
     IndirectObject? CrossReferenceStream { get; }
     DocumentCatalogDictionary DocumentCatalog { get; }
+    LinearizationParameterDictionary? LinearizationDictionary { get; }
     PageTree PageTree { get; }
 
     ITrailerDictionary TrailerDictionary { get; }
@@ -22,6 +26,4 @@ public interface IPdf
     Task<int> GetPageCountAsync();
 
     Form? GetForm();
-
-    Task SaveAsync(Stream stream, PdfSaveOptions? saveOptions);
 }
