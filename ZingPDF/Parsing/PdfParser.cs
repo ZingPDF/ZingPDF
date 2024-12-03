@@ -30,7 +30,16 @@ public class PdfParser
             throw new ArgumentException("Stream must be seekable", nameof(pdfInputStream));
         }
 
-        return new Pdf(await OpenReadOnlyAsync(pdfInputStream));
+        var source = await OpenReadOnlyAsync(pdfInputStream);
+
+        return new Pdf(
+            pdfInputStream,
+            source.DocumentCatalog,
+            source.Trailer,
+            source.CrossReferenceStream,
+            new IncrementalUpdates.IndirectObjectManager(source.IndirectObjects),
+            source.LinearizationDictionary
+            );
     }
 
     public static async Task<ReadOnlyPdf> OpenReadOnlyAsync(Stream pdfInputStream)

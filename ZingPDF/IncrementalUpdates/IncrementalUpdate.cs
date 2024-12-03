@@ -1,5 +1,4 @@
-﻿using System.Text;
-using ZingPDF.Extensions;
+﻿using ZingPDF.Extensions;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
