@@ -2,11 +2,15 @@
 using System.Text;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Syntax.Objects
+namespace ZingPDF.Syntax.Objects.Strings
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.4.2 - Literal strings
     /// </summary>
+    /// <remarks>
+    /// This type represents 2 of the 3 string types from the spec: text, and ascii.
+    /// The text type supports the 3 encoding types: UTF8, UTF16BE, and PDFDocEncoding.
+    /// </remarks>
     public class LiteralString : PdfObject
     {
         private readonly Encoding _encodeUsing;

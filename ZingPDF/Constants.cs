@@ -370,6 +370,18 @@ internal static class Constants
             public const string StmF = "StmF";
             public const string StrF = "StrF";
             public const string EFF = "EFF";
+
+            public static class Standard
+            {
+                public const string R = "R";
+                public const string O = "O";
+                public const string U = "U";
+                public const string OE = "OE";
+                public const string UE = "UE";
+                public const string P = "P";
+                public const string Perms = "Perms";
+                public const string EncryptMetadata = "EncryptMetadata";
+            }
         }
     }
 

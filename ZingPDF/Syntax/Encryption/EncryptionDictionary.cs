@@ -4,7 +4,7 @@ namespace ZingPDF.Syntax.Encryption;
 
 internal class EncryptionDictionary : Dictionary
 {
-    private EncryptionDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary) : base(dictionary)
+    protected EncryptionDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary) : base(dictionary)
     {
     }
 
@@ -94,11 +94,4 @@ internal class EncryptionDictionary : Dictionary
     /// stream shall be encrypted using the default stream crypt filter specified by StmF.</para>
     /// </summary>
     public Name? EFF => Get<Name>(Constants.DictionaryKeys.Encryption.EFF);
-
-    internal static EncryptionDictionary FromDictionary(Dictionary dictionary)
-    {
-        ArgumentNullException.ThrowIfNull(dictionary);
-
-        return new EncryptionDictionary(dictionary);
-    }
 }
