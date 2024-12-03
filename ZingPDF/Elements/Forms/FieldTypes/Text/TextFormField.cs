@@ -32,15 +32,14 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             get => _fieldDictionary.V as LiteralString;
             set
             {
+                AddAppearanceStream(value);
                 SetValue(value);
-
-                AddAppearanceStream();
             }
         }
 
-        private void AddAppearanceStream()
+        private void AddAppearanceStream(string? value)
         {
-            var fieldDict = (FieldDictionary)_fieldIndirectObject.Object ;
+            var fieldDict = (FieldDictionary)_fieldIndirectObject.Object;
 
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
             var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
@@ -48,7 +47,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             // TODO: handle combed display
 
             var visualContent = new TextObject(
-                Value!,
+                value!,
                 fieldSizeRect,
                 new Coordinate(2, 5), // TODO: calculate this
                 new TextObject.FontOptions(_fontResourceName, 12, RGBColour.Black)
