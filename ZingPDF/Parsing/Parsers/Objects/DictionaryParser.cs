@@ -185,6 +185,10 @@ namespace ZingPDF.Parsing.Parsers.Objects
                                 AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict),
                                 _ => AnnotationDictionary.FromDictionary(dict),
                             };
+                            if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
+                            {
+                                output = FieldDictionary.FromDictionary(dict);
+                            }
                             goto DictionaryParsed;
                     }
                 }
@@ -192,12 +196,6 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
                 {
                     output = InteractiveFormDictionary.FromDictionary(dict);
-                    goto DictionaryParsed;
-                }
-
-                if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
-                {
-                    output = FieldDictionary.FromDictionary(dict);
                     goto DictionaryParsed;
                 }
 
