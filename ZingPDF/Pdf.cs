@@ -1,6 +1,7 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Linearization;
 using ZingPDF.Parsing;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -9,51 +10,30 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
 
-// TODO: consider inheriting from ReadOnlyPdf
-// Actually no, this IS NOT a ReadOnlyPDF. There should perhaps be a base type or interface for Pdf and ReadOnlyPdf
-public class Pdf : IEditablePdf
+/// <summary>
+/// Represents an editable PDF.
+/// </summary>
+/// <remarks>
+/// This class is disposable. The underlying <see cref="Stream"/> will remain open until the instance is disposed.<para></para>
+/// </remarks>
+public class Pdf : BasePdf, IEditablePdf
 {
-    private readonly IPdf _sourcePdf;
-    private readonly IndirectObjectManager _indirectObjectManager;
-
     /// <summary>
-    /// Internal constructor for creating a <see cref="Pdf"/> instance from an <see cref="IPdf"/>.
+    /// Internal constructor for creating a <see cref="Pdf"/> instance from its constituent parts.
     /// </summary>
-    internal Pdf(IPdf sourcePdf)
+    internal Pdf(
+        Stream pdfInputStream,
+        DocumentCatalogDictionary documentCatalog,
+        Trailer? trailer,
+        IndirectObject? xrefStream,
+        IndirectObjectManager indirectObjectManager,
+        LinearizationParameterDictionary? linearizationDictionary
+        )
+        : base(pdfInputStream, documentCatalog, trailer, xrefStream, indirectObjectManager, linearizationDictionary)
     {
-        _sourcePdf = sourcePdf ?? throw new ArgumentNullException(nameof(sourcePdf));
-        _indirectObjectManager = new IndirectObjectManager(sourcePdf.IndirectObjects);
-
-        PageTree = new PageTree(_indirectObjectManager, DocumentCatalog.Pages);
     }
 
-    public IndirectObjectManager IndirectObjectManager => _indirectObjectManager;
-
-    #region IPdf
-
-    public IIndirectObjectDictionary IndirectObjects => _indirectObjectManager;
-    public Trailer? Trailer => _sourcePdf.Trailer;
-    public IndirectObject? CrossReferenceStream => _sourcePdf.CrossReferenceStream;
-    public DocumentCatalogDictionary DocumentCatalog => _sourcePdf.DocumentCatalog;
-    public PageTree PageTree { get; }
-
-    public ITrailerDictionary TrailerDictionary => _sourcePdf.TrailerDictionary;
-
-    // TODO: logic is duplicated in readonlypdf. Consider sharing.
-    public async Task<Page> GetPageAsync(int pageNumber)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
-
-        var pageIndirectObject = (await PageTree.GetPagesAsync())[pageNumber - 1];
-
-        return pageIndirectObject == null
-            ? throw new InvalidOperationException()
-            : new Page(pageIndirectObject, _indirectObjectManager);
-    }
-
-    Task<IList<IndirectObject>> IPdf.GetAllPagesAsync() => PageTree.GetPagesAsync();
-
-    public Task<int> GetPageCountAsync() => PageTree.GetPageCountAsync();
+    public IndirectObjectManager IndirectObjectManager => (IndirectObjectManager)IndirectObjects;
 
     /// <summary>
     /// Save the PDF to the provided output stream.
@@ -74,20 +54,18 @@ public class Pdf : IEditablePdf
         saveOptions ??= PdfSaveOptions.Default;
 
         // Copy original PDf to output if required.
-        // TODO: make sure this behaviour is well documented.
         if (outputStream.Length == 0)
         {
-            await _sourcePdf.SaveAsync(outputStream, saveOptions);
+            _pdfInputStream.Position = 0;
+            await _pdfInputStream.CopyToAsync(outputStream);
         }
 
-        await new IncrementalUpdate(_sourcePdf, _indirectObjectManager).WriteAsync(outputStream);
+        _form?.UpdateAsync();
+
+        await new IncrementalUpdate(this, IndirectObjectManager).WriteAsync(outputStream);
 
         await outputStream.FlushAsync();
     }
-
-    #endregion
-
-    #region IEditablePdf
 
     public async Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
@@ -97,7 +75,7 @@ public class Pdf : IEditablePdf
 
         var page = PageDictionary.CreateNew(DocumentCatalog.Pages, pageCreationOptions);
 
-        var pageIndirectObject = _indirectObjectManager.Add(page);
+        var pageIndirectObject = IndirectObjectManager.Add(page);
 
         var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
@@ -106,9 +84,9 @@ public class Pdf : IEditablePdf
         // Determine if there's a better way, like ensuring a balanced tree.
         rootPageTreeNode.AddChild(pageIndirectObject.Id.Reference);
 
-        _indirectObjectManager.Update(rootPageTreeNodeIndirectObject);
+        IndirectObjectManager.Update(rootPageTreeNodeIndirectObject);
 
-        return new Page(pageIndirectObject, _indirectObjectManager);
+        return new Page(pageIndirectObject, IndirectObjectManager);
     }
 
     public async Task DeletePageAsync(int pageNumber)
@@ -135,8 +113,8 @@ public class Pdf : IEditablePdf
 
         await DecrementPageCountAsync(parent);
 
-        _indirectObjectManager.Delete(page.IndirectObject.Id);
-        _indirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
+        IndirectObjectManager.Delete(page.IndirectObject.Id);
+        IndirectObjectManager.Update(new IndirectObject(parentIndirectObject.Id, parent));
     }
 
     public async Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null)
@@ -161,7 +139,7 @@ public class Pdf : IEditablePdf
 
         var pageAtNumber = await GetPageAsync(pageNumber);
 
-        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageAtNumber.Dictionary.Parent);
+        var parentPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(pageAtNumber.Dictionary.Parent);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
@@ -179,15 +157,15 @@ public class Pdf : IEditablePdf
             pageCreationOptions
             );
 
-        var newPageIndirectObject = _indirectObjectManager.Add(page);
+        var newPageIndirectObject = IndirectObjectManager.Add(page);
 
         parentPageTreeNode.AddChild(newPageIndirectObject.Id.Reference);
 
         await IncrementPageCountAsync(parentPageTreeNode);
 
-        _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
+        IndirectObjectManager.Update(parentPageTreeNodeIndirectObject);
 
-        return new Page(newPageIndirectObject, _indirectObjectManager);
+        return new Page(newPageIndirectObject, IndirectObjectManager);
     }
 
     public async Task SetRotationAsync(Rotation rotation)
@@ -199,19 +177,8 @@ public class Pdf : IEditablePdf
         foreach (var page in await PageTree.GetPagesAsync())
         {
             ((PageDictionary)page.Object).SetRotation(rotation);
-            _indirectObjectManager.Update(page);
+            IndirectObjectManager.Update(page);
         }
-    }
-
-    // TODO: duplicate logic in ReadOnlyPdf. See if we can share it.
-    public Form? GetForm()
-    {
-        if (DocumentCatalog.AcroForm is null)
-        {
-            return null;
-        }
-
-        return new Form(DocumentCatalog.AcroForm, IndirectObjects);
     }
 
     public void AddWatermark()
@@ -243,8 +210,6 @@ public class Pdf : IEditablePdf
     {
         await new PdfMerger(this, await PdfParser.OpenReadOnlyAsync(stream)).AppendAsync();
     }
-
-    #endregion
     
     // TODO: move to testable class?
     /// <summary>
@@ -257,12 +222,12 @@ public class Pdf : IEditablePdf
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
+        var parentPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(pageTreeNode.Parent);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.IncrementCount();
 
-        _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
+        IndirectObjectManager.Update(parentPageTreeNodeIndirectObject);
 
         await IncrementPageCountAsync(parentPageTreeNode);
     }
@@ -278,12 +243,12 @@ public class Pdf : IEditablePdf
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await _indirectObjectManager.GetAsync(pageTreeNode.Parent);
+        var parentPageTreeNodeIndirectObject = await IndirectObjects.GetAsync(pageTreeNode.Parent);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.DecrementCount();
 
-        _indirectObjectManager.Update(parentPageTreeNodeIndirectObject);
+        IndirectObjectManager.Update(parentPageTreeNodeIndirectObject);
 
         await DecrementPageCountAsync(parentPageTreeNode);
     }
@@ -304,7 +269,7 @@ public class Pdf : IEditablePdf
             return false;
         }
 
-        var parent = await _indirectObjectManager.GetAsync<PageTreeNodeDictionary>(parentPageTreeNode.Parent);
+        var parent = await IndirectObjectManager.GetAsync<PageTreeNodeDictionary>(parentPageTreeNode.Parent);
         if (parent == null)
         {
             return false;
