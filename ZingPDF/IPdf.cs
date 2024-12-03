@@ -11,6 +11,7 @@ namespace ZingPDF;
 public interface IPdf
 {
     bool Linearized { get; }
+    bool Encrypted { get; }
 
     IIndirectObjectDictionary IndirectObjects { get; }
     Trailer? Trailer { get; }
