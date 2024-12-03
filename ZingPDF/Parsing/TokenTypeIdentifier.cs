@@ -1,16 +1,15 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
-using ZingPDF.Parsing;
 using ZingPDF.Logging;
+using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.FileStructure;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.Trailer;
-using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Parsing.Parsers;
-using ZingPDF.Extensions;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing
 {
