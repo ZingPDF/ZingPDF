@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using System.ComponentModel;
 using Xunit;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Syntax.Objects;
 

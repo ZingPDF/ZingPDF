@@ -7,6 +7,7 @@ using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Text
