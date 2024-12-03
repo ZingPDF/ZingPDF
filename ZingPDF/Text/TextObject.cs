@@ -4,6 +4,7 @@ using ZingPDF.Graphics;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Text;
 
