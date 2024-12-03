@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.Syntax.Objects
+﻿namespace ZingPDF.Syntax.Objects.Strings
 {
     public enum LiteralStringEncoding
     {

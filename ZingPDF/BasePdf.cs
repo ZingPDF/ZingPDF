@@ -40,6 +40,8 @@ public abstract class BasePdf : IPdf, IDisposable
     // and should be considered to not be linearized.
     public bool Linearized => LinearizationDictionary != null && LinearizationDictionary.L == _pdfInputStream.Length;
 
+    public bool Encrypted => TrailerDictionary.Encrypt is not null;
+
     public IIndirectObjectDictionary IndirectObjects { get; }
     public Trailer? Trailer { get; }
     public IndirectObject? CrossReferenceStream { get; }

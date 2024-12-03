@@ -10,6 +10,7 @@ using ZingPDF.Parsing.Parsers.DataStructures;
 using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Parsing.Parsers.Objects;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers
 {

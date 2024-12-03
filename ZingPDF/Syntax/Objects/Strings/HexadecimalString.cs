@@ -1,10 +1,13 @@
 ﻿using ZingPDF.Extensions;
 
-namespace ZingPDF.Syntax.Objects
+namespace ZingPDF.Syntax.Objects.Strings
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.4.3 - Hexadecimal strings
     /// </summary>
+    /// <remarks>
+    /// This type represents byte strings, which are written as hexadecimal strings.
+    /// </remarks>
     public class HexadecimalString : PdfObject
     {
         private HexadecimalString()
