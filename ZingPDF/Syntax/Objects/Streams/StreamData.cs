@@ -27,13 +27,13 @@ internal class StreamData : PdfObject
     {
         // TODO: stream contents may be encrypted, decrypt.
 
+        Data.Position = 0;
+
         // If there are no filters, return the source data as-is.
         if (Filters.Count == 0)
         {
             return Data;
         }
-
-        Data.Position = 0;
 
         var workingData = await Data.ReadToEndAsync();
 
@@ -50,6 +50,8 @@ internal class StreamData : PdfObject
         await new Keyword(Constants.StreamStart).WriteAsync(stream);
 
         await stream.WriteNewLineAsync();
+
+        Data.Position = 0;
 
         if (Compressed || Filters.Count == 0)
         {
