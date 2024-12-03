@@ -15,6 +15,8 @@ namespace ZingPDF.Elements.Forms
 {
     public class Form
     {
+        private bool _dirty;
+
         private readonly AsyncLazy<IndirectObject> _acroForm;
         private readonly AsyncLazy<InteractiveFormDictionary> _acroFormDictionary;
         private readonly IIndirectObjectDictionary _indirectObjectDictionary;
@@ -113,8 +115,13 @@ namespace ZingPDF.Elements.Forms
             return true;
         }
 
-        internal async Task MarkFormForUpdate()
+        internal async Task UpdateAsync()
         {
+            if (!_dirty)
+            {
+                return;
+            }
+
             _indirectObjectDictionary.EnsureEditable();
 
             var acroFormDict = await _acroFormDictionary;
@@ -124,6 +131,11 @@ namespace ZingPDF.Elements.Forms
             EnsureDefaultResourceDictionary(acroFormDict);
 
             IndirectObjects.Update(await _acroForm);
+        }
+
+        internal void MarkForUpdate()
+        {
+            _dirty = true;
         }
 
         private static void EnsureNeedAppearances(InteractiveFormDictionary acroFormDictionary)
@@ -137,7 +149,7 @@ namespace ZingPDF.Elements.Forms
         {
             if (acroFormDictionary.DR is null)
             {
-                acroFormDictionary.SetResources(new ResourceDictionary());
+                acroFormDictionary.SetResources([]);
             }
 
             if (acroFormDictionary.DR!.Font is null)
