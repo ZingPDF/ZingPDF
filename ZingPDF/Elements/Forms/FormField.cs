@@ -20,9 +20,10 @@ namespace ZingPDF.Elements.Forms
             IIndirectObjectDictionary indirectObjectDictionary
             )
         {
+            ArgumentNullException.ThrowIfNull(fieldIndirectObject, nameof(fieldIndirectObject));
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 
-            _fieldIndirectObject = fieldIndirectObject ?? throw new ArgumentNullException(nameof(fieldIndirectObject));
+            _fieldIndirectObject = fieldIndirectObject;
             _fieldDictionary = (FieldDictionary)fieldIndirectObject.Object;
 
             Name = name;
@@ -47,6 +48,8 @@ namespace ZingPDF.Elements.Forms
             }
 
             IndirectObjects.Update(_fieldIndirectObject);
+
+            _parent.MarkForUpdate();
         }
 
         protected IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
