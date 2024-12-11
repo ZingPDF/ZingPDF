@@ -50,23 +50,21 @@ public class PdfParser
         {
             throw new ArgumentException("Stream must be seekable", nameof(pdfInputStream));
         }
+        
+        return await ParseNonLinearizedAsync(pdfInputStream);
 
-        // TODO: Check the efficiency of this method, ensure we're traversing the file properly and not parsing things twice.
+        //// The PDF is linearized if there is a linearization dictionary, AND
+        //// the length value (L) is identical to the length of the stream.
+        //// A mismatch indicates the file has had at least one incremental update applied,
+        //// and should be considered to not be linearized, at which point we can search from the bottom of the file.
 
-        // Parse PDF for various core elements
+        //var linearizationParser = new LinearizationParser();
 
-        // 1. Is there a linearization parameter dictionary
-        var linearizationDictionary = await GetLinearizationDictionaryAsync(pdfInputStream);
+        //var linearizationDictionary = await linearizationParser.GetLinearizationDictionaryAsync(pdfInputStream);
 
-        // PDF is linearized if there is a linearization dictionary, AND
-        // the length value (L) is identical to the length of the stream.
-        // A mismatch indicates the file has had at least one incremental update applied,
-        // and should be considered to not be linearized.
-        var isLinearized = linearizationDictionary != null && linearizationDictionary.L == pdfInputStream.Length;
-
-        return isLinearized
-            ? await ParseLinearizedAsync(pdfInputStream, linearizationDictionary, pdfInputStream.Position)
-            : await ParseNonLinearizedAsync(pdfInputStream);
+        //return linearizationDictionary != null
+        //    ? await ParseLinearizedAsync(pdfInputStream, linearizationDictionary, pdfInputStream.Position)
+        //    : await ParseNonLinearizedAsync(pdfInputStream);
     }
 
     private static async Task<ReadOnlyPdf> ParseNonLinearizedAsync(Stream pdfInputStream)
@@ -77,17 +75,17 @@ public class PdfParser
         pdfInputStream.Position = offset;
         await pdfInputStream.AdvanceBeyondNextAsync(Constants.StartXref);
 
-        var xrefLocation = await Parser.For<Integer>().ParseAsync(pdfInputStream);
+        var xrefLocation = await Parser.Integers.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance);
 
-        var trailer = await GetFooterTrailerAsync(pdfInputStream);
+        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
 
-        var xrefStream = await GetXrefStreamAsync(pdfInputStream);
+        var trailer = await GetFooterTrailerAsync(pdfInputStream, indirectObjectDictionary);
+
+        var xrefStream = await GetXrefStreamAsync(pdfInputStream, indirectObjectDictionary);
 
         var trailerDictionary = trailer?.Dictionary
             ?? ((StreamObject<IStreamDictionary>)xrefStream?.Object!).Dictionary as ITrailerDictionary
             ?? throw new ParserException("Unable to find trailer dictionary");
-
-        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
 
         var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
             ?? throw new ParserException("Unable to find document catalog dictionary");
@@ -95,39 +93,39 @@ public class PdfParser
         return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, null);
     }
 
-    private static async Task<ReadOnlyPdf> ParseLinearizedAsync(
-        Stream pdfInputStream,
-        LinearizationParameterDictionary? linearizationDictionary,
-        long xrefLocation
-        )
-    {
-        var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
+    //private static async Task<ReadOnlyPdf> ParseLinearizedAsync(
+    //    Stream pdfInputStream,
+    //    LinearizationParameterDictionary? linearizationDictionary,
+    //    long xrefLocation
+    //    )
+    //{
+    //    var indirectObjectDictionary = await new CrossReferenceAggregator().AggregateAsync(pdfInputStream, xrefLocation);
 
-        var xrefStream = await GetXrefStreamAsync(pdfInputStream);
+    //    var xrefStream = await GetXrefStreamAsync(pdfInputStream, indirectObjectDictionary);
 
-        var trailer = await GetLeadingTrailerAsync(pdfInputStream);
+    //    var trailer = await GetLeadingTrailerAsync(pdfInputStream, indirectObjectDictionary);
 
-        var trailerDictionary = trailer?.Dictionary
-            ?? ((StreamObject<IStreamDictionary>)xrefStream?.Object!).Dictionary as ITrailerDictionary
-            ?? throw new ParserException("Unable to find trailer dictionary");
+    //    var trailerDictionary = trailer?.Dictionary
+    //        ?? ((StreamObject<IStreamDictionary>)xrefStream?.Object!).Dictionary as ITrailerDictionary
+    //        ?? throw new ParserException("Unable to find trailer dictionary");
 
-        var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
-            ?? throw new ParserException("Unable to find document catalog dictionary");
+    //    var documentCatalog = await indirectObjectDictionary.GetAsync<DocumentCatalogDictionary>(trailerDictionary.Root)
+    //        ?? throw new ParserException("Unable to find document catalog dictionary");
 
-        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
-    }
+    //    return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
+    //}
 
-    private static Task<Trailer?> GetFooterTrailerAsync(Stream pdfStream)
-        => GetTrailerAsync(pdfStream, false);
+    private static Task<Trailer?> GetFooterTrailerAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+        => GetTrailerAsync(pdfStream, false, indirectObjectDictionary);
 
-    private static Task<Trailer?> GetLeadingTrailerAsync(Stream pdfStream)
-        => GetTrailerAsync(pdfStream, true);
+    private static Task<Trailer?> GetLeadingTrailerAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+        => GetTrailerAsync(pdfStream, true, indirectObjectDictionary);
 
-    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream, bool fromTop)
+    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream, bool fromTop, IIndirectObjectDictionary indirectObjectDictionary)
     {
         Logger.Log(LogLevel.Trace, $"Searching for root trailer");
 
-        var xrefObject = await GetXrefObjectAsync(pdfStream);
+        var xrefObject = await GetXrefObjectAsync(pdfStream, indirectObjectDictionary);
 
         if (xrefObject is not Keyword k || k != Constants.Xref)
         {
@@ -145,7 +143,7 @@ public class PdfParser
 
         pdfStream.Position = trailerOffset.Value;
 
-        var trailer = await Parser.For<Trailer>().ParseAsync(pdfStream);
+        var trailer = await Parser.Trailers.ParseAsync(pdfStream, indirectObjectDictionary);
 
         return trailer;
     }
@@ -170,15 +168,15 @@ public class PdfParser
 
         pdfStream.Position = offset;
 
-        _ = await Parser.For<Keyword>().ParseAsync(pdfStream);
-        return await Parser.For<Integer>().ParseAsync(pdfStream);
+        _ = await Parser.Keywords.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+        return await Parser.Integers.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
     }
 
-    private static async Task<IndirectObject?> GetXrefStreamAsync(Stream pdfStream)
+    private static async Task<IndirectObject?> GetXrefStreamAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
     {
         Logger.Log(LogLevel.Trace, $"Searching for root trailer dictionary");
 
-        var xrefObject = await GetXrefObjectAsync(pdfStream);
+        var xrefObject = await GetXrefObjectAsync(pdfStream, indirectObjectDictionary);
 
         if (xrefObject is IndirectObject io
             && io.Object is StreamObject<IStreamDictionary> so
@@ -192,7 +190,7 @@ public class PdfParser
         return null;
     }
 
-    private static async Task<IPdfObject> GetXrefObjectAsync(Stream pdfStream)
+    private static async Task<IPdfObject> GetXrefObjectAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
     {
         var xrefOffset = await GetXrefOffsetAsync(pdfStream);
 
@@ -200,40 +198,23 @@ public class PdfParser
 
         var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfStream);
 
-        var item = await Parser.For(type).ParseAsync(pdfStream);
+        var item = await Parser.For(type).ParseAsync(pdfStream, indirectObjectDictionary);
 
         return item;
     }
+}
 
-    private static async Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync(Stream pdfStream)
-    {
-        Logger.Log(LogLevel.Trace, $"Searching for linearisation dictionary");
+internal class HoneyTrapIndirectObjectDictionary : IIndirectObjectDictionary
+{
+    private static readonly IIndirectObjectDictionary _instance = new HoneyTrapIndirectObjectDictionary();
 
-        pdfStream.Position = 0;
+    private const string _error = "If you're seeing this, ZingPDF is broken.";
 
-        var limit = Math.Min(1024, pdfStream.Length);
+    public int Count => throw new InvalidOperationException(_error);
+    public Task<IndirectObject?> GetAsync(IndirectObjectReference key) => throw new InvalidOperationException(_error);
+    public List<IndirectObjectId> GetFreeIds() => throw new InvalidOperationException(_error);
+    Task<T?> IIndirectObjectDictionary.GetAsync<T>(IndirectObjectReference key) where T : class
+        => throw new InvalidOperationException(_error);
 
-        while (pdfStream.Position < limit)
-        {
-            var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfStream);
-            if (type is null)
-            {
-                // TODO: is this a valid scenario?
-                break;
-            }
-
-            var item = await Parser.For(type).ParseAsync(pdfStream);
-
-            if (item is IndirectObject o && o.Object is LinearizationParameterDictionary dict)
-            {
-                Logger.Log(LogLevel.Trace, $"Found linearisation dictionary");
-
-                return dict;
-            }
-        }
-
-        Logger.Log(LogLevel.Trace, $"No linearisation dictionary found");
-
-        return null;
-    }
+    public static IIndirectObjectDictionary Instance => _instance;
 }

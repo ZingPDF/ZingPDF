@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects.Streams;
@@ -31,7 +32,7 @@ public class IndirectObjectParserTests
             ">>\r\n" +
             "endobj";
 
-        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream());
+        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream(), A.Dummy<IIndirectObjectDictionary>());
 
         output.Id.Index.Should().Be(12);
         output.Id.GenerationNumber.Should().Be(0);
@@ -47,7 +48,7 @@ public class IndirectObjectParserTests
             "endstream\r\n" +
             "endobj\r\n";
 
-        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream());
+        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream(), A.Dummy<IIndirectObjectDictionary>());
 
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);

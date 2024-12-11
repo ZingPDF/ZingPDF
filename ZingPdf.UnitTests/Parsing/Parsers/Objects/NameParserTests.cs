@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
 
@@ -30,7 +31,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser().ParseAsync(input);
+        var output = await new NameParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Value.Should().Be(expected);
     }
@@ -59,7 +60,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser().ParseAsync(input);
+        var output = await new NameParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         input.Position.Should().Be(expectedPosition);
     }

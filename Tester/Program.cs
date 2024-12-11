@@ -45,6 +45,7 @@ using System;
 //await Parse("testfiles/pdf/form.pdf");
 //await Parse("output.pdf");
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+await Parse("testfiles/pdf/encrypted.pdf");
 
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 //await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");

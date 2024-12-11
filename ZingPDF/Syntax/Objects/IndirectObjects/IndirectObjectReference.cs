@@ -14,6 +14,9 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
 
         public IndirectObjectId Id { get; }
 
+        public Task<T> ResolveAsync<T>(IIndirectObjectDictionary indirectObjectDictionary) where T : class, IPdfObject
+            => indirectObjectDictionary.GetAsync<T>(this)!;
+
         protected override async Task WriteOutputAsync(Stream stream)
         {
             // e.g. 12 0 R

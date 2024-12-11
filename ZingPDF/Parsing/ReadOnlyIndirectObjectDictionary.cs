@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using ZingPDF.Logging;
+using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Parsing.Parsers;
-using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing;
 
@@ -32,8 +32,6 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
             {
                 return null;
             }
-
-            var indirectObjectParser = Parser.For<IndirectObject>();
 
             if (xref.Compressed)
             {
@@ -74,13 +72,13 @@ public class ReadOnlyIndirectObjectDictionary(Stream stream, Dictionary<int, Cro
 
                 var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-                return new IndirectObject(key.Id, await Parser.For(type).ParseAsync(decompressedObjectStream));
+                return new IndirectObject(key.Id, await Parser.For(type).ParseAsync(decompressedObjectStream, this));
             }
             else
             {
                 _stream.Position = xref.Value1;
 
-                return await indirectObjectParser.ParseAsync(_stream);
+                return await Parser.IndirectObjects.ParseAsync(_stream, this);
             }
 
         });

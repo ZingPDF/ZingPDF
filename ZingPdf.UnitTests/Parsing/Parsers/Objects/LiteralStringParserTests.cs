@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
@@ -16,7 +17,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = "This is a string";
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -29,7 +30,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = "";
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -42,7 +43,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = "";
 
-        _ = await new LiteralStringParser().ParseAsync(input);
+        _ = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         input.Position.Should().Be(
             content.Length,
@@ -62,7 +63,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = expected;
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -75,7 +76,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = "This is a valid string";
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -91,7 +92,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = expected;
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -104,7 +105,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = "These two strings are the same.";
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -120,7 +121,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = expected;
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -138,7 +139,7 @@ public class LiteralStringParserTests
 
         LiteralString expectedLiteralString = expected;
 
-        var output = await new LiteralStringParser().ParseAsync(input);
+        var output = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -148,7 +149,7 @@ public class LiteralStringParserTests
     {
         using var input = "(test string \\))".ToStream();
 
-        _ = await new LiteralStringParser().ParseAsync(input);
+        _ = await new LiteralStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         input.Position.Should().Be(input.Length, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -169,7 +170,7 @@ public class LiteralStringParserTests
         LiteralString expectedLiteralString = input;
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -190,7 +191,7 @@ public class LiteralStringParserTests
         LiteralString expectedLiteralString = input;
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -211,7 +212,7 @@ public class LiteralStringParserTests
         LiteralString expectedLiteralString = input;
 
         using var ms = new MemoryStream([.. inputBytes]);
-        _ = await new LiteralStringParser().ParseAsync(ms);
+        _ = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         ms.Position.Should().Be(96, because: "parsing needs to continue from the end of the literal string");
     }
@@ -231,7 +232,7 @@ public class LiteralStringParserTests
         LiteralString expectedLiteralString = textInput;
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -250,7 +251,7 @@ public class LiteralStringParserTests
         inputBytes.Add((byte)Constants.RightParenthesis);
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Value.Should().Be(textInput);
     }
@@ -272,7 +273,7 @@ public class LiteralStringParserTests
         inputBytes.AddRange(Encoding.ASCII.GetBytes("\r\n<< /S /GoTo /D (section.23.5) >>\r\n"));
 
         using var ms = new MemoryStream([.. inputBytes]);
-        _ = await new LiteralStringParser().ParseAsync(ms);
+        _ = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         ms.Position.Should().Be(46, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -283,7 +284,7 @@ public class LiteralStringParserTests
         var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Value.Should().Be("Artifex");
     }
@@ -294,7 +295,7 @@ public class LiteralStringParserTests
         var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        _ = await new LiteralStringParser().ParseAsync(ms);
+        _ = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -308,7 +309,7 @@ public class LiteralStringParserTests
             "\r\n<< /S /GoTo /D (section.23.5) >>";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        var output = await new LiteralStringParser().ParseAsync(ms);
+        var output = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         output.Value.Should().Be("Usage on RedHat Linux");
     }
@@ -322,7 +323,7 @@ public class LiteralStringParserTests
             "\r\n<< /S /GoTo /D (section.23.5) >>";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        _ = await new LiteralStringParser().ParseAsync(ms);
+        _ = await new LiteralStringParser().ParseAsync(ms, A.Dummy<IIndirectObjectDictionary>());
 
         ms.Position.Should().Be(124, because: "the parser should move the stream past the string-end delimiter");
     }

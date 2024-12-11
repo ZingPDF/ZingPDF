@@ -6,7 +6,7 @@ namespace ZingPDF.Parsing.Parsers
 {
     internal class PdfObjectGroupParser : IPdfObjectParser<PdfObjectGroup>
     {
-        public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
+        public async ITask<PdfObjectGroup> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -20,7 +20,7 @@ namespace ZingPDF.Parsing.Parsers
                 {
                     try
                     {
-                        items.Add(await Parser.For(type).ParseAsync(stream));
+                        items.Add(await Parser.For(type).ParseAsync(stream, indirectObjectDictionary));
                     }
                     catch
                     {

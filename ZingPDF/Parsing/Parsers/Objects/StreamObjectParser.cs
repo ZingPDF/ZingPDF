@@ -22,20 +22,20 @@ namespace ZingPDF.Parsing.Parsers.Objects
             _dict = dict ?? throw new ArgumentNullException(nameof(dict));
         }
 
-        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream)
+        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             var initialStreamPosition = stream.Position;
 
             //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
-            var dict = _dict ?? await Parser.For<Dictionary>().ParseAsync(stream);
+            var dict = _dict ?? await Parser.Dictionaries.ParseAsync(stream, indirectObjectDictionary);
 
             var streamDict =
                 dict as CrossReferenceStreamDictionary as IStreamDictionary
                 ?? dict as ObjectStreamDictionary as IStreamDictionary
                 ?? StreamDictionary.FromDictionary(dict);
 
-            var streamLength = streamDict.Length!;
+            var streamLength = await streamDict.Length.ResolveAsync<Integer>(indirectObjectDictionary!);
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();

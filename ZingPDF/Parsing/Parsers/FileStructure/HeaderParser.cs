@@ -3,22 +3,21 @@ using System.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.FileStructure;
 
-namespace ZingPDF.Parsing.Parsers.FileStructure
+namespace ZingPDF.Parsing.Parsers.FileStructure;
+
+internal class HeaderParser : IPdfObjectParser<Header>
 {
-    internal class HeaderParser : IPdfObjectParser<Header>
+    public async ITask<Header> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
     {
-        public async ITask<Header> ParseAsync(Stream stream)
+        await stream.AdvanceBeyondNextAsync("%PDF-");
+
+        var version = Encoding.ASCII.GetString(new[]
         {
-            await stream.AdvanceBeyondNextAsync("%PDF-");
+            (byte)stream.ReadByte(),
+            (byte)stream.ReadByte(),
+            (byte)stream.ReadByte(),
+        });
 
-            var version = Encoding.ASCII.GetString(new[]
-            {
-                (byte)stream.ReadByte(),
-                (byte)stream.ReadByte(),
-                (byte)stream.ReadByte(),
-            });
-
-            return new Header(double.Parse(version));
-        }
+        return new Header(double.Parse(version));
     }
 }

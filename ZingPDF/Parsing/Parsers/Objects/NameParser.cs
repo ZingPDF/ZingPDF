@@ -10,7 +10,7 @@ internal class NameParser : IPdfObjectParser<Name>
 {
     readonly char[] _nameDelimiters = [.. Constants.Delimiters, .. Constants.WhitespaceCharacters];
 
-    public async ITask<Name> ParseAsync(Stream stream)
+    public async ITask<Name> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
     {
         //Logger.Log(LogLevel.Trace, $"Parsing Name from {stream.GetType().Name} at offset: {stream.Position}.");
 

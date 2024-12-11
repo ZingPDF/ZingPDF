@@ -23,7 +23,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         private readonly EncodingDetector _encodingDetector = new();
 
-        public async ITask<LiteralString> ParseAsync(Stream stream)
+        public async ITask<LiteralString> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing literal string from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -151,7 +151,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
                     if (countStart > 0 && countEnd == countStart)
                     {
-                        stringEnd = stringEnd = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
+                        stringEnd = encodingResult.StringEncoding.BodyName != byteEncoding.BodyName
                             ? asciiCursor - 1
                             : i;
 
