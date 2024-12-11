@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers.DataStructures
 {
     internal class DateParser : IPdfObjectParser<Date>
     {
-        public async ITask<Date> ParseAsync(Stream stream)
+        public async ITask<Date> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             await stream.AdvanceBeyondNextAsync("(D:");
 
