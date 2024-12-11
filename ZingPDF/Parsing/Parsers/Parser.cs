@@ -1,4 +1,8 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.Parsing.Parsers.DataStructures;
+using ZingPDF.Parsing.Parsers.FileStructure;
+using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
+using ZingPDF.Parsing.Parsers.Objects;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.FileStructure;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
@@ -6,10 +10,6 @@ using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Parsing.Parsers.DataStructures;
-using ZingPDF.Parsing.Parsers.FileStructure;
-using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
-using ZingPDF.Parsing.Parsers.Objects;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers
@@ -38,11 +38,30 @@ namespace ZingPDF.Parsing.Parsers
         private static readonly StreamObjectParser _streamParser = new();
         private static readonly TrailerParser _trailerParser = new();
 
+        internal static PdfObjectGroupParser PdfObjectGroups => _pdfObjectGroupParser;
+        internal static HeaderParser Headers => _headerParser;
+        internal static IndirectObjectParser IndirectObjects => _indirectObjectParser;
+        internal static KeywordParser Keywords => _keywordParser;
+        internal static CommentParser Comments => _commentParser;
+        internal static NameParser Names => _nameParser;
+        internal static DictionaryParser Dictionaries => _dictionaryParser;
+        internal static ArrayParser Arrays => _arrayParser;
+        internal static BooleanObjectParser Booleans => _booleanObjectParser;
+        internal static IntegerParser Integers => _integerParser;
+        internal static RealNumberParser RealNumbers => _realNumberParser;
+        internal static IndirectObjectReferenceParser IndirectObjectReferences => _indirectObjectReferenceParser;
+        internal static LiteralStringParser LiteralStrings => _literalStringParser;
+        internal static HexadecimalStringParser HexadecimalStrings => _hexadecimalStringParser;
+        internal static CrossReferenceTableParser XrefTables => _xrefTableParser;
+        internal static CrossReferenceSectionParser XrefSections => _xrefSectionParser;
+        internal static CrossReferenceSectionIndexParser XrefSectionIndexes => _xrefSectionIndexParser;
+        internal static CrossReferenceEntryParser XrefEntries => _xrefEntryParser;
+        internal static DateParser Dates => _dateParser;
+        internal static StreamObjectParser StreamObjects => _streamParser;
+        internal static TrailerParser Trailers => _trailerParser;
+
         public static IPdfObjectParser<IPdfObject> For(Type pdfObjectType)
             => GetParserForType(pdfObjectType);
-
-        public static IPdfObjectParser<T> For<T>() where T : IPdfObject
-            => (IPdfObjectParser<T>)GetParserForType(typeof(T));
 
         private static IPdfObjectParser<IPdfObject> GetParserForType(Type type)
         {
