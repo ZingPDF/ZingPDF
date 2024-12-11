@@ -1,19 +1,16 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
-using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceSectionIndexParser : IPdfObjectParser<CrossReferenceSectionIndex>
     {
-        private readonly IPdfObjectParser<Integer> _integerParser = Parser.For<Integer>();
-
-        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream)
+        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             // Example: 0 28
             return new CrossReferenceSectionIndex(
-                await _integerParser.ParseAsync(stream),
-                await _integerParser.ParseAsync(stream)
+                await Parser.Integers.ParseAsync(stream, indirectObjectDictionary),
+                await Parser.Integers.ParseAsync(stream, indirectObjectDictionary)
                 );
         }
     }

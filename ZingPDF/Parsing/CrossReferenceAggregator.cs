@@ -1,13 +1,12 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.Linearization;
 using ZingPDF.Logging;
+using ZingPDF.Parsing.Parsers;
+using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Parsing.Parsers;
 
 namespace ZingPDF.Parsing;
 
@@ -35,19 +34,15 @@ internal class CrossReferenceAggregator
         var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfStream)
             ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
 
-        var item = await Parser.For(type).ParseAsync(pdfStream);
-
-        if (item is IndirectObject io
-            && io.Object is StreamObject<IStreamDictionary> streamObject
-            && streamObject.Dictionary is CrossReferenceStreamDictionary)
+        if (type == typeof(CrossReferenceTable))
         {
-            //UsingXrefStreams = true;
-            await ParseCrossReferenceStreamAsync(pdfStream, streamObject, xrefs);
-        }
-        else if (item is Keyword k && k == Constants.Xref)
-        {
-            //UsingXrefTables = true;
             await ParseCrossReferenceTableAsync(pdfStream, xrefs);
+        }
+        else if (type == typeof(IndirectObject))
+        {
+            var streamObject = await Parser.StreamObjects.ParseAsync(pdfStream, null);
+
+            await ParseCrossReferenceStreamAsync(pdfStream, streamObject, xrefs);
         }
         else
         {
@@ -124,7 +119,7 @@ internal class CrossReferenceAggregator
 
     private static async Task ParseCrossReferenceTableAsync(Stream pdfStream, Dictionary<int, CrossReferenceEntry> xrefs)
     {
-        var xrefTable = await Parser.For<CrossReferenceTable>().ParseAsync(pdfStream);
+        var xrefTable = await new CrossReferenceTableParser().ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
 
         foreach (var section in xrefTable.Sections)
         {
@@ -139,7 +134,7 @@ internal class CrossReferenceAggregator
             }
         }
 
-        var trailer = await Parser.For<Trailer>().ParseAsync(pdfStream);
+        var trailer = await Parser.Trailers.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
 
         if (trailer.Dictionary.Prev is not null)
         {

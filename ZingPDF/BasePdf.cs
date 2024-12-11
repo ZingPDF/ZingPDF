@@ -22,6 +22,8 @@ public abstract class BasePdf : IPdf, IDisposable
         IndirectObject? xrefStream,
         IIndirectObjectDictionary indirectObjectDictionary,
         LinearizationParameterDictionary? linearizationDictionary
+        //string? userPassword,
+        //string? ownerPassword
         )
     {
         _pdfInputStream = pdfInputStream ?? throw new ArgumentNullException(nameof(pdfInputStream));

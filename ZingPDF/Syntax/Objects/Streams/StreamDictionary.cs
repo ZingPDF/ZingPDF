@@ -8,7 +8,7 @@
         protected StreamDictionary(Name? type) : base(type) { }
         protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
-        public Integer Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
+        public IPdfObject Length => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Length)!;
         public IPdfObject? Filter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Filter);
         public IPdfObject? DecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public Dictionary? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);

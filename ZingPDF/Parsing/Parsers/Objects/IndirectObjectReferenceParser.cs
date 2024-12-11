@@ -1,14 +1,13 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class IndirectObjectReferenceParser : IPdfObjectParser<IndirectObjectReference>
     {
-        public async ITask<IndirectObjectReference> ParseAsync(Stream stream)
+        public async ITask<IndirectObjectReference> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing IndirectObjectReference from {stream.GetType().Name} at offset: {stream.Position}.");
 
