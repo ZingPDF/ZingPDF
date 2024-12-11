@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Extensions;
 
@@ -17,5 +18,21 @@ internal static class PdfObjectExtensions
             Integer integer => integer,
             _ => throw new InvalidOperationException(),
         };
+    }
+
+    public static async Task<T> ResolveAsync<T>(this IPdfObject obj, IIndirectObjectDictionary indirectObjectDictionary)
+        where T : class, IPdfObject
+    {
+        if (obj is T typed)
+        {
+            return typed;
+        }
+        else if (obj is IndirectObjectReference ior)
+        {
+            return await indirectObjectDictionary.GetAsync<T>(ior)
+                ?? throw new InvalidPdfException($"Unable to resolve indirect object reference: {ior}");
+        }
+
+        throw new InvalidOperationException("Internal error");
     }
 }

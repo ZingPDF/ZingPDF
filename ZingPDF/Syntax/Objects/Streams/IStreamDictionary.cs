@@ -3,7 +3,7 @@
     /// <summary>
     /// ISO 32000-2:2020 - 7.3.8.2 Stream extent
     /// </summary>
-    public interface IStreamDictionary : IPdfObject, IDictionary<Name, IPdfObject>
+    public interface IStreamDictionary : IPdfObject, IPdfDictionary
     {
         /// <summary>
         /// (Required) The number of bytes from the beginning of the line following the keyword 
@@ -11,7 +11,7 @@
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        Integer Length { get; }
+        IPdfObject Length { get; }
 
         /// <summary>
         /// <para>(Optional) The name, or an array of zero, one or several names, of filter(s) that 

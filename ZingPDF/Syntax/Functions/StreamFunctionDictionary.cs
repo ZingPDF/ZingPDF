@@ -8,7 +8,7 @@ namespace ZingPDF.Syntax.Functions
         protected StreamFunctionDictionary(Integer functionType) : base(functionType) { }
         protected StreamFunctionDictionary(Dictionary dict) : base(dict) { }
 
-        public Integer Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
+        public IPdfObject Length => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Length)!;
         public IPdfObject? Filter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Filter);
         public IPdfObject? DecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public Dictionary? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
