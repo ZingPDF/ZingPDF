@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class CommentParser : IPdfObjectParser<Comment>
     {
-        public async ITask<Comment> ParseAsync(Stream stream)
+        public async ITask<Comment> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Comment from {stream.GetType().Name} at offset: {stream.Position}.");
 

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
 
@@ -12,7 +13,7 @@ public class RealNumberParserTests
     [InlineData("841.890000", 841.890000)]
     public async Task ParseAsyncBasic(string input, double expected)
     {
-        var output = await new RealNumberParser().ParseAsync(input.ToStream());
+        var output = await new RealNumberParser().ParseAsync(input.ToStream(), A.Dummy<IIndirectObjectDictionary>());
 
         output.Value.Should().Be(expected);
     }
