@@ -5,7 +5,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceSectionParser : IPdfObjectParser<CrossReferenceSection>
     {
-        public async ITask<CrossReferenceSection> ParseAsync(Stream stream)
+        public async ITask<CrossReferenceSection> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             // 0 6
             // 0000000003 65535 f
@@ -15,18 +15,15 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000000331 00000 n
             // 0000000409 00000 n
 
-            var sectionIndexParser = Parser.For<CrossReferenceSectionIndex>();
-            var entryParser = Parser.For<CrossReferenceEntry>();
-
-            var index = await sectionIndexParser.ParseAsync(stream);
+            var index = await Parser.XrefSectionIndexes.ParseAsync(stream, indirectObjectDictionary);
 
             Type? type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
-            List<CrossReferenceEntry> entries = new();
+            List<CrossReferenceEntry> entries = [];
             long position = stream.Position;
 
             while (type == typeof(CrossReferenceEntry))
             {
-                entries.Add(await entryParser.ParseAsync(stream));
+                entries.Add(await Parser.XrefEntries.ParseAsync(stream, indirectObjectDictionary));
 
                 position = stream.Position;
                 type = await TokenTypeIdentifier.TryIdentifyAsync(stream);

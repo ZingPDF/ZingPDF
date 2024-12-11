@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class BooleanObjectParser : IPdfObjectParser<BooleanObject>
     {
-        public async ITask<BooleanObject> ParseAsync(Stream stream)
+        public async ITask<BooleanObject> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             stream.AdvancePastWhitepace();
 

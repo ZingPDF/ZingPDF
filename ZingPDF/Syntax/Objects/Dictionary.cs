@@ -8,7 +8,7 @@ namespace ZingPDF.Syntax.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary : PdfObject, IDictionary<Name, IPdfObject>
+    public class Dictionary : PdfObject, IPdfDictionary
     {
         private readonly Dictionary<Name, IPdfObject> _dictionary;
 
@@ -39,30 +39,30 @@ namespace ZingPDF.Syntax.Objects
             => _dictionary.TryGetValue(key, out IPdfObject? value) ? value as T
             : null;
 
-        /// <summary>
-        /// Resolve a property <see cref="PdfObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// Similar to <see cref="Get{T}(Name)"/>, except that this method will retrieve the object if the property is an indirect object reference.
-        /// </remarks>
-        public async Task<T?> ResolveAsync<T>(Name key, IIndirectObjectDictionary indirectObjectDictionary) where T : class, IPdfObject
-        {
-            if (!_dictionary.TryGetValue(key, out IPdfObject? value))
-            {
-                return null;
-            }
+        ///// <summary>
+        ///// Resolve a property <see cref="PdfObject"/>.
+        ///// </summary>
+        ///// <remarks>
+        ///// Similar to <see cref="Get{T}(Name)"/>, except that this method will retrieve the object if the property is an indirect object reference.
+        ///// </remarks>
+        //public async Task<T?> ResolveAsync<T>(Name key, IIndirectObjectDictionary indirectObjectDictionary) where T : class, IPdfObject
+        //{
+        //    if (!_dictionary.TryGetValue(key, out IPdfObject? value))
+        //    {
+        //        return null;
+        //    }
 
-            if (value is T typed)
-            {
-                return typed;
-            }
-            else if (value is IndirectObjectReference ior)
-            {
-                return await indirectObjectDictionary.GetAsync<T>(ior);
-            }
+        //    if (value is T typed)
+        //    {
+        //        return typed;
+        //    }
+        //    else if (value is IndirectObjectReference ior)
+        //    {
+        //        return await indirectObjectDictionary.GetAsync<T>(ior);
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         protected override async Task WriteOutputAsync(Stream stream)
         {

@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class RealNumberParser : IPdfObjectParser<RealNumber>
     {
-        public async ITask<RealNumber> ParseAsync(Stream stream)
+        public async ITask<RealNumber> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             stream.AdvancePastWhitepace();
 

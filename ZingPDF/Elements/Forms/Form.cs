@@ -42,7 +42,7 @@ namespace ZingPDF.Elements.Forms
         {
             var formDict = await _acroFormDictionary;
 
-            var fields = await formDict.ResolveAsync<ArrayObject>(Constants.DictionaryKeys.InteractiveForm.Fields, _indirectObjectDictionary);
+            var fields = await formDict.Fields.ResolveAsync<ArrayObject>(_indirectObjectDictionary);
 
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])

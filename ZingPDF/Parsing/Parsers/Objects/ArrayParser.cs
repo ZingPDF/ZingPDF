@@ -8,7 +8,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class ArrayParser : IPdfObjectParser<ArrayObject>
     {
-        public async ITask<ArrayObject> ParseAsync(Stream stream)
+        public async ITask<ArrayObject> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -81,7 +81,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
                 // Parse objects inside the array
-                var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(arrayStream);
+                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(arrayStream, indirectObjectDictionary);
 
                 output = objectGroup.Objects.ToArray();
             }
