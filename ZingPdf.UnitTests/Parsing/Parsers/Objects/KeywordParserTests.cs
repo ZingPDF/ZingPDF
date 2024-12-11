@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
@@ -18,7 +19,7 @@ public class KeywordParserTests
 
         Keyword expectedKeyword = expected;
 
-        var output = await new KeywordParser().ParseAsync(input);
+        var output = await new KeywordParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
 
         output.Should().BeEquivalentTo(expectedKeyword);
 

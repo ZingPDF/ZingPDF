@@ -40,7 +40,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             Constants.DictionaryKeys.Form.Type1.BBox,
         ];
 
-        public async ITask<Dictionary> ParseAsync(Stream stream)
+        public async ITask<Dictionary> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -129,7 +129,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             {
                 var dictStream = new SubStream(stream, dictStart, dictEnd);
 
-                var objectGroup = await Parser.For<PdfObjectGroup>().ParseAsync(dictStream);
+                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(dictStream, indirectObjectDictionary);
 
                 if (objectGroup.Objects.Count % 2 != 0)
                 {

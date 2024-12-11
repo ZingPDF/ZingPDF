@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class IntegerParser : IPdfObjectParser<Integer>
     {
-        public async ITask<Integer> ParseAsync(Stream stream)
+        public async ITask<Integer> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
         {
             stream.AdvancePastWhitepace();
 

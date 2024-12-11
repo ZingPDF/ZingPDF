@@ -52,6 +52,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //await Parse("testfiles/pdf/form.pdf");
 //await Parse("output.pdf");
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+await Parse("testfiles/pdf/encrypted.pdf");
 
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/test.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/form.pdf");
