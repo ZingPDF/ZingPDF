@@ -25,6 +25,7 @@ namespace ZingPDF.Syntax.Objects
         public static implicit operator Integer(long value) => new(value);
 
         public static implicit operator ushort(Integer value) => (ushort)value.Value;
+        public static implicit operator int?(Integer? value) => (int?)value?.Value;
         public static implicit operator int(Integer value) => (int)value.Value;
         public static implicit operator long(Integer value) => value.Value;
 
