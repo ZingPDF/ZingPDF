@@ -74,6 +74,11 @@
             return Position;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
+
         #region Not Supported
         public override void Flush() => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();

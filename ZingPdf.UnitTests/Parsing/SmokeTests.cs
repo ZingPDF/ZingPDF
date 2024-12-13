@@ -6,15 +6,15 @@ namespace ZingPDF.Parsing;
 public class SmokeTests
 {
     [Theory]
-    [InlineData("testfiles/pdf/combobox-form.pdf")]
-    [InlineData("testfiles/pdf/complex-form.pdf")]
-    [InlineData("testfiles/pdf/form.pdf")]    
-    [InlineData("testfiles/pdf/Ghostscript.pdf")]
-    [InlineData("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf")]
-    [InlineData("testfiles/pdf/minimal.pdf")]
-    [InlineData("testfiles/pdf/minimal2.pdf")]
-    [InlineData("testfiles/pdf/minimal3.pdf")]
-    [InlineData("testfiles/pdf/test.pdf")]
+    [InlineData(Files.ComboboxForm)]
+    [InlineData(Files.ComplexForm)]
+    [InlineData(Files.Form)]    
+    [InlineData(Files.Ghostscript)]
+    [InlineData(Files.MikeyPortfolio)]
+    [InlineData(Files.Minimal1)]
+    [InlineData(Files.Minimal2)]
+    [InlineData(Files.Minimal3)]
+    [InlineData(Files.Test)]
     public async Task Parse(string filePath)
     {
         var pdf = await PdfParser.OpenAsync(new MemoryStream(Files.ConcurrentRead(filePath)));

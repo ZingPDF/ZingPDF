@@ -2,7 +2,7 @@
 
 namespace ZingPDF.Syntax.Encryption;
 
-internal class EncryptionDictionary : Dictionary
+public class EncryptionDictionary : Dictionary
 {
     protected EncryptionDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary) : base(dictionary)
     {

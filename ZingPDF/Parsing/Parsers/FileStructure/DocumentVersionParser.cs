@@ -1,0 +1,84 @@
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
+
+namespace ZingPDF.Parsing.Parsers.FileStructure;
+
+internal class DocumentVersionParser
+{
+    // Parse all xref tables and streams to get all versions of the file
+    public static async Task<List<DocumentVersion>> ParseDocumentVersionsAsync(Stream pdfInputStream)
+    {
+        List<DocumentVersion> versions = [];
+
+        int? xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
+
+        while (xrefOffset != null)
+        {
+            var version = await ParseDocumentVersionAsync(pdfInputStream, xrefOffset.Value);
+
+            xrefOffset = version.TrailerDictionary.Prev;
+
+            versions.Add(version);
+        }
+
+        return versions;
+    }
+
+    // Give the byte offset of an xref table or stream, parse and produce a DocumentVersion instance
+    public static async Task<DocumentVersion> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
+    {
+        DocumentVersion version;
+
+        pdfInputStream.Position = xrefOffset;
+
+        var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfInputStream);
+
+        if (type == typeof(Keyword))
+        {
+            version = new DocumentVersion
+            {
+                CrossReferenceTable = await Parser.XrefTables.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance),
+                Trailer = await Parser.Trailers.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance)
+            };
+        }
+        else if (type == typeof(IndirectObject))
+        {
+            var xrefStream = await Parser.StreamObjects.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance);
+
+            version = new DocumentVersion
+            {
+                CrossReferenceStream = xrefStream
+            };
+        }
+        else
+        {
+            throw new InvalidOperationException("No xrefs found at offset");
+        }
+
+        return version;
+    }
+
+    // TODO: move to testable class
+    /// <summary>
+    /// Searches from the end of the file for the startxref keyword, parses the value and returns it.
+    /// </summary>
+    private static async Task<int> GetMainXrefOffsetAsync(Stream pdfStream)
+    {
+        // startxref
+        // Byte_offset_of_last_cross-reference_section
+        // %%EOF
+
+        var objectFinder = new ObjectFinder();
+
+        // First, find the startxref keyword
+        var offset = await objectFinder.FindAsync(pdfStream, Constants.StartXref, forwards: false)
+            ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
+
+        pdfStream.Position = offset;
+
+        _ = await Parser.Keywords.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+
+        return await Parser.Integers.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+    }
+}
