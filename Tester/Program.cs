@@ -52,7 +52,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //await Parse("testfiles/pdf/form.pdf");
 //await Parse("output.pdf");
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
-await Parse("testfiles/pdf/encrypted.pdf");
+//await Parse("testfiles/pdf/encrypted.pdf");
 
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/test.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/form.pdf");
@@ -71,8 +71,24 @@ await Parse("testfiles/pdf/encrypted.pdf");
 
 //await RotateWholeDocument();
 
-await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+
+await Test();
+
+static async Task Test()
+{
+    //using var inputFileStream = new FileStream("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", FileMode.Open);
+    //using var inputFileStream = new FileStream("testfiles/pdf/complex-form.pdf", FileMode.Open);
+    //using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/encrypted.pdf", FileMode.Open);
+
+    var pdf = await ZingPDF.Linearization.Pdf.LoadAsync(inputFileStream);
+
+
+}
+
 
 static async Task Parse(string input)
 {
