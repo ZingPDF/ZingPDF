@@ -45,7 +45,7 @@ using System;
 //await Parse("testfiles/pdf/form.pdf");
 //await Parse("output.pdf");
 //await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
-await Parse("testfiles/pdf/encrypted.pdf");
+//await Parse("testfiles/pdf/encrypted.pdf");
 
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
 //await ConvertFromHTMLContent("testfiles/html/form-test.html", "form-test.pdf");
@@ -60,8 +60,21 @@ await Parse("testfiles/pdf/encrypted.pdf");
 
 //await RotateWholeDocument();
 
-await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+await Test();
+
+static async Task Test()
+{
+    //using var inputFileStream = new FileStream("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", FileMode.Open);
+    //using var inputFileStream = new FileStream("testfiles/pdf/complex-form.pdf", FileMode.Open);
+    //using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/encrypted.pdf", FileMode.Open);
+
+    var pdf = await ZingPDF.Linearization.Pdf.LoadAsync(inputFileStream);
+
+}
 
 static async Task Parse(string input)
 {

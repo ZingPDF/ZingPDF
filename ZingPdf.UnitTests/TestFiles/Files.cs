@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Xunit;
 
 namespace ZingPDF.UnitTests.TestFiles;
 
@@ -10,9 +11,15 @@ public static class Files
 
     private static readonly ConcurrentDictionary<string, byte[]> _files = [];
 
-    public static string Minimal1 => $"{_pdfBasePath}/minimal.pdf";
-    public static string Form => $"{_pdfBasePath}/form.pdf";
-    public static string MikeyPortfolio => $"{_pdfBasePath}/MikeyFlemingFreelance_Folio.pdf";
+    public const string ComboboxForm = $"{_pdfBasePath}/combobox-form.pdf";
+    public const string ComplexForm = $"{_pdfBasePath}/complex-form.pdf";
+    public const string Form = $"{_pdfBasePath}/form.pdf";
+    public const string Ghostscript = $"{_pdfBasePath}/Ghostscript.pdf";
+    public const string MikeyPortfolio = $"{_pdfBasePath}/MikeyFlemingFreelance_Folio.pdf";
+    public const string Minimal1 = $"{_pdfBasePath}/minimal.pdf";
+    public const string Minimal2 = $"{_pdfBasePath}/minimal2.pdf";
+    public const string Minimal3 = $"{_pdfBasePath}/minimal3.pdf";
+    public const string Test = $"{_pdfBasePath}/test.pdf";
 
     public static MemoryStream AsStream(string path) => new(ConcurrentRead(path));
 
