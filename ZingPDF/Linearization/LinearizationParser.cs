@@ -1,194 +1,230 @@
-﻿using System.Text;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.Objects;
+﻿//using ZingPDF.Parsing.Parsers;
+//using ZingPDF.Syntax.Objects;
 
-namespace ZingPDF.Linearization;
+//namespace ZingPDF.Linearization;
 
-internal class LinearizationParser
-{
-    public async Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync(Stream pdfInputStream)
-    {
-        pdfInputStream.Position = 0;
+//internal class LinearizationParser
+//{
+//    //// Read the first 1024 bytes of the file into a string
+//    //private static async Task<string> GetFirstKBOfFileAsync(StreamReader reader)
+//    //{
+//    //    // Read the first 1KB (or less if the stream is smaller) to find the linearization dictionary
+//    //    const int bufferSize = 1024;
+//    //    char[] buffer = new char[bufferSize];
+//    //    int readBytes = await reader.ReadBlockAsync(buffer, 0, bufferSize);
 
-        using var reader = new StreamReader(pdfInputStream, Encoding.ASCII, leaveOpen: true);
+//    //    return new string(buffer, 0, readBytes);
+//    //}
 
-        // Read the first 1KB (or less if the stream is smaller) to find the linearization dictionary
-        const int bufferSize = 1024;
-        char[] buffer = new char[bufferSize];
-        int readBytes = await reader.ReadBlockAsync(buffer, 0, bufferSize);
-        var content = new string(buffer, 0, readBytes);
+//    //// Find the location of /Linearized in the content, if any
+//    //private static int? FindLinearizationKey(string content)
+//    //{
+//    //    const string linearizationMarker = $"/{Constants.DictionaryKeys.LinearizationParameter.Linearized}";
+//    //    int markerIndex = content.IndexOf(linearizationMarker, StringComparison.Ordinal);
 
-        // Look for the linearization number and dictionary opening "obj"
-        const string linearizationMarker = $"/{Constants.DictionaryKeys.LinearizationParameter.Linearized}";
-        int markerIndex = content.IndexOf(linearizationMarker, StringComparison.Ordinal);
+//    //    if (markerIndex == -1)
+//    //    {
+//    //        return null; // No linearization dictionary found
+//    //    }
 
-        if (markerIndex == -1)
-        {
-            return null; // No linearization dictionary found
-        }
+//    //    return markerIndex;
+//    //}
 
-        // Backtrack to find the object start (e.g., "1 0 obj")
-        int objStartIndex = content.LastIndexOf(Constants.ObjStart, markerIndex, StringComparison.Ordinal);
-        if (objStartIndex == -1)
-        {
-            return null; // Malformed PDF structure
-        }
+//    //// Backtrack to find the object start marker (e.g., "1 0 obj")
+//    //private static int FindStartOfCurrentObject(string content, int currentPosition)
+//    //{
+//    //    int objStartIndex = content.LastIndexOf(Constants.ObjStart, currentPosition, StringComparison.Ordinal);
+//    //    if (objStartIndex == -1)
+//    //    {
+//    //        throw new InvalidPdfException("Unable to find indirect object wrapper for linearization parameter dictionary");
+//    //    }
 
-        // Parse the dictionary content
-        int dictStartIndex = content.IndexOf("<<", objStartIndex, StringComparison.Ordinal);
-        int dictEndIndex = content.IndexOf(">>", dictStartIndex, StringComparison.Ordinal);
-        if (dictStartIndex == -1 || dictEndIndex == -1)
-        {
-            return null; // Malformed dictionary
-        }
+//    //    return objStartIndex;
+//    //}
 
-        string dictionaryContent = content.Substring(dictStartIndex, dictEndIndex - dictStartIndex + 2);
+//    //// Extract the dictionary at the current position, including the start and end markers
+//    //private static string GetDictionaryAsString(string content, int currentPosition)
+//    //{
+//    //    int dictStartIndex = content.IndexOf("<<", currentPosition, StringComparison.Ordinal);
 
-        var endObj = content.IndexOf(Constants.ObjEnd);
+//    //    // Finding the end index in this way only works for the linearization dictionary
+//    //    // as we know it contains no nested dictionaries.
+//    //    int dictEndIndex = content.IndexOf(">>", dictStartIndex, StringComparison.Ordinal);
 
-        // This part is important, so that parsing can continue from the end of the dictionary
-        pdfInputStream.Position = Encoding.ASCII.GetByteCount(content[..(endObj + Constants.ObjEnd.Length)]);
+//    //    if (dictStartIndex == -1 || dictEndIndex == -1)
+//    //    {
+//    //        throw new InvalidPdfException("Invalid linearization parameter dictionary");
+//    //    }
 
-        var objectDictionary = ParsePdfDictionary(dictionaryContent);
+//    //    return content.Substring(dictStartIndex, dictEndIndex - dictStartIndex + 2);
+//    //}
 
-        var linearizedProperty = new RealNumber(double.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.Linearized].ToString()!
-            ));
+//    //// Break the string into a dictionary of strings.
+//    //private static Dictionary<string, string> ParseToDictionaryOfStrings(string dictionaryContent)
+//    //{
+//    //    var result = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        var lengthProperty = new Integer(int.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.L].ToString()!
-            ));
+//    //    // Simple state machine for parsing PDF dictionary key-value pairs
+//    //    int length = dictionaryContent.Length;
+//    //    for (int i = 0; i < length;)
+//    //    {
+//    //        SkipWhitespace(dictionaryContent, ref i);
+//    //        if (i >= length || dictionaryContent[i] == '>')
+//    //        {
+//    //            break;
+//    //        }
 
-        var hintStreamInfo = new ArrayObject(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.H].ToString()!
-                .Trim()
-                .TrimStart(Constants.LeftSquareBracket)
-                .TrimEnd(Constants.RightSquareBracket)
-                .Split(Constants.WhitespaceCharacters, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => new Integer(int.Parse(x)))
-                );
+//    //        if (dictionaryContent[i] == '<')
+//    //        {
+//    //            i++;
+//    //            continue;
+//    //        }
 
-        var firstPageObjectNumber = new Integer(int.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.O].ToString()!
-            ));
+//    //        // Parse key
+//    //        if (dictionaryContent[i] != '/')
+//    //        {
+//    //            throw new FormatException("Invalid dictionary key format.");
+//    //        }
 
-        var firstPageEndOffset = new Integer(int.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.E].ToString()!
-            ));
+//    //        int keyStart = ++i;
+//    //        while (i < length && !char.IsWhiteSpace(dictionaryContent[i]) && dictionaryContent[i] != '/')
+//    //        {
+//    //            i++;
+//    //        }
 
-        var pageCount = new Integer(int.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.N].ToString()!
-            ));
+//    //        string key = dictionaryContent[keyStart..i];
 
-        var xrefOffset = new Integer(int.Parse(
-            objectDictionary[Constants.DictionaryKeys.LinearizationParameter.T].ToString()!
-            ));
+//    //        // Parse value
+//    //        SkipWhitespace(dictionaryContent, ref i);
+//    //        int valueStart = i;
 
-        var typedDictionary = new Dictionary<Name, IPdfObject>
-        {
-            { Constants.DictionaryKeys.LinearizationParameter.Linearized, linearizedProperty },
-            { Constants.DictionaryKeys.LinearizationParameter.L, lengthProperty },
-            { Constants.DictionaryKeys.LinearizationParameter.H, hintStreamInfo },
-            { Constants.DictionaryKeys.LinearizationParameter.O, firstPageObjectNumber },
-            { Constants.DictionaryKeys.LinearizationParameter.E, firstPageEndOffset },
-            { Constants.DictionaryKeys.LinearizationParameter.N, pageCount },
-            { Constants.DictionaryKeys.LinearizationParameter.T, xrefOffset }
-        };
+//    //        SkipValue(dictionaryContent, ref i);
 
-        if (objectDictionary.TryGetValue(Constants.DictionaryKeys.LinearizationParameter.P, out var item))
-        {
-            var firstPageNumber = new Integer(int.Parse(
-                objectDictionary[Constants.DictionaryKeys.LinearizationParameter.P].ToString()!
-                ));
+//    //        string value = dictionaryContent[valueStart..i];
+//    //        result[key] = value;
+//    //    }
 
-            typedDictionary[Constants.DictionaryKeys.LinearizationParameter.P] = firstPageNumber;
-        }
+//    //    return result;
+//    //}
 
-        return LinearizationParameterDictionary.FromDictionary(typedDictionary);
-    }
+//    //private static LinearizationParameterDictionary ConvertToTypedLinearizationDictionary(Dictionary<string, string> stringDictionary)
+//    //{
+//    //    var linearizedProperty = new RealNumber(double.Parse(
+//    //        stringDictionary[Constants.DictionaryKeys.LinearizationParameter.Linearized]
+//    //        ));
 
-    public bool IsLinearized(LinearizationParameterDictionary linearizationDictionary, Stream pdfInputStream)
-        => linearizationDictionary.L == pdfInputStream.Length;
+//    //    var lengthProperty = new Integer(int.Parse(stringDictionary[Constants.DictionaryKeys.LinearizationParameter.L]));
 
-    private static Dictionary<string, object> ParsePdfDictionary(string dictionaryContent)
-    {
-        var result = new Dictionary<string, object>(StringComparer.Ordinal);
+//    //    var hintStreamInfo = new ArrayObject(
+//    //        stringDictionary[Constants.DictionaryKeys.LinearizationParameter.H]
+//    //            .Trim()
+//    //            .TrimStart(Constants.LeftSquareBracket)
+//    //            .TrimEnd(Constants.RightSquareBracket)
+//    //            .Split(Constants.WhitespaceCharacters, StringSplitOptions.RemoveEmptyEntries)
+//    //            .Select(x => new Integer(int.Parse(x)))
+//    //            );
 
-        // Simple state machine for parsing PDF dictionary key-value pairs
-        int length = dictionaryContent.Length;
-        for (int i = 0; i < length;)
-        {
-            SkipWhitespace(dictionaryContent, ref i);
-            if (i >= length || dictionaryContent[i] == '>')
-            {
-                break;
-            }
+//    //    var firstPageObjectNumber = new Integer(int.Parse(stringDictionary[Constants.DictionaryKeys.LinearizationParameter.O]));
+//    //    var firstPageEndOffset = new Integer(int.Parse(stringDictionary[Constants.DictionaryKeys.LinearizationParameter.E]));
+//    //    var pageCount = new Integer(int.Parse(stringDictionary[Constants.DictionaryKeys.LinearizationParameter.N]));
+//    //    var xrefOffset = new Integer(int.Parse(stringDictionary[Constants.DictionaryKeys.LinearizationParameter.T]));
 
-            if (dictionaryContent[i] == '<')
-            {
-                i++;
-                continue;
-            }
+//    //    var typedDictionary = new Dictionary<Name, IPdfObject>
+//    //    {
+//    //        { Constants.DictionaryKeys.LinearizationParameter.Linearized, linearizedProperty },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.L, lengthProperty },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.H, hintStreamInfo },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.O, firstPageObjectNumber },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.E, firstPageEndOffset },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.N, pageCount },
+//    //        { Constants.DictionaryKeys.LinearizationParameter.T, xrefOffset }
+//    //    };
 
-            // Parse key
-            if (dictionaryContent[i] != '/')
-            {
-                throw new FormatException("Invalid dictionary key format.");
-            }
+//    //    if (stringDictionary.TryGetValue(Constants.DictionaryKeys.LinearizationParameter.P, out var firstPageNumberObject))
+//    //    {
+//    //        var firstPageNumber = new Integer(int.Parse(firstPageNumberObject.ToString()!));
 
-            int keyStart = ++i;
-            while (i < length && !char.IsWhiteSpace(dictionaryContent[i]) && dictionaryContent[i] != '/')
-            {
-                i++;
-            }
+//    //        typedDictionary[Constants.DictionaryKeys.LinearizationParameter.P] = firstPageNumber;
+//    //    }
 
-            string key = dictionaryContent[keyStart..i];
+//    //    return LinearizationParameterDictionary.FromDictionary(typedDictionary);
+//    //}
 
-            // Parse value
-            SkipWhitespace(dictionaryContent, ref i);
-            int valueStart = i;
+//    //private static int FindEndOfLinearizationDictionaryObject(string content, int currentPosition)
+//    //{
+//    //    var objEndIndex = content.IndexOf(Constants.ObjEnd, currentPosition, StringComparison.Ordinal);
+//    //    if (objEndIndex == -1)
+//    //    {
+//    //        throw new InvalidPdfException("Unable to find end ofindirect object wrapper for linearization parameter dictionary");
+//    //    }
 
-            SkipValue(dictionaryContent, ref i);
+//    //    return objEndIndex + Constants.ObjEnd.Length;
+//    //}
 
-            string value = dictionaryContent[valueStart..i];
-            result[key] = value;
-        }
+//    //private static void SkipWhitespace(string content, ref int index)
+//    //{
+//    //    while (index < content.Length && char.IsWhiteSpace(content[index]))
+//    //        index++;
+//    //}
 
-        return result;
-    }
+//    //private static void SkipValue(string content, ref int index)
+//    //{
+//    //    bool insideArray = false;
 
-    private static void SkipWhitespace(string content, ref int index)
-    {
-        while (index < content.Length && char.IsWhiteSpace(content[index]))
-            index++;
-    }
+//    //    for (; index < content.Length; index++)
+//    //    {
+//    //        if (content[index] == Constants.LeftSquareBracket)
+//    //        {
+//    //            insideArray = true;
+//    //        }
 
-    private static void SkipValue(string content, ref int index)
-    {
-        bool insideArray = false;
+//    //        if (content[index] == Constants.RightSquareBracket)
+//    //        {
+//    //            insideArray = false;
+//    //        }
 
-        for(; index < content.Length; index++)
-        {
-            if (content[index] == Constants.LeftSquareBracket)
-            {
-                insideArray = true;
-            }
+//    //        if (IsDelimiter(content[index]) && !insideArray)
+//    //        {
+//    //            break;
+//    //        }
+//    //    }
+//    //}
 
-            if (content[index] == Constants.RightSquareBracket)
-            {
-                insideArray = false;
-            }
+//    //private static bool IsDelimiter(char character)
+//    //{
+//    //    return new[] { Constants.Solidus, Constants.GreaterThan }.Contains(character)
+//    //        || char.IsWhiteSpace(character);
+//    //}
+//}
 
-            if (IsDelimiter(content[index]) && !insideArray)
-            {
-                break;
-            }
-        }
-    }
+//// Commenting this while I test if it works with the original parsers
+////pdfInputStream.Position = 0;
+////using var reader = new StreamReader(pdfInputStream, Encoding.ASCII, leaveOpen: true);
 
-    private static bool IsDelimiter(char character)
-    {
-        return new[] { Constants.Solidus, Constants.GreaterThan }.Contains(character)
-            || char.IsWhiteSpace(character);
-    }
-}
+////var content = await GetFirstKBOfFileAsync(reader);
+
+////var linearizationKeyPosition = FindLinearizationKey(content);
+
+////var fileHasLinearizationDictionary = linearizationKeyPosition != null;
+////if (fileHasLinearizationDictionary)
+////{
+////    var objStartIndex = FindStartOfCurrentObject(content, linearizationKeyPosition!.Value);
+
+////    var dictionaryContent = GetDictionaryAsString(content, objStartIndex);
+
+////    var stringDictionary = ParseToDictionaryOfStrings(dictionaryContent);
+
+////    linearizationDictionary = ConvertToTypedLinearizationDictionary(stringDictionary);
+
+////    var dictEnd = objStartIndex + dictionaryContent.Length;
+////    var objEndIndex = FindEndOfLinearizationDictionaryObject(content, dictEnd);
+
+////    pdfInputStream.Position = objEndIndex;
+////}
+
+////var items = await Parser.PdfObjectGroups.ParseAsync(new SubStream(pdfInputStream, 0, 1024), HoneyTrapIndirectObjectDictionary.Instance);
+
+////var linearizationDictionaryObject = (IndirectObject?)items.Objects
+////    .FirstOrDefault(x => x is IndirectObject o && o.Object is LinearizationParameterDictionary);
+
+////linearizationDictionary = linearizationDictionaryObject?.Object as LinearizationParameterDictionary;
