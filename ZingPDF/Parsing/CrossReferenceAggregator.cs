@@ -34,15 +34,17 @@ internal class CrossReferenceAggregator
         var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfStream)
             ?? throw new InvalidOperationException("Unable to find cross reference table or stream. PDF may be corrupt.");
 
-        if (type == typeof(CrossReferenceTable))
+        var item = await Parser.For(type).ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+
+        if (item is IndirectObject io
+            && io.Object is StreamObject<IStreamDictionary> streamObject
+            && streamObject.Dictionary is CrossReferenceStreamDictionary)
+        {
+            await ParseCrossReferenceStreamAsync(pdfStream, streamObject, xrefs);
+        }
+        else if (item is Keyword k && k == Constants.Xref)
         {
             await ParseCrossReferenceTableAsync(pdfStream, xrefs);
-        }
-        else if (type == typeof(IndirectObject))
-        {
-            var streamObject = await Parser.StreamObjects.ParseAsync(pdfStream, null);
-
-            await ParseCrossReferenceStreamAsync(pdfStream, streamObject, xrefs);
         }
         else
         {
