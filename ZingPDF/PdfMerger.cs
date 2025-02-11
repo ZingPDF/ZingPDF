@@ -33,7 +33,7 @@ namespace ZingPDF
 
             var rootPageTreeNodeToAppend = await _pdfToAppend.PageTree.GetRootPageTreeNodeAsync();
 
-            var newObj = _mainPdf.IndirectObjectManager.Add(rootPageTreeNodeToAppend.Object);
+            var newObj = _mainPdf.IndirectObjects.Add(rootPageTreeNodeToAppend.Object);
 
             _oldToNewMap.Add(rootPageTreeNodeToAppend.Id.Reference, newObj.Id.Reference);
 
@@ -49,7 +49,7 @@ namespace ZingPDF
             // Add incoming root page tree node as a child of this PDF's root page tree node.
             rootPageTreeNode.AddChild(_oldToNewMap[rootPageTreeNodeToAppend.Id.Reference]);
 
-            _mainPdf.IndirectObjectManager.Update(rootPageTreeNodeIndirectObject);
+            _mainPdf.IndirectObjects.Update(rootPageTreeNodeIndirectObject);
         }
 
         // For a given object, loop through its items and recursively process.
@@ -123,7 +123,7 @@ namespace ZingPDF
 
             IPdfObject target = obj.Object;
 
-            var newObj = _mainPdf.IndirectObjectManager.Add(target);
+            var newObj = _mainPdf.IndirectObjects.Add(target);
 
             _oldToNewMap.Add(reference, newObj.Id.Reference);
 

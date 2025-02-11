@@ -40,18 +40,14 @@ namespace ZingPDF.Elements.Forms
 
         protected void SetValue(TValue? value)
         {
-            _indirectObjectDictionary.EnsureEditable();
-
             if (value is not null)
             {
                 _fieldDictionary.SetValue(value);
             }
 
-            IndirectObjects.Update(_fieldIndirectObject);
+            _indirectObjectDictionary.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }
-
-        protected IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
     }
 }
