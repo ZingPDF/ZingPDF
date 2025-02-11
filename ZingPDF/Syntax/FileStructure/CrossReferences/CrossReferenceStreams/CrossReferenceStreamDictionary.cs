@@ -57,7 +57,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         /// <summary>
         /// The catalog dictionary for the PDF file.
         /// </summary>
-        public IndirectObjectReference Root => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root)!;
+        public IndirectObjectReference? Root => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root);
 
         /// <summary>
         /// Required if document is encrypted; Added in PDF 1.1.
