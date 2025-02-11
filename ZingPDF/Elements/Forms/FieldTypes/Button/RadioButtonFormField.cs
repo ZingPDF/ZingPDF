@@ -54,7 +54,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
                 }
             }
 
-            IndirectObjects.Update(annot);
+            _indirectObjectDictionary.Update(annot);
         }
     }
 
@@ -79,6 +79,6 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        IndirectObjects.Update(option.AssociatedDictionary);
+        _indirectObjectDictionary.Update(option.AssociatedDictionary);
     }
 }
