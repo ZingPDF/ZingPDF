@@ -41,7 +41,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
 
         public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
 
-        public static bool operator ==(IndirectObjectReference left, IndirectObjectReference right)
+        public static bool operator ==(IndirectObjectReference? left, IndirectObjectReference? right)
         {
             if (left is null)
             {
@@ -51,6 +51,6 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             return left.Equals(right);
         }
 
-        public static bool operator !=(IndirectObjectReference left, IndirectObjectReference right) => !(left == right);
+        public static bool operator !=(IndirectObjectReference? left, IndirectObjectReference? right) => !(left == right);
     }
 }

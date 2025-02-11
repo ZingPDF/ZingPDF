@@ -2,7 +2,7 @@
 
 namespace ZingPDF.Syntax.FileStructure.CrossReferences
 {
-    internal class CrossReferenceSectionIndex : PdfObject
+    public class CrossReferenceSectionIndex : PdfObject
     {
         public CrossReferenceSectionIndex(int startIndex, int count)
         {

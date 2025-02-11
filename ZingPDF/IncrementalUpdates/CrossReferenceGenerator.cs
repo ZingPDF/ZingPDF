@@ -3,9 +3,9 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates;
 
-internal class CrossReferenceGenerator
+internal static class CrossReferenceGenerator
 {
-    public List<CrossReferenceSection> Generate(IEnumerable<IndirectObject> newOrUpdatedObjects, IEnumerable<IndirectObjectId> deletedObjects)
+    public static List<CrossReferenceSection> Generate(IEnumerable<IndirectObject> newOrUpdatedObjects, IEnumerable<IndirectObjectId> deletedObjects)
     {
         ArgumentNullException.ThrowIfNull(newOrUpdatedObjects);
         ArgumentNullException.ThrowIfNull(deletedObjects);

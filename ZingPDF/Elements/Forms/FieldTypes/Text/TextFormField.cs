@@ -60,7 +60,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 )
                 .Create();
 
-            var apIndirectObject = IndirectObjects.Add(apFormXObject);
+            var apIndirectObject = _indirectObjectDictionary.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
         }

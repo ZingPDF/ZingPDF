@@ -32,7 +32,7 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
         /// <summary>
         /// The catalog dictionary for the PDF file.
         /// </summary>
-        public IndirectObjectReference Root { get => Get<IndirectObjectReference>(DictionaryKeys.Root)!; }
+        public IndirectObjectReference? Root { get => Get<IndirectObjectReference>(DictionaryKeys.Root); }
 
         /// <summary>
         /// Required if document is encrypted; Added in PDF 1.1.

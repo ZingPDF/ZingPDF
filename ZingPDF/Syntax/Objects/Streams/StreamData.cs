@@ -3,7 +3,7 @@ using ZingPDF.Syntax.Filters;
 
 namespace ZingPDF.Syntax.Objects.Streams;
 
-internal class StreamData : PdfObject
+public class StreamData : PdfObject
 {
     public StreamData(Stream stream, bool dataIsCompressed, IEnumerable<IFilter>? filters = null)
     {
