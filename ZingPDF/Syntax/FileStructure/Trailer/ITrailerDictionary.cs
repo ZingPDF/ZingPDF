@@ -9,7 +9,7 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
         ArrayObject? ID { get; }
         IndirectObjectReference? Info { get; }
         Integer? Prev { get; }
-        IndirectObjectReference Root { get; }
+        IndirectObjectReference? Root { get; }
         Integer Size { get; }
     }
 }
