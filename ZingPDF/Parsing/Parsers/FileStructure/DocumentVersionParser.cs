@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
@@ -40,13 +41,13 @@ internal class DocumentVersionParser
         {
             version = new DocumentVersion
             {
-                CrossReferenceTable = await Parser.XrefTables.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance),
-                Trailer = await Parser.Trailers.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance)
+                CrossReferenceTable = await Parser.XrefTables.ParseAsync(pdfInputStream),
+                Trailer = await Parser.Trailers.ParseAsync(pdfInputStream)
             };
         }
         else if (type == typeof(IndirectObject))
         {
-            var xrefStream = await Parser.StreamObjects.ParseAsync(pdfInputStream, HoneyTrapIndirectObjectDictionary.Instance);
+            var xrefStream = await Parser.For<StreamObject<IStreamDictionary>>().ParseAsync(pdfInputStream);
 
             version = new DocumentVersion
             {
@@ -78,8 +79,8 @@ internal class DocumentVersionParser
 
         pdfStream.Position = offset;
 
-        _ = await Parser.Keywords.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+        _ = await Parser.Keywords.ParseAsync(pdfStream);
 
-        return await Parser.Integers.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
+        return await Parser.Integers.ParseAsync(pdfStream);
     }
 }
