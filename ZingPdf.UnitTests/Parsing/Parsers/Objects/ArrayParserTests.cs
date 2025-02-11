@@ -15,7 +15,7 @@ public class ArrayParserTests
         using var input = "[]".ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Should().BeEmpty();
     }
@@ -26,7 +26,7 @@ public class ArrayParserTests
         using var input = "[]".ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         input.Position.Should().Be(2);
     }
@@ -37,7 +37,7 @@ public class ArrayParserTests
         using var input = "[ ]".ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Should().BeEmpty();
     }
@@ -48,7 +48,7 @@ public class ArrayParserTests
         using var input = "[ ]".ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         input.Position.Should().Be(3);
     }
@@ -76,7 +76,7 @@ public class ArrayParserTests
         using var inputStream = input.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(inputStream, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(inputStream);
 
         output.Should().HaveCount(expectedCount);
     }
@@ -89,7 +89,7 @@ public class ArrayParserTests
         using var inputStream = input.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(inputStream, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(inputStream);
 
         inputStream.Position.Should().Be(input.Length);
     }
@@ -102,7 +102,7 @@ public class ArrayParserTests
         using var inputStream = input.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(inputStream, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(inputStream);
 
         output.Should().HaveCount(expectedCount);
     }
@@ -115,7 +115,7 @@ public class ArrayParserTests
         using var inputStream = input.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(inputStream, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(inputStream);
 
         inputStream.Position.Should().Be(
             input.Length,
@@ -134,7 +134,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.All(x => x is Integer).Should().BeTrue();
     }
@@ -149,7 +149,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Count().Should().Be(2);
         output.All(x => x is HexadecimalString).Should().BeTrue();
@@ -165,7 +165,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Should().HaveCount(1);
         output.Get<ArrayObject>(0).Should().BeEmpty();
@@ -179,7 +179,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         input.Position.Should().Be(7, because: "the parser should move the stream past the array-end delimiter");
     }
@@ -192,7 +192,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Should().HaveCount(1);
         output.Get<ArrayObject>(0).Should().BeEmpty();
@@ -206,7 +206,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
@@ -222,7 +222,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         output.Should().HaveCount(2);
         output.Get<ArrayObject>(1).Should().BeEmpty();
@@ -236,7 +236,7 @@ public class ArrayParserTests
         using var input = contentString.ToStream();
 
         var output = await new ArrayParser()
-            .ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+            .ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
