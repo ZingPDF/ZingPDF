@@ -18,24 +18,20 @@ namespace ZingPDF.Elements
             _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
         }
 
-        private IndirectObjectManager IndirectObjectManager => (IndirectObjectManager)_indirectObjectDictionary;
-
         public IndirectObject IndirectObject { get; }
         public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
 
         public void AddText(TextObject text)
         {
-            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(text);
 
-            Dictionary.AddContent([text], IndirectObjectManager);
+            Dictionary.AddContent([text], _indirectObjectDictionary);
 
-            IndirectObjectManager.Update(IndirectObject);
+            _indirectObjectDictionary.Update(IndirectObject);
         }
 
         public async Task AddImageAsync(Image image)
         {
-            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(image);
 
             // TODO: Think about whether to implement inline images
@@ -62,10 +58,10 @@ namespace ZingPDF.Elements
                 )
                 .Create();
 
-            var imageXObjectIndirectObject = IndirectObjectManager.Add(imageXObject);
+            var imageXObjectIndirectObject = _indirectObjectDictionary.Add(imageXObject);
 
             var resourceName = UniqueStringGenerator.Generate();
-            await Dictionary.AddXObjectResourceAsync(resourceName, imageXObjectIndirectObject.Id.Reference, IndirectObjectManager);
+            await Dictionary.AddXObjectResourceAsync(resourceName, imageXObjectIndirectObject.Id.Reference, _indirectObjectDictionary);
 
             var imageRect = image.MaxBounds;
             if (image.PreserveAspectRatio)
@@ -83,9 +79,9 @@ namespace ZingPDF.Elements
             
             var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
-            Dictionary.AddContent([imageContentStream], IndirectObjectManager);
+            Dictionary.AddContent([imageContentStream], _indirectObjectDictionary);
 
-            IndirectObjectManager.Update(IndirectObject);
+            _indirectObjectDictionary.Update(IndirectObject);
         }
 
         //// TODO: consider coordinate system enum.
@@ -102,14 +98,13 @@ namespace ZingPDF.Elements
         {
             // TODO: Ensure contents don't need some sort of transform to match
 
-            _indirectObjectDictionary.EnsureEditable();
             ArgumentNullException.ThrowIfNull(rotation);
 
             // The page may already be rotated, or inherit a value for rotation.
             // In practice, it is likely desired to rotate by a further n degrees.
             Dictionary.SetRotation((Dictionary.Rotate ?? 0) + rotation);
 
-            IndirectObjectManager.Update(IndirectObject);
+            _indirectObjectDictionary.Update(IndirectObject);
         }
 
         // TODO: move to testable class

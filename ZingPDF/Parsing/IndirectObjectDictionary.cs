@@ -1,15 +1,17 @@
 ﻿using System.Text;
+using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Syntax.Objects;
-using ZingPDF.Extensions;
-using ZingPDF.Syntax;
-using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing;
 
@@ -21,6 +23,12 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
     private readonly Stream _pdfInputStream;
     private readonly List<DocumentVersion> _versions;
 
+    private readonly List<IndirectObject> _newObjects = [];
+    private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = [];
+    private readonly List<IndirectObjectId> _deletedObjects = [];
+
+    private readonly Queue<IndirectObjectId> _freeIds;
+
     public IndirectObjectDictionary(Stream pdfInputStream, List<DocumentVersion> versions)
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
@@ -28,12 +36,62 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
 
         _pdfInputStream = pdfInputStream;
         _versions = versions;
+
+        _freeIds = new Queue<IndirectObjectId>(GetFreeIds());
     }
 
-    public int Count => throw new NotImplementedException();
+    public int Count
+    {
+        get
+        {
+            if (_xrefEntryCache.Count == 0)
+            {
+                throw new InvalidOperationException("IndexObjectsAsync method must be called before attempting to access the Count property.");
+            }
+
+            return _xrefEntryCache.Count(x => x.Value.InUse) + _newObjects.Count - _deletedObjects.Count;
+        }
+    }
+
+    public HashSet<IndirectObject> NewOrUpdatedObjects
+    {
+        get
+        {
+            var objects = new HashSet<IndirectObject>(_updatedObjects.Values);
+
+            foreach (var obj in _newObjects)
+            {
+                objects.Add(obj);
+            }
+
+            return objects;
+        }
+    }
 
     public async Task<IndirectObject?> GetAsync(IndirectObjectReference key)
     {
+        if (_xrefEntryCache.Count == 0)
+        {
+            throw new InvalidOperationException("IndexObjectsAsync method must be called before attempting to dereference objects.");
+        }
+
+        // First check new/updated and deleted objects
+        foreach (var obj in NewOrUpdatedObjects)
+        {
+            if (obj.Id == key.Id)
+            {
+                return obj;
+            }
+        }
+
+        foreach (var obj in _deletedObjects)
+        {
+            if (obj == key.Id)
+            {
+                throw new InvalidOperationException($"Unable to dereference indirect object: {key}. Object has been deleted.");
+            }
+        }
+
         // Check the local object cache first.
         if (_parsedObjectCache.TryGetValue(key.Id, out var cachedObj))
         {
@@ -50,14 +108,62 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
             return obj;
         }
 
-        // Look for object backwards through versions.
-        // Each version will have a table or stream.
-        // The table contains parsed xref entries and their locations.
-        // The stream needs decoding to get to its entries.
+        return null;
+    }
 
+    public async Task<T?> GetAsync<T>(IndirectObjectReference key) where T : class, IPdfObject
+    {
+        var io = await GetAsync(key);
+
+        return io == null ? default : (T)io.Object;
+    }
+
+    public IndirectObject Add(IPdfObject pdfObject)
+    {
+        ArgumentNullException.ThrowIfNull(pdfObject);
+
+        IndirectObjectId newObjectId = GetNextFreeId();
+
+        var indirectObject = new IndirectObject(newObjectId, pdfObject);
+
+        _newObjects.Add(indirectObject);
+
+        return indirectObject;
+    }
+
+    public void AddRange(IEnumerable<IPdfObject> pdfObjects)
+    {
+        ArgumentNullException.ThrowIfNull(pdfObjects);
+
+        foreach (var pdfObject in pdfObjects)
+        {
+            _ = Add(pdfObject);
+        }
+    }
+
+    public void Update(IndirectObject indirectObject)
+    {
+        ArgumentNullException.ThrowIfNull(indirectObject);
+
+        _updatedObjects[indirectObject.Id] = indirectObject;
+    }
+
+    public void Delete(IndirectObjectId indirectObjectId)
+    {
+        ArgumentNullException.ThrowIfNull(indirectObjectId);
+
+        indirectObjectId.GenerationNumber++;
+
+        _deletedObjects.Add(indirectObjectId);
+    }
+
+    public async Task IndexObjectsAsync()
+    {
+        // Versions are assumed to be orders with the most recent first.
+        // This should happen naturally during parsing.
+        // Each method below uses TryAdd to cache references, so more recent versions take precedence.
         foreach (var version in _versions)
         {
-            // First, process the table if present, caching object locations
             if (version.CrossReferenceTable != null)
             {
                 ProcessXrefTable(version.CrossReferenceTable);
@@ -67,8 +173,66 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
                 await ProcessXrefStreamAsync(version.CrossReferenceStream!);
             }
         }
+    }
 
-        throw new NotImplementedException();
+    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync()
+    {
+        if (NewOrUpdatedObjects.Count == 0 && _deletedObjects.Count == 0)
+        {
+            return null;
+        }
+
+        List<CrossReferenceSection> xrefSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects);
+
+        var xrefTable = new CrossReferenceTable(xrefSections);
+
+        var latestVersion = _versions.First();
+
+        // The prev value points to the previous latest xref table or stream.
+        // If the current PDF has a trailer, prev should be the same as the current startxref value.
+        // If the current PDF instead uses an xref stream dictionary, prev is going to be the offset of the stream dictionary
+        long prev = latestVersion.Trailer?.XrefTableByteOffset ?? latestVersion.CrossReferenceStream!.ByteOffset!.Value;
+
+        // Build file identifier
+        var originalId = latestVersion.TrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
+        var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
+        var fileIdentifier = new ArrayObject([originalId, updateId]);
+
+        var trailer = new Trailer(
+            TrailerDictionary.CreateNew(
+                Count,
+                prev,
+                latestVersion.TrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
+                latestVersion.TrailerDictionary.Encrypt,
+                latestVersion.TrailerDictionary.Info,
+                fileIdentifier
+                ),
+            xrefTable.ByteOffset!.Value
+            );
+
+        return new IncrementalUpdate(
+            new DocumentVersion { Trailer = trailer, CrossReferenceTable = xrefTable },
+            NewOrUpdatedObjects
+            );
+    }
+
+    private List<IndirectObjectId> GetFreeIds()
+    {
+        // TODO: it might be more efficient to traverse the linked list of free entries here.
+
+        return _xrefEntryCache.Where(x => !x.Value.InUse)
+            .Select(x => new IndirectObjectId(x.Key, x.Value.Value2))
+            .ToList();
+    }
+
+    private IndirectObjectId GetNextFreeId()
+    {
+        if (_freeIds.TryDequeue(out var id))
+        {
+            return id;
+        }
+
+        return new IndirectObjectId(Count + 1, 0);
     }
 
     private void ProcessXrefTable(CrossReferenceTable xrefTable)
@@ -194,18 +358,6 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
         return new IndirectObject(key.Id, await Parser.For(type).ParseAsync(decompressedObjectStream, this));
-    }
-
-    public List<IndirectObjectId> GetFreeIds()
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<T?> GetAsync<T>(IndirectObjectReference key) where T : class, IPdfObject
-    {
-        var io = await GetAsync(key);
-
-        return io == null ? default : (T)io.Object;
     }
 
     /// <summary>

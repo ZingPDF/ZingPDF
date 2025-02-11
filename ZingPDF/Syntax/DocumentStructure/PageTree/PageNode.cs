@@ -74,12 +74,12 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public async Task AddXObjectResourceAsync(
             Name name,
             IndirectObjectReference reference,
-            IndirectObjectManager indirectObjectManager
+            IIndirectObjectDictionary indirectObjectDictionary
             )
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
-            ArgumentNullException.ThrowIfNull(indirectObjectManager, nameof(indirectObjectManager));
+            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
 
             // Resources can be null, a ResourceDictionary, or an indirect object reference to a ResourceDictionary
 
@@ -87,7 +87,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             if (resources is IndirectObjectReference resourceRef)
             {
-                var resourcesIndirectObject = await indirectObjectManager.GetAsync(resourceRef);
+                var resourcesIndirectObject = await indirectObjectDictionary.GetAsync(resourceRef);
                 var resourceDict = (ResourceDictionary)resourcesIndirectObject.Object;
 
                 resourceDict.AddXObject(name, reference);

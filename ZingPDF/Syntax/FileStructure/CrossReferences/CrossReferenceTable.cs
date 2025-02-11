@@ -6,7 +6,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
     /// <summary>
     /// ISO 32000-2:2020 7.5.4 - Cross-reference table
     /// </summary>
-    internal class CrossReferenceTable : PdfObject
+    public class CrossReferenceTable : PdfObject
     {
         public CrossReferenceTable(IEnumerable<CrossReferenceSection> xrefSections)
         {

@@ -1,6 +1,6 @@
 ﻿namespace ZingPDF.IncrementalUpdates
 {
-    internal class IncrementalUpdateOptions
+    public class IncrementalUpdateOptions
     {
         public bool RenderCrossReferencesAsStream { get; set; }
 
