@@ -8,9 +8,18 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class IndirectObjectParser : IPdfObjectParser<IndirectObject>
+    internal class IndirectObjectParser : IObjectParser<IndirectObject>
     {
-        public async ITask<IndirectObject> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        private readonly IIndirectObjectDictionary _indirectObjectDictionary;
+
+        public IndirectObjectParser(IIndirectObjectDictionary indirectObjectDictionary)
+        {
+            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+
+            _indirectObjectDictionary = indirectObjectDictionary;
+        }
+
+        public async ITask<IndirectObject> ParseAsync(Stream stream)
         {
             stream.AdvancePastWhitepace();
 
@@ -18,11 +27,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var initialStreamPosition = stream.Position;
 
-            var id = await Parser.Integers.ParseAsync(stream, indirectObjectDictionary);
-            var genNumber = await Parser.Integers.ParseAsync(stream, indirectObjectDictionary);
+            var id = await Parser.Integers.ParseAsync(stream);
+            var genNumber = await Parser.Integers.ParseAsync(stream);
 
             // obj keyword
-            _ = await Parser.Keywords.ParseAsync(stream, indirectObjectDictionary);
+            _ = await Parser.Keywords.ParseAsync(stream);
 
             var items = new List<IPdfObject>();
 
@@ -42,11 +51,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     var streamDict = (items.Last() as Dictionary)!;
                     items.RemoveAt(items.Count - 1);
 
-                    items.Add(await new StreamObjectParser(streamDict).ParseAsync(stream, indirectObjectDictionary));
+                    items.Add(await new StreamObjectParser(_indirectObjectDictionary, streamDict).ParseAsync(stream));
                     break;
                 }
 
-                IPdfObject item = await Parser.For(type).ParseAsync(stream, indirectObjectDictionary);
+                IPdfObject item = await Parser.For(type).ParseAsync(stream);
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {

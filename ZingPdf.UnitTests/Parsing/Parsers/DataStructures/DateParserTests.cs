@@ -33,6 +33,6 @@ public class DateParserTests
     [InlineData("(D:2023)")]
     public async Task ParseAsyncBasic(string dateString)
     {
-        await new DateParser().ParseAsync(dateString.ToStream(), A.Dummy<IIndirectObjectDictionary>());
+        await new DateParser().ParseAsync(dateString.ToStream());
     }
 }

@@ -1,5 +1,4 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
 
@@ -12,7 +11,7 @@ public class CrossReferenceEntryParserTests
     [InlineData("0000000017 00000 n\n", 17, 0, true)]
     public async Task ParseAsyncBasic(string input, long expectedOffset, ushort expectedGenNumber, bool expectedInUse)
     {
-        var output = await new CrossReferenceEntryParser().ParseAsync(input.ToStream(), A.Dummy<IIndirectObjectDictionary>());
+        var output = await new CrossReferenceEntryParser().ParseAsync(input.ToStream());
 
         output.Value1.Should().Be(expectedOffset);
         output.Value2.Should().Be(expectedGenNumber);
