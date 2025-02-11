@@ -5,9 +5,9 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class HexadecimalStringParser : IPdfObjectParser<HexadecimalString>
+    internal class HexadecimalStringParser : IObjectParser<HexadecimalString>
     {
-        public async ITask<HexadecimalString> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<HexadecimalString> ParseAsync(Stream stream)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Hexadecimal string from {stream.GetType().Name} at offset: {stream.Position}.");
 

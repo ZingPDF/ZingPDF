@@ -317,7 +317,7 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
         {
             _pdfInputStream.Position = xref.Value1;
 
-            return await Parser.IndirectObjects.ParseAsync(_pdfInputStream, this);
+            return await Parser.For<IndirectObject>(this).ParseAsync(_pdfInputStream);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
@@ -357,7 +357,7 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
 
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-        return new IndirectObject(key.Id, await Parser.For(type).ParseAsync(decompressedObjectStream, this));
+        return new IndirectObject(key.Id, await Parser.For(type).ParseAsync(decompressedObjectStream));
     }
 
     /// <summary>

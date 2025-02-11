@@ -31,7 +31,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new NameParser().ParseAsync(input);
 
         output.Value.Should().Be(expected);
     }
@@ -60,7 +60,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new NameParser().ParseAsync(input);
 
         input.Position.Should().Be(expectedPosition);
     }

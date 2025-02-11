@@ -22,7 +22,7 @@ public class TrailerParserTests
             "18799\r\n" +
             "%%EOF\r\n";
 
-        var trailer = await new TrailerParser().ParseAsync(input.ToStream(), A.Dummy<IIndirectObjectDictionary>());
+        var trailer = await new TrailerParser().ParseAsync(input.ToStream());
 
         trailer.Dictionary.Size.Value.Should().Be(22);
 

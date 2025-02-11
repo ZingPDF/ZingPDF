@@ -5,9 +5,9 @@ using ZingPDF.Syntax.FileStructure;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
-internal class HeaderParser : IPdfObjectParser<Header>
+internal class HeaderParser : IObjectParser<Header>
 {
-    public async ITask<Header> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+    public async ITask<Header> ParseAsync(Stream stream)
     {
         await stream.AdvanceBeyondNextAsync("%PDF-");
 
