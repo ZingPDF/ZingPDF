@@ -84,9 +84,9 @@ static async Task Test()
     //using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
     using var inputFileStream = new FileStream("testfiles/pdf/encrypted.pdf", FileMode.Open);
 
-    var pdf = await ZingPDF.Linearization.Pdf.LoadAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
-
+    var count = await pdf.GetPageCountAsync();
 }
 
 
@@ -94,7 +94,7 @@ static async Task Parse(string input)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var pageCount = await pdf.GetPageCountAsync();
 }
@@ -105,7 +105,7 @@ static async Task AppendPdf(string input1, string input2, string output)
     using var inputFileStream2 = new FileStream(input2, FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream1);
+    var pdf = await Pdf.LoadAsync(inputFileStream1);
 
     await pdf.AppendPdfAsync(inputFileStream2);
 
@@ -117,7 +117,7 @@ static async Task CompleteForm(string input, string output)
     using var inputFileStream = new FileStream(input, FileMode.Open);
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var form = pdf.GetForm()!;
     
@@ -156,7 +156,7 @@ static async Task AddTextToPage()
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
@@ -175,7 +175,7 @@ static async Task RotateWholeDocument()
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     await pdf.SetRotationAsync(Rotation.Degrees90);
 
@@ -187,7 +187,7 @@ static async Task RotatePage()
     using var inputFileStream = new FileStream("testfiles/pdf/test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var page = await pdf.GetPageAsync(1);
 
@@ -201,7 +201,7 @@ static async Task AddImageToPage()
     using var inputFileStream = new FileStream("testfiles/pdf/minimal.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var page = await pdf.GetPageAsync(1);
 
@@ -238,7 +238,7 @@ static async Task AddPage(string input, string output)
     using var inputFileStream = new FileStream(input, FileMode.Open);
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var count1 = await pdf.GetPageCountAsync();
 
@@ -256,7 +256,7 @@ static async Task ParseResaveValidate(string input, string output)
     var errors = ValidatePdf("Before", inputFileStream).ToList();
     inputFileStream.Position = 0;
 
-    var pdf = await PdfParser.OpenAsync(inputFileStream);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
 
     //var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
 

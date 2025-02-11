@@ -34,8 +34,6 @@ namespace ZingPDF.Elements.Forms
                 => (InteractiveFormDictionary)(await _acroForm).Object);
         }
 
-        private IndirectObjectManager IndirectObjects => (IndirectObjectManager)_indirectObjectDictionary;
-
         public Name DefaultFontResourceName => _defaultFontResourceName;
 
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
@@ -47,7 +45,7 @@ namespace ZingPDF.Elements.Forms
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])
             {
-                kids.Add(await IndirectObjects.GetAsync(kid));
+                kids.Add(await _indirectObjectDictionary.GetAsync(kid));
             }
 
             return await GetFieldsAsync(kids, null);
@@ -72,7 +70,7 @@ namespace ZingPDF.Elements.Forms
                 var kids = new List<IndirectObject>();
                 foreach (var kid in fieldDict.Kids?.Cast<IndirectObjectReference>() ?? [])
                 {
-                    kids.Add(await IndirectObjects.GetAsync(kid));
+                    kids.Add(await _indirectObjectDictionary.GetAsync(kid));
                 }
 
                 string fieldName = prefix is not null ? $"{prefix}.{fieldDict.T}" : fieldDict.T!;
@@ -122,15 +120,13 @@ namespace ZingPDF.Elements.Forms
                 return;
             }
 
-            _indirectObjectDictionary.EnsureEditable();
-
             var acroFormDict = await _acroFormDictionary;
 
             EnsureNeedAppearances(acroFormDict);
 
             EnsureDefaultResourceDictionary(acroFormDict);
 
-            IndirectObjects.Update(await _acroForm);
+            _indirectObjectDictionary.Update(await _acroForm);
         }
 
         internal void MarkForUpdate()
@@ -158,7 +154,7 @@ namespace ZingPDF.Elements.Forms
                 // TODO: make font configurable
                 var defaultFont = new Type1FontDictionary("Helvetica");
 
-                var fontIndirectObject = IndirectObjects.Add(defaultFont);
+                var fontIndirectObject = _indirectObjectDictionary.Add(defaultFont);
 
                 acroFormDictionary.DR.AddFont(_defaultFontResourceName, fontIndirectObject.Id.Reference);
             }
