@@ -18,7 +18,6 @@ namespace ZingPDF.Parsing.Parsers
     {
         private static readonly PdfObjectGroupParser _pdfObjectGroupParser = new();
         private static readonly HeaderParser _headerParser = new();
-        private static readonly IndirectObjectParser _indirectObjectParser = new();
         private static readonly KeywordParser _keywordParser = new();
         private static readonly CommentParser _commentParser = new();
         private static readonly NameParser _nameParser = new();
@@ -35,12 +34,10 @@ namespace ZingPDF.Parsing.Parsers
         private static readonly CrossReferenceSectionIndexParser _xrefSectionIndexParser = new();
         private static readonly CrossReferenceEntryParser _xrefEntryParser = new();
         private static readonly DateParser _dateParser = new();
-        private static readonly StreamObjectParser _streamParser = new();
         private static readonly TrailerParser _trailerParser = new();
 
         internal static PdfObjectGroupParser PdfObjectGroups => _pdfObjectGroupParser;
         internal static HeaderParser Headers => _headerParser;
-        internal static IndirectObjectParser IndirectObjects => _indirectObjectParser;
         internal static KeywordParser Keywords => _keywordParser;
         internal static CommentParser Comments => _commentParser;
         internal static NameParser Names => _nameParser;
@@ -57,19 +54,21 @@ namespace ZingPDF.Parsing.Parsers
         internal static CrossReferenceSectionIndexParser XrefSectionIndexes => _xrefSectionIndexParser;
         internal static CrossReferenceEntryParser XrefEntries => _xrefEntryParser;
         internal static DateParser Dates => _dateParser;
-        internal static StreamObjectParser StreamObjects => _streamParser;
         internal static TrailerParser Trailers => _trailerParser;
 
-        public static IPdfObjectParser<IPdfObject> For(Type pdfObjectType)
-            => GetParserForType(pdfObjectType);
+        public static IObjectParser<IPdfObject> For(Type pdfObjectType, IIndirectObjectDictionary? indirectObjectDictionary = null)
+            => GetParserForType(pdfObjectType, indirectObjectDictionary);
 
-        private static IPdfObjectParser<IPdfObject> GetParserForType(Type type)
+        public static IObjectParser<T> For<T>(IIndirectObjectDictionary? indirectObjectDictionary = null) where T : IPdfObject
+            => (IObjectParser<T>)GetParserForType(typeof(T), indirectObjectDictionary);
+
+        private static IObjectParser<IPdfObject> GetParserForType(Type type, IIndirectObjectDictionary? indirectObjectDictionary)
         {
             return type switch
             {
+                Type t when t == typeof(IndirectObject) => new IndirectObjectParser(indirectObjectDictionary!),
                 Type t when t == typeof(PdfObjectGroup) => _pdfObjectGroupParser,
                 Type t when t == typeof(Header) => _headerParser,
-                Type t when t == typeof(IndirectObject) => _indirectObjectParser,
                 Type t when t == typeof(Keyword) => _keywordParser,
                 Type t when t == typeof(Comment) => _commentParser,
                 Type t when t == typeof(Name) => _nameParser,
@@ -86,7 +85,7 @@ namespace ZingPDF.Parsing.Parsers
                 Type t when t == typeof(CrossReferenceSectionIndex) => _xrefSectionIndexParser,
                 Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
                 Type t when t == typeof(Date) => _dateParser,
-                Type t when t == typeof(StreamObject<IStreamDictionary>) => _streamParser,
+                Type t when t == typeof(StreamObject<IStreamDictionary>) => new StreamObjectParser(indirectObjectDictionary!),
                 Type t when t == typeof(Trailer) => _trailerParser,
                 _ => throw new ParserException()
             };

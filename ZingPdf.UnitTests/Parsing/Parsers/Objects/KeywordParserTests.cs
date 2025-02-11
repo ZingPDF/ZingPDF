@@ -19,7 +19,7 @@ public class KeywordParserTests
 
         Keyword expectedKeyword = expected;
 
-        var output = await new KeywordParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new KeywordParser().ParseAsync(input);
 
         output.Should().BeEquivalentTo(expectedKeyword);
 
