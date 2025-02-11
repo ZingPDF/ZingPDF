@@ -5,9 +5,9 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class IndirectObjectReferenceParser : IPdfObjectParser<IndirectObjectReference>
+    internal class IndirectObjectReferenceParser : IObjectParser<IndirectObjectReference>
     {
-        public async ITask<IndirectObjectReference> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<IndirectObjectReference> ParseAsync(Stream stream)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing IndirectObjectReference from {stream.GetType().Name} at offset: {stream.Position}.");
 
