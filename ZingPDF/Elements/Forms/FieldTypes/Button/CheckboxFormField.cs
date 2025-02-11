@@ -43,7 +43,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
                 widgetDictionary.SetAppearanceState(Constants.ButtonStates.Off);
             }
 
-            IndirectObjects.Update(annot);
+            _indirectObjectDictionary.Update(annot);
         }
     }
 
@@ -59,6 +59,6 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        IndirectObjects.Update(option.AssociatedDictionary);
+        _indirectObjectDictionary.Update(option.AssociatedDictionary);
     }
 }
