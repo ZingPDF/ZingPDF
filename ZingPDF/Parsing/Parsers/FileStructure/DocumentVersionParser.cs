@@ -25,8 +25,10 @@ internal class DocumentVersionParser
         return versions;
     }
 
+    // TODO: move to testable class
+
     // Give the byte offset of an xref table or stream, parse and produce a DocumentVersion instance
-    public static async Task<DocumentVersion> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
+    private static async Task<DocumentVersion> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
     {
         DocumentVersion version;
 
@@ -59,7 +61,6 @@ internal class DocumentVersionParser
         return version;
     }
 
-    // TODO: move to testable class
     /// <summary>
     /// Searches from the end of the file for the startxref keyword, parses the value and returns it.
     /// </summary>

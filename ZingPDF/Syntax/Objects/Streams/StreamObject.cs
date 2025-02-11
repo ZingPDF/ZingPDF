@@ -8,7 +8,7 @@ namespace ZingPDF.Syntax.Objects.Streams;
 /// <remarks>
 /// A Stream object consists of a stream dictionary, followed by the stream data.
 /// </remarks>
-internal sealed class StreamObject<TDictionary> : PdfObject
+public sealed class StreamObject<TDictionary> : PdfObject
     where TDictionary : class, IStreamDictionary
 {
     public StreamObject(StreamData data, TDictionary dictionary)
