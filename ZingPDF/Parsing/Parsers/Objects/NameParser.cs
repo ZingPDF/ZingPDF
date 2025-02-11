@@ -6,11 +6,11 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
-internal class NameParser : IPdfObjectParser<Name>
+internal class NameParser : IObjectParser<Name>
 {
     readonly char[] _nameDelimiters = [.. Constants.Delimiters, .. Constants.WhitespaceCharacters];
 
-    public async ITask<Name> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+    public async ITask<Name> ParseAsync(Stream stream)
     {
         //Logger.Log(LogLevel.Trace, $"Parsing Name from {stream.GetType().Name} at offset: {stream.Position}.");
 

@@ -40,7 +40,7 @@ public class PdfObjectGroupParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new PdfObjectGroupParser().ParseAsync(input);
 
         output.Objects.Should().HaveCount(2);
 
@@ -59,7 +59,7 @@ public class PdfObjectGroupParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new PdfObjectGroupParser().ParseAsync(input);
 
         output.Objects.Should().HaveCount(4);
 
@@ -113,6 +113,6 @@ public class PdfObjectGroupParserTests
         await input.WriteAsync(streamData);
         await input.WriteAsync(Encoding.ASCII.GetBytes(contentString2));
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new PdfObjectGroupParser().ParseAsync(input);
     }
 }
