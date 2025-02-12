@@ -5,9 +5,9 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class RealNumberParser : IPdfObjectParser<RealNumber>
+    internal class RealNumberParser : IObjectParser<RealNumber>
     {
-        public async ITask<RealNumber> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<RealNumber> ParseAsync(Stream stream)
         {
             stream.AdvancePastWhitepace();
 

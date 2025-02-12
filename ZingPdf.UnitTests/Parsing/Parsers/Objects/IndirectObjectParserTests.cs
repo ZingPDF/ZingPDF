@@ -32,7 +32,7 @@ public class IndirectObjectParserTests
             ">>\r\n" +
             "endobj";
 
-        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream(), A.Dummy<IIndirectObjectDictionary>());
+        var output = await new IndirectObjectParser(A.Dummy<IIndirectObjectDictionary>()).ParseAsync(contentString.ToStream());
 
         output.Id.Index.Should().Be(12);
         output.Id.GenerationNumber.Should().Be(0);
@@ -48,7 +48,7 @@ public class IndirectObjectParserTests
             "endstream\r\n" +
             "endobj\r\n";
 
-        var output = await new IndirectObjectParser().ParseAsync(contentString.ToStream(), A.Dummy<IIndirectObjectDictionary>());
+        var output = await new IndirectObjectParser(A.Dummy<IIndirectObjectDictionary>()).ParseAsync(contentString.ToStream());
 
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);

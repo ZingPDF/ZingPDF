@@ -5,13 +5,13 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure
 {
-    internal class TrailerParser : IPdfObjectParser<Trailer>
+    internal class TrailerParser : IObjectParser<Trailer>
     {
-        public async ITask<Trailer> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<Trailer> ParseAsync(Stream stream)
         {
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);
 
-            var trailerObjects = await Parser.PdfObjectGroups.ParseAsync(stream, indirectObjectDictionary);
+            var trailerObjects = await Parser.PdfObjectGroups.ParseAsync(stream);
 
             var trailerDict = TrailerDictionary.FromDictionary(trailerObjects.Get<Dictionary>(0));
 

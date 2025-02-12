@@ -6,7 +6,7 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class LiteralStringParser : IPdfObjectParser<LiteralString>
+    internal class LiteralStringParser : IObjectParser<LiteralString>
     {
         // Needs to be able to parse strings of various encodings.
         // N.B. In all encodings, the opening and closing parentheses are encoded using ASCII.
@@ -23,7 +23,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         private readonly EncodingDetector _encodingDetector = new();
 
-        public async ITask<LiteralString> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<LiteralString> ParseAsync(Stream stream)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing literal string from {stream.GetType().Name} at offset: {stream.Position}.");
 

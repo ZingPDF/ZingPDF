@@ -18,7 +18,7 @@ public class HexadecimalStringParserTests
 
         HexadecimalString expectedHexString = expected;
 
-        var output = await new HexadecimalStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new HexadecimalStringParser().ParseAsync(input);
 
         output.Should().BeEquivalentTo(expectedHexString);
     }
@@ -30,7 +30,7 @@ public class HexadecimalStringParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new HexadecimalStringParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new HexadecimalStringParser().ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(content));
     }

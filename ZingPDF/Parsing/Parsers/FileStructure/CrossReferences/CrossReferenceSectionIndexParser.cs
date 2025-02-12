@@ -3,14 +3,14 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
-    internal class CrossReferenceSectionIndexParser : IPdfObjectParser<CrossReferenceSectionIndex>
+    internal class CrossReferenceSectionIndexParser : IObjectParser<CrossReferenceSectionIndex>
     {
-        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream)
         {
             // Example: 0 28
             return new CrossReferenceSectionIndex(
-                await Parser.Integers.ParseAsync(stream, indirectObjectDictionary),
-                await Parser.Integers.ParseAsync(stream, indirectObjectDictionary)
+                await Parser.Integers.ParseAsync(stream),
+                await Parser.Integers.ParseAsync(stream)
                 );
         }
     }

@@ -9,33 +9,41 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class StreamObjectParser : IPdfObjectParser<StreamObject<IStreamDictionary>>
+    internal class StreamObjectParser : IObjectParser<StreamObject<IStreamDictionary>>
     {
         private readonly Dictionary? _dict;
+        private readonly IIndirectObjectDictionary _indirectObjectDictionary;
 
-        public StreamObjectParser()
+        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary)
         {
+            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+
+            _indirectObjectDictionary = indirectObjectDictionary;
         }
 
-        public StreamObjectParser(Dictionary dict)
+        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary, Dictionary dict)
         {
-            _dict = dict ?? throw new ArgumentNullException(nameof(dict));
+            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(nameof(dict));
+
+            _indirectObjectDictionary = indirectObjectDictionary;
+            _dict = dict;
         }
 
-        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream)
         {
             var initialStreamPosition = stream.Position;
 
             //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
-            var dict = _dict ?? await Parser.Dictionaries.ParseAsync(stream, indirectObjectDictionary);
+            var dict = _dict ?? await Parser.Dictionaries.ParseAsync(stream);
 
             var streamDict =
                 dict as CrossReferenceStreamDictionary as IStreamDictionary
                 ?? dict as ObjectStreamDictionary as IStreamDictionary
                 ?? StreamDictionary.FromDictionary(dict);
 
-            var streamLength = await streamDict.Length.ResolveAsync<Integer>(indirectObjectDictionary!);
+            var streamLength = await streamDict.Length.ResolveAsync<Integer>(_indirectObjectDictionary!);
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
