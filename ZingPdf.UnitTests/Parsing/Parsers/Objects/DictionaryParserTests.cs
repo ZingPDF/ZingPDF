@@ -14,7 +14,7 @@ public class DictionaryParserTests
     {
         using var input = "<< >>".ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         output.Should().BeEmpty();
     }
@@ -26,7 +26,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -42,7 +42,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
@@ -57,7 +57,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -73,7 +73,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
@@ -115,7 +115,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -197,7 +197,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -211,7 +211,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -228,7 +228,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         output.Get<Name>("Type")!.Value.Should().Be("Page");
         output.Get<Name>("Other")!.Value.Should().Be("Test");
@@ -251,7 +251,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
     }
@@ -266,7 +266,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),
@@ -284,7 +284,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         output.Get<Name>("Type")!.Value.Should().Be("Page");
         output.Get<Name>("Other")!.Value.Should().Be("Test");
@@ -302,7 +302,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input, A.Dummy<IIndirectObjectDictionary>());
+        var output = await new DictionaryParser().ParseAsync(input);
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),

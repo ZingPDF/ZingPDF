@@ -3,9 +3,9 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
-    internal class CrossReferenceSectionParser : IPdfObjectParser<CrossReferenceSection>
+    internal class CrossReferenceSectionParser : IObjectParser<CrossReferenceSection>
     {
-        public async ITask<CrossReferenceSection> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<CrossReferenceSection> ParseAsync(Stream stream)
         {
             // 0 6
             // 0000000003 65535 f
@@ -15,7 +15,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000000331 00000 n
             // 0000000409 00000 n
 
-            var index = await Parser.XrefSectionIndexes.ParseAsync(stream, indirectObjectDictionary);
+            var index = await Parser.XrefSectionIndexes.ParseAsync(stream);
 
             Type? type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
             List<CrossReferenceEntry> entries = [];
@@ -23,7 +23,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             while (type == typeof(CrossReferenceEntry))
             {
-                entries.Add(await Parser.XrefEntries.ParseAsync(stream, indirectObjectDictionary));
+                entries.Add(await Parser.XrefEntries.ParseAsync(stream));
 
                 position = stream.Position;
                 type = await TokenTypeIdentifier.TryIdentifyAsync(stream);

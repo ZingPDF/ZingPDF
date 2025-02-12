@@ -24,7 +24,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
     /// <remarks>
     /// This parser will find the first &lt;&lt; delimiter from the provided tokens.
     /// </remarks>
-    internal class DictionaryParser : IPdfObjectParser<Dictionary>
+    internal class DictionaryParser : IObjectParser<Dictionary>
     {
         private static readonly List<char> _halfDelimiters = [Constants.LessThan, Constants.GreaterThan];
 
@@ -40,7 +40,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             Constants.DictionaryKeys.Form.Type1.BBox,
         ];
 
-        public async ITask<Dictionary> ParseAsync(Stream stream, IIndirectObjectDictionary indirectObjectDictionary)
+        public async ITask<Dictionary> ParseAsync(Stream stream)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -129,7 +129,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             {
                 var dictStream = new SubStream(stream, dictStart, dictEnd);
 
-                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(dictStream, indirectObjectDictionary);
+                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(dictStream);
 
                 if (objectGroup.Objects.Count % 2 != 0)
                 {
