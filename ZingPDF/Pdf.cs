@@ -1,6 +1,6 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
-using ZingPDF.Parsing;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -18,22 +18,23 @@ public class Pdf : IPdf, IDisposable
     private Pdf(
         Stream pdfInputStream,
         DocumentCatalogDictionary documentCatalog,
-        IIndirectObjectDictionary indirectObjectDictionary
+        PdfObjectManager pdfObjectManager
         )
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
         ArgumentNullException.ThrowIfNull(documentCatalog, nameof(documentCatalog));
-        ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
+        ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
 
         _pdfInputStream = pdfInputStream;
         _documentCatalog = documentCatalog;
 
-        PageTree = new PageTree(indirectObjectDictionary, documentCatalog.Pages);
+        PageTree = new PageTree(pdfObjectManager, documentCatalog.Pages);
 
-        IndirectObjects = indirectObjectDictionary;
+        IndirectObjects = pdfObjectManager;
     }
 
-    public IIndirectObjectDictionary IndirectObjects { get; }
+    public bool Encrypted { get; }
+    public PdfObjectManager IndirectObjects { get; }
     public PageTree PageTree { get; }
 
     public Task<IList<IndirectObject>> GetAllPagesAsync() => PageTree.GetPagesAsync();
@@ -243,8 +244,7 @@ public class Pdf : IPdf, IDisposable
 
         var documentVersions = await DocumentVersionParser.ParseDocumentVersionsAsync(pdfInputStream);
 
-        var indirectObjectDictionary = new IndirectObjectDictionary(pdfInputStream, documentVersions);
-        await indirectObjectDictionary.IndexObjectsAsync();
+        var pdfObjectManager = new PdfObjectManager(documentVersions);
 
         // The root property is copied from trailer to trailer during updates.
         // Find the first non-null property.
@@ -252,10 +252,10 @@ public class Pdf : IPdf, IDisposable
         var catalogRef = documentVersions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
             ?? throw new InvalidPdfException("Missing Root entry");
 
-        var catalog = (await indirectObjectDictionary.GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
+        var catalog = (await pdfObjectManager.GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
             ?? throw new InvalidPdfException("Unable to dereference document catalog");
 
-        return new Pdf(pdfInputStream, catalog, indirectObjectDictionary);
+        return new Pdf(pdfInputStream, catalog, pdfObjectManager);
     }
 
     // TODO: move to testable class?
