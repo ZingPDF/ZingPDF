@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -27,6 +28,7 @@ public interface IPdf
 
     Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions);
 
-    IIndirectObjectDictionary IndirectObjects { get; }
+    bool Encrypted { get; }
+    PdfObjectManager IndirectObjects { get; }
     PageTree PageTree { get; }
 }

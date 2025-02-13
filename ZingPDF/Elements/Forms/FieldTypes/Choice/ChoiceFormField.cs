@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
@@ -11,9 +12,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
-            IIndirectObjectDictionary indirectObjectDictionary
+            IPdfEditor pdfEditor
             )
-            : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
+            : base(fieldIndirectObject, name, parent, pdfEditor)
         {
             Options = _fieldDictionary.Opt is not null
                 ? _fieldDictionary.Opt.Select(o =>
