@@ -1,26 +1,34 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates
 {
     public class IncrementalUpdate : PdfObject
     {
-        private readonly DocumentVersion _delta;
+        private readonly Trailer _trailer;
+        private readonly CrossReferenceTable _crossReferenceTable;
         private readonly IEnumerable<IndirectObject> _newOrUpdatedObjects;
+
         private readonly IncrementalUpdateOptions _options;
 
         public IncrementalUpdate(
-            DocumentVersion delta,
+            Trailer trailer,
+            CrossReferenceTable crossReferenceTable,
             IEnumerable<IndirectObject> newOrUpdatedObjects,
             IncrementalUpdateOptions? options = null
             )
         {
-            ArgumentNullException.ThrowIfNull(delta, nameof(delta));
+            ArgumentNullException.ThrowIfNull(trailer, nameof(trailer));
+            ArgumentNullException.ThrowIfNull(crossReferenceTable, nameof(crossReferenceTable));
             ArgumentNullException.ThrowIfNull(newOrUpdatedObjects, nameof(newOrUpdatedObjects));
 
-            _delta = delta;
+            _trailer = trailer;
+            _crossReferenceTable = crossReferenceTable;
             _newOrUpdatedObjects = newOrUpdatedObjects;
+
             _options = options ?? IncrementalUpdateOptions.Default;
         }
 
@@ -36,9 +44,9 @@ namespace ZingPDF.IncrementalUpdates
 
             // For now, the IndirectObjectDictionary generates a delta with xref table and trailer.
             // TODO: add support for rendering xrefs as stream (left legacy version commented out below)
-            await _delta.CrossReferenceTable.WriteAsync(stream);
+            await _crossReferenceTable.WriteAsync(stream);
 
-            await _delta.Trailer.WriteAsync(stream);
+            await _trailer.WriteAsync(stream);
         }
 
         //if (_options.RenderCrossReferencesAsStream)
