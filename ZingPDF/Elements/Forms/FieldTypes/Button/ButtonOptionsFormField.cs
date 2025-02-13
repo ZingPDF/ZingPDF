@@ -1,4 +1,5 @@
-﻿using ZingPDF.InteractiveFeatures.Annotations;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -62,10 +63,10 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         IndirectObject fieldIndirectObject,
         string name,
         Form parent,
-        IIndirectObjectDictionary indirectObjectDictionary,
+        IPdfEditor pdfEditor,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
+        : base(fieldIndirectObject, name, parent, pdfEditor)
     {
         _kids = kids;
 
