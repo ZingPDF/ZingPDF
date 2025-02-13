@@ -1,6 +1,7 @@
 ﻿using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -20,10 +21,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             IndirectObject fieldIndirectObject,
             string name,
             Form parent,
-            IIndirectObjectDictionary indirectObjectDictionary,
+            IPdfEditor pdfEditor,
             Name fontResourceName
             )
-            : base(fieldIndirectObject, name, parent, indirectObjectDictionary)
+            : base(fieldIndirectObject, name, parent, pdfEditor)
         {
             _fontResourceName = fontResourceName;
         }
@@ -60,7 +61,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 )
                 .Create();
 
-            var apIndirectObject = _indirectObjectDictionary.Add(apFormXObject);
+            var apIndirectObject = _pdfEditor.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
         }

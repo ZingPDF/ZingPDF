@@ -6,7 +6,6 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text.SimpleFonts;
@@ -19,15 +18,18 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IndirectObject> _acroForm;
         private readonly AsyncLazy<InteractiveFormDictionary> _acroFormDictionary;
-        private readonly IIndirectObjectDictionary _indirectObjectDictionary;
+        private readonly PdfObjectManager _pdfObjectManager;
 
         private readonly Name _defaultFontResourceName = UniqueStringGenerator.Generate();
 
-        public Form(IndirectObjectReference acroFormReference, IIndirectObjectDictionary indirectObjectDictionary)
+        public Form(IndirectObjectReference acroFormReference, PdfObjectManager pdfObjectManager)
         {
-            _indirectObjectDictionary = indirectObjectDictionary ?? throw new ArgumentNullException(nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(acroFormReference, nameof(acroFormReference));
+            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
 
-            _acroForm = new AsyncLazy<IndirectObject>(async () => await _indirectObjectDictionary.GetAsync(acroFormReference)
+            _pdfObjectManager = pdfObjectManager;
+
+            _acroForm = new AsyncLazy<IndirectObject>(async () => await _pdfObjectManager.GetAsync(acroFormReference)
                     ?? throw new InvalidPdfException("Unable to resolve form reference"));
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
@@ -40,12 +42,12 @@ namespace ZingPDF.Elements.Forms
         {
             var formDict = await _acroFormDictionary;
 
-            var fields = await formDict.Fields.ResolveAsync<ArrayObject>(_indirectObjectDictionary);
+            var fields = await formDict.Fields.ResolveAsync<ArrayObject>(_pdfObjectManager);
 
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])
             {
-                kids.Add(await _indirectObjectDictionary.GetAsync(kid));
+                kids.Add(await _pdfObjectManager.GetAsync(kid));
             }
 
             return await GetFieldsAsync(kids, null);
@@ -70,7 +72,7 @@ namespace ZingPDF.Elements.Forms
                 var kids = new List<IndirectObject>();
                 foreach (var kid in fieldDict.Kids?.Cast<IndirectObjectReference>() ?? [])
                 {
-                    kids.Add(await _indirectObjectDictionary.GetAsync(kid));
+                    kids.Add(await _pdfObjectManager.GetAsync(kid));
                 }
 
                 string fieldName = prefix is not null ? $"{prefix}.{fieldDict.T}" : fieldDict.T!;
@@ -126,7 +128,7 @@ namespace ZingPDF.Elements.Forms
 
             EnsureDefaultResourceDictionary(acroFormDict);
 
-            _indirectObjectDictionary.Update(await _acroForm);
+            _pdfObjectManager.Update(await _acroForm);
         }
 
         internal void MarkForUpdate()
@@ -154,7 +156,7 @@ namespace ZingPDF.Elements.Forms
                 // TODO: make font configurable
                 var defaultFont = new Type1FontDictionary("Helvetica");
 
-                var fontIndirectObject = _indirectObjectDictionary.Add(defaultFont);
+                var fontIndirectObject = _pdfObjectManager.Add(defaultFont);
 
                 acroFormDictionary.DR.AddFont(_defaultFontResourceName, fontIndirectObject.Id.Reference);
             }
@@ -184,20 +186,20 @@ namespace ZingPDF.Elements.Forms
 
             return fieldDictionary.FT!.ToFormFieldType() switch
             {
-                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties, kids),
+                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldProperties, kids),
                 FormFieldType.Text => new TextFormField(
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary,
+                    _pdfObjectManager,
                     _defaultFontResourceName
                     ),
-                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDictionary, fieldProperties),
+                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldProperties),
                 FormFieldType.Signature => new SignatureFormField(
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _pdfObjectManager
                     ),
                 _ => throw new InvalidOperationException("Unexpected error. Code should be unreachable"),
             };
@@ -206,7 +208,6 @@ namespace ZingPDF.Elements.Forms
         private IFormField DeriveChoiceField(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
-            FieldDictionary fieldDictionary,
             FieldProperties fieldProperties
             )
         {
@@ -216,7 +217,7 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _pdfObjectManager
                 );
             }
             else
@@ -225,7 +226,7 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _pdfObjectManager
                 );
             }
         }
@@ -233,7 +234,6 @@ namespace ZingPDF.Elements.Forms
         private IFormField DeriveButtonField(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
-            FieldDictionary fieldDictionary,
             FieldProperties fieldProperties,
             List<IndirectObject> kids
             )
@@ -244,7 +244,7 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary
+                    _pdfObjectManager
                 );
             }
             else if (fieldProperties.IsRadio)
@@ -253,7 +253,7 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary,
+                    _pdfObjectManager,
                     kids
                 );
             }
@@ -263,7 +263,7 @@ namespace ZingPDF.Elements.Forms
                     fieldIndirectObject,
                     fullFieldName,
                     this,
-                    _indirectObjectDictionary,
+                    _pdfObjectManager,
                     kids
                 );
             }

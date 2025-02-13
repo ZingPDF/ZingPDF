@@ -1,4 +1,5 @@
-﻿using ZingPDF.InteractiveFeatures.Annotations;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
@@ -12,10 +13,10 @@ internal class RadioButtonFormField : ButtonOptionsFormField
         IndirectObject fieldIndirectObject,
         string name,
         Form parent,
-        IIndirectObjectDictionary indirectObjectDictionary,
+        IPdfEditor pdfEditor,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, parent, indirectObjectDictionary, kids)
+        : base(fieldIndirectObject, name, parent, pdfEditor, kids)
     {
     }
 
@@ -54,7 +55,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
                 }
             }
 
-            _indirectObjectDictionary.Update(annot);
+            _pdfEditor.Update(annot);
         }
     }
 
@@ -79,6 +80,6 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _indirectObjectDictionary.Update(option.AssociatedDictionary);
+        _pdfEditor.Update(option.AssociatedDictionary);
     }
 }
