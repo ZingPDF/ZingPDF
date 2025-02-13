@@ -200,10 +200,10 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public Dictionary? DPart => Get<Dictionary>(Constants.DictionaryKeys.PageTree.Page.DPart);
 
-        public void AddContent(IEnumerable<ContentStreamObject> content, IIndirectObjectDictionary indirectObjectDictionary)
+        public void AddContent(IEnumerable<ContentStreamObject> content, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(content, nameof(content));
-            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             if (Contents is null)
             {
@@ -220,7 +220,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 )
                 .Create();
 
-            var contentObject = indirectObjectDictionary.Add(contentStream);
+            var contentObject = pdfEditor.Add(contentStream);
 
             var contents = (Contents as ArrayObject)!;
 
