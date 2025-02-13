@@ -193,13 +193,13 @@
 //        return new ReadOnlyPdf(pdfInputStream, documentCatalog!, trailer, xrefStream, indirectObjectDictionary, linearizationDictionary);
 //    }
 
-//    private static Task<Trailer?> GetFooterTrailerAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static Task<Trailer?> GetFooterTrailerAsync(Stream pdfStream, IPdfEditor pdfEditor)
 //        => GetTrailerAsync(pdfStream, false, indirectObjectDictionary);
 
-//    private static Task<Trailer?> GetLeadingTrailerAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static Task<Trailer?> GetLeadingTrailerAsync(Stream pdfStream, IPdfEditor pdfEditor)
 //        => GetTrailerAsync(pdfStream, true, indirectObjectDictionary);
 
-//    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream, bool fromTop, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static async Task<Trailer?> GetTrailerAsync(Stream pdfStream, bool fromTop, IPdfEditor pdfEditor)
 //    {
 //        Logger.Log(LogLevel.Trace, $"Searching for root trailer");
 
@@ -248,7 +248,7 @@
 //        return await Parser.Integers.ParseAsync(pdfStream, HoneyTrapIndirectObjectDictionary.Instance);
 //    }
 
-//    private static async Task<IndirectObject?> GetXrefStreamAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static async Task<IndirectObject?> GetXrefStreamAsync(Stream pdfStream, IPdfEditor pdfEditor)
 //    {
 //        Logger.Log(LogLevel.Trace, $"Searching for root trailer dictionary");
 
@@ -270,7 +270,7 @@
 //    /// Searches from the end of the file for the startxref keyword, parses the value,
 //    /// moves to the discovered offset, parses whatever is there.
 //    /// </summary>
-//    private static async Task<IPdfObject> GetXrefObjectAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static async Task<IPdfObject> GetXrefObjectAsync(Stream pdfStream, IPdfEditor pdfEditor)
 //    {
 //        var xrefOffset = await GetXrefOffsetAsync(pdfStream);
 
@@ -283,7 +283,7 @@
 //        return item;
 //    }
 
-//    private static async Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync(Stream pdfStream, IIndirectObjectDictionary indirectObjectDictionary)
+//    private static async Task<LinearizationParameterDictionary?> GetLinearizationDictionaryAsync(Stream pdfStream, IPdfEditor pdfEditor)
 //    {
 //        Logger.Log(LogLevel.Trace, $"Searching for linearisation dictionary");
 
