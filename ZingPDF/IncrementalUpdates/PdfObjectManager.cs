@@ -1,4 +1,7 @@
-﻿using ZingPDF.Syntax;
+﻿using Nito.AsyncEx;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
@@ -15,6 +18,8 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
     private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = [];
     private readonly List<IndirectObjectId> _deletedObjects = [];
 
+    private readonly AsyncLazy<DocumentCatalogDictionary> _root;
+
     //private readonly Queue<IndirectObjectId> _freeIds;
 
     public PdfObjectManager(IEnumerable<VersionInformation> versions)
@@ -24,6 +29,18 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
         _versions = versions;
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
+
+        _root = new AsyncLazy<DocumentCatalogDictionary>(async () =>
+        {
+            // The root property is copied from trailer to trailer during updates.
+            // Find the first non-null property.
+            // TODO: can the root reference change during an update? How do we ensure this is the latest?
+            var catalogRef = _versions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
+                ?? throw new InvalidPdfException("Missing Root entry");
+
+            return (await GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
+                ?? throw new InvalidPdfException("Unable to dereference document catalog");
+        });
     }
 
     public HashSet<IndirectObject> NewOrUpdatedObjects
@@ -158,6 +175,10 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
 
         return new IncrementalUpdate(trailer, xrefTable, NewOrUpdatedObjects);
     }
+
+    public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;
+
+    public ITrailerDictionary GetTrailerDictionary() => _versions.First().TrailerDictionary;
 
     //private static List<IndirectObjectId> GetFreeIds()
     //{

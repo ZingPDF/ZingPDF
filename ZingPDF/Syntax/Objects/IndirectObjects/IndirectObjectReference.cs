@@ -9,13 +9,12 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     {
         public IndirectObjectReference(IndirectObjectId id)
         {
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
+
             Id = id;
         }
 
         public IndirectObjectId Id { get; }
-
-        public Task<T> ResolveAsync<T>(IIndirectObjectDictionary indirectObjectDictionary) where T : class, IPdfObject
-            => indirectObjectDictionary.GetAsync<T>(this)!;
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
