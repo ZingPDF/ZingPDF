@@ -7,6 +7,7 @@ using ZingPDF.Syntax.FileStructure;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;

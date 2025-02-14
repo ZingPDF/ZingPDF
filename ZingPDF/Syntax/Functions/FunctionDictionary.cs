@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Functions;
 
