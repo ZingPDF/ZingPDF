@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -9,21 +10,21 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
         private ObjectStreamDictionary(Dictionary objectStreamDictionary) : base(objectStreamDictionary) { }
 
         /// <summary>
-        /// The number of indirect objects stored in the stream.
+        /// (Required) The number of indirect objects stored in the stream.
         /// </summary>
-        public Integer N { get => Get<Integer>(Constants.DictionaryKeys.ObjectStream.N)!; }
+        public Integer N => GetAs<Integer>(Constants.DictionaryKeys.ObjectStream.N)!;
 
         /// <summary>
-        /// The byte offset in the decoded stream of the first compressed object.
+        /// (Required) The byte offset in the decoded stream of the first compressed object.
         /// </summary>
-        public Integer First { get => Get<Integer>(Constants.DictionaryKeys.ObjectStream.First)!; }
+        public Integer First => GetAs<Integer>(Constants.DictionaryKeys.ObjectStream.First)!;
 
         /// <summary>
-        /// reference to another object stream, of which the current object stream is an extension.
-        /// Both streams are considered part of a collection of object streams (see below).
-        /// A given collection consists of a set of streams whose Extends links form a directed acyclic graph.
+        /// (Optional) A reference to another object stream, of which the current object stream is an extension. 
+        /// Both streams are considered part of a collection of object streams (see below). A given collection 
+        /// consists of a set of streams whose Extends links form a directed acyclic graph.
         /// </summary>
-        public IndirectObjectReference? Extends { get => Get<IndirectObjectReference>(Constants.DictionaryKeys.ObjectStream.Extends); }
+        public IndirectObjectReference? Extends => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.ObjectStream.Extends);
 
         new public static ObjectStreamDictionary FromDictionary(Dictionary objectStreamDictionary)
         {

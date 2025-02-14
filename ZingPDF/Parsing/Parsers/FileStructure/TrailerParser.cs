@@ -2,6 +2,7 @@
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure
 {
