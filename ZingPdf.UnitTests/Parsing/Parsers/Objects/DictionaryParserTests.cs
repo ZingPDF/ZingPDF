@@ -4,6 +4,7 @@ using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 

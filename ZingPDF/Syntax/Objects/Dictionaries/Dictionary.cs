@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Syntax.Objects
+namespace ZingPDF.Syntax.Objects.Dictionaries
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
@@ -26,7 +26,9 @@ namespace ZingPDF.Syntax.Objects
             _dictionary = dictionary?.ToDictionary() ?? throw new ArgumentNullException(nameof(dictionary));
         }
 
-        public Name? Type => Get<Name>(Constants.DictionaryKeys.Type);
+        public Name? Type => (Name)this[Constants.DictionaryKeys.Type];
+
+        protected T? GetAs<T>(Name key) where T : class, IPdfObject => ContainsKey(key) ? (T)this[key] : null;
 
         /// <summary>
         /// Strongly typed access to the underlying <see cref="PdfObject"/>.
@@ -34,9 +36,15 @@ namespace ZingPDF.Syntax.Objects
         /// <remarks>
         /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
         /// </remarks>
-        public T? Get<T>(Name key) where T : class, IPdfObject
-            => _dictionary.TryGetValue(key, out IPdfObject? value) ? value as T
-            : null;
+        protected AsyncProperty<T>? Get<T>(Name key) where T : class, IPdfObject
+        {
+            if (_dictionary.TryGetValue(key, out IPdfObject? value))
+            {
+                return new AsyncProperty<T>(value);
+            }
+
+            return null;
+        }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
