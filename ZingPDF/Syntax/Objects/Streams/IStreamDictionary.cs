@@ -1,4 +1,6 @@
-﻿namespace ZingPDF.Syntax.Objects.Streams
+﻿using ZingPDF.Syntax.Objects.Dictionaries;
+
+namespace ZingPDF.Syntax.Objects.Streams
 {
     /// <summary>
     /// ISO 32000-2:2020 - 7.3.8.2 Stream extent
@@ -11,15 +13,19 @@
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        IPdfObject Length { get; }
+        Integer Length { get; }
 
         /// <summary>
-        /// <para>(Optional) The name, or an array of zero, one or several names, of filter(s) that 
+        /// <para>
+        /// (Optional) The name, or an array of zero, one or several names, of filter(s) that 
         /// shall be applied in processing the stream data found between the keywords stream and 
-        /// endstream. Multiple filters shall be specified in the order in which they are to be applied.</para>
-        /// <para>NOTE It is not recommended to include the same filter more than once in a Filter array.</para>
+        /// endstream. Multiple filters shall be specified in the order in which they are to be applied.
+        /// </para>
+        /// <para>
+        /// NOTE It is not recommended to include the same filter more than once in a Filter array.
+        /// </para>
         /// </summary>
-        IPdfObject? Filter { get; }
+        AsyncProperty<ShorthandArrayObject>? Filter { get; }
 
         /// <summary>
         /// (Optional) A parameter dictionary or an array of such dictionaries, used by the filters specified 
@@ -32,7 +38,7 @@
         /// have their default values). If none of the filters have parameters, or if all their parameters have 
         /// default values, the DecodeParms entry may be omitted.
         /// </summary>
-        IPdfObject? DecodeParms { get; }
+        AsyncProperty<ShorthandArrayObject>? DecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. If this entry is present, the bytes 
@@ -42,27 +48,27 @@
         /// specified by FDecodeParms.
         /// </summary>
         // TODO: implement first class FileSpecificationDictionary
-        Dictionary? F { get; }
+        AsyncProperty<Dictionary>? F { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The name of a filter to be applied in processing the data found in the 
         /// stream’s external file, or an array of zero, one or several such names. The same rules 
         /// apply as for Filter.
         /// </summary>
-        IPdfObject? FFilter { get; }
+        AsyncProperty<ShorthandArrayObject>? FFilter { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, used by the 
         /// filters specified by FFilter, respectively. The same rules apply as for DecodeParms.
         /// </summary>
-        IPdfObject? FDecodeParms { get; }
+        AsyncProperty<ShorthandArrayObject>? FDecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        Integer? DL { get; }
+        AsyncProperty<Integer>? DL { get; }
 
         /// <summary>
         /// Set any stream properties from the given <see cref="Dictionary"/>

@@ -7,6 +7,7 @@ using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text.SimpleFonts;
 
@@ -42,7 +43,7 @@ namespace ZingPDF.Elements.Forms
         {
             var formDict = await _acroFormDictionary;
 
-            var fields = await formDict.Fields.ResolveAsync<ArrayObject>(_pdfObjectManager);
+            var fields = await formDict.Fields.ResolveAsync(_pdfObjectManager);
 
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])

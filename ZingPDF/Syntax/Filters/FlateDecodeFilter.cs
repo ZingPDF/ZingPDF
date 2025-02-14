@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using ZingPDF.Syntax.Filters.FilterUtils;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Filters
 {

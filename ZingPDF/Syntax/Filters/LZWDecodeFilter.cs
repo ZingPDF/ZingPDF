@@ -1,5 +1,6 @@
 ﻿using System.Security;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Filters
 {

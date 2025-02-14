@@ -33,8 +33,8 @@ public class Pdf : IPdf, IDisposable
         IndirectObjects = pdfObjectManager;
     }
 
-    public bool Encrypted { get; }
     public PdfObjectManager IndirectObjects { get; }
+
     public PageTree PageTree { get; }
 
     public Task<IList<IndirectObject>> GetAllPagesAsync() => PageTree.GetPagesAsync();
@@ -231,6 +231,8 @@ public class Pdf : IPdf, IDisposable
         }
 
         await outputStream.FlushAsync();
+
+        Dispose();
     }
 
     public static async Task<Pdf> LoadAsync(Stream pdfInputStream)
@@ -245,15 +247,7 @@ public class Pdf : IPdf, IDisposable
         var documentVersions = await DocumentVersionParser.ParseDocumentVersionsAsync(pdfInputStream);
 
         var pdfObjectManager = new PdfObjectManager(documentVersions);
-
-        // The root property is copied from trailer to trailer during updates.
-        // Find the first non-null property.
-        // TODO: can the root reference change during an update? How do we ensure this is the latest?
-        var catalogRef = documentVersions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
-            ?? throw new InvalidPdfException("Missing Root entry");
-
-        var catalog = (await pdfObjectManager.GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
-            ?? throw new InvalidPdfException("Unable to dereference document catalog");
+        var catalog = await pdfObjectManager.GetDocumentCatalogAsync();
 
         return new Pdf(pdfInputStream, catalog, pdfObjectManager);
     }

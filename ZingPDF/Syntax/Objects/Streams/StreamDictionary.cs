@@ -1,4 +1,6 @@
-﻿namespace ZingPDF.Syntax.Objects.Streams
+﻿using ZingPDF.Syntax.Objects.Dictionaries;
+
+namespace ZingPDF.Syntax.Objects.Streams
 {
     /// <summary>
     /// ISO 32000-2:2020 7.3.8.2 - Stream extent
@@ -8,13 +10,13 @@
         protected StreamDictionary(Name? type) : base(type) { }
         protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
-        public IPdfObject Length => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Length)!;
-        public IPdfObject? Filter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.Filter);
-        public IPdfObject? DecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.DecodeParms);
-        public Dictionary? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
-        public IPdfObject? FFilter => Get<IPdfObject>(Constants.DictionaryKeys.Stream.FFilter);
-        public IPdfObject? FDecodeParms => Get<IPdfObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
-        public Integer? DL => Get<Integer>(Constants.DictionaryKeys.Stream.DL);
+        public Integer Length => GetAs<Integer>(Constants.DictionaryKeys.Stream.Length)!;
+        public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
+        public AsyncProperty<ShorthandArrayObject>? DecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
+        public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
+        public AsyncProperty<ShorthandArrayObject>? FFilter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
+        public AsyncProperty<ShorthandArrayObject>? FDecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
+        public AsyncProperty<Integer>? DL => Get<Integer>(Constants.DictionaryKeys.Stream.DL);
 
         public static StreamDictionary FromDictionary(Dictionary streamDictionary)
         {

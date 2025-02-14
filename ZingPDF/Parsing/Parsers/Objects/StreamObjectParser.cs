@@ -4,7 +4,7 @@ using ZingPDF.Logging;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Filters;
-using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -43,16 +43,18 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 ?? dict as ObjectStreamDictionary as IStreamDictionary
                 ?? StreamDictionary.FromDictionary(dict);
 
-            var streamLength = await streamDict.Length.ResolveAsync<Integer>(_indirectObjectDictionary!);
+            // TODO: I think it's invalid to use an indirect reference for this, but I've seen it, and Acrobat Reader may tolerate it.
+            // Figure out how to handle this.
+            //var streamLength = await streamDict.Length.ResolveAsync(_indirectObjectDictionary!);
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
 
             var streamDataOffset = stream.Position;
 
-            stream.Position += streamLength;
+            stream.Position += stream.Length;
 
-            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
+            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + stream.Length}.");
 
             var filters = FilterFactory.CreateFilterInstances(streamDict);
 
@@ -61,7 +63,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     new SubStream(
                         stream,
                         streamDataOffset,
-                        streamDataOffset + streamLength,
+                        streamDataOffset + stream.Length,
                         setToStart: false
                         ),
                         dataIsCompressed: filters?.Any() ?? false,

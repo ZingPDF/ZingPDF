@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -10,70 +11,54 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
 
         /// <summary>
+        /// <para>
         /// An array containing a pair of integers for each subsection in this section.
         /// The first integer shall be the first object number in the subsection;
-        /// the second integer shall be the number of entries in the subsection.<para></para>
+        /// the second integer shall be the number of entries in the subsection.
+        /// </para>
+        /// <para>
         /// The array shall be sorted in ascending order by object number.
         /// Subsections cannot overlap; an object number shall have no more than one entry in a section.
+        /// </para>
         /// </summary>
-        public ArrayObject? Index => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.Index);
+        public ArrayObject? Index => GetAs<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.Index);
 
         /// <summary>
-        /// An array of integers representing the size of the fields in a single cross-reference entry.
-        /// </summary>
-        /// <remarks>
-        /// "Table 18 — Entries in a cross-reference stream" describes the types of entries and their fields. 
-        /// For PDF 1.5, W always contains three integers; the value of each integer shall be the number of bytes 
-        /// (in the decoded stream) of the corresponding field.<para></para>
-        ///     EXAMPLE [1 2 1] means that the fields are one byte, two bytes, and one byte, respectively.<para></para>
-        /// A value of zero for an element in the W array indicates that the corresponding field shall not be present in the stream, and the default value shall be used, if there is one.
-        /// A value of zero shall not be used for the second element of the array. If the first element is zero, the type field shall not be present, and shall default to Type 1.
-        /// The sum of the items shall be the total length of each entry; it can be used with the Index array to determine the starting position of each subsection.
+        /// <para>
+        /// (Required) An array of integers representing the size of the fields in a single cross-reference entry. 
+        /// "Table 18 — Entries in a cross-reference stream" describes the types of entries and their fields. For PDF 1.5, 
+        /// W always contains three integers; the value of each integer shall be the number of bytes (in the decoded stream) 
+        /// of the corresponding field.</para>
+        /// <para>
+        /// EXAMPLE [1 2 1] means that the fields are one byte, two bytes, and one byte, respectively.
+        /// </para>
+        /// <para>
+        /// A value of zero for an element in the W array indicates that the corresponding field shall not be present 
+        /// in the stream, and the default value shall be used, if there is one. A value of zero shall not be used for the 
+        /// second element of the array. If the first element is zero, the type field shall not be present, and shall 
+        /// default to Type 1.
+        /// </para>
+        /// <para>
+        /// The sum of the items shall be the total length of each entry; it can be used with the Index array to determine 
+        /// the starting position of each subsection.
+        /// </para>
+        /// <para>
         /// Different cross-reference streams in a PDF file may use different values for W.
-        /// </remarks>
-        public ArrayObject W => Get<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.W)!;
+        /// </para>
+        /// </summary>
+        public ArrayObject W => GetAs<ArrayObject>(Constants.DictionaryKeys.CrossReferenceStream.W)!;
 
         // TODO: see if we can inherit all these properties from a base trailer stream dictionary,
         // rather than duplicating them through interfaces
 
         #region ITrailerDictionary
 
-        /// <summary>
-        /// The number one greater than the highest object number used in this section or in any section for which this shall be an update.
-        /// It shall be equivalent to the Size entry in a trailer dictionary.
-        /// </summary>
-        public Integer Size => Get<Integer>(TrailerDictionary.DictionaryKeys.Size)!;
-
-        /// <summary>
-        /// (Required, if any cross reference streams are already present in the file)
-        /// The byte offset from the beginning of the PDF file to the beginning of the previous cross-reference stream.
-        /// The value is meaningful if the PDF file has more than one cross-reference stream.
-        /// It is not meaningful in hybrid-reference files; see 7.5.8.4, "Compatibility with applications that do not support compressed reference streams".
-        /// This entry has the same function as the Prev entry in the trailer dictionary
-        /// ("Table 15 — Entries in the file trailer dictionary").
-        /// </summary>
-        public Integer? Prev => Get<Integer>(TrailerDictionary.DictionaryKeys.Prev);
-
-        /// <summary>
-        /// The catalog dictionary for the PDF file.
-        /// </summary>
-        public IndirectObjectReference? Root => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root);
-
-        /// <summary>
-        /// Required if document is encrypted; Added in PDF 1.1.
-        /// </summary>
-        public Dictionary? Encrypt => Get<Dictionary>(TrailerDictionary.DictionaryKeys.Encrypt);
-
-        /// <summary>
-        /// Optional. Deprecated in PDF 2.0. The PDF file's information dictionary.<para></para>
-        /// N.B. The ModDate key within the Info dictionary is required if Page-Piece dictionaries are used. 
-        /// </summary>
-        public IndirectObjectReference? Info => Get<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info);
-
-        /// <summary>
-        /// Required in PDF 2.0 and later, or if an Encrypt entry is present; optional otherwise; Added in PDF 1.1.
-        /// </summary>
-        public ArrayObject? ID => Get<ArrayObject>(TrailerDictionary.DictionaryKeys.ID);
+        public Integer Size => (Integer)this[TrailerDictionary.DictionaryKeys.Size];
+        public Integer? Prev => (Integer?)this[TrailerDictionary.DictionaryKeys.Prev];
+        public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root);
+        public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Encrypt);
+        public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info);
+        public ArrayObject? ID => GetAs<ArrayObject>(TrailerDictionary.DictionaryKeys.ID);
 
         #endregion
 
@@ -87,7 +72,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
             Integer size,
             Integer? prev,
             IndirectObjectReference root,
-            Dictionary? encrypt,
+            IPdfObject? encrypt,
             IndirectObjectReference? info,
             ArrayObject? id
             )

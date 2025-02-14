@@ -74,6 +74,8 @@ static async Task Test()
 
     var pdf = await Pdf.LoadAsync(inputFileStream);
 
+    var encrypted = pdf.Encrypted;
+
     var count = await pdf.GetPageCountAsync();
 }
 
