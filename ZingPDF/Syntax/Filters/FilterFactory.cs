@@ -1,23 +1,20 @@
 ﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.Filters
 {
     internal static class FilterFactory
     {
-        public static IEnumerable<IFilter>? CreateFilterInstances(IStreamDictionary dictionary)
+        public static async Task<IEnumerable<IFilter>>? CreateFilterInstancesAsync(IStreamDictionary dictionary, IIndirectObjectDictionary indirectObjectDictionary)
         {
             if (dictionary.Filter is null)
             {
                 return null;
             }
 
-            var filterNames = dictionary.Filter as ArrayObject ?? new[] { dictionary.Filter };
-
-            var allFilterParamsArray = dictionary.DecodeParms as ArrayObject;
-
-            var allFilterParams = allFilterParamsArray ??
-                (dictionary.DecodeParms is Dictionary singleFilterParamsDictionary ? new[] { singleFilterParamsDictionary } : (ArrayObject?)null);
+            var filterNames = await dictionary.Filter.GetAsync(indirectObjectDictionary);
+            var allFilterParams = await dictionary.DecodeParms.GetAsync(indirectObjectDictionary);
 
             List<IFilter> filters = [];
 

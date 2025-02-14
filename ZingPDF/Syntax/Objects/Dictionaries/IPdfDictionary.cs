@@ -1,9 +1,7 @@
-﻿namespace ZingPDF.Syntax.Objects
+﻿namespace ZingPDF.Syntax.Objects.Dictionaries
 {
     public interface IPdfDictionary : IDictionary<Name, IPdfObject>
     {
         Name? Type { get; }
-
-        T? Get<T>(Name key) where T : class, IPdfObject;
     }
 }
