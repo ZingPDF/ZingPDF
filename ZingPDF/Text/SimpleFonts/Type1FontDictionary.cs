@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Text.SimpleFonts

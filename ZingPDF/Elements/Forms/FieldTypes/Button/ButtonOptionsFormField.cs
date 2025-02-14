@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
