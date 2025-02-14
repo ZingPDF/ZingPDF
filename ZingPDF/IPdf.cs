@@ -28,7 +28,6 @@ public interface IPdf
 
     Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions);
 
-    bool Encrypted { get; }
     PdfObjectManager IndirectObjects { get; }
     PageTree PageTree { get; }
 }

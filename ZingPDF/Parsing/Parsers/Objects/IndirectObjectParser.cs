@@ -3,6 +3,7 @@ using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 

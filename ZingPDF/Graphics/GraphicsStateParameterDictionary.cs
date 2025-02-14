@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Graphics
 {
