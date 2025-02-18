@@ -1,7 +1,7 @@
 ﻿using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
-using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
 
@@ -23,11 +23,11 @@ namespace ZingPDF.Elements
         public IndirectObject IndirectObject { get; }
         public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
 
-        public void AddText(TextObject text)
+        public async Task AddTextAsync(TextObject text)
         {
             ArgumentNullException.ThrowIfNull(text);
 
-            Dictionary.AddContent([text], _pdfObjectManager);
+            await Dictionary.AddContentAsync([text], _pdfObjectManager);
 
             _pdfObjectManager.Update(IndirectObject);
         }
@@ -40,14 +40,16 @@ namespace ZingPDF.Elements
 
             var imageMetadata = await new ImageSharpMetadataRetriever().GetAsync(image.ImageData);
 
-            List<IFilter> filters = [];
+            //List<IFilter> filters = [];
             var filter = imageMetadata.CompressionType.ToPDFFilterName();
 
-            if (filter != null)
-            {
-                // TODO: derive required params, possibly only for CCITT compression.
-                filters = [FilterFactory.Create(filter, null)];
-            }
+            ShorthandArrayObject? filterAry = filter != null ? new ShorthandArrayObject([(Name)filter]) : null;
+
+            //if (filter != null)
+            //{
+            //    // TODO: derive required params, possibly only for CCITT compression.
+            //    filters = [FilterFactory.Create(filter, null)];
+            //}
 
             var imageXObject = new ImageXObjectFactory(
                 image.ImageData,
@@ -55,8 +57,13 @@ namespace ZingPDF.Elements
                 imageMetadata.Height,
                 imageMetadata.ColorSpace,
                 imageMetadata.BitDepth,
-                filters,
-                sourceDataIsCompressed: filters.Count > 0 // TODO: This might be wrong. Test image adding
+                filterAry,
+                decodeParms: null,
+                f: null,
+                fFilter: null,
+                fDecodeParms: null,
+                dL: null
+                //sourceDataIsCompressed: filters.Count > 0 // TODO: This might be wrong. Test image adding
                 )
                 .Create();
 
@@ -81,7 +88,7 @@ namespace ZingPDF.Elements
             
             var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
-            Dictionary.AddContent([imageContentStream], _pdfObjectManager);
+            await Dictionary.AddContentAsync([imageContentStream], _pdfObjectManager);
 
             _pdfObjectManager.Update(IndirectObject);
         }
@@ -96,15 +103,22 @@ namespace ZingPDF.Elements
         //    // TODO: PathObject
         //}
 
-        public void Rotate(Rotation rotation)
+        public async Task RotateAsync(Rotation rotation)
         {
             // TODO: Ensure contents don't need some sort of transform to match
 
             ArgumentNullException.ThrowIfNull(rotation);
 
+            var existingRotation = 0;
+            
+            if (Dictionary.Rotate != null)
+            {
+                existingRotation = await Dictionary.Rotate.GetAsync(_pdfObjectManager);
+            }
+
             // The page may already be rotated, or inherit a value for rotation.
             // In practice, it is likely desired to rotate by a further n degrees.
-            Dictionary.SetRotation((Dictionary.Rotate ?? 0) + rotation);
+            Dictionary.SetRotation(existingRotation + rotation);
 
             _pdfObjectManager.Update(IndirectObject);
         }
