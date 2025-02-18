@@ -1,5 +1,5 @@
-﻿using ZingPDF.Syntax.Filters;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Graphics.Images;
@@ -15,40 +15,43 @@ namespace ZingPDF.Graphics.Images;
 /// image masks (8.9.6, "Masked images"), and thumbnail images (12.3.4, "Thumbnail images").
 /// </para>
 /// </summary>
-internal class ImageXObjectFactory : IStreamObjectFactory<ImageDictionary>
+internal class ImageXObjectFactory(
+    Stream image,
+    Integer width,
+    Integer height,
+    ColorSpace colorSpace,
+    Integer bitDepth,
+    ShorthandArrayObject? filter,
+    ShorthandArrayObject? decodeParms,
+    Dictionary? f,
+    ShorthandArrayObject? fFilter,
+    ShorthandArrayObject? fDecodeParms,
+    Integer? dL
+    )
+    : IStreamObjectFactory<ImageDictionary>
 {
-    private readonly Stream _image;
-    private readonly Integer _width;
-    private readonly Integer _height;
-    private readonly ColorSpace _colorSpace;
-    private readonly Integer _bitDepth;
-    private readonly IEnumerable<IFilter>? _filters;
-    private readonly bool _sourceDataIsCompressed;
-
-    public ImageXObjectFactory(
-        Stream image,
-        Integer width,
-        Integer height,
-        ColorSpace colorSpace,
-        Integer bitDepth,
-        IEnumerable<IFilter>? filters,
-        bool sourceDataIsCompressed
-        )
-    {
-        _image = image ?? throw new ArgumentNullException(nameof(image));
-        _width = width ?? throw new ArgumentNullException(nameof(width));
-        _height = height ?? throw new ArgumentNullException(nameof(height));
-        _colorSpace = colorSpace;
-        _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
-        _filters = filters;
-        _sourceDataIsCompressed = sourceDataIsCompressed;
-    }
+    private readonly Stream _image = image ?? throw new ArgumentNullException(nameof(image));
+    private readonly Integer _width = width ?? throw new ArgumentNullException(nameof(width));
+    private readonly Integer _height = height ?? throw new ArgumentNullException(nameof(height));
+    private readonly Integer _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
 
     public StreamObject<ImageDictionary> Create()
     {
         return new StreamObject<ImageDictionary>(
-            new StreamData(_image, _sourceDataIsCompressed, _filters),
-            new ImageDictionary(_width, _height, (Name)_colorSpace.ToString(), _bitDepth)
+            _image,
+            new ImageDictionary(
+                _width,
+                _height,
+                (Name)colorSpace.ToString(),
+                _bitDepth,
+                _image.Length,
+                filter,
+                decodeParms,
+                f,
+                fFilter,
+                fDecodeParms,
+                dL
+                )
             );
     }
 }

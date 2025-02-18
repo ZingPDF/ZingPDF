@@ -78,7 +78,7 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
         // TODO: cache decompressed stream data?
         // Decompress stream, read bytes up to first object.
         // These bytes contain pairs of integers, identifying each object number and byte offset.          
-        Stream decompressedObjectStream = await objectStream.Data.GetDecompressedDataAsync();
+        Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync(this);
         var decompressedData = new byte[objectStreamDictionary.First];
         await decompressedObjectStream.ReadExactlyAsync(decompressedData, 0, objectStreamDictionary.First);
 

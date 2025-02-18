@@ -26,7 +26,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// have a type of its own; it is merely a container for inheritable attributes that are 
         /// intended for descendant terminal fields of any type.
         /// </summary>
-        public Name? FT { get => Get<Name>(Constants.DictionaryKeys.Field.FT); }
+        public AsyncProperty<Name>? FT { get => Get<Name>(Constants.DictionaryKeys.Field.FT); }
 
         /// <summary>
         /// (Sometimes required, as described below)<para></para>
@@ -38,13 +38,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// widget annotation, and its contents have been merged into the field dictionary, 
         /// Kids shall be omitted.
         /// </summary>
-        public ArrayObject? Kids { get => Get<ArrayObject>(Constants.DictionaryKeys.Field.Kids); }
+        public AsyncProperty<ArrayObject>? Kids { get => Get<ArrayObject>(Constants.DictionaryKeys.Field.Kids); }
 
         /// <summary>
         /// (Optional)<para></para>
         /// The partial field name (see 12.7.4.2, "Field names").
         /// </summary>
-        public LiteralString? T { get => Get<LiteralString>(Constants.DictionaryKeys.Field.T); }
+        public AsyncProperty<LiteralString>? T { get => Get<LiteralString>(Constants.DictionaryKeys.Field.T); }
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
@@ -54,13 +54,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// This text is also useful when extracting the document’s contents in support 
         /// of accessibility to users with disabilities or for other purposes (see 14.9.3, "Alternate descriptions").
         /// </summary>
-        public LiteralString? TU { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TU); }
+        public AsyncProperty<LiteralString>? TU { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TU); }
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
         /// The mapping name that shall be used when exporting interactive form field data from the document.
         /// </summary>
-        public LiteralString? TM { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TM); }
+        public AsyncProperty<LiteralString>? TM { get => Get<LiteralString>(Constants.DictionaryKeys.Field.TM); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -68,21 +68,21 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (see "Table 227 — Field flags common to all field types").<para></para>
         /// Default value: 0.
         /// </summary>
-        public Integer? Ff { get => Get<Integer>(Constants.DictionaryKeys.Field.Ff); }
+        public AsyncProperty<Integer>? Ff { get => Get<Integer>(Constants.DictionaryKeys.Field.Ff); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
         /// The field’s value, whose format varies depending on the field type. 
         /// See the descriptions of individual field types for further information.
         /// </summary>
-        public IPdfObject? V { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.V); }
+        public AsyncProperty<IPdfObject>? V { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.V); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
         /// The default value to which the field reverts when a reset-form action is executed 
         /// (see 12.7.6.3, "Reset-form action"). The format of this value is the same as that of V.
         /// </summary>
-        public IPdfObject? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
+        public AsyncProperty<IPdfObject>? DV { get => Get<IPdfObject>(Constants.DictionaryKeys.Field.DV); }
 
         /// <summary>
         /// <para>For Button fields (checkboxes/radio buttons):</para>
@@ -99,7 +99,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// text strings: the option’s export value and the text that shall be displayed as the name of the option.</para>
         /// <para>If this entry is not present, no choices should be presented to the user.</para>
         /// </summary>
-        public ArrayObject? Opt => Get<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
+        public AsyncProperty<ArrayObject>? Opt => Get<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
 
         /// <summary>
         /// (Optional) For scrollable list boxes, the top index (the index in the Opt array of the first 

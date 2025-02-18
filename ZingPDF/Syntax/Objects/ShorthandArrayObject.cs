@@ -3,8 +3,11 @@
 /// <summary>
 /// Type of array which will not render square brackets when there is a single child object.
 /// </summary>
-public class ShorthandArrayObject : ArrayObject
+public class ShorthandArrayObject(IEnumerable<IPdfObject> values) : ArrayObject(values)
 {
+    // For collection initialisation
+    internal ShorthandArrayObject() : this([]) { }
+
     protected override async Task WriteOutputAsync(Stream stream)
     {
         if (this.Count() == 1)

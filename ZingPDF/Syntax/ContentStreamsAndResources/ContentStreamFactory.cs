@@ -31,9 +31,6 @@ internal class ContentStreamFactory<TDictionary> : IStreamObjectFactory<TDiction
             ms.WriteWhitespaceAsync().Wait();
         }
 
-        return new StreamObject<TDictionary>(
-            new StreamData(ms, dataIsCompressed: false),
-            _dictionary
-            );
+        return new StreamObject<TDictionary>(ms, _dictionary);
     }
 }

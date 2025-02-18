@@ -2,19 +2,30 @@
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
-namespace ZingPDF.DocumentInterchange.Metadata
+namespace ZingPDF.DocumentInterchange.Metadata;
+
+public class MetadataStreamDictionary : StreamDictionary
 {
-    internal class MetadataStreamDictionary : StreamDictionary
+    public MetadataStreamDictionary(
+        Integer length,
+        ShorthandArrayObject? filter,
+        ShorthandArrayObject? decodeParms,
+        Dictionary? f,
+        ShorthandArrayObject? fFilter,
+        ShorthandArrayObject? fDecodeParms,
+        Integer? dL
+        )
+        : base(
+            Constants.DictionaryTypes.Metadata,
+            length,
+            filter,
+            decodeParms,
+            f,
+            fFilter,
+            fDecodeParms,
+            dL
+            )
     {
-        private const string _subtype = "XML";
-
-        public MetadataStreamDictionary() : base(Constants.DictionaryTypes.Metadata)
-        {
-            Set<Name>(Constants.DictionaryKeys.Subtype, _subtype);
-        }
-
-        private MetadataStreamDictionary(Dictionary streamDictionary) : base(streamDictionary)
-        {
-        }
+        Set<Name>(Constants.DictionaryKeys.Subtype, "XML");
     }
 }

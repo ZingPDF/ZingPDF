@@ -9,7 +9,7 @@ namespace ZingPDF.Syntax.Functions
         protected StreamFunctionDictionary(Integer functionType) : base(functionType) { }
         protected StreamFunctionDictionary(Dictionary dict) : base(dict) { }
 
-        public Integer Length => GetAs<Integer>(Constants.DictionaryKeys.Stream.Length)!;
+        public AsyncProperty<Integer> Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
         public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
         public AsyncProperty<ShorthandArrayObject>? DecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);

@@ -31,12 +31,17 @@ namespace ZingPDF.Syntax.Filters
 
             decoder.CopyTo(output);
 
+            var predictor = Params?["Predictor"] as Integer ?? _defaultPredictor;
+            var columns = Params?["Columns"] as Integer ?? _defaultColumns;
+            var colors = Params?["Colors"] as Integer ?? _defaultColors;
+            var bitsPerComponent = Params?["BitsPerComponent"] as Integer ?? _defaultBitsPerComponent;
+
             return PngPredictor.Decode(
                 output.ToArray(),
-                Params?.Get<Integer>("Predictor") ?? _defaultPredictor,
-                Params?.Get<Integer>("Columns") ?? _defaultColumns,
-                Params?.Get<Integer>("Colors") ?? _defaultColors,
-                Params?.Get<Integer>("BitsPerComponent") ?? _defaultBitsPerComponent
+                predictor,
+                columns,
+                colors,
+                bitsPerComponent
                 );
         }
 

@@ -28,13 +28,13 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>(Required)</para>
         /// <para>The type of annotation that this dictionary describes; see "Table 171 — Annotation types" for specific values.</para>
         /// </summary>
-        public Name Subtype => Get<Name>(Constants.DictionaryKeys.Subtype)!;
+        public AsyncProperty<Name> Subtype => Get<Name>(Constants.DictionaryKeys.Subtype)!;
 
         /// <summary>
         /// <para>(Required)</para>
         /// <para>The annotation rectangle, defining the location of the annotation on the page in default user space units.</para>
         /// </summary>
-        public Rectangle Rect => Get<Rectangle>(Constants.DictionaryKeys.Annotation.Rect)!;
+        public AsyncProperty<Rectangle> Rect => Get<Rectangle>(Constants.DictionaryKeys.Annotation.Rect)!;
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -44,7 +44,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// or for other purposes (see 14.9.3, "Alternate descriptions"). See 12.5.6, "Annotation types" for more details 
         /// on the meaning of this entry for each annotation type.</para>
         /// </summary>
-        public LiteralString? Contents => Get<LiteralString>(Constants.DictionaryKeys.Annotation.Contents);
+        public AsyncProperty<LiteralString>? Contents => Get<LiteralString>(Constants.DictionaryKeys.Annotation.Contents);
 
         /// <summary>
         /// <para>(Optional except as noted below; PDF 1.3; not used in FDF files)</para>
@@ -52,13 +52,13 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// This entry shall be present in screen annotations associated with rendition actions 
         /// (PDF 1.5; see 12.5.6.18, "Screen annotations" and 12.6.4.14, "Rendition actions").</para>
         /// </summary>
-        public Dictionary? P => Get<Dictionary>(Constants.DictionaryKeys.Annotation.P);
+        public AsyncProperty<Dictionary>? P => Get<Dictionary>(Constants.DictionaryKeys.Annotation.P);
 
         /// <summary>
         /// <para>(Optional; PDF 1.4)</para>
         /// <para>The annotation name, a text string uniquely identifying it among all the annotations on its page.</para>
         /// </summary>
-        public LiteralString? NM => Get<LiteralString>(Constants.DictionaryKeys.Annotation.NM);
+        public AsyncProperty<LiteralString>? NM => Get<LiteralString>(Constants.DictionaryKeys.Annotation.NM);
 
         /// <summary>
         /// <para>(Optional; PDF 1.1)</para>
@@ -66,14 +66,14 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// The format should be a date string as described in 7.9.4, "Dates" 
         /// but interactive PDF processors shall accept and display a string in any format.</para>
         /// </summary>
-        public IPdfObject? M => Get<IPdfObject>(Constants.DictionaryKeys.Annotation.M);
+        public AsyncProperty<IPdfObject>? M => Get<IPdfObject>(Constants.DictionaryKeys.Annotation.M);
 
         /// <summary>
         /// <para>(Optional; PDF 1.1)</para>
         /// <para>A set of flags specifying various characteristics of the annotation (see 12.5.3, "Annotation flags").</para>
         /// <para>Default value: 0.</para>
         /// </summary>
-        public Integer? F => Get<Integer>(Constants.DictionaryKeys.Annotation.F);
+        public AsyncProperty<Integer>? F => Get<Integer>(Constants.DictionaryKeys.Annotation.F);
 
         /// <summary>
         /// <para>(Required except for conditions below (PDF 2.0); optional in PDF 1.2 to PDF 1.7)</para>
@@ -88,14 +88,14 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// requirements in other published ISO PDF standards (such as PDF/A).</para>
         /// <para>• Annotations whose Subtype value is Popup, Projection or Link.</para>
         /// </summary>
-        public AppearanceDictionary? AP => Get<AppearanceDictionary>(Constants.DictionaryKeys.Annotation.AP);
+        public AsyncProperty<AppearanceDictionary>? AP => Get<AppearanceDictionary>(Constants.DictionaryKeys.Annotation.AP);
 
         /// <summary>
         /// <para>(Required if the appearance dictionary AP contains one or more subdictionaries; PDF 1.2)</para>
         /// <para>The annotation’s appearance state, which selects the applicable appearance stream from an 
         /// appearance subdictionary (see 12.5.5, "Appearance streams").</para>
         /// </summary>
-        public Name? AS => Get<Name>(Constants.DictionaryKeys.Annotation.AS);
+        public AsyncProperty<Name>? AS => Get<Name>(Constants.DictionaryKeys.Annotation.AS);
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -115,7 +115,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// Border entry is ignored.</para>
         /// <para>Default value: [0 0 1].</para>
         /// </summary>
-        public ArrayObject? Border => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.Border);
+        public AsyncProperty<ArrayObject>? Border => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.Border);
 
         /// <summary>
         /// <para>(Optional; PDF 1.1)</para>
@@ -129,14 +129,14 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>3 DeviceRGB</para>
         /// <para>4 DeviceCMYK</para>
         /// </summary>
-        public ArrayObject? C => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.C);
+        public AsyncProperty<ArrayObject>? C => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.C);
 
         /// <summary>
         /// <para>(Required if the annotation is a structural content item; PDF 1.3)</para>
         /// <para>The integer key of the annotation’s entry in the structural parent tree 
         /// (see 14.7.5.4, "Finding structure elements from content items").</para>
         /// </summary>
-        public Integer? StructParent => Get<Integer>(Constants.DictionaryKeys.Annotation.StructParent);
+        public AsyncProperty<Integer>? StructParent => Get<Integer>(Constants.DictionaryKeys.Annotation.StructParent);
 
         /// <summary>
         /// <para>(Optional; PDF 1.5)</para>
@@ -147,7 +147,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// in the F entry (see 12.5.3, "Annotation flags"). If it is determined to be invisible, 
         /// the annotation shall not be drawn. (See 8.11.3.3, "Optional content in XObjects and annotations".)</para>
         /// </summary>
-        public Dictionary? OC => Get<Dictionary>(Constants.DictionaryKeys.Annotation.OC);
+        public AsyncProperty<Dictionary>? OC => Get<Dictionary>(Constants.DictionaryKeys.Annotation.OC);
 
         /// <summary>
         /// <para>(Optional; PDF 2.0)</para>
@@ -156,7 +156,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// See 14.13, "Associated files" and 14.13.9, "Associated files linked to an annotation dictionary" 
         /// for more details.</para>
         /// </summary>
-        public ArrayObject? AF => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.AF);
+        public AsyncProperty<ArrayObject>? AF => Get<ArrayObject>(Constants.DictionaryKeys.Annotation.AF);
 
         /// <summary>
         /// <para>(Optional; PDF 2.0)</para>
@@ -172,7 +172,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// necessarily conform to the PDF imaging model; in this case, the effect of this entry is 
         /// implementation-dependent as well.</para>
         /// </summary>
-        public RealNumber? ca => Get<RealNumber>(Constants.DictionaryKeys.Annotation.ca);
+        public AsyncProperty<RealNumber>? ca => Get<RealNumber>(Constants.DictionaryKeys.Annotation.ca);
 
         /// <summary>
         /// <para>(Optional; PDF 1.4, PDF 2.0 for non-markup annotations)</para>
@@ -189,7 +189,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// do not necessarily conform to the PDF imaging model; in this case, the effect of this entry is 
         /// implementation-dependent as well.</para>
         /// </summary>
-        public RealNumber? CA => Get<RealNumber>(Constants.DictionaryKeys.Annotation.CA);
+        public AsyncProperty<RealNumber>? CA => Get<RealNumber>(Constants.DictionaryKeys.Annotation.CA);
 
         /// <summary>
         /// <para>(Optional; PDF 2.0)</para>
@@ -199,7 +199,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// be a name object, designating one of the standard blend modes listed in "Table 134 — Standard 
         /// separable blend modes" and "Table 135 — Standard non-separable blend modes" in 11.3.5, "Blend mode".</para>
         /// </summary>
-        public Name? BM => Get<Name>(Constants.DictionaryKeys.Annotation.BM);
+        public AsyncProperty<Name>? BM => Get<Name>(Constants.DictionaryKeys.Annotation.BM);
 
         /// <summary>
         /// <para>(Optional; PDF 2.0)</para>
@@ -207,7 +207,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// for all text in the annotation except where overridden by other explicit language specifications 
         /// (see 14.9.2, "Natural language specification").</para>
         /// </summary>
-        public LiteralString? Lang => Get<LiteralString>(Constants.DictionaryKeys.Annotation.Lang);
+        public AsyncProperty<LiteralString>? Lang => Get<LiteralString>(Constants.DictionaryKeys.Annotation.Lang);
 
         public void SetAppearanceState(Name? state)
         {

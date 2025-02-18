@@ -4,7 +4,7 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Graphics
 {
-    internal abstract class XObjectDictionary : StreamDictionary
+    public abstract class XObjectDictionary : StreamDictionary
     {
         protected static class Subtypes
         {
@@ -12,14 +12,32 @@ namespace ZingPDF.Graphics
             public const string Image = "Image";
         }
 
-        protected XObjectDictionary(Name subtype)
-            : base(Constants.DictionaryTypes.XObject)
+        protected XObjectDictionary(
+            Name subtype,
+            Integer length,
+            ShorthandArrayObject? filter,
+            ShorthandArrayObject? decodeParms,
+            Dictionary? f,
+            ShorthandArrayObject? fFilter,
+            ShorthandArrayObject? fDecodeParms,
+            Integer? dL
+            )
+            : base(
+                  Constants.DictionaryTypes.XObject,
+                  length,
+                  filter,
+                  decodeParms,
+                  f,
+                  fFilter,
+                  fDecodeParms,
+                  dL
+                  )
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
         
-        protected XObjectDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
+        protected XObjectDictionary(IStreamDictionary streamDictionary) : base(streamDictionary) { }
     }
 }

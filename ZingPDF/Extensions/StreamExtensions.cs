@@ -1,5 +1,9 @@
 ﻿using System.Globalization;
 using System.Text;
+using ZingPDF.Parsing;
+using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Extensions;
 
@@ -274,5 +278,38 @@ internal static class StreamExtensions
         await stream.CopyToAsync(ms);
 
         return ms.ToArray();
+    }
+
+    public static async Task<Stream> UncompressAsync(
+        this Stream stream,
+        IEnumerable<Name>? filters,
+        IEnumerable<Dictionary>? decodeParms
+        )
+    {
+        ArgumentNullException.ThrowIfNull(stream, nameof(stream));
+
+        filters ??= [];
+        decodeParms ??= [];
+
+        // TODO: stream contents may be encrypted, decrypt.
+
+        stream.Position = 0;
+
+        // If there are no filters, return the source data as-is.
+        if (!filters.Any())
+        {
+            return stream;
+        }
+
+        var workingData = await stream.ReadToEndAsync();
+
+        var filterInstances = FilterFactory.CreateFilterInstances(filters, decodeParms);
+
+        foreach (var filter in filterInstances)
+        {
+            workingData = filter.Decode(workingData);
+        }
+
+        return new MemoryStream(workingData);
     }
 }
