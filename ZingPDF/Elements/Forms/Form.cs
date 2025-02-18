@@ -6,6 +6,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -43,7 +44,7 @@ namespace ZingPDF.Elements.Forms
         {
             var formDict = await _acroFormDictionary;
 
-            var fields = await formDict.Fields.ResolveAsync(_pdfObjectManager);
+            var fields = await formDict.Fields.GetAsync(_pdfObjectManager);
 
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])
@@ -70,18 +71,27 @@ namespace ZingPDF.Elements.Forms
                     continue;
                 }
 
+                ArrayObject kidRefs = [];
+
+                if (fieldDict.Kids != null)
+                {
+                    kidRefs = await fieldDict.Kids.GetAsync(_pdfObjectManager);
+                }
+
                 var kids = new List<IndirectObject>();
-                foreach (var kid in fieldDict.Kids?.Cast<IndirectObjectReference>() ?? [])
+                foreach (var kid in kidRefs.Cast<IndirectObjectReference>())
                 {
                     kids.Add(await _pdfObjectManager.GetAsync(kid));
                 }
 
-                string fieldName = prefix is not null ? $"{prefix}.{fieldDict.T}" : fieldDict.T!;
+                string partialFieldName = (await fieldDict.T.GetAsync(_pdfObjectManager))!;
+
+                string fieldName = prefix is not null ? $"{prefix}.{partialFieldName}" : partialFieldName;
 
                 // If the field is terminal, identify its type, add to the list and continue.
                 if (FieldIsTerminal(kids))
                 {
-                    formFields.Add(GetStronglyTypedFormField(field, fieldName, fieldDict, kids));
+                    formFields.Add(await GetStronglyTypedFormFieldAsync(field, fieldName, fieldDict, kids));
                 }
                 else
                 {
@@ -127,7 +137,7 @@ namespace ZingPDF.Elements.Forms
 
             EnsureNeedAppearances(acroFormDict);
 
-            EnsureDefaultResourceDictionary(acroFormDict);
+            await EnsureDefaultResourceDictionaryAsync(acroFormDict);
 
             _pdfObjectManager.Update(await _acroForm);
         }
@@ -144,14 +154,20 @@ namespace ZingPDF.Elements.Forms
             acroFormDictionary.SetNeedAppearances(false);
         }
 
-        private void EnsureDefaultResourceDictionary(InteractiveFormDictionary acroFormDictionary)
+        private async Task EnsureDefaultResourceDictionaryAsync(InteractiveFormDictionary acroFormDictionary)
         {
+            ResourceDictionary defaultResources = [];
+
             if (acroFormDictionary.DR is null)
             {
                 acroFormDictionary.SetResources([]);
             }
+            else
+            {
+                defaultResources = await acroFormDictionary.DR.GetAsync(_pdfObjectManager);
+            }
 
-            if (acroFormDictionary.DR!.Font is null)
+            if (defaultResources.Font is null)
             {
                 // TODO: can we reuse an existing font?
                 // TODO: make font configurable
@@ -159,11 +175,11 @@ namespace ZingPDF.Elements.Forms
 
                 var fontIndirectObject = _pdfObjectManager.Add(defaultFont);
 
-                acroFormDictionary.DR.AddFont(_defaultFontResourceName, fontIndirectObject.Id.Reference);
+                defaultResources.AddFont(_defaultFontResourceName, fontIndirectObject.Id.Reference);
             }
         }
 
-        private IFormField GetStronglyTypedFormField(
+        private async Task<IFormField> GetStronglyTypedFormFieldAsync(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
             FieldDictionary fieldDictionary,
@@ -183,9 +199,18 @@ namespace ZingPDF.Elements.Forms
             // ?? - there may or may not be a widget annotation initally
             // - when saving a value, a widget annotation defines the visual appearance
 
-            var fieldProperties = new FieldProperties(fieldDictionary.Ff ?? 0);
+            var flags = 0;
 
-            return fieldDictionary.FT!.ToFormFieldType() switch
+            if (fieldDictionary.Ff != null)
+            {
+                flags = await fieldDictionary.Ff.GetAsync(_pdfObjectManager);
+            }
+
+            var fieldProperties = new FieldProperties(flags);
+
+            var fieldTypeName = await fieldDictionary.FT!.GetAsync(_pdfObjectManager);
+
+            return fieldTypeName.ToFormFieldType() switch
             {
                 FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldProperties, kids),
                 FormFieldType.Text => new TextFormField(

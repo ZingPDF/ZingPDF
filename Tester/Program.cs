@@ -149,7 +149,7 @@ static async Task AddTextToPage()
 
     var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
-    page.AddText(new ZingPDF.Text.TextObject(
+    page.AddTextAsync(new ZingPDF.Text.TextObject(
         "test",
         new Rectangle(new Coordinate(10, 10), new Coordinate(100, 100)),
         new Coordinate(10, 50),
@@ -180,7 +180,7 @@ static async Task RotatePage()
 
     var page = await pdf.GetPageAsync(1);
 
-    page.Rotate(Rotation.Degrees90);
+    page.RotateAsync(Rotation.Degrees90);
 
     await pdf.SaveAsync(outputFileStream);
 }

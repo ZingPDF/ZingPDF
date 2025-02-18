@@ -84,8 +84,32 @@ internal static class Constants
             public const string Extensions = "Extensions";
             public const string Pages = "Pages";
             public const string PageLabels = "PageLabels";
-
+            public const string Names = "Names";
+            public const string Dests = "Dests";
+            public const string ViewerPreferences = "ViewerPreferences";
+            public const string PageLayout = "PageLayout";
+            public const string PageMode = "PageMode";
+            public const string Outlines = "Outlines";
+            public const string Threads = "Threads";
+            public const string OpenAction = "OpenAction";
+            public const string AA = "AA";
+            public const string URI = "URI";
             public const string AcroForm = "AcroForm";
+            public const string StructTreeRoot = "StructTreeRoot";
+            public const string MarkInfo = "MarkInfo";
+            public const string Lang = "Lang";
+            public const string SpiderInfo = "SpiderInfo";
+            public const string OutputIntents = "OutputIntents";
+            public const string PieceInfo = "PieceInfo";
+            public const string OCProperties = "OCProperties";
+            public const string Perms = "Perms";
+            public const string Legal = "Legal";
+            public const string Requirements = "Requirements";
+            public const string Collection = "Collection";
+            public const string NeedsRendering = "NeedsRendering";
+            public const string DSS = "DSS";
+            public const string AF = "AF";
+            public const string DPartRoot = "DPartRoot";
         }
 
         public static class LinearizationParameter

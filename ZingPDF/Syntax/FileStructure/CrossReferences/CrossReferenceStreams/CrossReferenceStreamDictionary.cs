@@ -8,7 +8,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
     internal class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
+        private CrossReferenceStreamDictionary(IStreamDictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
 
         /// <summary>
         /// <para>
