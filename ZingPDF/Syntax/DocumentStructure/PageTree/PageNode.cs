@@ -14,41 +14,46 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         }
 
         /// <summary>
-        /// Required.<para></para>
-        /// The page tree node that is the immediate parent of this page object.
-        /// Objects of Type Template shall have no Parent key.
+        /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
         /// </summary>
-        public IndirectObjectReference Parent => Get<IndirectObjectReference>(Constants.DictionaryKeys.PageTree.Parent)!;
+        public AsyncProperty<PageTreeNodeDictionary> Parent => Get<PageTreeNodeDictionary>(Constants.DictionaryKeys.PageTree.Parent)!;
 
         /// <summary>
-        /// (Required; inheritable)<para></para>
-        /// A dictionary containing any resources required by the page contents (see 7.8.3, "Resource dictionaries").
+        /// <para>
+        /// (Required; inheritable) A dictionary containing any resources required by the page contents (see 7.8.3, "Resource dictionaries").
         /// If the page requires no resources, the value of this entry shall be an empty dictionary.
         /// Omitting the entry entirely indicates that the resources shall be inherited from an ancestor 
         /// node in the page tree, but PDF writers should not use this method of sharing resources as 
         /// described in 7.8.3, "Resource dictionaries".
+        /// </para>
         /// </summary>
-        public IPdfObject? Resources => Get<IPdfObject>(Constants.DictionaryKeys.PageTree.Resources);
+        public AsyncProperty<ResourceDictionary>? Resources => Get<ResourceDictionary>(Constants.DictionaryKeys.PageTree.Resources);
 
         /// <summary>
-        /// The boundaries of the physical medium on which the page shall be displayed or printed.
+        /// (Required; inheritable) A rectangle (see 7.9.5, "Rectangles"), expressed in default user space units, that shall define the boundaries 
+        /// of the physical medium on which the page shall be displayed or printed (see 14.11.2, "Page boundaries").
         /// </summary>
-        public Rectangle? MediaBox => Get<Rectangle>(Constants.DictionaryKeys.PageTree.MediaBox);
+        public AsyncProperty<Rectangle>? MediaBox => Get<Rectangle>(Constants.DictionaryKeys.PageTree.MediaBox);
 
         /// <summary>
-        /// <para>(Optional; Inheritable) A rectangle, expressed in default user space units, that 
+        /// <para>
+        /// (Optional; Inheritable) A rectangle, expressed in default user space units, that 
         /// shall define the visible region of default user space. When the page is displayed or 
         /// printed, its contents shall be clipped (cropped) to this rectangle (see 14.11.2, "Page boundaries"). 
-        /// Default value: the value of MediaBox.</para>
-        /// <para>NOTE 1 This clipped page output will often be placed (imposed) on the output medium 
-        /// in some implementation-defined manner.</para>
+        /// Default value: the value of MediaBox.
+        /// </para>
+        /// <para>
+        /// NOTE 1 This clipped page output will often be placed (imposed) on the output medium 
+        /// in some implementation-defined manner.
+        /// </para>
         /// </summary>
-        public Rectangle? CropBox => Get<Rectangle>(Constants.DictionaryKeys.PageTree.CropBox);
+        public AsyncProperty<Rectangle>? CropBox => Get<Rectangle>(Constants.DictionaryKeys.PageTree.CropBox);
 
         /// <summary>
-        /// The number of degrees by which the page shall be rotated when displayed or printed.
+        /// (Optional; inheritable) The number of degrees by which the page shall be rotated clockwise when displayed or printed. 
+        /// The value shall be a multiple of 90. Default value: 0.
         /// </summary>
-        public Integer? Rotate => Get<Integer>(Constants.DictionaryKeys.PageTree.Rotate);
+        public AsyncProperty<Integer>? Rotate => Get<Integer>(Constants.DictionaryKeys.PageTree.Rotate);
 
         public void SetParent(IndirectObjectReference parent)
         {

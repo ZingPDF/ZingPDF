@@ -12,17 +12,17 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         /// <summary>
         /// (Required) The annotation’s normal appearance.
         /// </summary>
-        public IPdfObject N => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.N)!;
+        public AsyncProperty<IPdfObject> N => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.N)!;
 
         /// <summary>
         /// (Optional) The annotation’s rollover appearance. Default value: the value of the N entry.
         /// </summary>
-        public IPdfObject? R => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.R);
+        public AsyncProperty<IPdfObject>? R => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.R);
 
         /// <summary>
         /// (Optional) The annotation’s down appearance. Default value: the value of the N entry.
         /// </summary>
-        public IPdfObject? D => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.D);
+        public AsyncProperty<IPdfObject>? D => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.D);
 
         public static AppearanceDictionary Create(
             IndirectObjectReference normalAppearanceStream,

@@ -6,12 +6,24 @@ namespace ZingPDF.Syntax.Objects.Dictionaries;
 /// Wrapper for a property which must be accessed asynchronously.
 /// </summary>
 /// <remarks>
-/// Some dictionary values can be either a direct object, or an indirect object reference.
+/// Most dictionary values can be either a direct object, or an indirect object reference.
 /// When they are a reference, the property value is represented as an indirect object elsewhere in the PDF.
-/// This class exposes a <see cref="GetAsync(IIndirectObjectDictionary)"/> method which resolves the value.
+/// This class exposes a <see cref="GetAsync(IIndirectObjectDictionary)"/> method which resolves the value in either case.
 /// </remarks>
-public class AsyncProperty<T>(IPdfObject? value) where T : class, IPdfObject
+public class AsyncProperty<T>(IPdfObject value) where T : class, IPdfObject
 {
+    public IPdfObject Value => value;
+
+    /// <summary>
+    /// Retrieve the property value.
+    /// </summary>
+    /// <remarks>
+    /// Returns the property value, whether it is a direct object or indirect object reference.
+    /// </remarks>
+    /// <param name="indirectObjectDictionary"></param>
+    /// <returns>An instance of <see cref="T"/></returns>
+    /// <exception cref="InvalidPdfException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task<T> GetAsync(IIndirectObjectDictionary indirectObjectDictionary)
     {
         if (value is T typed)
@@ -25,5 +37,21 @@ public class AsyncProperty<T>(IPdfObject? value) where T : class, IPdfObject
         }
 
         throw new InvalidOperationException("Internal error - invalid property type");
+    }
+
+    /// <summary>
+    /// Gets the wrapper indirect object for the property.
+    /// </summary>
+    /// <param name="indirectObjectDictionary"></param>
+    /// <returns>An <see cref="IndirectObject"/> containing the property value</returns>
+    /// <exception cref="InvalidOperationException">Thrown if called on a property which is not an <see cref="IndirectObjectReference"/></exception>
+    public async Task<IndirectObject> GetIndirectObjectAsync(IIndirectObjectDictionary indirectObjectDictionary)
+    {
+        if (value is IndirectObjectReference ior)
+        {
+            return await indirectObjectDictionary.GetAsync(ior);
+        }
+        
+        throw new InvalidOperationException($"Internal error - Attempt to call GetIndirectObjectAsync. Value is {value?.GetType().Name}");
     }
 }
