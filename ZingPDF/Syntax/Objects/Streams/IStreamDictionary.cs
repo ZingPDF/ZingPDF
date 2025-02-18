@@ -13,7 +13,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        Integer Length { get; }
+        AsyncProperty<Integer> Length { get; }
 
         /// <summary>
         /// <para>
@@ -70,10 +70,10 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// </summary>
         AsyncProperty<Integer>? DL { get; }
 
-        /// <summary>
-        /// Set any stream properties from the given <see cref="Dictionary"/>
-        /// </summary>
-        /// <param name="streamDictionary"></param>
-        void SetStreamProperties(Dictionary streamDictionary);
+        ///// <summary>
+        ///// Set any stream properties from the given <see cref="Dictionary"/>
+        ///// </summary>
+        ///// <param name="streamDictionary"></param>
+        //void SetStreamProperties(Dictionary streamDictionary);
     }
 }
