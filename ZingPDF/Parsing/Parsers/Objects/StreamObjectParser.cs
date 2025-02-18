@@ -1,9 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
-using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
-using ZingPDF.Syntax.FileStructure.ObjectStreams;
-using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -38,37 +35,27 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var dict = _dict ?? await Parser.Dictionaries.ParseAsync(stream);
 
-            var streamDict =
-                dict as CrossReferenceStreamDictionary as IStreamDictionary
-                ?? dict as ObjectStreamDictionary as IStreamDictionary
-                ?? StreamDictionary.FromDictionary(dict);
+            var streamDict = dict as IStreamDictionary ?? throw new ParserException("Invalid stream dictionary");
 
-            // TODO: I think it's invalid to use an indirect reference for this, but I've seen it, and Acrobat Reader may tolerate it.
-            // Figure out how to handle this.
-            //var streamLength = await streamDict.Length.ResolveAsync(_indirectObjectDictionary!);
+            var streamLength = await streamDict.Length.GetAsync(_indirectObjectDictionary);
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
 
             var streamDataOffset = stream.Position;
 
-            stream.Position += stream.Length;
+            stream.Position += streamLength;
 
-            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + stream.Length}.");
-
-            var filters = FilterFactory.CreateFilterInstances(streamDict);
+            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
 
             return new StreamObject<IStreamDictionary>(
-                new StreamData(
-                    new SubStream(
-                        stream,
-                        streamDataOffset,
-                        streamDataOffset + stream.Length,
-                        setToStart: false
-                        ),
-                        dataIsCompressed: filters?.Any() ?? false,
-                        filters
-                    ), streamDict
+                new SubStream(
+                    stream,
+                    streamDataOffset,
+                    streamDataOffset + streamLength,
+                    setToStart: false
+                    ),
+                streamDict
                 )
             {
                 ByteOffset = initialStreamPosition
