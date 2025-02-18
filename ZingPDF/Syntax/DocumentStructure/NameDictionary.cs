@@ -5,7 +5,7 @@ namespace ZingPDF.Syntax.DocumentStructure
     /// <summary>
     /// ISO 32000-2:2020 7.7.4 - Name dictionary
     /// </summary>
-    internal class NameDictionary : Dictionary
+    public class NameDictionary : Dictionary
     {
         // TODO
 

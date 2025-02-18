@@ -74,7 +74,7 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
         return Math.Max(size, 1);
     }
 
-    private static StreamData CreateStreamData(IEnumerable<CrossReferenceSection> xrefSections, int field1Size, int field2Size, int field3Size)
+    private static MemoryStream CreateStreamData(IEnumerable<CrossReferenceSection> xrefSections, int field1Size, int field2Size, int field3Size)
     {
         var ms = new MemoryStream();
 
@@ -94,7 +94,7 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
 
         ms.Position = 0;
 
-        return new StreamData(ms, dataIsCompressed: false);
+        return ms;
     }
 
     // Method to write a single entry
@@ -143,6 +143,4 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
             await stream.WriteAsync(fieldBytes);
         }
     }
-
-
 }
