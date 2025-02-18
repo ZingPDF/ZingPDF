@@ -2,6 +2,7 @@
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Text.SimpleFonts
 {
@@ -23,7 +24,7 @@ namespace ZingPDF.Text.SimpleFonts
         /// (Required in PDF 1.0; optional in PDF 1.1 through 1.7, deprecated in PDF 2.0)
         /// The name by which this font is referenced in the Font subdictionary of the current resource dictionary.
         /// </summary>
-        public Name? Name => Get<Name>(Constants.DictionaryKeys.Font.Type1.Name);
+        public AsyncProperty<Name>? Name => Get<Name>(Constants.DictionaryKeys.Font.Type1.Name);
 
         /// <summary>
         /// (Required) The PostScript language name of the font. For Type 1 fonts, this is always the value 
@@ -32,19 +33,19 @@ namespace ZingPDF.Text.SimpleFonts
         /// be used to find the font program in the PDF processor or its environment. It is also the 
         /// name that is used when printing to a PostScript language compatible output device.
         /// </summary>
-        public Name BaseFont => Get<Name>(Constants.DictionaryKeys.Font.Type1.BaseFont)!;
+        public AsyncProperty<Name> BaseFont => Get<Name>(Constants.DictionaryKeys.Font.Type1.BaseFont)!;
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts) The first character code defined 
         /// in the font’s Widths array.
         /// </summary>
-        public Integer? FirstChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.FirstChar);
+        public AsyncProperty<Integer>? FirstChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.FirstChar);
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts) The last character code 
         /// defined in the font’s Widths array.
         /// </summary>
-        public Integer? LastChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.LastChar);
+        public AsyncProperty<Integer>? LastChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.LastChar);
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts; indirect reference preferred) 
@@ -56,7 +57,7 @@ namespace ZingPDF.Text.SimpleFonts
         /// given in the font program. For more information on glyph widths and other glyph metrics, 
         /// see 9.2.4, "Glyph positioning and metrics".
         /// </summary>
-        public ArrayObject? Widths => Get<ArrayObject>(Constants.DictionaryKeys.Font.Type1.Widths);
+        public AsyncProperty<ArrayObject>? Widths => Get<ArrayObject>(Constants.DictionaryKeys.Font.Type1.Widths);
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts; shall be an indirect reference) 
@@ -65,7 +66,7 @@ namespace ZingPDF.Text.SimpleFonts
         /// be present or all be absent. Ordinarily, these dictionary keys may be absent; specifying them enables a 
         /// standard font to be overridden; see 9.6.2.2, "Standard Type 1 fonts (standard 14 fonts) (PDF 1.0-1.7)".
         /// </summary>
-        public Dictionary? FontDescriptor => Get<Dictionary>(Constants.DictionaryKeys.Font.Type1.FontDescriptor);
+        public AsyncProperty<Dictionary>? FontDescriptor => Get<Dictionary>(Constants.DictionaryKeys.Font.Type1.FontDescriptor);
 
         /// <summary>
         /// (Optional) A specification of the font’s character encoding if different from its built-in encoding. 
@@ -74,12 +75,13 @@ namespace ZingPDF.Text.SimpleFonts
         /// or an encoding dictionary that shall specify differences from the font’s built-in encoding or from 
         /// a specified predefined encoding (see 9.6.5, "Character encoding").
         /// </summary>
-        public IPdfObject? Encoding => Get<IPdfObject>(Constants.DictionaryKeys.Font.Type1.Encoding);
+        public AsyncProperty<IPdfObject>? Encoding => Get<IPdfObject>(Constants.DictionaryKeys.Font.Type1.Encoding);
 
         /// <summary>
         /// (Optional; PDF 1.2) A stream containing a CMap file that maps character codes to Unicode values 
         /// (see 9.10.3, "ToUnicode CMaps").
         /// </summary>
-        public IndirectObjectReference? ToUnicode => Get<IndirectObjectReference>(Constants.DictionaryKeys.Font.Type1.ToUnicode); 
+        // TODO: implement CMapStreamDictionary
+        public AsyncProperty<StreamObject<StreamDictionary>>? ToUnicode => Get<StreamObject<StreamDictionary>>(Constants.DictionaryKeys.Font.Type1.ToUnicode); 
     }
 }

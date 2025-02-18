@@ -53,6 +53,9 @@ internal static class DocumentVersionParser
         }
         else if (type == typeof(IndirectObject))
         {
+            // TODO: replace this with a custom parser just for xref streams.
+            // The normal stream object parser needs an IIndirectObjectDictionary as the Length is sometimes indirect.
+
             var xrefStream = await Parser.For<StreamObject<IStreamDictionary>>().ParseAsync(pdfInputStream);
 
             version = new VersionInformation
@@ -139,7 +142,13 @@ internal static class DocumentVersionParser
             }
         }
 
-        var xrefData = await (await xrefStream.Data.GetDecompressedDataAsync()).ReadToEndAsync();
+        var xrefData = await (
+            await xrefStream.Data.UncompressAsync(
+                xrefStreamDictionary.Filter?.Value as IEnumerable<Name>,
+                xrefStreamDictionary.DecodeParms?.Value as IEnumerable<Syntax.Objects.Dictionaries.Dictionary>)
+            )
+            .ReadToEndAsync();
+
         var entrySize = xrefStreamDictionary.W.Sum(x => (x as Integer)!);
 
         var field1Size = xrefStreamDictionary.W.Get<Integer>(0)!;

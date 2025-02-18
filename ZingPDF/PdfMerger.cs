@@ -135,11 +135,10 @@ namespace ZingPDF
             {
                 var ms = new MemoryStream();
 
-                ssObject.Data.Data.Position = 0;
-                await ssObject.Data.Data.CopyToAsync(ms);
-                var contents = new StreamData(ms, ssObject.Data.Compressed, ssObject.Data.Filters);
+                ssObject.Data.Position = 0;
+                await ssObject.Data.CopyToAsync(ms);
 
-                target = new StreamObject<IStreamDictionary>(contents, ssObject.Dictionary);
+                target = new StreamObject<IStreamDictionary>(ms, ssObject.Dictionary);
             }
 
             newObj.Object = await CopyReferencesAsync(target);
