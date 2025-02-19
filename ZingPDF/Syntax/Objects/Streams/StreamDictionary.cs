@@ -28,7 +28,7 @@ namespace ZingPDF.Syntax.Objects.Streams
             Set(Constants.DictionaryKeys.Stream.DL, dL);
         }
 
-        protected StreamDictionary(IStreamDictionary streamDictionary) : base(streamDictionary) { }
+        protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
         public AsyncProperty<Integer> Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
         public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
@@ -38,7 +38,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         public AsyncProperty<ShorthandArrayObject>? FDecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
         public AsyncProperty<Integer>? DL => Get<Integer>(Constants.DictionaryKeys.Stream.DL);
 
-        public static StreamDictionary FromDictionary(IStreamDictionary streamDictionary)
+        public static StreamDictionary FromDictionary(Dictionary streamDictionary)
         {
             if (!streamDictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
             {

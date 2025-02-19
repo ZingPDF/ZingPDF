@@ -175,7 +175,7 @@ namespace ZingPDF.Elements.Forms
 
                 var fontIndirectObject = _pdfObjectManager.Add(defaultFont);
 
-                defaultResources.AddFont(_defaultFontResourceName, fontIndirectObject.Id.Reference);
+                await defaultResources.AddFontAsync(_defaultFontResourceName, fontIndirectObject.Id.Reference, _pdfObjectManager);
             }
         }
 
@@ -210,20 +210,30 @@ namespace ZingPDF.Elements.Forms
 
             var fieldTypeName = await fieldDictionary.FT!.GetAsync(_pdfObjectManager);
 
+            string? fieldDescription = null;
+            if (fieldDictionary.TU != null)
+            {
+                fieldDescription = await fieldDictionary.TU.GetAsync(_pdfObjectManager);
+            }
+
             return fieldTypeName.ToFormFieldType() switch
             {
-                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldProperties, kids),
+                FormFieldType.Button => DeriveButtonField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties, kids),
                 FormFieldType.Text => new TextFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager,
                     _defaultFontResourceName
                     ),
-                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldProperties),
+                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties),
                 FormFieldType.Signature => new SignatureFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager
                     ),
@@ -234,6 +244,7 @@ namespace ZingPDF.Elements.Forms
         private IFormField DeriveChoiceField(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
+            string? fieldDescription,
             FieldProperties fieldProperties
             )
         {
@@ -242,6 +253,8 @@ namespace ZingPDF.Elements.Forms
                 return new ComboBoxFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager
                 );
@@ -251,6 +264,8 @@ namespace ZingPDF.Elements.Forms
                 return new ListBoxFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager
                 );
@@ -260,6 +275,7 @@ namespace ZingPDF.Elements.Forms
         private IFormField DeriveButtonField(
             IndirectObject fieldIndirectObject,
             string fullFieldName,
+            string? fieldDescription,
             FieldProperties fieldProperties,
             List<IndirectObject> kids
             )
@@ -269,6 +285,8 @@ namespace ZingPDF.Elements.Forms
                 return new PushButtonFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager
                 );
@@ -278,6 +296,8 @@ namespace ZingPDF.Elements.Forms
                 return new RadioButtonFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager,
                     kids
@@ -288,6 +308,8 @@ namespace ZingPDF.Elements.Forms
                 return new CheckboxFormField(
                     fieldIndirectObject,
                     fullFieldName,
+                    fieldDescription,
+                    fieldProperties,
                     this,
                     _pdfObjectManager,
                     kids
