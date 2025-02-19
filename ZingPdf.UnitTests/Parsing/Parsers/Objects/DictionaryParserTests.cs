@@ -31,7 +31,7 @@ public class DictionaryParserTests
 
         output.Should().NotBeNull().And.HaveCount(1);
 
-        var nestedDictionary = output.Get<Dictionary>("Resources");
+        var nestedDictionary = output["Resources"] as Dictionary;
 
         nestedDictionary.Should().NotBeNull().And.BeEmpty();
     }
@@ -62,7 +62,7 @@ public class DictionaryParserTests
 
         output.Should().NotBeNull().And.HaveCount(1);
 
-        var nestedDictionary = output.Get<Dictionary>("Resources");
+        var nestedDictionary = output["Resources"] as Dictionary;
 
         nestedDictionary.Should().NotBeNull().And.BeEmpty();
     }
@@ -231,8 +231,14 @@ public class DictionaryParserTests
 
         var output = await new DictionaryParser().ParseAsync(input);
 
-        output.Get<Name>("Type")!.Value.Should().Be("Page");
-        output.Get<Name>("Other")!.Value.Should().Be("Test");
+        var type = output.Type;
+        var other = output.GetAs<Name>("Other");
+
+        type.Should().NotBeNull();
+        type!.Value.Should().Be("Page");
+
+        other.Should().NotBeNull();
+        other!.Value.Should().Be("Test");
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
     }
@@ -287,8 +293,14 @@ public class DictionaryParserTests
 
         var output = await new DictionaryParser().ParseAsync(input);
 
-        output.Get<Name>("Type")!.Value.Should().Be("Page");
-        output.Get<Name>("Other")!.Value.Should().Be("Test");
+        var type = output.Type;
+        var other = output.GetAs<Name>("Other");
+
+        type.Should().NotBeNull();
+        type!.Value.Should().Be("Page");
+
+        other.Should().NotBeNull();
+        other!.Value.Should().Be("Test");
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
     }

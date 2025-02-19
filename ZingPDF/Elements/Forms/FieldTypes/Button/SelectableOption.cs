@@ -4,15 +4,15 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 internal class SelectableOption
 {
-    private readonly Action<SelectableOption> _onSelect;
-    private readonly Action<SelectableOption> _onDeselect;
+    private readonly Func<SelectableOption, Task> _onSelect;
+    private readonly Func<SelectableOption, Task> _onDeselect;
 
     internal SelectableOption(
         string text,
         string value,
         bool selected,
-        Action<SelectableOption> onSelect,
-        Action<SelectableOption> onDeselect,
+        Func<SelectableOption, Task> onSelect,
+        Func<SelectableOption, Task> onDeselect,
         IndirectObject associatedDictionary
         )
     {
@@ -38,13 +38,6 @@ internal class SelectableOption
 
     internal IndirectObject AssociatedDictionary { get; }
 
-    public void Select()
-    {
-        _onSelect(this);
-    }
-
-    public void Deselect()
-    {
-        _onDeselect(this);
-    }
+    public Task SelectAsync() => _onSelect(this);
+    public Task DeselectAsync() => _onDeselect(this);
 }

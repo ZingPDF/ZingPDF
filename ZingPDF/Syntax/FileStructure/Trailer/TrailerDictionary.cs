@@ -19,7 +19,7 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     private TrailerDictionary(Dictionary trailerDictionary) : base(trailerDictionary) { }
 
     public Integer Size => (Integer)this[DictionaryKeys.Size];
-    public Integer? Prev => (Integer?)this[DictionaryKeys.Prev];
+    public Integer? Prev => GetAs<Integer>(DictionaryKeys.Prev);
     public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(DictionaryKeys.Root);
     public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(DictionaryKeys.Encrypt);
     public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(DictionaryKeys.Info);

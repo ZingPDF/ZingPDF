@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
@@ -10,29 +11,31 @@ namespace ZingPDF.Elements.Forms
         protected readonly IndirectObject _fieldIndirectObject;
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
-        protected readonly IPdfEditor _pdfEditor;
+        protected readonly PdfObjectManager _pdfObjectManager;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
             string name,
+            string? description,
+            FieldProperties properties,
             Form parent,
-            IPdfEditor pdfEditor
+            PdfObjectManager pdfObjectManager
             )
         {
             ArgumentNullException.ThrowIfNull(fieldIndirectObject, nameof(fieldIndirectObject));
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
-            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
+            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
 
             _fieldIndirectObject = fieldIndirectObject;
             _fieldDictionary = (FieldDictionary)fieldIndirectObject.Object;
 
             Name = name;
-            Description = _fieldDictionary.TU;
-            Properties = new FieldProperties(_fieldDictionary.Ff ?? 0);
+            Description = description;
+            Properties = properties;
 
             _parent = parent;
-            _pdfEditor = pdfEditor;
+            _pdfObjectManager = pdfObjectManager;
         }
 
         public string Name { get; }
@@ -46,7 +49,7 @@ namespace ZingPDF.Elements.Forms
                 _fieldDictionary.SetValue(value);
             }
 
-            _pdfEditor.Update(_fieldIndirectObject);
+            _pdfObjectManager.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }
