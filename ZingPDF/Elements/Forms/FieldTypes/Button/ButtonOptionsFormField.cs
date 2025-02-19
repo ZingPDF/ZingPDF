@@ -1,7 +1,6 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
@@ -63,76 +62,59 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
     internal ButtonOptionsFormField(
         IndirectObject fieldIndirectObject,
         string name,
+        string? description,
+        FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor,
+        PdfObjectManager pdfObjectManager,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, parent, pdfEditor)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
     {
         _kids = kids;
-
-        InitOptions();
     }
 
-    protected abstract void SelectOption(SelectableOption option);
-    protected abstract void DeselectOption(SelectableOption option);
+    protected abstract Task SelectOptionAsync(SelectableOption option);
+    protected abstract Task DeselectOptionAsync(SelectableOption option);
 
-    public IList<SelectableOption> Options { get; private set; } = [];
-
-    /// <summary>
-    /// Sets up a <see cref="SelectableOption"/> instance for each child option of this field.
-    /// This allows the user to easily select/deselect each option.
-    /// On toggling the option, it will call the supplied select or deselect callback, which we 
-    /// configure here to set the value of this instance.
-    /// </summary>
-    private void InitOptions()
+    public async Task<IReadOnlyList<SelectableOption>> GetOptionsAsync()
     {
         List<SelectableOption> options = [];
 
-        Options = WidgetAnnotationObjects.Select(annot =>
+        foreach(var annot in WidgetAnnotationObjects)
         {
             var widgetDict = (WidgetAnnotationDictionary)annot.Object;
-            Name exportValue = GetExportValue(widgetDict);
+            Name exportValue = await GetExportValueAsync(widgetDict);
 
-            var @checked = _fieldDictionary.V is not null && (Name)_fieldDictionary.V == exportValue;
-            
-            return new SelectableOption(Name, exportValue, @checked, SelectOptionAndReset, DeselectOptionAndReset, annot);
-        }).ToList();
+            var @checked = false;
+
+            if (_fieldDictionary.V != null)
+            {
+                @checked = (Name)await _fieldDictionary.V.GetAsync(_pdfObjectManager) == exportValue;
+            }
+
+            options.Add(new SelectableOption(Name, exportValue, @checked, SelectOptionAsync, DeselectOptionAsync, annot));
+        }
+
+        return options.AsReadOnly();
     }
 
-    private void SelectOptionAndReset(SelectableOption option)
-    {
-        SelectOption(option);
-        InitOptions();
-    }
-
-    private void DeselectOptionAndReset(SelectableOption option)
-    {
-        DeselectOption(option);
-        InitOptions();
-    }
-
-    protected static Name GetExportValue(WidgetAnnotationDictionary widgetDict)
+    protected async Task<Name> GetExportValueAsync(WidgetAnnotationDictionary widgetDict)
     {
         // TODO: consider supporting Opt, which may take precedence for the definition of export values.
 
-        Name value = Constants.ButtonStates.On;
-
-        if (widgetDict.AP is not null)
+        if (widgetDict.AP == null)
         {
-            if (widgetDict.AP.N is IndirectObject)
-            {
-                // TODO: handle the case where N is a stream
-                throw new NotSupportedException("Widget annotation appearance dictionary contains stream-based properties. Contact support for further info.");
-            }
-            else
-            {
-                value = (widgetDict.AP.N as Dictionary).Keys.First(k => k != Constants.ButtonStates.Off);
-            }
+            return Constants.ButtonStates.On;
         }
 
-        return value;
+        var ap = await widgetDict.AP.GetAsync(_pdfObjectManager);
+
+        // TODO: handle the case where N is a stream
+
+        return ap.Keys.First(k => k != Constants.ButtonStates.Off);
     }
+
+    
 
     protected IEnumerable<IndirectObject> WidgetAnnotationObjects
         => !_kids.Any()

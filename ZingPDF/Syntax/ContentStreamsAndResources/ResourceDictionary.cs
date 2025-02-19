@@ -84,30 +84,28 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// </summary>
         public AsyncProperty<Dictionary>? Properties => Get<Dictionary>(Constants.DictionaryKeys.Resource.Properties);
 
-        public void AddXObject(Name name, IndirectObjectReference xObjectReference)
+        public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IIndirectObjectDictionary indirectObjectDictionary)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(xObjectReference, nameof(xObjectReference));
+            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
 
-            var xObjectDict = new Dictionary<Name, IPdfObject>(XObject ?? Empty)
-            {
-                [name] = xObjectReference
-            };
-
-            Set<Dictionary>(Constants.DictionaryKeys.Resource.XObject, xObjectDict);
+            Set(
+                Constants.DictionaryKeys.Resource.XObject,
+                await AddRefToSubDictionaryAsync(XObject, name, xObjectReference, indirectObjectDictionary)
+                );
         }
 
-        public void AddFont(Name name, IndirectObjectReference fontReference)
+        public async Task AddFontAsync(Name name, IndirectObjectReference fontReference, IIndirectObjectDictionary indirectObjectDictionary)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(fontReference, nameof(fontReference));
+            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
 
-            var fontMapDict = new Dictionary<Name, IPdfObject>(Font ?? Empty)
-            {
-                [name] = fontReference
-            };
-
-            Set<Dictionary>(Constants.DictionaryKeys.Resource.Font, fontMapDict);
+            Set(
+                Constants.DictionaryKeys.Resource.Font,
+                await AddRefToSubDictionaryAsync(Font, name, fontReference, indirectObjectDictionary)
+                );
         }
 
         public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
@@ -115,6 +113,25 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             return resourceDictionary is null
                 ? throw new ArgumentNullException(nameof(resourceDictionary))
                 : new(resourceDictionary);
+        }
+
+        private static async Task<Dictionary> AddRefToSubDictionaryAsync(
+            AsyncProperty<Dictionary>? dictionaryProperty,
+            Name name,
+            IndirectObjectReference reference,
+            IIndirectObjectDictionary indirectObjectDictionary
+            )
+        {
+            Dictionary dict = Empty;
+
+            if (dictionaryProperty != null)
+            {
+                dict = await dictionaryProperty.GetAsync(indirectObjectDictionary);
+            }
+
+            dict[name] = reference;
+
+            return dict;
         }
     }
 }

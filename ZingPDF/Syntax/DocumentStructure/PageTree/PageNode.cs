@@ -86,30 +86,19 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
             ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
 
-            // Resources can be null, a ResourceDictionary, or an indirect object reference to a ResourceDictionary
-
-            var resources = Resources ?? Empty;
-
-            if (resources is IndirectObjectReference resourceRef)
+            if (Resources == null)
             {
-                var resourcesIndirectObject = await indirectObjectDictionary.GetAsync(resourceRef);
-                var resourceDict = (ResourceDictionary)resourcesIndirectObject.Object;
+                Set(
+                    Constants.DictionaryKeys.PageTree.Resources,
+                    new ResourceDictionary(xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
+                    );
 
-                resourceDict.AddXObject(name, reference);
+                return;
             }
-            else if (resources is ResourceDictionary resourceDict)
-            {
-                resourceDict.AddXObject(name, reference);
-            }
-            else if (resources is Dictionary dict)
-            {
-                var editableResourceDict = new Dictionary<Name, IPdfObject>(dict)
-                {
-                    { name, reference }
-                };
 
-                Set(Constants.DictionaryKeys.PageTree.Resources, new ResourceDictionary(xObject: editableResourceDict));
-            }
+            var resourceDict = await Resources.GetAsync(indirectObjectDictionary);
+
+            await resourceDict.AddXObjectAsync(name, reference, indirectObjectDictionary);
         }
     }
 }
