@@ -49,7 +49,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// At a minimum, this dictionary shall contain a Font entry specifying the resource name and font 
         /// dictionary of the default font for displaying text.
         /// </summary>
-        public AsyncProperty<ResourceDictionary>? DR { get => Get<ResourceDictionary>(Constants.DictionaryKeys.InteractiveForm.DR); }
+        // TODO: Is there a way to parse this as a proper ResourceDictionary?
+        public AsyncProperty<Dictionary>? DR { get => Get<Dictionary>(Constants.DictionaryKeys.InteractiveForm.DR); }
 
         /// <summary>
         /// (Optional)<para></para>

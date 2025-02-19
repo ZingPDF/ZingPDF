@@ -160,11 +160,11 @@ namespace ZingPDF.Elements.Forms
 
             if (acroFormDictionary.DR is null)
             {
-                acroFormDictionary.SetResources([]);
+                acroFormDictionary.SetResources(defaultResources);
             }
             else
             {
-                defaultResources = await acroFormDictionary.DR.GetAsync(_pdfObjectManager);
+                defaultResources = new ResourceDictionary(await acroFormDictionary.DR.GetAsync(_pdfObjectManager));
             }
 
             if (defaultResources.Font is null)
