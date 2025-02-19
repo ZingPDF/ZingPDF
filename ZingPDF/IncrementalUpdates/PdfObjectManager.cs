@@ -145,35 +145,15 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
             return null;
         }
 
-        List<CrossReferenceSection> xrefSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects);
-
-        var xrefTable = new CrossReferenceTable(xrefSections);
-
         var latestVersion = _versions.First();
 
-        // The prev value points to the previous latest xref table or stream.
-        // If the current PDF has a trailer, prev should be the same as the current startxref value.
-        // If the current PDF instead uses an xref stream dictionary, prev is going to be the offset of the stream dictionary
-        long prev = latestVersion.Trailer?.XrefTableByteOffset ?? latestVersion.CrossReferenceStream!.ByteOffset!.Value;
-
-        // Build file identifier
-        var originalId = latestVersion.TrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
-        var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
-        var fileIdentifier = new ArrayObject([originalId, updateId]);
-
-        var trailer = new Trailer(
-            TrailerDictionary.CreateNew(
-                Count,
-                prev,
-                latestVersion.TrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
-                latestVersion.TrailerDictionary.Encrypt,
-                latestVersion.TrailerDictionary.Info,
-                fileIdentifier
-                ),
-            xrefTable.ByteOffset!.Value
+        return new IncrementalUpdate(
+            _newObjects,
+            _updatedObjects.Values,
+            _deletedObjects,
+            latestVersion.Trailer,
+            latestVersion.CrossReferenceStream
             );
-
-        return new IncrementalUpdate(trailer, xrefTable, NewOrUpdatedObjects);
     }
 
     public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;

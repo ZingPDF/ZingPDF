@@ -61,9 +61,9 @@ using System;
 //await RotateWholeDocument();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
-//await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
-await Test();
+//await Test();
 
 static async Task Test()
 {
