@@ -6,9 +6,9 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
-    internal class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
+    public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(IStreamDictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
+        private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
 
         /// <summary>
         /// <para>
@@ -54,7 +54,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         #region ITrailerDictionary
 
         public Integer Size => (Integer)this[TrailerDictionary.DictionaryKeys.Size];
-        public Integer? Prev => (Integer?)this[TrailerDictionary.DictionaryKeys.Prev];
+        public Integer? Prev => GetAs<Integer>(TrailerDictionary.DictionaryKeys.Prev);
         public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root);
         public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Encrypt);
         public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info);

@@ -105,7 +105,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (Optional) For scrollable list boxes, the top index (the index in the Opt array of the first 
         /// option visible in the list). Default value: 0.
         /// </summary>
-        public Integer? TI => Get<Integer>(Constants.DictionaryKeys.Field.TI);
+        public AsyncProperty<Integer>? TI => Get<Integer>(Constants.DictionaryKeys.Field.TI);
 
         public void SetValue(IPdfObject value)
         {
