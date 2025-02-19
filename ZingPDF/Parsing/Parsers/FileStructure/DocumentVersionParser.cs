@@ -1,8 +1,11 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -53,10 +56,7 @@ internal static class DocumentVersionParser
         }
         else if (type == typeof(IndirectObject))
         {
-            // TODO: replace this with a custom parser just for xref streams.
-            // The normal stream object parser needs an IIndirectObjectDictionary as the Length is sometimes indirect.
-
-            var xrefStream = await Parser.For<StreamObject<IStreamDictionary>>().ParseAsync(pdfInputStream);
+            var xrefStream = await new CrossReferenceStreamParser().ParseAsync(pdfInputStream);
 
             version = new VersionInformation
             {
@@ -114,46 +114,49 @@ internal static class DocumentVersionParser
         return xrefs;
     }
 
-    private static async Task<Dictionary<int, CrossReferenceEntry>> ProcessXrefStreamAsync(StreamObject<IStreamDictionary> xrefStream)
+    private static async Task<Dictionary<int, CrossReferenceEntry>> ProcessXrefStreamAsync(StreamObject<CrossReferenceStreamDictionary> xrefStream)
     {
         Dictionary<int, CrossReferenceEntry> xrefs = [];
 
-        var xrefStreamDictionary = (xrefStream.Dictionary as CrossReferenceStreamDictionary)!;
-
         // Get the indices for each subsection
         List<CrossReferenceSectionIndex> xrefIndices = [];
-        if (xrefStreamDictionary.Index is null)
+        if (xrefStream.Dictionary.Index is null)
         {
             // Index defaults to a start index of zero, and the size for the count.
-            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStreamDictionary.Size));
+            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStream.Dictionary.Size));
         }
         else
         {
             // Index contains a pair of integers for each subsection
             // representing the start index and count
-            for (var i = 0; i < xrefStreamDictionary.Index.Count(); i += 2)
+            for (var i = 0; i < xrefStream.Dictionary.Index.Count(); i += 2)
             {
                 xrefIndices.Add(
                     new CrossReferenceSectionIndex(
-                        xrefStreamDictionary.Index.Get<Integer>(i)!,
-                        xrefStreamDictionary.Index.Get<Integer>(i + 1)!
+                        xrefStream.Dictionary.Index.Get<Integer>(i)!,
+                        xrefStream.Dictionary.Index.Get<Integer>(i + 1)!
                         )
                     );
             }
         }
 
-        var xrefData = await (
-            await xrefStream.Data.UncompressAsync(
-                xrefStreamDictionary.Filter?.Value as IEnumerable<Name>,
-                xrefStreamDictionary.DecodeParms?.Value as IEnumerable<Syntax.Objects.Dictionaries.Dictionary>)
-            )
-            .ReadToEndAsync();
+        // TODO: think about this. The property uses the ShorthandArrayObject type as it is written as either a Name OR array of Names.
+        // However during parsing, the object will be identified as either a Name or ArrayObject. The parsed value will never match the property type of ShorthandArrayObject.
+        // For now, we try resolving the property as either type.
 
-        var entrySize = xrefStreamDictionary.W.Sum(x => (x as Integer)!);
+        var filters = (xrefStream.Dictionary.Filter?.Value as ArrayObject)?.Cast<Name>()
+            ?? [(xrefStream.Dictionary.Filter?.Value as Name)!];
 
-        var field1Size = xrefStreamDictionary.W.Get<Integer>(0)!;
-        var field2Size = xrefStreamDictionary.W.Get<Integer>(1)!;
-        var field3Size = xrefStreamDictionary.W.Get<Integer>(2)!;
+        var decodeParms = (xrefStream.Dictionary.DecodeParms?.Value as ArrayObject)?.Cast<Dictionary>()
+            ?? [(xrefStream.Dictionary.DecodeParms?.Value as Dictionary)!];
+
+        var xrefData = await (await xrefStream.Data.UncompressAsync(filters, decodeParms)).ReadToEndAsync();
+
+        var entrySize = xrefStream.Dictionary.W.Sum(x => (x as Integer)!);
+
+        var field1Size = xrefStream.Dictionary.W.Get<Integer>(0)!;
+        var field2Size = xrefStream.Dictionary.W.Get<Integer>(1)!;
+        var field3Size = xrefStream.Dictionary.W.Get<Integer>(2)!;
 
         for (int i = 0; i < xrefIndices.Count; i++)
         {

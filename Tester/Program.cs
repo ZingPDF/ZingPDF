@@ -74,7 +74,7 @@ static async Task Test()
 
     var pdf = await Pdf.LoadAsync(inputFileStream);
 
-    var encrypted = pdf.Encrypted;
+    //var encrypted = pdf.Encrypted;
 
     var count = await pdf.GetPageCountAsync();
 }
@@ -116,24 +116,32 @@ static async Task CompleteForm(string input, string output)
     {
         if (field is TextFormField textField)
         {
-            textField.Value = "test";
+            await textField.SetValueAsync("test");
         }
         else if (field is CheckboxFormField cbField)
         {
-            cbField.Options[0].Select();
+            var options = await cbField.GetOptionsAsync();
+
+            await options[0].SelectAsync();
         }
         else if (field is RadioButtonFormField rbField)
         {
-            rbField.Options[0].Select();
+            var options = await rbField.GetOptionsAsync();
+
+            await options[0].SelectAsync();
         }
         else if (field is ListBoxFormField listBoxFormField)
         {
-            listBoxFormField.Options[3].Select();
+            var options = await listBoxFormField.GetOptionsAsync();
+
+            await options[3].SelectAsync();
         }
         else if (field is ComboBoxFormField comboBoxFormField)
         {
-            //comboBoxFormField.Options[1].Select();
-            comboBoxFormField.SelectCustomValue("TEST");
+            var options = await comboBoxFormField.GetOptionsAsync();
+
+            //options[1].Select();
+            await comboBoxFormField.SelectCustomValueAsync("TEST");
         }
     }
 
