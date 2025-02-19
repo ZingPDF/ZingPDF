@@ -38,6 +38,6 @@ namespace ZingPDF.Graphics
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
         
-        protected XObjectDictionary(IStreamDictionary streamDictionary) : base(streamDictionary) { }
+        protected XObjectDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
     }
 }

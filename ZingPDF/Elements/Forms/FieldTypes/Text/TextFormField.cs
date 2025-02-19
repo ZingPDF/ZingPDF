@@ -1,13 +1,14 @@
 ﻿using ZingPDF.Elements.Drawing;
+using ZingPDF.Extensions;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 
@@ -20,31 +21,43 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         public TextFormField(
             IndirectObject fieldIndirectObject,
             string name,
+            string? description,
+            FieldProperties properties,
             Form parent,
-            IPdfEditor pdfEditor,
+            PdfObjectManager pdfObjectManager,
             Name fontResourceName
             )
-            : base(fieldIndirectObject, name, parent, pdfEditor)
+            : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
         {
             _fontResourceName = fontResourceName;
         }
 
-        public string? Value
+        public async Task<string?> GetValueAsync()
         {
-            get => _fieldDictionary.V as LiteralString;
-            set
+            if (_fieldDictionary.V == null)
             {
-                AddAppearanceStream(value);
-                SetValue(value);
+                return null;
             }
+
+            return await _fieldDictionary.V.GetAsync(_pdfObjectManager) as LiteralString;
         }
 
-        private void AddAppearanceStream(string? value)
+        public async Task SetValueAsync(string? value)
+        {
+            await AddAppearanceStreamAsync(value);
+
+            SetValue(value);
+        }
+
+        private async Task AddAppearanceStreamAsync(string? value)
         {
             var fieldDict = (FieldDictionary)_fieldIndirectObject.Object;
 
             // TODO: do we need to account for fields which already have an appearance stream? or always replace?
-            var fieldSizeRect = Rectangle.FromSize(fieldDict.Rect.Width, fieldDict.Rect.Height);
+            var fieldSizeRect = Rectangle.FromSize(
+                (await fieldDict.Rect.GetAsync(_pdfObjectManager)).Width,
+                (await fieldDict.Rect.GetAsync(_pdfObjectManager)).Height
+                );
 
             // TODO: handle combed display
 
@@ -55,13 +68,28 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 new TextObject.FontOptions(_fontResourceName, 12, RGBColour.Black)
                 );
 
-            var apFormXObject = new ContentStreamFactory<Type1FormDictionary>(
-                [visualContent],
-                new Type1FormDictionary(fieldSizeRect)
-                )
-                .Create();
+            // Build content stream object
+            var ms = new MemoryStream();
 
-            var apIndirectObject = _pdfEditor.Add(apFormXObject);
+            await visualContent.WriteAsync(ms);
+            await ms.WriteWhitespaceAsync();
+
+            var apFormXObject = new StreamObject<Type1FormDictionary>(
+                ms, 
+                new Type1FormDictionary(
+                    bBox: fieldSizeRect,
+                    resources: null,
+                    length: ms.Length,
+                    filter: null,
+                    decodeParms: null,
+                    f: null,
+                    fFilter: null,
+                    fDecodeParms: null,
+                    dL: ms.Length
+                    )
+                );
+
+            var apIndirectObject = _pdfObjectManager.Add(apFormXObject);
 
             fieldDict.SetAppearanceStream(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
         }
