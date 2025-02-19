@@ -1,4 +1,5 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using System.Collections.ObjectModel;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -6,37 +7,45 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 {
-    public abstract class ChoiceFormField : FormField<IPdfObject>
+    public abstract class ChoiceFormField(
+        IndirectObject fieldIndirectObject,
+        string name,
+        string? description,
+        FieldProperties properties,
+        Form parent,
+        PdfObjectManager pdfObjectManager
+        )
+        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
     {
-        public ChoiceFormField(
-            IndirectObject fieldIndirectObject,
-            string name,
-            Form parent,
-            IPdfEditor pdfEditor
-            )
-            : base(fieldIndirectObject, name, parent, pdfEditor)
+        public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {
-            Options = _fieldDictionary.Opt is not null
-                ? _fieldDictionary.Opt.Select(o =>
-                    {
-                        var option = GetOptionValues(o);
+            if (_fieldDictionary.Opt == null)
+            {
+                return [];
+            }
 
-                        return new ChoiceItem(option.Item1, option.Item2, IsSelected(option.Item1), SelectOption, DeselectOption);
-                    })
-                    .ToList()
-                : [];
+            var optValues = await _fieldDictionary.Opt.GetAsync(_pdfObjectManager);
+
+            List<ChoiceItem> options = [];
+
+            foreach (var option in optValues)
+            {
+                var optionValues = GetOptionValues(option);
+                var selected = await IsSelectedAsync(optionValues.Item1);
+
+                options.Add(new ChoiceItem(optionValues.Item1, optionValues.Item2, selected, SelectOptionAsync, DeselectOptionAsync));
+            }
+            
+            return options.AsReadOnly();
         }
 
-        public IList<ChoiceItem> Options { get; }
-
-        // TODO: move to unit testable class and test
-        protected void SelectOption(string value)
+        protected async Task SelectOptionAsync(LiteralString value)
         {
-            var selectedOptions = GetSelectedOptions();
+            var selectedOptions = await GetSelectedOptionsAsync();
 
             if (selectedOptions.Count == 0 || !Properties.IsMultiSelect)
             {
-                SetValue(new LiteralString(value));
+                SetValue(value);
             }
             else
             {
@@ -46,15 +55,15 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
         }
 
-        protected void DeselectOption(string value)
+        protected async Task DeselectOptionAsync(LiteralString value)
         {
-            var selectedOptions = GetSelectedOptions();
+            var selectedOptions = await GetSelectedOptionsAsync();
 
             selectedOptions.Remove(value);
 
             if (selectedOptions.Count == 1)
             {
-                SetValue(new LiteralString(value));
+                SetValue(value);
             }
             else
             {
@@ -62,25 +71,32 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
         }
 
-        private bool IsSelected(string value) => GetSelectedOptions().Contains(value);
+        private async Task<bool> IsSelectedAsync(LiteralString value) => (await GetSelectedOptionsAsync()).Contains(value);
 
-        private List<LiteralString> GetSelectedOptions()
+        private async Task<List<LiteralString>> GetSelectedOptionsAsync()
         {
-            if (_fieldDictionary.V is LiteralString singleOption)
+            if (_fieldDictionary.V == null)
+            {
+                return [];
+            }
+
+            var val = await _fieldDictionary.V.GetAsync(_pdfObjectManager);
+
+            if (val is LiteralString singleOption)
             {
                 return [singleOption];
             }
 
-            if (_fieldDictionary.V is ArrayObject ary)
+            if (val is ArrayObject ary)
             {
                 return ary.Cast<LiteralString>().ToList();
             }
 
-            return [];
+            throw new InvalidOperationException($"Invalid field value encountered: {val}");
         }
 
         // Each item in the Opt array is either a single text string, or an array of 2 values (export value and display text)
-        private static (string, string) GetOptionValues(IPdfObject option)
+        private static (LiteralString, LiteralString) GetOptionValues(IPdfObject option)
         {
             if (option is ArrayObject ary)
             {
