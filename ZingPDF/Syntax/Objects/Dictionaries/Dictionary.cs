@@ -28,7 +28,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
 
         public Name? Type => (Name)this[Constants.DictionaryKeys.Type];
 
-        protected T? GetAs<T>(Name key) where T : class, IPdfObject => ContainsKey(key) ? (T)this[key] : null;
+        public T? GetAs<T>(Name key) where T : class, IPdfObject => ContainsKey(key) ? (T)this[key] : null;
 
         /// <summary>
         /// Strongly typed access to the underlying <see cref="PdfObject"/>.

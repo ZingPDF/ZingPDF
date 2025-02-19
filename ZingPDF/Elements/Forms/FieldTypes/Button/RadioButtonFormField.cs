@@ -12,15 +12,17 @@ internal class RadioButtonFormField : ButtonOptionsFormField
     public RadioButtonFormField(
         IndirectObject fieldIndirectObject,
         string name,
+        string? description,
+        FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor,
+        PdfObjectManager pdfObjectManager,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, parent, pdfEditor, kids)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager, kids)
     {
     }
 
-    protected override void SelectOption(SelectableOption option)
+    protected override async Task SelectOptionAsync(SelectableOption option)
     {
         // When selected
         // - The radio button field dictionary value (V) must be updated to the export value of the button
@@ -37,7 +39,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
         foreach (var annot in WidgetAnnotationObjects)
         {
             var widgetDictionary = (WidgetAnnotationDictionary)annot.Object;
-            var exportValue = GetExportValue(widgetDictionary);
+            var exportValue = await GetExportValueAsync(widgetDictionary);
 
             if (option.Value == exportValue)
             {
@@ -55,11 +57,11 @@ internal class RadioButtonFormField : ButtonOptionsFormField
                 }
             }
 
-            _pdfEditor.Update(annot);
+            _pdfObjectManager.Update(annot);
         }
     }
 
-    protected override void DeselectOption(SelectableOption option)
+    protected override Task DeselectOptionAsync(SelectableOption option)
     {
         // When deselected
         // - If the NoToggleToOff flag is present
@@ -80,6 +82,8 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _pdfEditor.Update(option.AssociatedDictionary);
+        _pdfObjectManager.Update(option.AssociatedDictionary);
+
+        return Task.CompletedTask;
     }
 }
