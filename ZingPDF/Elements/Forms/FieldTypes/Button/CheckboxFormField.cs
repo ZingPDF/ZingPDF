@@ -1,5 +1,6 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
@@ -12,15 +13,17 @@ internal class CheckboxFormField : ButtonOptionsFormField
     internal CheckboxFormField(
         IndirectObject fieldIndirectObject,
         string name,
+        string? description,
+        FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor,
+        PdfObjectManager pdfObjectManager,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, parent, pdfEditor, kids)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager, kids)
     {
     }
 
-    protected override void SelectOption(SelectableOption option)
+    protected override async Task SelectOptionAsync(SelectableOption option)
     {
         // When checked
         // - The checkbox field dictionary value (V) must be updated to the export value of the box
@@ -35,7 +38,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
         {
             var widgetDictionary = (WidgetAnnotationDictionary)annot.Object;
 
-            if (option.Value == GetExportValue(widgetDictionary))
+            if (option.Value == await GetExportValueAsync(widgetDictionary))
             {
                 widgetDictionary.SetAppearanceState(option.Value);
             }
@@ -44,11 +47,11 @@ internal class CheckboxFormField : ButtonOptionsFormField
                 widgetDictionary.SetAppearanceState(Constants.ButtonStates.Off);
             }
 
-            _pdfEditor.Update(annot);
+            _pdfObjectManager.Update(annot);
         }
     }
 
-    protected override void DeselectOption(SelectableOption option)
+    protected override Task DeselectOptionAsync(SelectableOption option)
     {
         // When unchecked
         // - The checkbox field dictionary value (V) must be updated to /Off
@@ -60,6 +63,8 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _pdfEditor.Update(option.AssociatedDictionary);
+        _pdfObjectManager.Update(option.AssociatedDictionary);
+
+        return Task.CompletedTask;
     }
 }

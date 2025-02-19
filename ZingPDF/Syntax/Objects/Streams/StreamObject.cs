@@ -53,7 +53,19 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         var workingData = await Data.ReadToEndAsync();
 
-        var filterNames = await Dictionary.Filter.GetAsync(indirectObjectDictionary);
+        IEnumerable<Name> filterNames = [];
+
+        // TODO: perhaps defer property resolution to the type itself (or allow a type to override the default).
+        // The underlying type for the value here will be Name or ArrayObject rather than ShorthandArrayObject.
+        // For now, manually check the type here and resolve appropriately
+        if (Dictionary.Filter.Value is Name filterName)
+        {
+            filterNames = [filterName];
+        }
+        else if(Dictionary.Filter.Value is ArrayObject ary)
+        {
+            filterNames = ary.Cast<Name>();
+        }
 
         ShorthandArrayObject allFilterParams = [];
         
@@ -62,7 +74,7 @@ public sealed class StreamObject<TDictionary> : PdfObject
             allFilterParams = await Dictionary.DecodeParms.GetAsync(indirectObjectDictionary);
         }
 
-        var filterInstances = FilterFactory.CreateFilterInstances(filterNames.Cast<Name>(), allFilterParams.Cast<Dictionaries.Dictionary>());
+        var filterInstances = FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>());
 
         foreach (var filter in filterInstances)
         {
