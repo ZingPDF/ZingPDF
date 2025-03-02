@@ -25,8 +25,8 @@ namespace ZingPDF.Parsing
             { RegularExpressions.Name(), typeof(Name) },
             { RegularExpressions.IndirectObject(), typeof(IndirectObject) },
             { RegularExpressions.IndirectObjectReference(), typeof(IndirectObjectReference) },
-            { RegularExpressions.RealNumber(), typeof(RealNumber) },
-            { RegularExpressions.Integer(), typeof(Integer) },
+            { RegularExpressions.RealNumber(), typeof(Number) },
+            { RegularExpressions.Integer(), typeof(Number) },
             { RegularExpressions.Date(), typeof(Date) },
         };
 

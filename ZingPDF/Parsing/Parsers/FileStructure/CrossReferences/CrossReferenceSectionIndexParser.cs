@@ -9,8 +9,8 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         {
             // Example: 0 28
             return new CrossReferenceSectionIndex(
-                await Parser.Integers.ParseAsync(stream),
-                await Parser.Integers.ParseAsync(stream)
+                await Parser.Numbers.ParseAsync(stream),
+                await Parser.Numbers.ParseAsync(stream)
                 );
         }
     }

@@ -19,9 +19,9 @@ namespace ZingPDF.Elements
 
         public static Rotation FromValue(int value) => new(value);
 
-        public static implicit operator Integer(Rotation rotation) => new(rotation._amount);
-        public static implicit operator Rotation(Integer rotation) => new(rotation);
+        public static implicit operator Number(Rotation rotation) => new(rotation._amount);
+        public static implicit operator Rotation(Number rotation) => new(rotation);
 
-        public static Rotation operator +(Integer a, Rotation b) => new((int)a.Value + b._amount);
+        public static Rotation operator +(Number a, Rotation b) => new((int)a.Value + b._amount);
     }
 }

@@ -1,7 +1,9 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Elements.Drawing;
-using ZingPDF.Extensions;
+using ZingPDF.Graphics;
+using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.Graphics.Images;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
@@ -17,216 +19,231 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing.Parsers.Objects
+namespace ZingPDF.Parsing.Parsers.Objects;
+
+/// <summary>
+/// Creates a <see cref="Dictionary"/> from the provided tokens.
+/// </summary>
+/// <remarks>
+/// This parser will find the first &lt;&lt; delimiter from the provided tokens.
+/// </remarks>
+internal class DictionaryParser : IObjectParser<Dictionary>
 {
-    /// <summary>
-    /// Creates a <see cref="Dictionary"/> from the provided tokens.
-    /// </summary>
-    /// <remarks>
-    /// This parser will find the first &lt;&lt; delimiter from the provided tokens.
-    /// </remarks>
-    internal class DictionaryParser : IObjectParser<Dictionary>
+    private static readonly List<char> _halfDelimiters = [Constants.LessThan, Constants.GreaterThan];
+
+    // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
+    private readonly List<Name> _rectKeys =
+    [
+        Constants.DictionaryKeys.PageTree.MediaBox,
+        Constants.DictionaryKeys.PageTree.CropBox,
+        Constants.DictionaryKeys.PageTree.Page.BleedBox,
+        Constants.DictionaryKeys.PageTree.Page.TrimBox,
+        Constants.DictionaryKeys.PageTree.Page.ArtBox,
+        Constants.DictionaryKeys.Annotation.Rect,
+        Constants.DictionaryKeys.Form.Type1.BBox,
+    ];
+
+    public async ITask<Dictionary> ParseAsync(Stream stream)
     {
-        private static readonly List<char> _halfDelimiters = [Constants.LessThan, Constants.GreaterThan];
+        //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
 
-        // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
-        private readonly List<Name> _rectKeys =
-        [
-            Constants.DictionaryKeys.PageTree.MediaBox,
-            Constants.DictionaryKeys.PageTree.CropBox,
-            Constants.DictionaryKeys.PageTree.Page.BleedBox,
-            Constants.DictionaryKeys.PageTree.Page.TrimBox,
-            Constants.DictionaryKeys.PageTree.Page.ArtBox,
-            Constants.DictionaryKeys.Annotation.Rect,
-            Constants.DictionaryKeys.Form.Type1.BBox,
-        ];
+        // A dictionary is a key-value collection, where the key is always a 'Name' object
+        // and the value can be any type of PDF object
 
-        public async ITask<Dictionary> ParseAsync(Stream stream)
+        // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
+
+        var initialStreamPosition = stream.Position; // Reference starting point for output
+        
+        var buffer = new byte[1024];
+
+        var countStart = 0;                          // Tracks "<<" occurrences
+        var countEnd = 0;                            // Tracks ">>" occurrences
+
+        long dictStart = 0;                          // Byte offset for dictionary start
+        long dictEnd = 0;                            // Byte offset for dictionary end
+
+        var lastEncounteredDelimiterEndsAt = 0;
+
+        do
         {
-            //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
+            // Read from the stream
+            var read = await stream.ReadAsync(buffer.AsMemory());
 
-            // A dictionary is a key-value collection, where the key is always a 'Name' object
-            // and the value can be any type of PDF object
+            // Convert the buffer to a string and prepend the carryover
+            string currentContent = Encoding.ASCII.GetString(buffer, 0, read);
 
-            // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
+            //Logger.Log(LogLevel.Trace, currentContent[..Math.Min(currentContent.Length, 100)]);
 
-            var initialStreamPosition = stream.Position; // Reference starting point for output
-            
-            var buffer = new byte[1024];
-
-            var countStart = 0;                          // Tracks "<<" occurrences
-            var countEnd = 0;                            // Tracks ">>" occurrences
-
-            long dictStart = 0;                          // Byte offset for dictionary start
-            long dictEnd = 0;                            // Byte offset for dictionary end
-
-            var lastEncounteredDelimiterEndsAt = 0;
-
-            do
+            for (var i = 0; i < currentContent.Length - 1; i++)
             {
-                // Read from the stream
-                var read = await stream.ReadAsync(buffer.AsMemory());
+                var processedContent = currentContent[..i];
+                var byteOffsetForDecodedPosition = Encoding.ASCII.GetByteCount(processedContent);
 
-                // Convert the buffer to a string and prepend the carryover
-                string currentContent = Encoding.ASCII.GetString(buffer, 0, read);
+                // Check for dictionary delimiters
+                var c = currentContent[i..(i+2)]; // Extract two characters starting at i
 
-                //Logger.Log(LogLevel.Trace, currentContent[..Math.Min(currentContent.Length, 100)]);
-
-                for (var i = 0; i < currentContent.Length - 1; i++)
+                if (c == Constants.DictionaryStart)
                 {
-                    var processedContent = currentContent[..i];
-                    var byteOffsetForDecodedPosition = Encoding.ASCII.GetByteCount(processedContent);
+                    countStart++;
+                    lastEncounteredDelimiterEndsAt = i + 2;
 
-                    // Check for dictionary delimiters
-                    var c = currentContent[i..(i+2)]; // Extract two characters starting at i
-
-                    if (c == Constants.DictionaryStart)
+                    if (countStart == 1)
                     {
-                        countStart++;
-                        lastEncounteredDelimiterEndsAt = i + 2;
-
-                        if (countStart == 1)
-                        {
-                            dictStart = stream.Position - read + byteOffsetForDecodedPosition + 2;
-                        }
-
-                        i++; // Increment past current delimiter
+                        dictStart = stream.Position - read + byteOffsetForDecodedPosition + 2;
                     }
-                    else if (c == Constants.DictionaryEnd)
-                    {
-                        countEnd++;
-                        lastEncounteredDelimiterEndsAt = i + 2;
 
-                        if (countEnd == countStart)
-                        {
-                            dictEnd = stream.Position - read + byteOffsetForDecodedPosition;
-
-                            goto ReadyToParse;
-                        }
-
-                        i++; // Increment past current delimiter
-                    }
+                    i++; // Increment past current delimiter
                 }
-
-                // If a delimiter straddles the buffer boundary, we must ensure it is counted.
-                // Identifying this is tricky. We can't just check the last 2 characters to see if the 2nd is a '<' or '>',
-                // as nested dictionaries cause sequences like this >>>>>>.
-                if (IsHalfADelimiter(currentContent.Last()) && lastEncounteredDelimiterEndsAt != stream.Position)
+                else if (c == Constants.DictionaryEnd)
                 {
-                    stream.Position--;
+                    countEnd++;
+                    lastEncounteredDelimiterEndsAt = i + 2;
+
+                    if (countEnd == countStart)
+                    {
+                        dictEnd = stream.Position - read + byteOffsetForDecodedPosition;
+
+                        goto ReadyToParse;
+                    }
+
+                    i++; // Increment past current delimiter
                 }
             }
-            while (countStart != countEnd && stream.Position < stream.Length);
 
-            if (countStart != countEnd)
+            // If a delimiter straddles the buffer boundary, we must ensure it is counted.
+            // Identifying this is tricky. We can't just check the last 2 characters to see if the 2nd is a '<' or '>',
+            // as nested dictionaries cause sequences like this >>>>>>.
+            if (IsHalfADelimiter(currentContent.Last()) && lastEncounteredDelimiterEndsAt != stream.Position)
             {
-                throw new ParserException($"Unable to find end of dictionary. Start Count: {countStart}, End Count: {countEnd}, Stream Position: {stream.Position}.");
+                stream.Position--;
             }
+        }
+        while (countStart != countEnd && stream.Position < stream.Length);
 
-            ReadyToParse:
-            Dictionary? output = null;
-            
-            if (dictEnd - dictStart > 1)
-            {
-                var dictStream = new SubStream(stream, dictStart, dictEnd);
-
-                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(dictStream);
-
-                if (objectGroup.Objects.Count % 2 != 0)
-                {
-                    throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
-                }
-
-                Dictionary<Name, IPdfObject> dict = [];
-
-                for (int j = 0; j < objectGroup.Objects.Count; j += 2)
-                {
-                    var key = (Name)objectGroup.Objects[j];
-                    var val = objectGroup.Objects[j + 1];
-
-                    if (_rectKeys.Contains(key) && val is not IndirectObjectReference)
-                    {
-                        var ary = (ArrayObject)val;
-
-                        val = new Rectangle(
-                            new Coordinate(ary[0].ToRealNumber(), ary[1].ToRealNumber()),
-                            new Coordinate(ary[2].ToRealNumber(), ary[3].ToRealNumber())
-                            );
-                    }
-
-                    dict.Add(key, val);
-                }
-
-                if (dict.ContainsKey(Constants.DictionaryKeys.Type))
-                {
-                    switch ((Name)dict[Constants.DictionaryKeys.Type])
-                    {
-                        case Constants.DictionaryTypes.Catalog:
-                            output = DocumentCatalogDictionary.FromDictionary(dict);
-                            goto DictionaryParsed;
-
-                        case Constants.DictionaryTypes.Page:
-                            output = PageDictionary.FromDictionary(dict);
-                            goto DictionaryParsed;
-
-                        case Constants.DictionaryTypes.Pages:
-                            output = PageTreeNodeDictionary.FromDictionary(dict);
-                            goto DictionaryParsed;
-
-                        case Constants.DictionaryTypes.XRef:
-                            output = CrossReferenceStreamDictionary.FromDictionary(dict);
-                            goto DictionaryParsed;
-
-                        case Constants.DictionaryTypes.ObjStm:
-                            output = ObjectStreamDictionary.FromDictionary(dict);
-                            goto DictionaryParsed;
-                        case Constants.DictionaryTypes.Annot:
-                            output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
-                            {
-                                AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict),
-                                _ => AnnotationDictionary.FromDictionary(dict),
-                            };
-                            if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
-                            {
-                                output = FieldDictionary.FromDictionary(dict);
-                            }
-                            goto DictionaryParsed;
-                    }
-                }
-
-                if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
-                {
-                    output = InteractiveFormDictionary.FromDictionary(dict);
-                    goto DictionaryParsed;
-                }
-
-                if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
-                {
-                    output = LinearizationParameterDictionary.FromDictionary(dict);
-                    goto DictionaryParsed;
-                }
-
-                if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N))
-                {
-                    output = AppearanceDictionary.FromDictionary(dict);
-                    goto DictionaryParsed;
-                }
-
-                output ??= dict;
-            }
-
-            output ??= Dictionary.Empty;
-
-        DictionaryParsed:
-            stream.Position = dictEnd + 2;
-
-            output!.ByteOffset = initialStreamPosition;
-
-            Logger.Log(LogLevel.Trace, $"Parsed Dictionary from {stream.GetType().Name} between offsets: {initialStreamPosition} - {stream.Position}");
-
-            return output;
+        if (countStart != countEnd)
+        {
+            throw new ParserException($"Unable to find end of dictionary. Start Count: {countStart}, End Count: {countEnd}, Stream Position: {stream.Position}.");
         }
 
-        private static bool IsHalfADelimiter(char c) => _halfDelimiters.Contains(c);
+        ReadyToParse:
+        Dictionary? output = null;
+        
+        if (dictEnd - dictStart > 1)
+        {
+            var dictStream = new SubStream(stream, dictStart, dictEnd);
+
+            var objectGroup = await Parser.PdfObjectGroups.ParseAsync(dictStream);
+
+            if (objectGroup.Objects.Count % 2 != 0)
+            {
+                throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
+            }
+
+            Dictionary<Name, IPdfObject> dict = [];
+
+            for (int j = 0; j < objectGroup.Objects.Count; j += 2)
+            {
+                var key = (Name)objectGroup.Objects[j];
+                var val = objectGroup.Objects[j + 1];
+
+                if (_rectKeys.Contains(key) && val is not IndirectObjectReference)
+                {
+                    var ary = (ArrayObject)val;
+
+                    val = new Rectangle(
+                        new Coordinate((Number)ary[0], (Number)ary[1]),
+                        new Coordinate((Number)ary[2], (Number)ary[3])
+                        );
+                }
+
+                dict.Add(key, val);
+            }
+
+            if (dict.ContainsKey(Constants.DictionaryKeys.Type))
+            {
+                switch ((Name)dict[Constants.DictionaryKeys.Type])
+                {
+                    case Constants.DictionaryTypes.Catalog:
+                        output = DocumentCatalogDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+
+                    case Constants.DictionaryTypes.Page:
+                        output = PageDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+
+                    case Constants.DictionaryTypes.Pages:
+                        output = PageTreeNodeDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+
+                    case Constants.DictionaryTypes.XRef:
+                        output = CrossReferenceStreamDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+
+                    case Constants.DictionaryTypes.ObjStm:
+                        output = ObjectStreamDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+                    case Constants.DictionaryTypes.Annot:
+                        output = CreateAnnotationDictionary(dict);
+                        goto DictionaryParsed;
+                    case Constants.DictionaryTypes.XObject:
+                        output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
+                        {
+                            XObjectDictionary.Subtypes.Form => Type1FormDictionary.FromDictionary(dict), // There is only 1 type of form dictionary
+                            XObjectDictionary.Subtypes.Image => ImageDictionary.FromDictionary(dict),
+                            _ => throw new ParserException("Unexpected XObject Subtype")
+                        };
+                        goto DictionaryParsed;
+                }
+            }
+
+            if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
+            {
+                output = InteractiveFormDictionary.FromDictionary(dict);
+                goto DictionaryParsed;
+            }
+
+            if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
+            {
+                output = LinearizationParameterDictionary.FromDictionary(dict);
+                goto DictionaryParsed;
+            }
+
+            if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N))
+            {
+                output = AppearanceDictionary.FromDictionary(dict);
+                goto DictionaryParsed;
+            }
+
+            output ??= dict;
+        }
+
+        output ??= Dictionary.Empty;
+
+    DictionaryParsed:
+        stream.Position = dictEnd + 2;
+
+        output!.ByteOffset = initialStreamPosition;
+
+        Logger.Log(LogLevel.Trace, $"Parsed Dictionary from {stream.GetType().Name} between offsets: {initialStreamPosition} - {stream.Position}");
+
+        return output;
+    }
+
+    private static bool IsHalfADelimiter(char c) => _halfDelimiters.Contains(c);
+
+    private static Dictionary CreateAnnotationDictionary(Dictionary<Name, IPdfObject> dict)
+    {
+        Dictionary? output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
+        {
+            AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict),
+            _ => AnnotationDictionary.FromDictionary(dict),
+        };
+
+        if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
+        {
+            output = FieldDictionary.FromDictionary(dict);
+        }
+
+        return output;
     }
 }

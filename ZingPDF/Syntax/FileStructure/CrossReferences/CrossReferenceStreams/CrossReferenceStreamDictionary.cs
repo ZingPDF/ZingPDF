@@ -53,24 +53,24 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 
         #region ITrailerDictionary
 
-        public Integer Size => (Integer)this[TrailerDictionary.DictionaryKeys.Size];
-        public Integer? Prev => GetAs<Integer>(TrailerDictionary.DictionaryKeys.Prev);
-        public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Root);
-        public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Encrypt);
-        public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(TrailerDictionary.DictionaryKeys.Info);
-        public ArrayObject? ID => GetAs<ArrayObject>(TrailerDictionary.DictionaryKeys.ID);
+        public Number Size => (Number)this[Constants.DictionaryKeys.Trailer.Size];
+        public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
+        public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Root);
+        public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+        public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Info);
+        public ArrayObject? ID => GetAs<ArrayObject>(Constants.DictionaryKeys.Trailer.ID);
 
         #endregion
 
-        public Integer Field1Size => W.Get<Integer>(0)!;
-        public Integer Field2Size => W.Get<Integer>(1)!;
-        public Integer Field3Size => W.Get<Integer>(2)!;
+        public Number Field1Size => W.Get<Number>(0)!;
+        public Number Field2Size => W.Get<Number>(1)!;
+        public Number Field3Size => W.Get<Number>(2)!;
 
         public static CrossReferenceStreamDictionary CreateNew(
             ArrayObject index,
             ArrayObject w,
-            Integer size,
-            Integer? prev,
+            Number size,
+            Number? prev,
             IndirectObjectReference root,
             IPdfObject? encrypt,
             IndirectObjectReference? info,
@@ -87,28 +87,28 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.XRef) },
                 { Constants.DictionaryKeys.CrossReferenceStream.Index, index },
                 { Constants.DictionaryKeys.CrossReferenceStream.W, w },
-                { TrailerDictionary.DictionaryKeys.Size, size },
-                { TrailerDictionary.DictionaryKeys.Root, root },
+                { Constants.DictionaryKeys.Trailer.Size, size },
+                { Constants.DictionaryKeys.Trailer.Root, root },
             };
 
             if (prev is not null)
             {
-                dict[TrailerDictionary.DictionaryKeys.Prev] = prev;
+                dict[Constants.DictionaryKeys.Trailer.Prev] = prev;
             }
 
             if (encrypt is not null)
             {
-                dict[TrailerDictionary.DictionaryKeys.Encrypt] = encrypt;
+                dict[Constants.DictionaryKeys.Trailer.Encrypt] = encrypt;
             }
 
             if (info is not null)
             {
-                dict[TrailerDictionary.DictionaryKeys.Info] = info;
+                dict[Constants.DictionaryKeys.Trailer.Info] = info;
             }
 
             if (id is not null)
             {
-                dict[TrailerDictionary.DictionaryKeys.ID] = id;
+                dict[Constants.DictionaryKeys.Trailer.ID] = id;
             }
 
             return new(dict);
@@ -124,6 +124,11 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
             }
 
             return new(xrefStreamDictionary);
+        }
+
+        internal void SetSize(Number size)
+        {
+            Set(Constants.DictionaryKeys.Trailer.Size, size);
         }
     }
 }

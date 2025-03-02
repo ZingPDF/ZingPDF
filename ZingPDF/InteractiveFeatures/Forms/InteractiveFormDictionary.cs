@@ -33,7 +33,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (see "Table 225 — Signature flags", and 12.7.5.5, "Signature fields").<para></para>
         /// Default value: 0.
         /// </summary>
-        public AsyncProperty<Integer>? SigFlags { get => Get<Integer>(Constants.DictionaryKeys.InteractiveForm.SigFlags); }
+        public AsyncProperty<Number>? SigFlags { get => Get<Number>(Constants.DictionaryKeys.InteractiveForm.SigFlags); }
 
         /// <summary>
         /// (Required if any fields in the document have additional-actions dictionaries containing a C entry; PDF 1.3)<para></para>
@@ -62,7 +62,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (Optional) <para></para>
         /// A document-wide default value for the Q attribute of variable text fields (see 12.7.4.3, "Variable text").
         /// </summary>
-        public AsyncProperty<Integer>? Q { get => Get<Integer>(Constants.DictionaryKeys.InteractiveForm.Q); }
+        public AsyncProperty<Number>? Q { get => Get<Number>(Constants.DictionaryKeys.InteractiveForm.Q); }
 
         /// <summary>
         /// (Optional; deprecated in PDF 2.0)<para></para>
