@@ -12,12 +12,12 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
         /// <summary>
         /// (Required) The number of indirect objects stored in the stream.
         /// </summary>
-        public Integer N => GetAs<Integer>(Constants.DictionaryKeys.ObjectStream.N)!;
+        public Number N => GetAs<Number>(Constants.DictionaryKeys.ObjectStream.N)!;
 
         /// <summary>
         /// (Required) The byte offset in the decoded stream of the first compressed object.
         /// </summary>
-        public Integer First => GetAs<Integer>(Constants.DictionaryKeys.ObjectStream.First)!;
+        public Number First => GetAs<Number>(Constants.DictionaryKeys.ObjectStream.First)!;
 
         /// <summary>
         /// (Optional) A reference to another object stream, of which the current object stream is an extension. 

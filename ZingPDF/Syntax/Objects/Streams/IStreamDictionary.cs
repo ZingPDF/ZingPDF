@@ -13,7 +13,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        AsyncProperty<Integer> Length { get; }
+        AsyncProperty<Number> Length { get; }
 
         /// <summary>
         /// <para>
@@ -68,7 +68,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        AsyncProperty<Integer>? DL { get; }
+        AsyncProperty<Number>? DL { get; }
 
         ///// <summary>
         ///// Set any stream properties from the given <see cref="Dictionary"/>

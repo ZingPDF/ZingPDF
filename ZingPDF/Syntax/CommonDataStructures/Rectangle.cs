@@ -18,8 +18,8 @@ namespace ZingPDF.Syntax.CommonDataStructures
         public Coordinate LowerLeft { get; }
         public Coordinate UpperRight { get; }
 
-        public RealNumber Width => UpperRight.X - LowerLeft.X;
-        public RealNumber Height => UpperRight.Y - LowerLeft.Y;
+        public Number Width => UpperRight.X - LowerLeft.X;
+        public Number Height => UpperRight.Y - LowerLeft.Y;
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -39,6 +39,6 @@ namespace ZingPDF.Syntax.CommonDataStructures
             await stream.WriteCharsAsync(Constants.RightSquareBracket);
         }
 
-        public static Rectangle FromSize(RealNumber width, RealNumber height) => new(new(0, 0), new(width, height));
+        public static Rectangle FromSize(Number width, Number height) => new(new(0, 0), new(width, height));
     }
 }

@@ -19,6 +19,8 @@ namespace ZingPDF.Syntax.Objects
             await stream.WriteTextAsync(Value);
         }
 
+        public override string ToString() => $"{nameof(Keyword)}: {Value}";
+
         public static implicit operator Keyword(string value) => new(value);
         public static implicit operator string(Keyword value) => value.Value;
     }

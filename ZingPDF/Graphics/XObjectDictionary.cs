@@ -6,7 +6,7 @@ namespace ZingPDF.Graphics
 {
     public abstract class XObjectDictionary : StreamDictionary
     {
-        protected static class Subtypes
+        public static class Subtypes
         {
             public const string Form = "Form";
             public const string Image = "Image";
@@ -14,13 +14,13 @@ namespace ZingPDF.Graphics
 
         protected XObjectDictionary(
             Name subtype,
-            Integer length,
+            Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Integer? dL
+            Number? dL
             )
             : base(
                   Constants.DictionaryTypes.XObject,
