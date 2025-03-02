@@ -3,6 +3,7 @@ using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.InteractiveFeatures.Forms
@@ -68,7 +69,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (see "Table 227 — Field flags common to all field types").<para></para>
         /// Default value: 0.
         /// </summary>
-        public AsyncProperty<Integer>? Ff { get => Get<Integer>(Constants.DictionaryKeys.Field.Ff); }
+        public AsyncProperty<Number>? Ff { get => Get<Number>(Constants.DictionaryKeys.Field.Ff); }
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -105,7 +106,33 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (Optional) For scrollable list boxes, the top index (the index in the Opt array of the first 
         /// option visible in the list). Default value: 0.
         /// </summary>
-        public AsyncProperty<Integer>? TI => Get<Integer>(Constants.DictionaryKeys.Field.TI);
+        public AsyncProperty<Number>? TI => Get<Number>(Constants.DictionaryKeys.Field.TI);
+
+        /// <summary>
+        /// (Required; inheritable) The default appearance string containing a sequence of valid page-content graphics 
+        /// or text state operators that define such properties as the field’s text size and colour.
+        /// </summary>
+        public AsyncProperty<LiteralString>? DA => Get<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA);
+
+        /// <summary>
+        /// (Optional; inheritable) A code specifying the form of quadding (justification) that shall be used in displaying the text:
+        /// 0 Left-justified
+        /// 1 Centred
+        /// 2 Right-justified
+        /// Default value: 0 (left-justified).
+        /// </summary>
+        public AsyncProperty<Number>? Q => Get<Number>(Constants.DictionaryKeys.Field.VariableText.Q);
+
+        /// <summary>
+        /// (Optional; PDF 1.5) A default style string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
+        /// </summary>
+        public AsyncProperty<LiteralString>? DS => Get<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DS);
+
+        /// <summary>
+        /// (Optional; PDF 1.5) A rich text string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
+        /// </summary>
+        public AsyncProperty<Either<LiteralString, StreamObject<IStreamDictionary>>>? RV
+            => Get<Either<LiteralString, StreamObject<IStreamDictionary>>>(Constants.DictionaryKeys.Field.VariableText.RV);
 
         public void SetValue(IPdfObject value)
         {

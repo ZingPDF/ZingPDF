@@ -1,11 +1,12 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Graphics
 {
     public class RGBColour : PdfObject
     {
-        public RGBColour(double red, double green, double blue)
+        public RGBColour(Number red, Number green, Number blue)
         {
             if (red < 0 || red > 1) throw new ArgumentOutOfRangeException(nameof(red));
             if (green < 0 || green > 1) throw new ArgumentOutOfRangeException(nameof(green));
@@ -19,23 +20,25 @@ namespace ZingPDF.Graphics
         /// <summary>
         /// Value for the red channel.
         /// </summary>
-        public double Red { get; } = 0;
+        public Number Red { get; } = 0;
 
         /// <summary>
         /// Value for the green channel.
         /// </summary>
-        public double Green { get; } = 0;
+        public Number Green { get; } = 0;
 
         /// <summary>
         /// Value for the blue channel.
         /// </summary>
-        public double Blue { get; } = 0;
+        public Number Blue { get; } = 0;
 
         public static RGBColour Black { get => new(0, 0, 0); }
         public static RGBColour White { get => new(1, 1, 1); }
         public static RGBColour PrimaryRed { get => new(1, 0, 0); }
         public static RGBColour PrimaryGreen { get => new(0, 1, 0); }
         public static RGBColour PrimaryBlue { get => new(0, 0, 1); }
+
+        public IReadOnlyList<Number> Values => [Red, Green, Blue];
 
         protected override async Task WriteOutputAsync(Stream stream)
         {

@@ -11,8 +11,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReferenceStreamDictionary>
 {
     private readonly IEnumerable<CrossReferenceSection> _xrefSections;
-    private readonly Integer _size;
-    private readonly Integer? _prev;
+    private readonly Number _size;
+    private readonly Number? _prev;
     private readonly IndirectObjectReference _root;
     private readonly Dictionary? _encrypt;
     private readonly IndirectObjectReference? _info;
@@ -20,9 +20,9 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
 
     public CrossReferenceStreamFactory(
         IEnumerable<CrossReferenceSection> xrefSections,
-        Integer size,
+        Number size,
         IndirectObjectReference root,
-        Integer? prev,
+        Number? prev,
         Dictionary? encrypt,
         IndirectObjectReference? info,
         ArrayObject? id
@@ -50,9 +50,9 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
         var field2Size = GetFieldSize(allEntries, entry => entry.Value1);
         var field3Size = GetFieldSize(allEntries, entry => entry.Value2);
 
-        var index = (ArrayObject)_xrefSections.SelectMany(s => new Integer[] { s.Index.StartIndex, s.Index.Count }).ToArray();
+        var index = (ArrayObject)_xrefSections.SelectMany(s => new Number[] { s.Index.StartIndex, s.Index.Count }).ToArray();
 
-        var w = (ArrayObject)new Integer[] { field1Size, field2Size, field3Size };
+        var w = (ArrayObject)new Number[] { field1Size, field2Size, field3Size };
 
         var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
 

@@ -94,7 +94,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// shall automatically advance to the next page (see 12.4.4, "Presentations"). By default, the viewer shall 
         /// not advance automatically.
         /// </summary>
-        public AsyncProperty<RealNumber>? Dur => Get<RealNumber>(Constants.DictionaryKeys.PageTree.Page.Dur);
+        public AsyncProperty<Number>? Dur => Get<Number>(Constants.DictionaryKeys.PageTree.Page.Dur);
 
         /// <summary>
         /// (Optional; PDF 1.1) A transition dictionary describing the transition effect that shall be used when 
@@ -129,7 +129,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// (Required if the page contains structural content items; PDF 1.3) The integer key of the page’s entry 
         /// in the structural parent tree (see 14.7.5.4, "Finding structure elements from content items").
         /// </summary>
-        public Integer? StructParents => GetAs<Integer>(Constants.DictionaryKeys.PageTree.Page.StructParents);
+        public Number? StructParents => GetAs<Number>(Constants.DictionaryKeys.PageTree.Page.StructParents);
 
         /// <summary>
         /// (Optional; PDF 1.3; indirect reference preferred) The digital identifier of the page’s parent Web Capture 
@@ -141,7 +141,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// (Optional; PDF 1.3) The page’s preferred zoom (magnification) factor: the factor by which it shall be 
         /// scaled to achieve the natural display magnification (see 14.10.6, "Object attributes related to web capture").
         /// </summary>
-        public RealNumber? PZ => GetAs<RealNumber>(Constants.DictionaryKeys.PageTree.Page.PZ);
+        public Number? PZ => GetAs<Number>(Constants.DictionaryKeys.PageTree.Page.PZ);
 
         /// <summary>
         /// (Optional; PDF 1.3) A separation dictionary that shall contain information needed to generate colour separations 
@@ -176,7 +176,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <para>(Optional; PDF 1.6) A positive number that shall give the size of default user space units, in multiples of 1 ⁄ 72 inch. The range of supported values shall be implementation-dependent.</para>
         /// <para>Default value: 1.0 (user space unit is 1 ⁄ 72 inch).</para>
         /// </summary>
-        public AsyncProperty<RealNumber>? UserUnit => Get<RealNumber>(Constants.DictionaryKeys.PageTree.Page.UserUnit);
+        public AsyncProperty<Number>? UserUnit => Get<Number>(Constants.DictionaryKeys.PageTree.Page.UserUnit);
 
         /// <summary>
         /// (Optional; PDF 1.6) An array of viewport dictionaries (see "Table 265 — Entries in a viewport dictionary") 
@@ -211,7 +211,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public AsyncProperty<Dictionary>? DPart => Get<Dictionary>(Constants.DictionaryKeys.PageTree.Page.DPart);
 
-        public async Task AddContentAsync(IEnumerable<ContentStreamObject> content, PdfObjectManager pdfObjectManager)
+        public async Task AddContentAsync(IEnumerable<ContentStream> content, PdfObjectManager pdfObjectManager)
         {
             ArgumentNullException.ThrowIfNull(content, nameof(content));
             ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
