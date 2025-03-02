@@ -13,7 +13,7 @@ namespace ZingPDF.Linearization
         /// <summary>
         /// A version identification for the linearized format.
         /// </summary>
-        public RealNumber Linearized => GetAs<RealNumber>(Constants.DictionaryKeys.LinearizationParameter.Linearized)!;
+        public Number Linearized => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.Linearized)!;
 
         /// <summary>
         /// The length of the entire PDF file in bytes.
@@ -23,7 +23,7 @@ namespace ZingPDF.Linearization
         /// A mismatch indicates that the file is not linearized and shall be treated as ordinary PDF file, ignoring linearization information.
         /// (If the mismatch resulted from appending an update, the linearization information may still be correct but requires validation;
         /// </remarks>
-        public Integer L => GetAs<Integer>(Constants.DictionaryKeys.LinearizationParameter.L)!;
+        public Number L => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.L)!;
 
         /// <summary>
         /// The offset of the primary hint stream from the beginning of the PDF file.
@@ -43,17 +43,17 @@ namespace ZingPDF.Linearization
         /// <summary>
         /// The object number of the first page's page object.
         /// </summary>
-        public Integer O => GetAs<Integer>(Constants.DictionaryKeys.LinearizationParameter.O)!;
+        public Number O => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.O)!;
 
         /// <summary>
         /// The offset of the end of the first page, relative to the beginning of the PDF file.
         /// </summary>
-        public Integer E => GetAs<Integer>(Constants.DictionaryKeys.LinearizationParameter.E)!;
+        public Number E => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.E)!;
 
         /// <summary>
         /// The number of pages in the document.
         /// </summary>
-        public Integer N => GetAs<Integer>(Constants.DictionaryKeys.LinearizationParameter.N)!;
+        public Number N => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.N)!;
 
         /// <summary>
         /// In documents that use standard main cross-reference tables (including hybrid-reference files),
@@ -63,12 +63,12 @@ namespace ZingPDF.Linearization
         /// (PDF 1.5) Documents that use cross-reference streams exclusively,
         /// this entry shall represent the offset of the main cross-reference stream object in the PDF file.
         /// </summary>
-        public Integer T => GetAs<Integer>(Constants.DictionaryKeys.LinearizationParameter.T)!;
+        public Number T => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.T)!;
 
         /// <summary>
         /// The page number of the first page.
         /// </summary>
-        public AsyncProperty<Integer>? P => Get<Integer>(Constants.DictionaryKeys.LinearizationParameter.P);
+        public AsyncProperty<Number>? P => Get<Number>(Constants.DictionaryKeys.LinearizationParameter.P);
 
         public static LinearizationParameterDictionary FromDictionary(Dictionary linearizationDictionary)
         {

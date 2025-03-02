@@ -53,7 +53,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// (Optional; inheritable) The number of degrees by which the page shall be rotated clockwise when displayed or printed. 
         /// The value shall be a multiple of 90. Default value: 0.
         /// </summary>
-        public AsyncProperty<Integer>? Rotate => Get<Integer>(Constants.DictionaryKeys.PageTree.Rotate);
+        public AsyncProperty<Number>? Rotate => Get<Number>(Constants.DictionaryKeys.PageTree.Rotate);
 
         public void SetParent(IndirectObjectReference parent)
         {
@@ -66,7 +66,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         {
             ArgumentNullException.ThrowIfNull(rotation, nameof(rotation));
 
-            Set<Integer>(Constants.DictionaryKeys.PageTree.Rotate, rotation);
+            Set<Number>(Constants.DictionaryKeys.PageTree.Rotate, rotation);
         }
 
         public void SetResources(ResourceDictionary resourceDictionary)

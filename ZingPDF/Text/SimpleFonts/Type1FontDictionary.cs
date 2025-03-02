@@ -39,13 +39,13 @@ namespace ZingPDF.Text.SimpleFonts
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts) The first character code defined 
         /// in the font’s Widths array.
         /// </summary>
-        public AsyncProperty<Integer>? FirstChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.FirstChar);
+        public AsyncProperty<Number>? FirstChar => Get<Number>(Constants.DictionaryKeys.Font.Type1.FirstChar);
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts) The last character code 
         /// defined in the font’s Widths array.
         /// </summary>
-        public AsyncProperty<Integer>? LastChar => Get<Integer>(Constants.DictionaryKeys.Font.Type1.LastChar);
+        public AsyncProperty<Number>? LastChar => Get<Number>(Constants.DictionaryKeys.Font.Type1.LastChar);
 
         /// <summary>
         /// (Required; optional in PDF 1.0-1.7 for the standard 14 fonts; indirect reference preferred) 
