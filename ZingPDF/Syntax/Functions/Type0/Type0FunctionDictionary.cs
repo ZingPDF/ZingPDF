@@ -22,14 +22,14 @@ namespace ZingPDF.Syntax.Functions.Type0
         /// (If the function has multiple output values, each one shall occupy BitsPerSample bits.) 
         /// Valid values shall be 1, 2, 4, 8, 12, 16, 24, and 32.
         /// </summary>
-        public Integer BitsPerSample => GetAs<Integer>(Constants.DictionaryKeys.Function.Type0.BitsPerSample)!;
+        public Number BitsPerSample => GetAs<Number>(Constants.DictionaryKeys.Function.Type0.BitsPerSample)!;
 
         /// <summary>
         /// (Optional) The order of interpolation between samples. 
         /// Valid values shall be 1 and 3, specifying linear and cubic spline interpolation, respectively. 
         /// Default value: 1.
         /// </summary>
-        public AsyncProperty<Integer>? Order => Get<Integer>(Constants.DictionaryKeys.Function.Type0.Order);
+        public AsyncProperty<Number>? Order => Get<Number>(Constants.DictionaryKeys.Function.Type0.Order);
 
         /// <summary>
         /// (Optional) An array of 2 × m numbers specifying the linear mapping of input values into 

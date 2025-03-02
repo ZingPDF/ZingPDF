@@ -11,22 +11,22 @@ namespace ZingPDF.Graphics
         /// <summary>
         /// (Optional; PDF 1.3) The line width (see 8.4.3.2, "Line width").
         /// </summary>
-        public AsyncProperty<RealNumber>? LW => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.LW);
+        public AsyncProperty<Number>? LW => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.LW);
 
         /// <summary>
         ///(Optional; PDF 1.3) The line cap style (see 8.4.3.3, "Line cap style").
         /// </summary>
-        public AsyncProperty<Integer>? LC => Get<Integer>(Constants.DictionaryKeys.GraphicsStateParameter.LC);
+        public AsyncProperty<Number>? LC => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.LC);
 
         /// <summary>
         /// (Optional; PDF 1.3) The line join style (see 8.4.3.4, "Line join style").
         /// </summary>
-        public AsyncProperty<Integer>? LJ => Get<Integer>(Constants.DictionaryKeys.GraphicsStateParameter.LJ);
+        public AsyncProperty<Number>? LJ => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.LJ);
 
         /// <summary>
         /// (Optional; PDF 1.3) The miter limit (see 8.4.3.5, "Miter limit").
         /// </summary>
-        public AsyncProperty<RealNumber>? ML => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.ML);
+        public AsyncProperty<Number>? ML => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.ML);
 
         /// <summary>
         /// (Optional; PDF 1.3) The line dash pattern, expressed as an array of the form [dashArray dashPhase], 
@@ -59,7 +59,7 @@ namespace ZingPDF.Graphics
         /// <summary>
         /// (Optional; PDF 1.3) The overprint mode (see 8.6.7, "Overprint control").
         /// </summary>
-        public AsyncProperty<Integer>? OPM => Get<Integer>(Constants.DictionaryKeys.GraphicsStateParameter.OPM);
+        public AsyncProperty<Number>? OPM => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.OPM);
 
         /// <summary>
         /// (Optional; PDF 1.3) An array of the form [font size], where font shall be an indirect reference 
@@ -119,12 +119,12 @@ namespace ZingPDF.Graphics
         /// <summary>
         /// (Optional; PDF 1.3) The flatness tolerance (see 10.7.2, "Flatness tolerance").
         /// </summary>
-        public AsyncProperty<RealNumber>? FL => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.FL);
+        public AsyncProperty<Number>? FL => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.FL);
 
         /// <summary>
         /// (Optional; PDF 1.3) The smoothness tolerance (see 10.7.3, "Smoothness tolerance").
         /// </summary>
-        public AsyncProperty<RealNumber>? SM => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.SM);
+        public AsyncProperty<Number>? SM => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.SM);
 
         /// <summary>
         /// (Optional) A flag specifying whether to apply automatic stroke adjustment (see 10.7.5, "Automatic stroke adjustment").
@@ -152,12 +152,12 @@ namespace ZingPDF.Graphics
         /// opacity value that shall be used for stroking operations in the transparent imaging model 
         /// (see 11.3.7.2, "Source shape and opacity" and 11.6.4.4, "Constant shape and opacity").
         /// </summary>
-        public AsyncProperty<RealNumber>? CA => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.CA);
+        public AsyncProperty<Number>? CA => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.CA);
 
         /// <summary>
         /// (Optional; PDF 1.4) Same as CA, but for nonstroking operations.
         /// </summary>
-        public AsyncProperty<RealNumber>? ca => Get<RealNumber>(Constants.DictionaryKeys.GraphicsStateParameter.ca);
+        public AsyncProperty<Number>? ca => Get<Number>(Constants.DictionaryKeys.GraphicsStateParameter.ca);
 
         /// <summary>
         /// (Optional; PDF 1.4) The alpha source flag ("alpha is shape"), specifying whether the current 

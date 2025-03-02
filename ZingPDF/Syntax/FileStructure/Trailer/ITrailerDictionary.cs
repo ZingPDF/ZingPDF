@@ -16,13 +16,13 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
         /// missing by a PDF reader.
         /// </para>
         /// </summary>
-        Integer Size { get; }
+        Number Size { get; }
 
         /// <summary>
         /// (Optional, present only if the file has more than one cross-reference section; shall be a direct object) The byte offset 
         /// from the beginning of the PDF file to the beginning of the previous cross-reference section.
         /// </summary>
-        Integer? Prev { get; }
+        Number? Prev { get; }
 
         /// <summary>
         /// (Required; shall be an indirect reference) The catalog dictionary for the PDF file (see 7.7.2, "Document catalog dictionary").

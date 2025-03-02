@@ -38,7 +38,7 @@ namespace ZingPDF.Syntax.Encryption
         /// 6 (PDF 2.0) if the document is encrypted with a V value of 5.
         /// </para>
         /// </summary>
-        public Integer R => GetAs<Integer>(Constants.DictionaryKeys.Encryption.Standard.R)!;
+        public Number R => GetAs<Number>(Constants.DictionaryKeys.Encryption.Standard.R)!;
 
         /// <summary>
         /// <para>
@@ -79,7 +79,7 @@ namespace ZingPDF.Syntax.Encryption
         /// (Required) A set of flags specifying which operations shall be permitted when the document is 
         /// opened with user access (see "Table 22 — Standard security handler user access permissions").
         /// </summary>
-        public Integer P => GetAs<Integer>(Constants.DictionaryKeys.Encryption.Standard.P)!;
+        public Number P => GetAs<Number>(Constants.DictionaryKeys.Encryption.Standard.P)!;
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 16-byte string, encrypted with the file encryption key, that contains an encrypted copy of the permissions flags. For more information, see 7.6.4.4, "Password algorithms".
