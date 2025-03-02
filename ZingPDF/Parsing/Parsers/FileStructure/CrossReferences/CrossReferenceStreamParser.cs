@@ -25,9 +25,9 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             var dict = await Parser.Dictionaries.ParseAsync(stream) as CrossReferenceStreamDictionary
                 ?? throw new ParserException("Failed to parse xref stream");
 
-            Integer streamLength = 0;
+            Number streamLength = 0;
 
-            if (dict.Length.Value is Integer sl)
+            if (dict.Length.Value is Number sl)
             {
                 streamLength = sl;
             }
@@ -44,7 +44,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
                 stream.Position = location;
 
-                streamLength = await Parser.Integers.ParseAsync(stream);
+                streamLength = await Parser.Numbers.ParseAsync(stream);
 
                 stream.Position = position;
             }

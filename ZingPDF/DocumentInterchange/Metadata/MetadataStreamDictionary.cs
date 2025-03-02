@@ -7,13 +7,13 @@ namespace ZingPDF.DocumentInterchange.Metadata;
 public class MetadataStreamDictionary : StreamDictionary
 {
     public MetadataStreamDictionary(
-        Integer length,
+        Number length,
         ShorthandArrayObject? filter,
         ShorthandArrayObject? decodeParms,
         Dictionary? f,
         ShorthandArrayObject? fFilter,
         ShorthandArrayObject? fDecodeParms,
-        Integer? dL
+        Number? dL
         )
         : base(
             Constants.DictionaryTypes.Metadata,

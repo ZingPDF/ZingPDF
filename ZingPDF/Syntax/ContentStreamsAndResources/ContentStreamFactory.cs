@@ -9,10 +9,10 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources;
 internal class ContentStreamFactory<TDictionary> : IStreamObjectFactory<TDictionary>
     where TDictionary : class, IStreamDictionary
 {
-    private readonly IEnumerable<ContentStreamObject> _content;
+    private readonly IEnumerable<ContentStream> _content;
     private readonly TDictionary _dictionary;
 
-    public ContentStreamFactory(IEnumerable<ContentStreamObject> content, TDictionary dictionary)
+    public ContentStreamFactory(IEnumerable<ContentStream> content, TDictionary dictionary)
     {
         ArgumentNullException.ThrowIfNull(content, nameof(content));
         ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));

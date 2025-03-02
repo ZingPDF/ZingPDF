@@ -136,7 +136,7 @@ public class ArrayParserTests
         var output = await new ArrayParser()
             .ParseAsync(input);
 
-        output.All(x => x is Integer).Should().BeTrue();
+        output.All(x => x is Number).Should().BeTrue();
     }
 
     [Fact]

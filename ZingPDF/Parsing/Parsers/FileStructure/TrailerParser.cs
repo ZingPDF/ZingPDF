@@ -16,7 +16,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
 
             var trailerDict = TrailerDictionary.FromDictionary(trailerObjects.Get<Dictionary>(0));
 
-            var xrefTableOffset = trailerObjects.Get<Integer>(2);
+            var xrefTableOffset = trailerObjects.Get<Number>(2);
 
             return new Trailer(trailerDict, xrefTableOffset);
         }

@@ -63,13 +63,13 @@ public class EncryptionDictionary : Dictionary
     /// using the AES algorithms" with a file encryption key length of 256 bits.
     /// </para>
     /// </summary>
-    public Integer V => GetAs<Integer>(Constants.DictionaryKeys.Encryption.V)!;
+    public Number V => GetAs<Number>(Constants.DictionaryKeys.Encryption.V)!;
 
     /// <summary>
     /// (Optional; PDF 1.4; only if V is 2 or 3; deprecated in PDF 2.0) The length of the file encryption key, 
     /// in bits. The value shall be a multiple of 8, in the range 40 to 128. Default value: 40.
     /// </summary>
-    public Integer? Length => GetAs<Integer>(Constants.DictionaryKeys.Encryption.Length);
+    public Number? Length => GetAs<Number>(Constants.DictionaryKeys.Encryption.Length);
 
     /// <summary>
     /// <para>

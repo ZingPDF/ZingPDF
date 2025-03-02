@@ -2,10 +2,10 @@
 
 namespace ZingPDF.Elements.Drawing
 {
-    public class Coordinate(RealNumber x, RealNumber y)
+    public class Coordinate(Number x, Number y)
     {
-        public RealNumber X { get; set; } = x ?? throw new ArgumentNullException(nameof(x));
-        public RealNumber Y { get; set; } = y ?? throw new ArgumentNullException(nameof(y));
+        public Number X { get; set; } = x ?? throw new ArgumentNullException(nameof(x));
+        public Number Y { get; set; } = y ?? throw new ArgumentNullException(nameof(y));
 
         public static Coordinate Zero => new(0, 0);
     }

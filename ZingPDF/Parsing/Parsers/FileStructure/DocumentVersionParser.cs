@@ -91,7 +91,7 @@ internal static class DocumentVersionParser
 
         _ = await Parser.Keywords.ParseAsync(pdfStream);
 
-        return await Parser.Integers.ParseAsync(pdfStream);
+        return await Parser.Numbers.ParseAsync(pdfStream);
     }
 
     private static Dictionary<int, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
@@ -133,8 +133,8 @@ internal static class DocumentVersionParser
             {
                 xrefIndices.Add(
                     new CrossReferenceSectionIndex(
-                        xrefStream.Dictionary.Index.Get<Integer>(i)!,
-                        xrefStream.Dictionary.Index.Get<Integer>(i + 1)!
+                        xrefStream.Dictionary.Index.Get<Number>(i)!,
+                        xrefStream.Dictionary.Index.Get<Number>(i + 1)!
                         )
                     );
             }
@@ -152,11 +152,11 @@ internal static class DocumentVersionParser
 
         var xrefData = await (await xrefStream.Data.UncompressAsync(filters, decodeParms)).ReadToEndAsync();
 
-        var entrySize = xrefStream.Dictionary.W.Sum(x => (x as Integer)!);
+        var entrySize = xrefStream.Dictionary.W.Sum(x => (x as Number)!);
 
-        var field1Size = xrefStream.Dictionary.W.Get<Integer>(0)!;
-        var field2Size = xrefStream.Dictionary.W.Get<Integer>(1)!;
-        var field3Size = xrefStream.Dictionary.W.Get<Integer>(2)!;
+        var field1Size = xrefStream.Dictionary.W.Get<Number>(0)!;
+        var field2Size = xrefStream.Dictionary.W.Get<Number>(1)!;
+        var field3Size = xrefStream.Dictionary.W.Get<Number>(2)!;
 
         for (int i = 0; i < xrefIndices.Count; i++)
         {

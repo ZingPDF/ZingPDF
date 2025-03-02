@@ -5,7 +5,7 @@ namespace ZingPDF.Syntax.Functions;
 
 internal abstract class FunctionDictionary : Dictionary
 {
-    protected FunctionDictionary(Integer functionType) : base((Name?)null)
+    protected FunctionDictionary(Number functionType) : base((Name?)null)
     {
         ArgumentNullException.ThrowIfNull(functionType);
 
@@ -21,7 +21,7 @@ internal abstract class FunctionDictionary : Dictionary
     /// <para>3 Stitching function</para>
     /// <para>4 PostScript calculator function</para>
     /// </summary>
-    public AsyncProperty<Integer> FunctionType => Get<Integer>(Constants.DictionaryKeys.Function.FunctionType)!;
+    public AsyncProperty<Number> FunctionType => Get<Number>(Constants.DictionaryKeys.Function.FunctionType)!;
 
     /// <summary>
     /// (Required) An array of 2 × m numbers, where m shall be the number of input values. 

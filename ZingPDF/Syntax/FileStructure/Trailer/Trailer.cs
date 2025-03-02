@@ -50,7 +50,7 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
             await new Keyword(Constants.StartXref).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
-            await new Integer(XrefTableByteOffset).WriteAsync(stream);
+            await new Number(XrefTableByteOffset).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
             await new Keyword(Constants.Eof).WriteAsync(stream);

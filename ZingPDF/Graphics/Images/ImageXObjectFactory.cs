@@ -17,23 +17,23 @@ namespace ZingPDF.Graphics.Images;
 /// </summary>
 internal class ImageXObjectFactory(
     Stream image,
-    Integer width,
-    Integer height,
+    Number width,
+    Number height,
     ColorSpace colorSpace,
-    Integer bitDepth,
+    Number bitDepth,
     ShorthandArrayObject? filter,
     ShorthandArrayObject? decodeParms,
     Dictionary? f,
     ShorthandArrayObject? fFilter,
     ShorthandArrayObject? fDecodeParms,
-    Integer? dL
+    Number? dL
     )
     : IStreamObjectFactory<ImageDictionary>
 {
     private readonly Stream _image = image ?? throw new ArgumentNullException(nameof(image));
-    private readonly Integer _width = width ?? throw new ArgumentNullException(nameof(width));
-    private readonly Integer _height = height ?? throw new ArgumentNullException(nameof(height));
-    private readonly Integer _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
+    private readonly Number _width = width ?? throw new ArgumentNullException(nameof(width));
+    private readonly Number _height = height ?? throw new ArgumentNullException(nameof(height));
+    private readonly Number _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
 
     public StreamObject<ImageDictionary> Create()
     {

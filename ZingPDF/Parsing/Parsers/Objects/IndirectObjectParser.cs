@@ -28,8 +28,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var initialStreamPosition = stream.Position;
 
-            var id = await Parser.Integers.ParseAsync(stream);
-            var genNumber = await Parser.Integers.ParseAsync(stream);
+            var id = await Parser.Numbers.ParseAsync(stream);
+            var genNumber = await Parser.Numbers.ParseAsync(stream);
 
             // obj keyword
             _ = await Parser.Keywords.ParseAsync(stream);

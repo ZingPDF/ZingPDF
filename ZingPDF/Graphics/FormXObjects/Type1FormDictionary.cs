@@ -1,4 +1,5 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -14,16 +15,18 @@ namespace ZingPDF.Graphics.FormXObjects
     {
         private const int _formType = 1;
 
+        private Type1FormDictionary(Dictionary dict) : base(dict) { }
+
         public Type1FormDictionary(
             Rectangle bBox,
             ResourceDictionary? resources,
-            Integer length,
+            Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Integer? dL
+            Number? dL
             )
             : base(
                 length,
@@ -37,7 +40,7 @@ namespace ZingPDF.Graphics.FormXObjects
         {
             ArgumentNullException.ThrowIfNull(bBox);
 
-            Set<Integer>(Constants.DictionaryKeys.Form.FormType, _formType);
+            Set<Number>(Constants.DictionaryKeys.Form.FormType, _formType);
             Set(Constants.DictionaryKeys.Form.Type1.BBox, bBox);
 
             if (resources is not null)
@@ -119,7 +122,7 @@ namespace ZingPDF.Graphics.FormXObjects
         /// (Required if the form XObject is a structural content item; PDF 1.3) The integer key of the form 
         /// XObject’s entry in the structural parent tree (see 14.7.5.4, "Finding structure elements from content items").
         /// </summary>
-        public AsyncProperty<Integer>? StructParent => Get<Integer>(Constants.DictionaryKeys.Form.Type1.StructParent);
+        public AsyncProperty<Number>? StructParent => Get<Number>(Constants.DictionaryKeys.Form.Type1.StructParent);
 
         /// <summary>
         /// <para>(Required if the form XObject contains marked-content sequences that are structural 
@@ -129,7 +132,7 @@ namespace ZingPDF.Graphics.FormXObjects
         /// A form XObject shall be either a content item in its entirety or a container for marked-content 
         /// sequences that are content items, but not both.</para>
         /// </summary>
-        public AsyncProperty<Integer>? StructParents => Get<Integer>(Constants.DictionaryKeys.Form.Type1.StructParents);
+        public AsyncProperty<Number>? StructParents => Get<Number>(Constants.DictionaryKeys.Form.Type1.StructParents);
 
         /// <summary>
         /// (Optional; PDF 1.2; deprecated in PDF 2.0) An OPI version dictionary for 
@@ -168,5 +171,22 @@ namespace ZingPDF.Graphics.FormXObjects
         /// that specifies the scale and units which shall apply to the form.
         /// </summary>
         public AsyncProperty<Dictionary>? Measure => Get<Dictionary>(Constants.DictionaryKeys.Form.Type1.Measure);
+
+        new public static Type1FormDictionary FromDictionary(Dictionary dict)
+        {
+            ArgumentNullException.ThrowIfNull(dict);
+
+            if (
+                !dict.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
+                || (Name)type != Constants.DictionaryTypes.XObject
+                || !dict.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subtype)
+                || (Name)subtype != Subtypes.Form
+                )
+            {
+                throw new ArgumentException("Supplied argument is not a form dictionary.", nameof(dict));
+            }
+
+            return new(dict);
+        }
     }
 }
