@@ -13,18 +13,20 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     public class ImageDictionary : XObjectDictionary
     {
+        private ImageDictionary(Dictionary dict) : base(dict) { }
+
         public ImageDictionary(
-            Integer width,
-            Integer height,
+            Number width,
+            Number height,
             IPdfObject? ColorSpace,
-            Integer? bitsPerComponent,
-            Integer length,
+            Number? bitsPerComponent,
+            Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Integer? dL
+            Number? dL
             )
             : base(
                   Subtypes.Image,
@@ -49,12 +51,12 @@ namespace ZingPDF.Graphics.Images
         /// <summary>
         /// (Required) The width of the image, in samples.
         /// </summary>
-        public AsyncProperty<Integer> Width => Get<Integer>(Constants.DictionaryKeys.Image.Width)!;
+        public AsyncProperty<Number> Width => Get<Number>(Constants.DictionaryKeys.Image.Width)!;
 
         /// <summary>
         /// (Required) The height of the image, in samples.
         /// </summary>
-        public AsyncProperty<Integer> Height => Get<Integer>(Constants.DictionaryKeys.Image.Height)!;
+        public AsyncProperty<Number> Height => Get<Number>(Constants.DictionaryKeys.Image.Height)!;
 
         /// <summary>
         /// <para>(Required for images, except those that use the JPXDecode filter; not permitted for image masks) 
@@ -79,7 +81,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>If the image stream uses the JPXDecode filter, this entry is optional and shall be ignored if
         /// present. The bit depth is determined by the PDF processor in the process of decoding the JPEG 2000 image.</para>
         /// </summary>
-        public AsyncProperty<Integer>? BitsPerComponent => Get<Integer>(Constants.DictionaryKeys.Image.BitsPerComponent);
+        public AsyncProperty<Number>? BitsPerComponent => Get<Number>(Constants.DictionaryKeys.Image.BitsPerComponent);
 
         /// <summary>
         /// (Optional; PDF 1.1) The name of a colour rendering intent that shall be used in rendering any image 
@@ -157,7 +159,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>NOTE 2 Interactions between SMask, SMaskInData and the current soft mask in the graphics state are set out in clause 11.6.4.3, "Mask shape and opacity".</para>
         /// <para>Default value: 0.</para>
         /// </summary>
-        public AsyncProperty<Integer>? SMaskInData => Get<Integer>(Constants.DictionaryKeys.Image.SMaskInData);
+        public AsyncProperty<Number>? SMaskInData => Get<Number>(Constants.DictionaryKeys.Image.SMaskInData);
 
         /// <summary>
         /// (Required in PDF 1.0; optional otherwise; deprecated in PDF 2.0) The name by which this image XObject is 
@@ -172,7 +174,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<Integer>? StructParent => Get<Integer>(Constants.DictionaryKeys.Image.StructParent);
+        public AsyncProperty<Number>? StructParent => Get<Number>(Constants.DictionaryKeys.Image.StructParent);
 
         /// <summary>
         /// (Optional; PDF 1.3; indirect reference preferred) The digital identifier of the image’s parent Web Capture 
@@ -224,5 +226,22 @@ namespace ZingPDF.Graphics.Images
         /// that specifies the extended geospatial data that shall apply to the image.
         /// </summary>
         public AsyncProperty<Dictionary>? PtData => Get<Dictionary>(Constants.DictionaryKeys.Image.PtData);
+
+        new public static ImageDictionary FromDictionary(Dictionary dict)
+        {
+            ArgumentNullException.ThrowIfNull(dict);
+
+            if (
+                !dict.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
+                || (Name)type != Constants.DictionaryTypes.XObject
+                || !dict.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subtype)
+                || (Name)subtype != Subtypes.Image
+                )
+            {
+                throw new ArgumentException("Supplied argument is not a type 1 form dictionary.", nameof(dict));
+            }
+
+            return new(dict);
+        }
     }
 }

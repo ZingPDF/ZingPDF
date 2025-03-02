@@ -9,13 +9,13 @@ namespace ZingPDF.Syntax.Objects.Streams
     {
         protected StreamDictionary(
             Name? type,
-            Integer length,
+            Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Integer? dL
+            Number? dL
             )
             : base(type)
         {
@@ -30,13 +30,13 @@ namespace ZingPDF.Syntax.Objects.Streams
 
         protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
 
-        public AsyncProperty<Integer> Length => Get<Integer>(Constants.DictionaryKeys.Stream.Length)!;
+        public AsyncProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
         public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
         public AsyncProperty<ShorthandArrayObject>? DecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
         public AsyncProperty<ShorthandArrayObject>? FFilter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
         public AsyncProperty<ShorthandArrayObject>? FDecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
-        public AsyncProperty<Integer>? DL => Get<Integer>(Constants.DictionaryKeys.Stream.DL);
+        public AsyncProperty<Number>? DL => Get<Number>(Constants.DictionaryKeys.Stream.DL);
 
         public static StreamDictionary FromDictionary(Dictionary streamDictionary)
         {

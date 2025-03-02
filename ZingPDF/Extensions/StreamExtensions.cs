@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Text;
-using ZingPDF.Parsing;
 using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
