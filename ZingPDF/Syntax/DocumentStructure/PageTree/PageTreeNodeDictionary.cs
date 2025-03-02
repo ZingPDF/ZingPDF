@@ -31,7 +31,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// which already defines a `Count` property, therefore it is called `PageCount` here.
         /// </para>
         /// </summary>
-        public Integer PageCount => GetAs<Integer>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count)!;
+        public Number PageCount => GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count)!;
 
         public void AddChild(IndirectObjectReference key)
         {
@@ -39,7 +39,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             Kids.Add(key);
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount + 1));
         }
 
         public void RemoveChild(IndirectObjectReference key)
@@ -48,7 +48,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             Kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);   
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount - 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount - 1));
         }
 
         public void ReplaceAllChildren(IEnumerable<IndirectObjectReference> kids)
@@ -62,12 +62,12 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
         public void IncrementCount()
         {
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount + 1));
         }
 
         public void DecrementCount()
         {
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(PageCount - 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount - 1));
         }
 
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences)
@@ -76,7 +76,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Pages) },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
-                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Integer(pageReferences.Count()) },
+                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(pageReferences.Count()) },
             });
         }
 

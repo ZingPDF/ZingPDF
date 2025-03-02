@@ -25,8 +25,7 @@ namespace ZingPDF.Parsing.Parsers
         private static readonly DictionaryParser _dictionaryParser = new();
         private static readonly ArrayParser _arrayParser = new();
         private static readonly BooleanObjectParser _booleanObjectParser = new();
-        private static readonly IntegerParser _integerParser = new();
-        private static readonly RealNumberParser _realNumberParser = new();
+        private static readonly NumberParser _numberParser = new();
         private static readonly IndirectObjectReferenceParser _indirectObjectReferenceParser = new();
         private static readonly LiteralStringParser _literalStringParser = new();
         private static readonly HexadecimalStringParser _hexadecimalStringParser = new();
@@ -45,8 +44,7 @@ namespace ZingPDF.Parsing.Parsers
         internal static DictionaryParser Dictionaries => _dictionaryParser;
         internal static ArrayParser Arrays => _arrayParser;
         internal static BooleanObjectParser Booleans => _booleanObjectParser;
-        internal static IntegerParser Integers => _integerParser;
-        internal static RealNumberParser RealNumbers => _realNumberParser;
+        internal static NumberParser Numbers => _numberParser;
         internal static IndirectObjectReferenceParser IndirectObjectReferences => _indirectObjectReferenceParser;
         internal static LiteralStringParser LiteralStrings => _literalStringParser;
         internal static HexadecimalStringParser HexadecimalStrings => _hexadecimalStringParser;
@@ -76,8 +74,7 @@ namespace ZingPDF.Parsing.Parsers
                 Type t when t == typeof(Dictionary) => _dictionaryParser,
                 Type t when t == typeof(ArrayObject) => _arrayParser,
                 Type t when t == typeof(BooleanObject) => _booleanObjectParser,
-                Type t when t == typeof(Integer) => _integerParser,
-                Type t when t == typeof(RealNumber) => _realNumberParser,
+                Type t when t == typeof(Number) => _numberParser,
                 Type t when t == typeof(IndirectObjectReference) => _indirectObjectReferenceParser,
                 Type t when t == typeof(LiteralString) => _literalStringParser,
                 Type t when t == typeof(HexadecimalString) => _hexadecimalStringParser,
