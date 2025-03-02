@@ -73,7 +73,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>A set of flags specifying various characteristics of the annotation (see 12.5.3, "Annotation flags").</para>
         /// <para>Default value: 0.</para>
         /// </summary>
-        public AsyncProperty<Integer>? F => Get<Integer>(Constants.DictionaryKeys.Annotation.F);
+        public AsyncProperty<Number>? F => Get<Number>(Constants.DictionaryKeys.Annotation.F);
 
         /// <summary>
         /// <para>(Required except for conditions below (PDF 2.0); optional in PDF 1.2 to PDF 1.7)</para>
@@ -136,7 +136,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>The integer key of the annotation’s entry in the structural parent tree 
         /// (see 14.7.5.4, "Finding structure elements from content items").</para>
         /// </summary>
-        public AsyncProperty<Integer>? StructParent => Get<Integer>(Constants.DictionaryKeys.Annotation.StructParent);
+        public AsyncProperty<Number>? StructParent => Get<Number>(Constants.DictionaryKeys.Annotation.StructParent);
 
         /// <summary>
         /// <para>(Optional; PDF 1.5)</para>
@@ -172,7 +172,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// necessarily conform to the PDF imaging model; in this case, the effect of this entry is 
         /// implementation-dependent as well.</para>
         /// </summary>
-        public AsyncProperty<RealNumber>? ca => Get<RealNumber>(Constants.DictionaryKeys.Annotation.ca);
+        public AsyncProperty<Number>? ca => Get<Number>(Constants.DictionaryKeys.Annotation.ca);
 
         /// <summary>
         /// <para>(Optional; PDF 1.4, PDF 2.0 for non-markup annotations)</para>
@@ -189,7 +189,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// do not necessarily conform to the PDF imaging model; in this case, the effect of this entry is 
         /// implementation-dependent as well.</para>
         /// </summary>
-        public AsyncProperty<RealNumber>? CA => Get<RealNumber>(Constants.DictionaryKeys.Annotation.CA);
+        public AsyncProperty<Number>? CA => Get<Number>(Constants.DictionaryKeys.Annotation.CA);
 
         /// <summary>
         /// <para>(Optional; PDF 2.0)</para>

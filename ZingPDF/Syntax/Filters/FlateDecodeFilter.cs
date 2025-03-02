@@ -32,10 +32,10 @@ namespace ZingPDF.Syntax.Filters
             decoder.CopyTo(output);
 
             // TODO: consider making these AsyncProperties
-            var predictor = Params?.GetAs<Integer>("Predictor") ?? _defaultPredictor;
-            var columns = Params?.GetAs<Integer>("Columns") ?? _defaultColumns;
-            var colors = Params?.GetAs<Integer>("Colors") ?? _defaultColors;
-            var bitsPerComponent = Params?.GetAs<Integer>("BitsPerComponent") ?? _defaultBitsPerComponent;
+            var predictor = Params?.GetAs<Number>("Predictor") ?? _defaultPredictor;
+            var columns = Params?.GetAs<Number>("Columns") ?? _defaultColumns;
+            var colors = Params?.GetAs<Number>("Colors") ?? _defaultColors;
+            var bitsPerComponent = Params?.GetAs<Number>("BitsPerComponent") ?? _defaultBitsPerComponent;
 
             return PngPredictor.Decode(
                 output.ToArray(),
