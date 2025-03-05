@@ -25,7 +25,9 @@ internal class IndirectObjectDictionary : IIndirectObjectDictionary
         _xrefs = xrefs;
     }
 
-    public int Count => _xrefs.Count(x => x.Value.InUse); // + _newObjects.Count - _deletedObjects.Count;
+    public int Count => _xrefs.Count(x => x.Value.InUse);
+
+    public IEnumerable<IndirectObjectId> Keys => _xrefs.Select(x => new IndirectObjectId(x.Key, x.Value.Value2));
 
     public bool ContainsKey(IndirectObjectReference key) => _xrefs.Any(x => x.Key == key.Id.Index);
 
