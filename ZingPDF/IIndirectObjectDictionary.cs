@@ -28,5 +28,7 @@ namespace ZingPDF
         /// Get an object by its reference. This method unwraps the object from its <see cref="IndirectObject"/>.
         /// </summary>
         Task<T?> GetAsync<T>(IndirectObjectReference key) where T : class, IPdfObject;
+
+        IEnumerable<IndirectObjectId> Keys { get; }
     }
 }
