@@ -60,6 +60,11 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
 
     public int Count => _versions.Sum(v => v.IndirectObjects.Count) + _newObjects.Count - _deletedObjects.Count;
 
+    public IEnumerable<IndirectObjectId> Keys
+        => _versions
+            .SelectMany(v => v.IndirectObjects.Keys)
+            .Concat(_newObjects.Select(x => x.Id));
+
     public bool ContainsKey(IndirectObjectReference key) => _versions.Any(v => v.IndirectObjects.ContainsKey(key));
 
     public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
@@ -178,6 +183,8 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
 
         // TODO: efficiently grab a free ID from deleted objects if present
 
-        return new IndirectObjectId(Count + 1, 0);
+        var highestIndex = Keys.Max(k => k.Index);
+
+        return new IndirectObjectId(highestIndex + 1, 0);
     }
 }
