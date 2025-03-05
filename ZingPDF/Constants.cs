@@ -78,6 +78,16 @@ internal static class Constants
         public const string Type = "Type";
         public const string Subtype = "Subtype";
 
+        public static class Trailer
+        {
+            public const string Size = "Size";
+            public const string Prev = "Prev";
+            public const string Root = "Root";
+            public const string Encrypt = "Encrypt";
+            public const string Info = "Info";
+            public const string ID = "ID";
+        }
+
         public static class DocumentCatalog
         {
             public const string Version = "Version";
@@ -231,6 +241,14 @@ internal static class Constants
             public const string AA = "AA";
             public const string Opt = "Opt";
             public const string TI = "TI";
+
+            public static class VariableText
+            {
+                public const string DA = "DA";
+                public const string Q = "Q";
+                public const string DS = "DS";
+                public const string RV = "RV";
+            }
         }
 
         public static class Annotation
