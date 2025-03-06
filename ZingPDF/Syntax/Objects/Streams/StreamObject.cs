@@ -34,7 +34,13 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         Data.Position = 0;
 
+        await new Keyword(Constants.StreamStart).WriteAsync(stream);
+        await stream.WriteNewLineAsync();
+
         await Data.CopyToAsync(stream);
+
+        await stream.WriteNewLineAsync();
+        await new Keyword(Constants.StreamEnd).WriteAsync(stream);
     }
 
     public async Task<Stream> GetDecompressedDataAsync(IIndirectObjectDictionary indirectObjectDictionary)
