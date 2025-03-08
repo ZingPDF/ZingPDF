@@ -14,12 +14,7 @@ internal static class StreamExtensions
         => stream.WriteTextAsync(text, _defaultEncoding);
 
     public static async Task WriteTextAsync(this Stream stream, string text, Encoding encoding)
-    {
-        ArgumentNullException.ThrowIfNull(stream);
-        ArgumentNullException.ThrowIfNull(text);
-
-        await stream.WriteAsync(encoding.GetBytes(text));
-    }
+        => await stream.WriteAsync(encoding.GetBytes(text));
 
     public static async Task WriteCharsAsync(this Stream stream, params char[] characters)
         => await stream.WriteAsync(_defaultEncoding.GetBytes(characters));
