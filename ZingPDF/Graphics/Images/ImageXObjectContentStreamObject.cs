@@ -5,7 +5,7 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Graphics.Images
 {
-    internal class ImageXObjectContentStreamObject : ContentStreamObject
+    internal class ImageXObjectContentStreamObject : ContentStream
     {
         private readonly Name _name;
         private readonly Rectangle _maxBounds;
@@ -18,9 +18,7 @@ namespace ZingPDF.Graphics.Images
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            // Save graphics state
-            await stream.WriteTextAsync(Operators.GeneralGraphicsState.q);
-            await stream.WriteWhitespaceAsync();
+            this.SaveGraphicsState();
 
             // Translate CTM
             await stream.WriteTextAsync($"1 0 0 1 {_maxBounds.LowerLeft.X} {_maxBounds.LowerLeft.Y} cm ");
@@ -37,8 +35,7 @@ namespace ZingPDF.Graphics.Images
             await stream.WriteTextAsync(Operators.XObjects.Do);
             await stream.WriteWhitespaceAsync();
 
-            // Restore graphics state
-            await stream.WriteTextAsync(Operators.GeneralGraphicsState.Q);
+            this.RestoreGraphicsState();
         }
     }
 }

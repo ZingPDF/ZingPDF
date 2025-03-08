@@ -95,6 +95,9 @@ namespace ZingPDF.Parsing
                     }
                 }
 
+                // Let's test this out, identify anything other than the types above as a keyword.
+                return typeof(Keyword);
+
                 // Throw exception in development to catch bugs in identification logic
                 throw new ParserException("Unable to identify token from stream");
             }

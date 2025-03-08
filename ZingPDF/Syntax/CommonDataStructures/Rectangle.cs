@@ -9,10 +9,18 @@ namespace ZingPDF.Syntax.CommonDataStructures
     /// </summary>
     public class Rectangle : PdfObject
     {
+        public Rectangle(Number lowerLeftX, Number lowerLeftY, Number upperRightX, Number upperRightY)
+            : this(new Coordinate(lowerLeftX, lowerLeftY), new Coordinate(upperRightX, upperRightY))
+        {
+        }
+
         public Rectangle(Coordinate lowerLeft, Coordinate upperRight)
         {
-            LowerLeft = lowerLeft ?? throw new ArgumentNullException(nameof(lowerLeft));
-            UpperRight = upperRight ?? throw new ArgumentNullException(nameof(upperRight));
+            ArgumentNullException.ThrowIfNull(lowerLeft, nameof(lowerLeft));
+            ArgumentNullException.ThrowIfNull(upperRight, nameof(upperRight));
+
+            LowerLeft = lowerLeft;
+            UpperRight = upperRight;
         }
 
         public Coordinate LowerLeft { get; }
@@ -20,6 +28,8 @@ namespace ZingPDF.Syntax.CommonDataStructures
 
         public Number Width => UpperRight.X - LowerLeft.X;
         public Number Height => UpperRight.Y - LowerLeft.Y;
+
+        public Size Size => new(Width, Height);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -39,6 +49,7 @@ namespace ZingPDF.Syntax.CommonDataStructures
             await stream.WriteCharsAsync(Constants.RightSquareBracket);
         }
 
-        public static Rectangle FromSize(Number width, Number height) => new(new(0, 0), new(width, height));
+        public static Rectangle FromDimensions(Number width, Number height) => new(new(0, 0), new(width, height));
+        public static Rectangle FromSize(Size size) => new(new(0, 0), new(size.Width, size.Height));
     }
 }

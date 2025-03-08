@@ -137,7 +137,7 @@ namespace ZingPDF.Elements.Forms
 
             EnsureNeedAppearances(acroFormDict);
 
-            await EnsureDefaultResourceDictionaryAsync(acroFormDict);
+            //await EnsureDefaultResourceDictionaryAsync(acroFormDict);
 
             _pdfObjectManager.Update(await _acroForm);
         }
@@ -226,6 +226,7 @@ namespace ZingPDF.Elements.Forms
                     fieldProperties,
                     this,
                     _pdfObjectManager,
+                    await (await _acroFormDictionary).DR.GetAsync(_pdfObjectManager),
                     _defaultFontResourceName
                     ),
                 FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties),

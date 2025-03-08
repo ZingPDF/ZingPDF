@@ -1,6 +1,9 @@
-﻿using ZingPDF.InteractiveFeatures.Annotations;
+﻿using System.Text;
+using ZingPDF.Extensions;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
@@ -141,11 +144,16 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set(Constants.DictionaryKeys.Field.V, value);
         }
 
-        public void SetAppearanceStream(AppearanceDictionary apDict)
+        internal async Task SetDefaultAppearanceAsync(ContentStream defaultAppearance)
         {
-            ArgumentNullException.ThrowIfNull(apDict);
+            ArgumentNullException.ThrowIfNull(defaultAppearance, nameof(defaultAppearance));
 
-            Set(Constants.DictionaryKeys.Annotation.AP, apDict);
+            using var ms = new MemoryStream();
+            await defaultAppearance.WriteAsync(ms);
+
+            ms.Position = 0;
+
+            Set(Constants.DictionaryKeys.Field.VariableText.DA, new LiteralString(await ms.GetAsync()));
         }
 
         new public static FieldDictionary FromDictionary(Dictionary dict)
