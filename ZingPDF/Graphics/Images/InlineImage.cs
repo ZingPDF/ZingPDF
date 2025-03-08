@@ -10,7 +10,7 @@ namespace ZingPDF.Graphics.Images
     /// see 8.9.7, "Inline images" for details.
     /// </para>
     /// </summary>
-    internal class InlineImage : ContentStreamObject
+    internal class InlineImage : ContentStream
     {
         protected override Task WriteOutputAsync(Stream stream)
         {
