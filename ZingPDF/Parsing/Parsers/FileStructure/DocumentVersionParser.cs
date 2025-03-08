@@ -56,12 +56,20 @@ internal static class DocumentVersionParser
         }
         else if (type == typeof(IndirectObject))
         {
+            // Parse object number then move stream back to start of object
+            // The xref stream parser will record the byte offset which should be at the start of the indirect object
+            // We only parse the object number here so that we can repair the xrefs (within ProcessXrefStreamAsync) if the stream isn't referenced.
+            var id = await Parser.Numbers.ParseAsync(pdfInputStream);
+            var genNumber = await Parser.Numbers.ParseAsync(pdfInputStream);
+
+            pdfInputStream.Position = xrefOffset;
+
             var xrefStream = await new CrossReferenceStreamParser().ParseAsync(pdfInputStream);
 
             version = new VersionInformation
             {
                 CrossReferenceStream = xrefStream,
-                IndirectObjects = new IndirectObjectDictionary(pdfInputStream, await ProcessXrefStreamAsync(xrefStream))
+                IndirectObjects = new IndirectObjectDictionary(pdfInputStream, await ProcessXrefStreamAsync(xrefStream, new IndirectObjectId(id, genNumber), xrefOffset))
             };
         }
         else
@@ -114,7 +122,11 @@ internal static class DocumentVersionParser
         return xrefs;
     }
 
-    private static async Task<Dictionary<int, CrossReferenceEntry>> ProcessXrefStreamAsync(StreamObject<CrossReferenceStreamDictionary> xrefStream)
+    private static async Task<Dictionary<int, CrossReferenceEntry>> ProcessXrefStreamAsync(
+        StreamObject<CrossReferenceStreamDictionary> xrefStream,
+        IndirectObjectId xrefStreamObjectId,
+        long xrefStreamByteOffset
+        )
     {
         Dictionary<int, CrossReferenceEntry> xrefs = [];
 
@@ -150,6 +162,7 @@ internal static class DocumentVersionParser
         var decodeParms = (xrefStream.Dictionary.DecodeParms?.Value as ArrayObject)?.Cast<Dictionary>()
             ?? [(xrefStream.Dictionary.DecodeParms?.Value as Dictionary)!];
 
+        // TODO: check this, seem to have 2 methods for decompressing data (StreamObject has a method too)
         var xrefData = await (await xrefStream.Data.UncompressAsync(filters, decodeParms)).ReadToEndAsync();
 
         var entrySize = xrefStream.Dictionary.W.Sum(x => (x as Number)!);
@@ -181,6 +194,21 @@ internal static class DocumentVersionParser
                 int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
 
                 xrefs.TryAdd(index.StartIndex + j, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2));
+            }
+        }
+
+        // Some writers fail to include the xref stream as a reference within itself, as required by the spec.
+        // Since this is common, we check for this case and repair.
+        if (!xrefs.ContainsKey(xrefStreamObjectId.Index))
+        {
+            xrefs.Add(
+                xrefStreamObjectId.Index,
+                new CrossReferenceEntry(xrefStreamByteOffset, xrefStreamObjectId.GenerationNumber, inUse: true, compressed: false)
+                );
+
+            if (xrefStream.Dictionary.Size != xrefs.Count)
+            {
+                xrefStream.Dictionary.SetSize(xrefs.Count);
             }
         }
 

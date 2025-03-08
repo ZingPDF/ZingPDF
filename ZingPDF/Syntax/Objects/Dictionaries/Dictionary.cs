@@ -46,6 +46,24 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             return null;
         }
 
+        /// <summary>
+        /// Strongly typed access to the underlying <see cref="PdfObject"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
+        /// </remarks>
+        protected AsyncMultiProperty<T1, T2>? Get<T1, T2>(Name key)
+            where T1 : class, IPdfObject
+            where T2 : class, IPdfObject
+        {
+            if (_dictionary.TryGetValue(key, out IPdfObject? value))
+            {
+                return new AsyncMultiProperty<T1, T2>(value);
+            }
+
+            return null;
+        }
+
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteTextAsync(Constants.DictionaryStart);

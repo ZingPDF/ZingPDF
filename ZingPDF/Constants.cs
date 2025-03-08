@@ -4,6 +4,17 @@ namespace ZingPDF;
 
 internal static class Constants
 {
+    public static class Acrobat
+    {
+        public static class MarkedContent
+        {
+            /// <summary>
+            /// Used by Acrobat to define a marked content region for variable text within a text form field.
+            /// </summary>
+            public const string Tx = "Tx";
+        }
+    }
+
     public const char LineFeed = '\n';
     public const char CarriageReturn = '\r';
     public const char HorizontalTab = '\t';
