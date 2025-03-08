@@ -112,38 +112,42 @@ static async Task CompleteForm(string input, string output)
     
     var fields = await form.GetFieldsAsync();
 
-    foreach (var field in fields)
-    {
-        if (field is TextFormField textField)
-        {
-            await textField.SetValueAsync("test");
-        }
-        else if (field is CheckboxFormField cbField)
-        {
-            var options = await cbField.GetOptionsAsync();
+    var firstTextField = fields.First(x => x is TextFormField textField);
 
-            await options[0].SelectAsync();
-        }
-        else if (field is RadioButtonFormField rbField)
-        {
-            var options = await rbField.GetOptionsAsync();
+    await ((TextFormField)firstTextField).SetValueAsync("test");
 
-            await options[0].SelectAsync();
-        }
-        else if (field is ListBoxFormField listBoxFormField)
-        {
-            var options = await listBoxFormField.GetOptionsAsync();
+    //foreach (var field in fields)
+    //{
+    //    if (field is TextFormField textField)
+    //    {
+    //        await textField.SetValueAsync("test");
+    //    }
+    //    else if (field is CheckboxFormField cbField)
+    //    {
+    //        var options = await cbField.GetOptionsAsync();
 
-            await options[3].SelectAsync();
-        }
-        else if (field is ComboBoxFormField comboBoxFormField)
-        {
-            var options = await comboBoxFormField.GetOptionsAsync();
+    //        await options[0].SelectAsync();
+    //    }
+    //    else if (field is RadioButtonFormField rbField)
+    //    {
+    //        var options = await rbField.GetOptionsAsync();
 
-            //options[1].Select();
-            await comboBoxFormField.SelectCustomValueAsync("TEST");
-        }
-    }
+    //        await options[0].SelectAsync();
+    //    }
+    //    else if (field is ListBoxFormField listBoxFormField)
+    //    {
+    //        var options = await listBoxFormField.GetOptionsAsync();
+
+    //        await options[3].SelectAsync();
+    //    }
+    //    else if (field is ComboBoxFormField comboBoxFormField)
+    //    {
+    //        var options = await comboBoxFormField.GetOptionsAsync();
+
+    //        //options[1].Select();
+    //        await comboBoxFormField.SelectCustomValueAsync("TEST");
+    //    }
+    //}
 
     await pdf.SaveAsync(outputFileStream);
 }
@@ -155,14 +159,18 @@ static async Task AddTextToPage()
 
     var pdf = await Pdf.LoadAsync(inputFileStream);
 
-    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
+    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
 
-    page.AddTextAsync(new ZingPDF.Text.TextObject(
+    await page.AddTextAsync(new ZingPDF.Text.TextObject(
         "test",
-        new Rectangle(new Coordinate(10, 10), new Coordinate(100, 100)),
-        new Coordinate(10, 50),
-        new ZingPDF.Text.TextObject.FontOptions("Helv", 24, RGBColour.PrimaryRed)
-        ));
+        new ZingPDF.Text.FontOptions
+        {
+            FontResourceName = "Helv",
+            FontSize = 24,
+            FontColour = RGBColour.PrimaryRed,
+            Origin = new Coordinate(10, 50),
+            Size = new Size(100, 100)
+        }));
 
     await pdf.SaveAsync(outputFileStream);
 }
@@ -204,7 +212,7 @@ static async Task AddImageToPage()
 
     //var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(200, 200));
 
-    await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromSize(200, 200)));
+    await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromDimensions(200, 200)));
 
     await pdf.SaveAsync(outputFileStream);
 }
