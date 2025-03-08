@@ -2,6 +2,7 @@
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
 {
@@ -12,7 +13,8 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         /// <summary>
         /// (Required) The annotation’s normal appearance.
         /// </summary>
-        public AsyncProperty<IPdfObject> N => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.N)!;
+        public AsyncMultiProperty<StreamObject<IStreamDictionary>, Dictionary> N
+            => Get<StreamObject<IStreamDictionary>, Dictionary>(Constants.DictionaryKeys.Appearance.N)!;
 
         /// <summary>
         /// (Optional) The annotation’s rollover appearance. Default value: the value of the N entry.
