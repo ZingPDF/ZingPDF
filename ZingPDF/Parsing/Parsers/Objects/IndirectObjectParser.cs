@@ -3,7 +3,6 @@ using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -49,7 +48,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 {
                     // It's difficult to reliably identify a stream, which is a dictionary followed by the stream contents.
                     // The token identifier will recognise the stream keyword, at which point we've already parsed the dictionary.
-                    var streamDict = (items.Last() as Dictionary)!;
+                    var streamDict = (items.Last() as IStreamDictionary)!;
                     items.RemoveAt(items.Count - 1);
 
                     items.Add(await new StreamObjectParser(_indirectObjectDictionary, streamDict).ParseAsync(stream));
