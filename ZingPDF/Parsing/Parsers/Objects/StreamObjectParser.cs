@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -8,7 +9,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class StreamObjectParser : IObjectParser<StreamObject<IStreamDictionary>>
     {
-        private readonly Dictionary? _dict;
+        private readonly IStreamDictionary? _dict;
         private readonly IIndirectObjectDictionary _indirectObjectDictionary;
 
         public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary)
@@ -18,7 +19,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             _indirectObjectDictionary = indirectObjectDictionary;
         }
 
-        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary, Dictionary dict)
+        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary, IStreamDictionary dict)
         {
             ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
             ArgumentNullException.ThrowIfNull(nameof(dict));
@@ -33,11 +34,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
-            var dict = _dict ?? await Parser.Dictionaries.ParseAsync(stream);
+            // TODO: Parse stream dictionaries as properly typed IStreamDictionary instances so that this FromDictionary call is not required
+            var dict = _dict ?? (IStreamDictionary)await Parser.Dictionaries.ParseAsync(stream);
 
-            var streamDict = dict as IStreamDictionary ?? throw new ParserException("Invalid stream dictionary");
+            //var streamDict = dict as IStreamDictionary ?? throw new ParserException("Invalid stream dictionary");
 
-            var streamLength = await streamDict.Length.GetAsync(_indirectObjectDictionary);
+            var streamLength = await dict.Length.GetAsync(_indirectObjectDictionary);
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
@@ -55,7 +57,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     streamDataOffset + streamLength,
                     setToStart: false
                     ),
-                streamDict
+                dict
                 )
             {
                 ByteOffset = initialStreamPosition

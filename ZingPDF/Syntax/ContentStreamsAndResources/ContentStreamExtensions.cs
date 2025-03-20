@@ -1,10 +1,10 @@
 using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Drawing.Text;
 using ZingPDF.Graphics;
+using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Strings;
-using ZingPDF.Text;
-using static ZingPDF.Syntax.ContentStreamsAndResources.ContentStream;
 using static ZingPDF.Syntax.ContentStreamsAndResources.ContentStream.Operators;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
@@ -127,14 +127,14 @@ public static class ContentStreamExtensions
     }
 
     /// <summary>
-    /// The <paramref name="action"/> parameter gives access to the content stream between the operations found by the given 
+    /// The <paramref name="contentStream"/> parameter gives access to the content stream between the operations found by the given 
     /// predicates <paramref name="first"/> and <paramref name="last"/>. All existing operations between these operations will be deleted.
     /// </summary>
-    public static ContentStream ClearAndOperateBetween(
+    public static async Task<ContentStream> ClearAndOperateBetweenAsync(
         this ContentStream stream,
         Predicate<ContentStreamOperation> first,
         Predicate<ContentStreamOperation> last,
-        Action<ContentStream> action
+        Func<ContentStream, Task> contentStream
         )
     {
         var index1 = stream.Operations.FindIndex(first);
@@ -153,12 +153,26 @@ public static class ContentStreamExtensions
 
         newContentStream.AddOperations(stream.Operations.Take(index1 + 1));
 
-        action(newContentStream);
+        await contentStream(newContentStream);
 
         newContentStream.AddOperations(stream.Operations.Skip(index2));
 
         stream.Operations.Clear();
         stream.Operations.AddRange(newContentStream.Operations);
+
+        return stream;
+    }
+
+    /// <summary>
+    /// Writes a marked content region for variable text, as accepted by Adobe Acrobat.
+    /// </summary>
+    public static ContentStream WriteTextContentRegion(this ContentStream stream, Action<ContentStream> contentStream)
+    {
+        stream.BeginMarkedContentRegion(Constants.Acrobat.MarkedContent.Tx);
+
+        contentStream(stream);
+
+        stream.EndMarkedContentRegion();
 
         return stream;
     }

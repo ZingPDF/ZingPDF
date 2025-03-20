@@ -18,6 +18,7 @@ using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
@@ -211,6 +212,13 @@ internal class DictionaryParser : IObjectParser<Dictionary>
             if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N))
             {
                 output = AppearanceDictionary.FromDictionary(dict);
+                goto DictionaryParsed;
+            }
+
+            // TODO: using length to identify a stream dictionary, which seems dodgy, revisit this to make it more reliable.
+            if (dict.ContainsKey(Constants.DictionaryKeys.Stream.Length))
+            {
+                output = StreamDictionary.FromDictionary(dict);
                 goto DictionaryParsed;
             }
 
