@@ -36,7 +36,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         /// <remarks>
         /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
         /// </remarks>
-        protected AsyncProperty<T>? Get<T>(Name key) where T : class, IPdfObject
+        internal AsyncProperty<T>? Get<T>(Name key) where T : class, IPdfObject
         {
             if (_dictionary.TryGetValue(key, out IPdfObject? value))
             {
@@ -87,7 +87,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         {
             if (value is null)
             {
-                return;
+                _dictionary.Remove(key);
             }
 
             _dictionary[key] = value;

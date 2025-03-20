@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PuppeteerSharp", "External\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.FromHTML", "ZingPDF.FromHTML\ZingPDF.FromHTML.csproj", "{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Fonts", "ZingPDF.Fonts\ZingPDF.Fonts.csproj", "{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

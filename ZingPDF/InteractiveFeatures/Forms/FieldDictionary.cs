@@ -137,10 +137,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public AsyncProperty<Either<LiteralString, StreamObject<IStreamDictionary>>>? RV
             => Get<Either<LiteralString, StreamObject<IStreamDictionary>>>(Constants.DictionaryKeys.Field.VariableText.RV);
 
-        public void SetValue(IPdfObject value)
+        public void SetValue(IPdfObject? value)
         {
-            ArgumentNullException.ThrowIfNull(value);
-
             Set(Constants.DictionaryKeys.Field.V, value);
         }
 
