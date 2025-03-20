@@ -4,6 +4,8 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Elements.Forms.FieldTypes.Signature;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Fonts;
+using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.ContentStreamsAndResources;
@@ -24,6 +26,8 @@ namespace ZingPDF.Elements.Forms
 
         private readonly Name _defaultFontResourceName = UniqueStringGenerator.Generate();
 
+        private readonly AsyncLazy<IEnumerable<IFontProvider>> _fontProviders;
+
         public Form(IndirectObjectReference acroFormReference, PdfObjectManager pdfObjectManager)
         {
             ArgumentNullException.ThrowIfNull(acroFormReference, nameof(acroFormReference));
@@ -36,9 +40,35 @@ namespace ZingPDF.Elements.Forms
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
                 => (InteractiveFormDictionary)(await _acroForm).Object);
+
+            _fontProviders = new AsyncLazy<IEnumerable<IFontProvider>>(async() =>
+            {
+                List<IFontProvider> fontProviders = [new PDFStandardFontProvider()];
+                InteractiveFormDictionary formDict = await _acroFormDictionary;
+
+                if (formDict.DR != null)
+                {
+                    ResourceDictionary defaultResources = ResourceDictionary.FromDictionary(await formDict.DR.GetAsync(_pdfObjectManager));
+
+                    if (defaultResources.Font != null)
+                    {
+                        Dictionary fontDict = await defaultResources.Font.GetAsync(_pdfObjectManager);
+
+                        //fontProviders.Add(new StreamFontProvider(fontDict.Select(kvp =>
+                        //{
+
+                        //})));
+                    }
+                }
+
+                return fontProviders;
+            });
         }
 
         public Name DefaultFontResourceName => _defaultFontResourceName;
+
+        internal async Task<InteractiveFormDictionary> GetFormDictionaryAsync() => await _acroFormDictionary;
+        internal async Task<IEnumerable<IFontProvider>> GetFontProvidersAsync() => await _fontProviders;
 
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
         {
@@ -226,7 +256,6 @@ namespace ZingPDF.Elements.Forms
                     fieldProperties,
                     this,
                     _pdfObjectManager,
-                    await (await _acroFormDictionary).DR.GetAsync(_pdfObjectManager),
                     _defaultFontResourceName
                     ),
                 FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties),

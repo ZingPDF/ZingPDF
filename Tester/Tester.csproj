@@ -51,4 +51,10 @@
 	</None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="test.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

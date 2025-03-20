@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
 

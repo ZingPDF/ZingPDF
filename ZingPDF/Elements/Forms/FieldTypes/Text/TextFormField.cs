@@ -1,9 +1,7 @@
-﻿using ZingPDF.Graphics;
-using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
 
@@ -11,7 +9,6 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
 {
     public class TextFormField : FormField<LiteralString>
     {
-        private readonly Dictionary _defaultResources;
         private readonly Name _fontResourceName;
 
         public TextFormField(
@@ -21,12 +18,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             FieldProperties properties,
             Form parent,
             PdfObjectManager pdfObjectManager,
-            Dictionary defaultResources,
             Name fontResourceName
             )
             : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
         {
-            _defaultResources = defaultResources;
             _fontResourceName = fontResourceName;
         }
 
@@ -42,17 +37,34 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
 
         public async Task SetValueAsync(string? value)
         {
-            await new AppearanceGeneration(_pdfObjectManager)
-                .SetAppearanceStreamForTextAsync(
-                    _fieldDictionary,
-                    value ?? string.Empty,
-                    defaultResources: _defaultResources,
-                    defaultFontResource: _fontResourceName,
-                    defaultFontSize: 12,
-                    defaultFontColour: RGBColour.Black
-                    );
+            var formDict = await _parent.GetFormDictionaryAsync();
+            var fontProviders = await _parent.GetFontProvidersAsync();
+
+            // TODO: consider deleting ap stream if value is null (currently WipeFieldAsync)
+
+            await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfObjectManager, fontProviders)
+                .WriteTextAsync(value);
 
             SetValue(value);
+        }
+
+        // temp methods for testing
+        public async Task<ContentStream?> GetAPAsync()
+        {
+            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
+
+            return await test.GetAPAsync();
+        }
+        
+        public async Task WipeAsync()
+        {
+            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
+
+            await test.WipeFieldAsync();
+
+            _pdfObjectManager.Update(_fieldIndirectObject);
+
+            _parent.MarkForUpdate();
         }
     }
 }
