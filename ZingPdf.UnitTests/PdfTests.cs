@@ -42,7 +42,7 @@ public class PdfTests
 
         var pageCount1 = await pdf.GetPageCountAsync();
 
-        _ = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromSize(100, 100));
+        _ = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(100, 100));
 
         var pageCount2 = await pdf.GetPageCountAsync();
 
