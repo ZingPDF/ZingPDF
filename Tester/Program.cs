@@ -72,11 +72,63 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 //await RotateWholeDocument();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
-LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
+//LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
 await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
-LoadAndValidateUsingAbcpdf("output.pdf");
+//LoadAndValidateUsingAbcpdf("output.pdf");
+
+//await WipeFields();
+
+//await TempFieldApTest();
 
 //await Test();
+
+static async Task WipeFields()
+{
+    using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("blank-form.pdf", FileMode.Create);
+
+    var pdf = await Pdf.LoadAsync(inputFileStream);
+
+    var form = pdf.GetForm();
+
+    var fields = await form!.GetFieldsAsync();
+
+    var textFields = fields.OfType<TextFormField>();
+
+    foreach (var field in textFields)
+    {
+        await field.WipeAsync();
+    }
+
+    await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task TempFieldApTest()
+{
+    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+
+    var pdf = await Pdf.LoadAsync(inputFileStream);
+
+    var form = pdf.GetForm();
+
+    var fields = await form!.GetFieldsAsync();
+
+    var textFields = fields.Where(x => x is TextFormField textField);
+
+    foreach (var field in textFields)
+    {
+        var apStream = await ((TextFormField)field).GetAPAsync();
+
+        using var ms = new MemoryStream();
+
+        await apStream.WriteAsync(ms);
+
+        ms.Position = 0;
+
+        Console.WriteLine($"Field Size: {await field.GetFieldDimensionsAsync()}");
+        Console.WriteLine($"Field AP: {await ms.GetAsync()}");
+    }
+}
 
 static async Task Test()
 {
@@ -126,42 +178,38 @@ static async Task CompleteForm(string input, string output)
     
     var fields = await form.GetFieldsAsync();
 
-    var firstTextField = fields.First(x => x is TextFormField textField);
+    foreach (var field in fields)
+    {
+        if (field is TextFormField textField)
+        {
+            await textField.SetValueAsync("test");
+        }
+        //else if (field is CheckboxFormField cbField)
+        //{
+        //    var options = await cbField.GetOptionsAsync();
 
-    await ((TextFormField)firstTextField).SetValueAsync("test");
+        //    await options[0].SelectAsync();
+        //}
+        //else if (field is RadioButtonFormField rbField)
+        //{
+        //    var options = await rbField.GetOptionsAsync();
 
-    //foreach (var field in fields)
-    //{
-    //    if (field is TextFormField textField)
-    //    {
-    //        await textField.SetValueAsync("test");
-    //    }
-    //    else if (field is CheckboxFormField cbField)
-    //    {
-    //        var options = await cbField.GetOptionsAsync();
+        //    await options[0].SelectAsync();
+        //}
+        //else if (field is ListBoxFormField listBoxFormField)
+        //{
+        //    var options = await listBoxFormField.GetOptionsAsync();
 
-    //        await options[0].SelectAsync();
-    //    }
-    //    else if (field is RadioButtonFormField rbField)
-    //    {
-    //        var options = await rbField.GetOptionsAsync();
+        //    await options[3].SelectAsync();
+        //}
+        //else if (field is ComboBoxFormField comboBoxFormField)
+        //{
+        //    var options = await comboBoxFormField.GetOptionsAsync();
 
-    //        await options[0].SelectAsync();
-    //    }
-    //    else if (field is ListBoxFormField listBoxFormField)
-    //    {
-    //        var options = await listBoxFormField.GetOptionsAsync();
-
-    //        await options[3].SelectAsync();
-    //    }
-    //    else if (field is ComboBoxFormField comboBoxFormField)
-    //    {
-    //        var options = await comboBoxFormField.GetOptionsAsync();
-
-    //        //options[1].Select();
-    //        await comboBoxFormField.SelectCustomValueAsync("TEST");
-    //    }
-    //}
+        //    //options[1].Select();
+        //    await comboBoxFormField.SelectCustomValueAsync("TEST");
+        //}
+    }
 
     await pdf.SaveAsync(outputFileStream);
 }
@@ -175,16 +223,16 @@ static async Task AddTextToPage()
 
     var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
 
-    await page.AddTextAsync(new ZingPDF.Text.TextObject(
-        "test",
-        new ZingPDF.Text.FontOptions
-        {
-            FontResourceName = "Helv",
-            FontSize = 24,
-            FontColour = RGBColour.PrimaryRed,
-            Origin = new Coordinate(10, 50),
-            Size = new Size(100, 100)
-        }));
+    //await page.AddTextAsync(new ZingPDF.Text.TextObject(
+    //    "test",
+    //    new ZingPDF.Text.FontOptions
+    //    {
+    //        FontResourceName = "Helv",
+    //        FontSize = 24,
+    //        FontColour = RGBColour.PrimaryRed,
+    //        Origin = new Coordinate(10, 50),
+    //        Size = new Size(100, 100)
+    //    }));
 
     await pdf.SaveAsync(outputFileStream);
 }

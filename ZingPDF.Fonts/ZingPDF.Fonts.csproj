@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Courier-Bold.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Courier-BoldOblique.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Courier-Oblique.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Courier.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Helvetica-Bold.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Helvetica-BoldOblique.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Helvetica-Oblique.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Helvetica.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Symbol.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Times-Bold.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Times-BoldItalic.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Times-Italic.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\Times-Roman.afm" />
+    <None Remove="AFM\Adobe-Core35_AFMs-314\ZapfDingbats.afm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Courier-Bold.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Courier-BoldOblique.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Courier-Oblique.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Courier.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Helvetica-Bold.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Helvetica-BoldOblique.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Helvetica-Oblique.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Helvetica.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Symbol.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Times-Bold.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Times-BoldItalic.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Times-Italic.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\Times-Roman.afm" />
+    <EmbeddedResource Include="AFM\Adobe-Core35_AFMs-314\ZapfDingbats.afm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.116.1" />
+  </ItemGroup>
+
+</Project>

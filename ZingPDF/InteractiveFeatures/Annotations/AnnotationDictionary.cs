@@ -214,10 +214,8 @@ namespace ZingPDF.InteractiveFeatures.Annotations
             Set(Constants.DictionaryKeys.Annotation.AS, state);
         }
 
-        public void SetAppearanceDictionary(AppearanceDictionary apDict)
+        public void SetAppearanceDictionary(AppearanceDictionary? apDict)
         {
-            ArgumentNullException.ThrowIfNull(apDict, nameof(apDict));
-
             Set(Constants.DictionaryKeys.Annotation.AP, apDict);
         }
 
