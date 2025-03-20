@@ -1,4 +1,5 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.Elements.Drawing;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
@@ -41,6 +42,8 @@ namespace ZingPDF.Elements.Forms
         public string Name { get; }
         public string? Description { get; }
         public FieldProperties Properties { get; }
+
+        public async Task<Size> GetFieldDimensionsAsync() => (await _fieldDictionary.Rect.GetAsync(_pdfObjectManager)).Size;
 
         protected void SetValue(TValue? value)
         {
