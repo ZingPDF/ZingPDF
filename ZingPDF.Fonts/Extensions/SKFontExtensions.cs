@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace ZingPDF.Fonts;
+namespace ZingPDF.Fonts.Extensions;
 
 internal static class SKFontExtensions
 {
