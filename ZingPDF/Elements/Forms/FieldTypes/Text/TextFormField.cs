@@ -40,10 +40,15 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             var formDict = await _parent.GetFormDictionaryAsync();
             var fontProviders = await _parent.GetFontProvidersAsync();
 
-            // TODO: consider deleting ap stream if value is null (currently WipeFieldAsync)
-
-            await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfObjectManager, fontProviders)
-                .WriteTextAsync(value);
+            if (value == null)
+            {
+                await ClearAsync();
+            }
+            else
+            {
+                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfObjectManager, fontProviders)
+                    .WriteTextAsync(value!);
+            }
 
             SetValue(value);
         }
@@ -56,11 +61,11 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             return await test.GetAPAsync();
         }
         
-        public async Task WipeAsync()
+        public async Task ClearAsync()
         {
-            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
+            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
 
-            await test.WipeFieldAsync();
+            await manager.WipeFieldAsync();
 
             _pdfObjectManager.Update(_fieldIndirectObject);
 

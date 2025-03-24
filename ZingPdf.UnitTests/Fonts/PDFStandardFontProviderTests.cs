@@ -9,9 +9,9 @@ public class PDFStandardFontProviderTests
     [Fact]
     public void GetFontMetrics_ReturnsExpectedMetrics()
     {
-        var metrics = new PDFStandardFontProvider().GetFontMetrics(PDFStandardFontProvider.FontNames.Helvetica);
+        var metrics = new PDFStandardFontMetricsProvider().GetFontMetrics(PDFStandardFontMetricsProvider.FontNames.Helvetica);
 
-        metrics.Name.Should().Be(PDFStandardFontProvider.FontNames.Helvetica);
+        metrics.Name.Should().Be(PDFStandardFontMetricsProvider.FontNames.Helvetica);
         metrics.Ascent.Should().Be(718);
         metrics.Descent.Should().Be(-207);
         metrics.CapHeight.Should().Be(718);
@@ -28,6 +28,6 @@ public class PDFStandardFontProviderTests
     [Fact]
     public void GetFontMetrics_ThrowsForInvalidFont()
     {
-        Assert.Throws<FontNotFoundException>(() => new PDFStandardFontProvider().GetFontMetrics("SpacePants"));
+        Assert.Throws<FontNotFoundException>(() => new PDFStandardFontMetricsProvider().GetFontMetrics("SpacePants"));
     }
 }

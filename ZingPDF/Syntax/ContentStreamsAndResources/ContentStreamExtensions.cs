@@ -166,11 +166,11 @@ public static class ContentStreamExtensions
     /// <summary>
     /// Writes a marked content region for variable text, as accepted by Adobe Acrobat.
     /// </summary>
-    public static ContentStream WriteTextContentRegion(this ContentStream stream, Action<ContentStream> contentStream)
+    public static async Task<ContentStream> WriteTextContentRegionAsync(this ContentStream stream, Func<ContentStream, Task> contentStream)
     {
         stream.BeginMarkedContentRegion(Constants.Acrobat.MarkedContent.Tx);
 
-        contentStream(stream);
+        await contentStream(stream);
 
         stream.EndMarkedContentRegion();
 
