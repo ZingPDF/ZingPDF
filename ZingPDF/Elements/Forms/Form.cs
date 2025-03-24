@@ -8,10 +8,12 @@ using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Parsing;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Elements.Forms
@@ -26,7 +28,7 @@ namespace ZingPDF.Elements.Forms
 
         private readonly Name _defaultFontResourceName = UniqueStringGenerator.Generate();
 
-        private readonly AsyncLazy<IEnumerable<IFontProvider>> _fontProviders;
+        private readonly AsyncLazy<IEnumerable<IFontMetricsProvider>> _fontProviders;
 
         public Form(IndirectObjectReference acroFormReference, PdfObjectManager pdfObjectManager)
         {
@@ -41,9 +43,11 @@ namespace ZingPDF.Elements.Forms
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
                 => (InteractiveFormDictionary)(await _acroForm).Object);
 
-            _fontProviders = new AsyncLazy<IEnumerable<IFontProvider>>(async() =>
+            _fontProviders = new AsyncLazy<IEnumerable<IFontMetricsProvider>>(async() =>
             {
-                List<IFontProvider> fontProviders = [new PDFStandardFontProvider()];
+                var simpleFontMetricsProvider = new SimpleFontMetricsProvider();
+
+                List<IFontMetricsProvider> fontProviders = [new PDFStandardFontMetricsProvider(), simpleFontMetricsProvider];
                 InteractiveFormDictionary formDict = await _acroFormDictionary;
 
                 if (formDict.DR != null)
@@ -54,10 +58,30 @@ namespace ZingPDF.Elements.Forms
                     {
                         Dictionary fontDict = await defaultResources.Font.GetAsync(_pdfObjectManager);
 
-                        //fontProviders.Add(new StreamFontProvider(fontDict.Select(kvp =>
-                        //{
+                        Dictionary<string, Stream> fontStreams = [];
+                        foreach (var kvp in fontDict)
+                        {
+                            var font = await _pdfObjectManager.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
 
-                        //})));
+                            if (font?.FontDescriptor != null)
+                            {
+                                var fontDescriptor = await font.FontDescriptor.GetAsync(_pdfObjectManager);
+                                var widthsArray = await font.Widths.GetAsync(_pdfObjectManager);
+                                var firstCharCode = await font.FirstChar.GetAsync(_pdfObjectManager);
+
+                                var widths = widthsArray
+                                    .Cast<Number>()
+                                    .Select((width, index) => new { width, index })
+                                    .ToDictionary(x => (char)(firstCharCode + x.index), x => (int)x.width);
+
+                                simpleFontMetricsProvider.FontMetrics.Add(
+                                    await fontDescriptor.FontName.GetAsync(_pdfObjectManager),
+                                    await fontDescriptor.ToFontMetricsAsync(widths, _pdfObjectManager)
+                                    );
+                            }
+
+                            //fontStreams.Add(kvp.Key, await font.GetDecompressedDataAsync(_pdfObjectManager));
+                        }
                     }
                 }
 
@@ -68,7 +92,7 @@ namespace ZingPDF.Elements.Forms
         public Name DefaultFontResourceName => _defaultFontResourceName;
 
         internal async Task<InteractiveFormDictionary> GetFormDictionaryAsync() => await _acroFormDictionary;
-        internal async Task<IEnumerable<IFontProvider>> GetFontProvidersAsync() => await _fontProviders;
+        internal async Task<IEnumerable<IFontMetricsProvider>> GetFontProvidersAsync() => await _fontProviders;
 
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
         {
@@ -201,7 +225,7 @@ namespace ZingPDF.Elements.Forms
             {
                 // TODO: can we reuse an existing font?
                 // TODO: make font configurable
-                var defaultFont = new Type1FontDictionary("Helvetica");
+                var defaultFont = new FontDictionary(FontDictionary.Subtypes.Type1);
 
                 var fontIndirectObject = _pdfObjectManager.Add(defaultFont);
 
