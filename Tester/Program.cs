@@ -71,9 +71,9 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await RotateWholeDocument();
 
-//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
-await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
 
 //await WipeFields();
@@ -118,6 +118,11 @@ static async Task TempFieldApTest()
     foreach (var field in textFields)
     {
         var apStream = await ((TextFormField)field).GetAPAsync();
+
+        if (apStream == null)
+        {
+            continue;
+        }
 
         using var ms = new MemoryStream();
 
@@ -184,31 +189,31 @@ static async Task CompleteForm(string input, string output)
         {
             await textField.SetValueAsync("test");
         }
-        //else if (field is CheckboxFormField cbField)
-        //{
-        //    var options = await cbField.GetOptionsAsync();
+        else if (field is CheckboxFormField cbField)
+        {
+            var options = await cbField.GetOptionsAsync();
 
-        //    await options[0].SelectAsync();
-        //}
-        //else if (field is RadioButtonFormField rbField)
-        //{
-        //    var options = await rbField.GetOptionsAsync();
+            await options[0].SelectAsync();
+        }
+        else if (field is RadioButtonFormField rbField)
+        {
+            var options = await rbField.GetOptionsAsync();
 
-        //    await options[0].SelectAsync();
-        //}
-        //else if (field is ListBoxFormField listBoxFormField)
-        //{
-        //    var options = await listBoxFormField.GetOptionsAsync();
+            await options[0].SelectAsync();
+        }
+        else if (field is ListBoxFormField listBoxFormField)
+        {
+            var options = await listBoxFormField.GetOptionsAsync();
 
-        //    await options[3].SelectAsync();
-        //}
-        //else if (field is ComboBoxFormField comboBoxFormField)
-        //{
-        //    var options = await comboBoxFormField.GetOptionsAsync();
+            await options[3].SelectAsync();
+        }
+        else if (field is ComboBoxFormField comboBoxFormField)
+        {
+            var options = await comboBoxFormField.GetOptionsAsync();
 
-        //    //options[1].Select();
-        //    await comboBoxFormField.SelectCustomValueAsync("TEST");
-        //}
+            //options[1].Select();
+            await comboBoxFormField.SelectCustomValueAsync("TEST");
+        }
     }
 
     await pdf.SaveAsync(outputFileStream);

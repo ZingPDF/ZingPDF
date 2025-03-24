@@ -1,20 +1,15 @@
-﻿namespace ZingPDF.Fonts.FontProviders;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using ZingPDF.Fonts;
+﻿using System.Reflection;
 using ZingPDF.Fonts.AFM;
 
+namespace ZingPDF.Fonts.FontProviders;
 /// <summary>
-/// Provider for the 14 standard PDF fonts
+/// Provider for the 14 standard PDF fonts. Metrics are taken from Adobe Font Metrics (AFM) files.
 /// </summary>
-public class PDFStandardFontProvider : IFontProvider
+public class PDFStandardFontMetricsProvider : IFontMetricsProvider
 {
     private readonly Lazy<Dictionary<string, FontMetrics>> _fontMetrics;
 
-    public PDFStandardFontProvider()
+    public PDFStandardFontMetricsProvider()
     {
         _fontMetrics = new(LoadStandardFonts);
     }
@@ -22,7 +17,7 @@ public class PDFStandardFontProvider : IFontProvider
     /// <summary>
     /// Calculate text width using a standard font
     /// </summary>
-    public float MeasureText(string text, string fontName, float fontSize)
+    public double MeasureText(string text, string fontName, double fontSize)
     {
         var metrics = GetFontMetrics(fontName);
 
