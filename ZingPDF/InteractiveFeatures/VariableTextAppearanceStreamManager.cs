@@ -17,7 +17,6 @@ using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
-using static ZingPDF.Constants.DictionaryKeys;
 using static ZingPDF.Syntax.ContentStreamsAndResources.ContentStream.Operators;
 
 namespace ZingPDF.InteractiveFeatures;
@@ -30,7 +29,7 @@ internal class VariableTextAppearanceStreamManager
     private readonly InteractiveFormDictionary _formDict;
     private readonly FieldDictionary _fieldDict;
     private readonly PdfObjectManager _pdfObjectManager;
-    private readonly IEnumerable<IFontProvider> _fontProviders;
+    private readonly IEnumerable<IFontMetricsProvider> _fontProviders;
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
 
@@ -45,7 +44,7 @@ internal class VariableTextAppearanceStreamManager
         InteractiveFormDictionary formDict,
         FieldDictionary fieldDict,
         PdfObjectManager pdfObjectManager,
-        IEnumerable<IFontProvider> fontProviders
+        IEnumerable<IFontMetricsProvider> fontProviders
         )
     {
         ArgumentNullException.ThrowIfNull(formDict, nameof(formDict));
@@ -156,8 +155,8 @@ internal class VariableTextAppearanceStreamManager
         // If there is no existing appearance stream for the field, generate and set a new one
         if (fieldAp == null)
         {
-            var newAppearanceStream = new ContentStream()
-                .WriteTextContentRegion(async stream => await WriteNewAppearanceStreamAsync(stream, value));
+            var newAppearanceStream = await new ContentStream()
+                .WriteTextContentRegionAsync(async stream => await WriteNewAppearanceStreamAsync(stream, value));
 
             await SetAppearanceStreamAsync(newAppearanceStream, formDefaultResources);
             return;
@@ -265,21 +264,17 @@ internal class VariableTextAppearanceStreamManager
 
         Coordinate textOrigin;
 
+        TextFit fontFit = new TextCalculations(_fontProviders).CalculateTextFit(fontName, fieldDimensions, newText);
+
+        // This is left aligned. TODO: account for other quadding values, maybe return a TextOrigin object
+        textOrigin = fontFit.TextOrigin;
+
         if (fontSize == 0)
         {
-            TextFit fontFit = new TextCalculations(_fontProviders).CalculateTextFit(fontName, fieldDimensions, newText);
-
-            // This is left aligned. TODO: account for other quadding values, maybe return a TextOrigin object
-            textOrigin = fontFit.TextOrigin;
-
             // Set DA to match calculated font size
             fontOperation.Operands[1] = new Number(fontFit.FontSize);
             await _fieldDict.SetDefaultAppearanceAsync(defaultAppearanceStream);
 
-        }
-        else
-        {
-            textOrigin = await GetDefaultTextOriginAsync() ?? new Coordinate(0, 0); // TODO: fallback should be calculated the same as Acrobat Reader
         }
 
         stream
@@ -310,17 +305,6 @@ internal class VariableTextAppearanceStreamManager
             .ShowText(newText)
             .EndTextObject()
             .RestoreGraphicsState();
-    }
-
-
-    public async Task EnsureValid()
-    {
-        
-        // if /DA is on field, ensure it has a font operation
-        // if /DA is on form, ensure it has a font operation
-
-        // if /DA is on form, but font size is zero, calculate font size and copy full /DA to field
-        // if /DA is on field, but font size is zero, calculate font size and modify operation
     }
 
     private async Task<StreamObject<IStreamDictionary>> GetStreamObjectFromNormalAppearanceEntry(Either<StreamObject<IStreamDictionary>, Dictionary> normalAppearance)

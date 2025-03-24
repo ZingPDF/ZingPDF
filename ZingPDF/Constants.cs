@@ -400,17 +400,39 @@ internal static class Constants
 
         public static class Font
         {
-            public static class Type1
-            {
-                public const string Name = "Name";
-                public const string BaseFont = "BaseFont";
-                public const string FirstChar = "FirstChar";
-                public const string LastChar = "LastChar";
-                public const string Widths = "Widths";
-                public const string FontDescriptor = "FontDescriptor";
-                public const string Encoding = "Encoding";
-                public const string ToUnicode = "ToUnicode";
-            }
+            public const string BaseFont = "BaseFont";
+            public const string Encoding = "Encoding";
+            public const string FontDescriptor = "FontDescriptor";
+            public const string ToUnicode = "ToUnicode";
+            public const string Name = "Name";
+            public const string FirstChar = "FirstChar";
+            public const string LastChar = "LastChar";
+            public const string Widths = "Widths";
+        }
+
+        public static class FontDescriptor
+        {
+            public const string FontName = "FontName";
+            public const string FontFamily = "FontFamily";
+            public const string FontStretch = "FontStretch";
+            public const string FontWeight = "FontWeight";
+            public const string Flags = "Flags";
+            public const string FontBBox = "FontBBox";
+            public const string ItalicAngle = "ItalicAngle";
+            public const string Ascent = "Ascent";
+            public const string Descent = "Descent";
+            public const string Leading = "Leading";
+            public const string CapHeight = "CapHeight";
+            public const string XHeight = "XHeight";
+            public const string StemV = "StemV";
+            public const string StemH = "StemH";
+            public const string AvgWidth = "AvgWidth";
+            public const string MaxWidth = "MaxWidth";
+            public const string MissingWidth = "MissingWidth";
+            public const string FontFile = "FontFile";
+            public const string FontFile2 = "FontFile2";
+            public const string FontFile3 = "FontFile3";
+            public const string CharSet = "CharSet";
         }
 
         public static class Encryption
@@ -451,6 +473,7 @@ internal static class Constants
         public const string XObject = "XObject"; // Form Dictionary (Form XObjects)
         public const string Metadata = "Metadata"; // Metadata Stream
         public const string Font = "Font"; // Font
+        public const string FontDescriptor = "FontDescriptor"; // Font Descriptor
     }
 
     public static class FunctionTypes

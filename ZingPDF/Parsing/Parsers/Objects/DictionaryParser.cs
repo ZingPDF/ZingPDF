@@ -19,6 +19,8 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Text;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
@@ -193,6 +195,12 @@ internal class DictionaryParser : IObjectParser<Dictionary>
                             XObjectDictionary.Subtypes.Image => ImageDictionary.FromDictionary(dict),
                             _ => throw new ParserException("Unexpected XObject Subtype")
                         };
+                        goto DictionaryParsed;
+                    case Constants.DictionaryTypes.Font:
+                        output = FontDictionary.FromDictionary(dict);
+                        goto DictionaryParsed;
+                    case Constants.DictionaryTypes.FontDescriptor:
+                        output = FontDescriptorDictionary.FromDictionary(dict);
                         goto DictionaryParsed;
                 }
             }
