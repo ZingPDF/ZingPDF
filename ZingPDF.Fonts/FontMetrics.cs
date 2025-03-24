@@ -8,8 +8,8 @@ public class FontMetrics
     public string Name { get; set; }
     public int Ascent { get; set; }
     public int Descent { get; set; }
-    public int StandardHorizontalWidth { get; set; }
-    public int StandardVerticalWidth { get; set; }
+    public int? StandardHorizontalWidth { get; set; }
+    public int? StandardVerticalWidth { get; set; }
     public int CapHeight { get; set; }
     public int XHeight { get; set; }
     public float ItalicAngle { get; set; }
@@ -22,7 +22,7 @@ public class FontMetrics
     /// <summary>
     /// Calculate the width of a string using these font metrics
     /// </summary>
-    public int CalculateStringWidth(string text, float fontSize = 1.0f)
+    public double CalculateStringWidth(string text, double fontSize)
     {
         if (string.IsNullOrEmpty(text))
             return 0;
@@ -51,6 +51,6 @@ public class FontMetrics
         }
         
         // Scale by font size (AFM values are in 1/1000 of em)
-        return (int)(width * fontSize / 1000);
+        return width * fontSize / 1000;
     }
 }
