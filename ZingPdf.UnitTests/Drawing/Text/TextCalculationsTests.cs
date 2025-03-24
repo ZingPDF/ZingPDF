@@ -10,29 +10,39 @@ namespace ZingPDF.Elements.Drawing.Text;
 public class TextCalculationsTests
 {
     [Theory]
-    [InlineData("Helvetica", 1000, 10, "TEST", 7.20720768, 1.66666651)]
-    public void CalculateFontSize_NoOverflow(string fontName, double width, double height, string textValue, float expectedFontSize, float expectedBaselineOffset)
+    [InlineData("Helvetica", 209.821, 22, "t1", 14.82)] // /Tx BMC q 1 1 207.821 20 re W n BT /Helv 14.82 Tf 0 g 2 5.5017 Td (t1) Tj ET Q EMC
+    [InlineData("Helvetica", 209.821, 22, "mmmmmmmmmmmmmmmmm", 14.512)] //14.82 - 0.308
+    [InlineData("Helvetica", 209.821, 22, "mmmmmmmmmmmmmmmmlll", 14.686)] //14.82 - 0.134
+    [InlineData("Helvetica", 232.44, 14.04, "t2", 8.921)] // /Tx BMC BT /Helv 10.3945 Tf /Helv 8.921 Tf 0 g 2 3.7103 Td (t2) Tj ET EMC
+    [InlineData("Helvetica", 232.44, 14.04, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", 4)]
+    [InlineData("Helvetica", 232.44, 14.04, "mmmmmmmmmmmmmmmmmmmmmmmmmmm", 8.921)]
+    [InlineData("Helvetica", 209.821, 22, "finnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", 4)]
+    public void CalculateFontSize(string fontName, double width, double height, string textValue, double expectedFontSize)
     {
-        var fontProvider = new PDFStandardFontProvider();
+        var fontProvider = new PDFStandardFontMetricsProvider();
 
-        new TextCalculations([fontProvider])
-            .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue)
-            .Should()
-            .BeEquivalentTo(new TextFit { FontSize = expectedFontSize, Baseline = expectedBaselineOffset });
+        var textFit = new TextCalculations([fontProvider])
+            .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue);
+
+        textFit.FontSize.Value.Should().BeApproximately(expectedFontSize, 0.02);
     }
 
     [Theory]
-    [InlineData("Helvetica", 232.44000000000003, 14.04000000000002, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", 4, 5.536)]
-    [InlineData("Helvetica", 232.44000000000003, 14.039999999999964, "mmmmmmmmmmmmmmmmmmmmmmmmmmm", 8.921, 3.7103)]
-    [InlineData("Helvetica", 209.821, 22, "finnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", 4, 9.516)]
-    public void CalculateFontSize_WithOverflow(string fontName, double width, double height, string textValue, float expectedFontSize, float expectedBaselineOffset)
+    [InlineData("Helvetica", 209.821, 22, "t1", 5.5017)] // /Tx BMC q 1 1 207.821 20 re W n BT /Helv 14.82 Tf 0 g 2 5.5017 Td (t1) Tj ET Q EMC
+    [InlineData("Helvetica", 209.821, 22, "mmmmmmmmmmmmmmmmm", 5.616)]
+    [InlineData("Helvetica", 232.44, 14.04, "t2", 3.7103)] // /Tx BMC BT /Helv 10.3945 Tf /Helv 8.921 Tf 0 g 2 3.7103 Td (t2) Tj ET EMC
+    [InlineData("Helvetica", 232.44, 14.04, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", 5.536)]
+    [InlineData("Helvetica", 232.44, 14.04, "mmmmmmmmmmmmmmmmmmmmmmmmmmm", 3.7103)]
+    [InlineData("Helvetica", 209.821, 22, "finnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", 9.516)]
+    public void CalculateTextOrigin(string fontName, double width, double height, string textValue, double expectedBaselineOffset)
     {
-        var fontProvider = new PDFStandardFontProvider();
+        var fontProvider = new PDFStandardFontMetricsProvider();
 
-        new TextCalculations([fontProvider])
-            .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue)
-            .Should()
-            .BeEquivalentTo(new TextFit { FontSize = expectedFontSize, Baseline = expectedBaselineOffset });
+        var textFit = new TextCalculations([fontProvider])
+            .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue);
+
+        textFit.TextOrigin.X.Value.Should().Be(2); // TODO: incorporate quadding
+        textFit.TextOrigin.Y.Value.Should().BeApproximately(expectedBaselineOffset, 0.02);
     }
 
     //    [Theory]
