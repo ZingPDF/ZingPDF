@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -9,29 +10,34 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
     /// </summary>
     public class ResourceDictionary : Dictionary
     {
+        public ResourceDictionary(Dictionary resourceDictionary)
+            : base(resourceDictionary) { }
+
         public ResourceDictionary(
-            Dictionary? extGState = null,
-            Dictionary? colorSpace = null,
-            Dictionary? pattern = null,
-            Dictionary? shading = null,
-            Dictionary? xObject = null,
-            Dictionary? font = null,
-            Dictionary? procSet = null,
-            Dictionary? properties = null
+            IPdfEditor pdfEditor,
+            Dictionary<Name, IPdfObject>? extGState = null,
+            Dictionary<Name, IPdfObject>? colorSpace = null,
+            Dictionary<Name, IPdfObject>? pattern = null,
+            Dictionary<Name, IPdfObject>? shading = null,
+            Dictionary<Name, IPdfObject>? xObject = null,
+            Dictionary<Name, IPdfObject>? font = null,
+            Dictionary<Name, IPdfObject>? procSet = null,
+            Dictionary<Name, IPdfObject>? properties = null
             )
-            : base((Name?)null)
+            : base(pdfEditor)
         {
-            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, extGState);
-            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, colorSpace);
-            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, pattern);
-            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, shading);
-            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, xObject);
-            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, font);
-            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, procSet);
-            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, properties);
+            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, new Dictionary(extGState, pdfEditor));
+            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, new Dictionary(colorSpace, pdfEditor));
+            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, new Dictionary(pattern, pdfEditor));
+            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, new Dictionary(shading, pdfEditor));
+            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, new Dictionary(xObject, pdfEditor));
+            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, new Dictionary(font, pdfEditor));
+            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, new Dictionary(procSet, pdfEditor));
+            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, new Dictionary(properties, pdfEditor));
         }
 
-        private ResourceDictionary(Dictionary dict) : base(dict) { }
+        public ResourceDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+            : base(dict, pdfEditor) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -84,28 +90,35 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// </summary>
         public AsyncProperty<Dictionary>? Properties => Get<Dictionary>(Constants.DictionaryKeys.Resource.Properties);
 
-        public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IIndirectObjectDictionary indirectObjectDictionary)
+        public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(xObjectReference, nameof(xObjectReference));
-            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             Set(
                 Constants.DictionaryKeys.Resource.XObject,
-                await AddRefToSubDictionaryAsync(XObject, name, xObjectReference, indirectObjectDictionary)
+                await AddRefToSubDictionaryAsync(XObject, name, xObjectReference, pdfEditor)
                 );
         }
 
-        public async Task AddFontAsync(Name name, IndirectObjectReference fontReference, IIndirectObjectDictionary indirectObjectDictionary)
+        public async Task AddFontAsync(Name name, IndirectObjectReference fontReference, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(fontReference, nameof(fontReference));
-            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             Set(
                 Constants.DictionaryKeys.Resource.Font,
-                await AddRefToSubDictionaryAsync(Font, name, fontReference, indirectObjectDictionary)
+                await AddRefToSubDictionaryAsync(Font, name, fontReference, pdfEditor)
                 );
+        }
+
+        public static ResourceDictionary FromDictionary(Dictionary<Name, IPdfObject> resourceDictionary, IPdfEditor pdfEditor)
+        {
+            return resourceDictionary is null
+                ? throw new ArgumentNullException(nameof(resourceDictionary))
+                : new(resourceDictionary, pdfEditor);
         }
 
         public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
@@ -119,15 +132,12 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             AsyncProperty<Dictionary>? dictionaryProperty,
             Name name,
             IndirectObjectReference reference,
-            IIndirectObjectDictionary indirectObjectDictionary
+            IPdfEditor pdfEditor
             )
         {
-            Dictionary dict = Empty;
-
-            if (dictionaryProperty != null)
-            {
-                dict = await dictionaryProperty.GetAsync(indirectObjectDictionary);
-            }
+            var dict = dictionaryProperty != null
+                ? await dictionaryProperty.GetAsync()
+                : new Dictionary(pdfEditor);
 
             dict[name] = reference;
 

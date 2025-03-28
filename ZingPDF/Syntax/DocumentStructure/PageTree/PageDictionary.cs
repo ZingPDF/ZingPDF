@@ -16,7 +16,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
     /// </summary>
     public class PageDictionary : PageNode
     {
-        private PageDictionary(Dictionary pageDictionary) : base(pageDictionary) { }
+        public PageDictionary(Dictionary pageDictionary)
+            : base(pageDictionary) { }
+
+        private PageDictionary(Dictionary<Name, IPdfObject> pageDictionary, IPdfEditor pdfEditor)
+            : base(pageDictionary, pdfEditor) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
@@ -211,16 +215,16 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public AsyncProperty<Dictionary>? DPart => Get<Dictionary>(Constants.DictionaryKeys.PageTree.Page.DPart);
 
-        public async Task AddContentAsync(IEnumerable<ContentStream> content, PdfObjectManager pdfObjectManager)
+        public async Task AddContentAsync(IEnumerable<ContentStream> content, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(content, nameof(content));
-            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             ShorthandArrayObject contentsArray = [];
 
             if (Contents != null)
             {
-                var existingContents = await Contents.GetAsync(pdfObjectManager);
+                var existingContents = await Contents.GetAsync();
 
                 if (existingContents.Value is ArrayObject ary)
                 {
@@ -234,11 +238,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             var contentStream = new ContentStreamFactory<StreamDictionary>(
                 content,
-                StreamDictionary.FromDictionary(Empty)
+                StreamDictionary.FromDictionary([], pdfEditor)
                 )
-                .Create();
+                .Create(pdfEditor);
 
-            var contentObject = pdfObjectManager.Add(contentStream);
+            var contentObject = pdfEditor.Add(contentStream);
 
             contentsArray.Add(contentObject.Id.Reference);
 
@@ -251,7 +255,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
         /// <returns>A <see cref="PageDictionary"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static PageDictionary CreateNew(IndirectObjectReference parent, PageCreationOptions? options = null)
+        internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdfEditor pdfEditor, PageCreationOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(parent);
 
@@ -261,7 +265,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Page) },
                 { Constants.DictionaryKeys.PageTree.Parent, parent },
-                { Constants.DictionaryKeys.PageTree.Resources, Empty },
+                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdfEditor) },
             };
 
             if (options.MediaBox is not null)
@@ -269,7 +273,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 dict[Constants.DictionaryKeys.PageTree.MediaBox] = options.MediaBox;
             }
 
-            return new(dict);
+            return new(dict, pdfEditor);
         }
 
         /// <summary>
@@ -277,11 +281,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         /// <param name="pageDictionary"></param>
         /// <returns></returns>
-        internal static PageDictionary FromDictionary(Dictionary pageDictionary)
+        internal static PageDictionary FromDictionary(Dictionary<Name, IPdfObject> pageDictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
 
-            return new PageDictionary(pageDictionary);
+            return new PageDictionary(pageDictionary, pdfEditor);
         }
 
         public class PageCreationOptions

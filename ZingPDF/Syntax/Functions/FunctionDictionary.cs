@@ -1,11 +1,13 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Functions;
 
 internal abstract class FunctionDictionary : Dictionary
 {
-    protected FunctionDictionary(Number functionType) : base((Name?)null)
+    protected FunctionDictionary(Number functionType, IPdfEditor pdfEditor)
+        : base(pdfEditor)
     {
         ArgumentNullException.ThrowIfNull(functionType);
 

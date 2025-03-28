@@ -12,9 +12,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Signature
             string? description,
             FieldProperties properties,
             Form parent,
-            PdfObjectManager pdfObjectManager
+            IPdfEditor pdfEditor
             )
-            : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
+            : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
         {
         }
     }

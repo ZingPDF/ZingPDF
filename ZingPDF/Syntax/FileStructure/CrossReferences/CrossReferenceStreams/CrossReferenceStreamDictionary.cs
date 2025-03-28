@@ -1,6 +1,5 @@
 ﻿using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -8,7 +7,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
     public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(Dictionary xrefStreamDictionary) : base(xrefStreamDictionary) { }
+        private CrossReferenceStreamDictionary(Dictionary<Name, IPdfObject> xrefStreamDictionary)
+            : base(xrefStreamDictionary, null) { }
 
         /// <summary>
         /// <para>
@@ -114,10 +114,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
             return new(dict);
         }
 
-        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary xrefStreamDictionary)
+        public static CrossReferenceStreamDictionary FromDictionary(Dictionary<Name, IPdfObject> xrefStreamDictionary)
         {
-            ArgumentNullException.ThrowIfNull(xrefStreamDictionary);
-
             if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
