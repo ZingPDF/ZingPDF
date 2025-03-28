@@ -15,6 +15,7 @@ public class SmokeTests
     [InlineData(Files.Minimal2)]
     [InlineData(Files.Minimal3)]
     [InlineData(Files.Test)]
+    [InlineData(Files.Encrypted)]
     public async Task Parse(string filePath)
     {
         var pdf = await Pdf.LoadAsync(new MemoryStream(Files.ConcurrentRead(filePath)));

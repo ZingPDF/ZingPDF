@@ -1,10 +1,15 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF;
 
@@ -18,22 +23,22 @@ public class Pdf : IPdf, IDisposable
     private Pdf(
         Stream pdfInputStream,
         DocumentCatalogDictionary documentCatalog,
-        PdfObjectManager pdfObjectManager
+        IPdfEditor pdfEditor
         )
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
         ArgumentNullException.ThrowIfNull(documentCatalog, nameof(documentCatalog));
-        ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
         _pdfInputStream = pdfInputStream;
         _documentCatalog = documentCatalog;
 
-        PageTree = new PageTree(pdfObjectManager, (documentCatalog.Pages.Value as IndirectObjectReference)!);
+        PageTree = new PageTree(pdfEditor, (documentCatalog.Pages.Value as IndirectObjectReference)!);
 
-        IndirectObjects = pdfObjectManager;
+        IndirectObjects = pdfEditor;
     }
 
-    public PdfObjectManager IndirectObjects { get; }
+    public IPdfEditor IndirectObjects { get; }
 
     public PageTree PageTree { get; }
 
@@ -70,7 +75,7 @@ public class Pdf : IPdf, IDisposable
 
         var rootPageTreeNodeIndirectObject = await PageTree.GetRootPageTreeNodeAsync();
 
-        var page = PageDictionary.CreateNew((_documentCatalog.Pages.Value as IndirectObjectReference)!, pageCreationOptions);
+        var page = PageDictionary.CreateNew((_documentCatalog.Pages.Value as IndirectObjectReference)!, IndirectObjects, pageCreationOptions);
 
         var pageIndirectObject = IndirectObjects.Add(page);
 
@@ -108,7 +113,7 @@ public class Pdf : IPdf, IDisposable
 
         var pageAtNumber = await GetPageAsync(pageNumber);
 
-        var parentPageTreeNodeIndirectObject = await pageAtNumber.Dictionary.Parent.GetIndirectObjectAsync(IndirectObjects);
+        var parentPageTreeNodeIndirectObject = await pageAtNumber.Dictionary.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
@@ -123,6 +128,7 @@ public class Pdf : IPdf, IDisposable
 
         var page = PageDictionary.CreateNew(
             parentPageTreeNodeIndirectObject.Id.Reference,
+            IndirectObjects,
             pageCreationOptions
             );
 
@@ -150,7 +156,7 @@ public class Pdf : IPdf, IDisposable
 
         var page = await GetPageAsync(pageNumber);
 
-        var parentIndirectObject = await page.Dictionary.Parent.GetIndirectObjectAsync(IndirectObjects)
+        var parentIndirectObject = await page.Dictionary.Parent.GetIndirectObjectAsync()
             ?? throw new InvalidPdfException("Unable to find parent page tree node of requested page");
 
         var parent = (PageTreeNodeDictionary)parentIndirectObject.Object;
@@ -186,6 +192,29 @@ public class Pdf : IPdf, IDisposable
     public void Compress(int dpi, int quality)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task DecompressAsync()
+    {
+        await foreach(var obj in IndirectObjects)
+        {
+            if (obj.Object is StreamObject<IStreamDictionary> streamObj)
+            {
+                var decompressedData = await streamObj.GetDecompressedDataAsync();
+
+                streamObj.Dictionary.Set<Name>(Constants.DictionaryKeys.Stream.Filter, null);
+                streamObj.Dictionary.Set<Dictionary>(Constants.DictionaryKeys.Stream.DecodeParms, null);
+                streamObj.Dictionary.Set<Number>(Constants.DictionaryKeys.Stream.Length, decompressedData.Length);
+                streamObj.Dictionary.Set<Number>(Constants.DictionaryKeys.Stream.DL, decompressedData.Length);
+
+                var newObj = new StreamObject<IStreamDictionary>(
+                    decompressedData,
+                    streamObj.Dictionary
+                );
+
+                IndirectObjects.Update(new IndirectObject(obj.Id, newObj));
+            }
+        }
     }
 
     public void Encrypt()
@@ -246,10 +275,10 @@ public class Pdf : IPdf, IDisposable
 
         var documentVersions = await DocumentVersionParser.ParseDocumentVersionsAsync(pdfInputStream);
 
-        var pdfObjectManager = new PdfObjectManager(documentVersions);
-        var catalog = await pdfObjectManager.GetDocumentCatalogAsync();
+        var pdfEditor = new PdfObjectManager(pdfInputStream, documentVersions);
+        var catalog = await pdfEditor.GetDocumentCatalogAsync();
 
-        return new Pdf(pdfInputStream, catalog, pdfObjectManager);
+        return new Pdf(pdfInputStream, catalog, pdfEditor);
     }
 
     // TODO: move to testable class?
@@ -263,7 +292,7 @@ public class Pdf : IPdf, IDisposable
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync(IndirectObjects);
+        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.IncrementCount();
@@ -284,7 +313,7 @@ public class Pdf : IPdf, IDisposable
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync(IndirectObjects);
+        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.DecrementCount();
@@ -310,7 +339,7 @@ public class Pdf : IPdf, IDisposable
             return false;
         }
 
-        var parent = await parentPageTreeNode.Parent.GetAsync(IndirectObjects);
+        var parent = await parentPageTreeNode.Parent.GetAsync();
         if (parent == null)
         {
             return false;

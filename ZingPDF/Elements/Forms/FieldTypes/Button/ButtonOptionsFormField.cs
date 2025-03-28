@@ -65,10 +65,10 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         string? description,
         FieldProperties properties,
         Form parent,
-        PdfObjectManager pdfObjectManager,
+        IPdfEditor pdfEditor,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
     {
         _kids = kids;
     }
@@ -89,7 +89,7 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
 
             if (_fieldDictionary.V != null)
             {
-                @checked = (Name)await _fieldDictionary.V.GetAsync(_pdfObjectManager) == exportValue;
+                @checked = (Name)await _fieldDictionary.V.GetAsync() == exportValue;
             }
 
             options.Add(new SelectableOption(Name, exportValue, @checked, SelectOptionAsync, DeselectOptionAsync, annot));
@@ -107,7 +107,7 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
             return Constants.ButtonStates.On;
         }
 
-        var ap = await widgetDict.AP.GetAsync(_pdfObjectManager);
+        var ap = await widgetDict.AP.GetAsync();
 
         // TODO: handle the case where N is a stream
 

@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -6,7 +7,11 @@ namespace ZingPDF.Syntax.FileStructure.Trailer;
 
 public class TrailerDictionary : Dictionary, ITrailerDictionary
 {
-    private TrailerDictionary(Dictionary trailerDictionary) : base(trailerDictionary) { }
+    public TrailerDictionary(Dictionary dictionary)
+        : base(dictionary) { }
+
+    private TrailerDictionary(Dictionary<Name, IPdfObject> trailerDictionary, IPdfEditor pdfEditor)
+        : base(trailerDictionary, pdfEditor) { }
 
     public Number Size => (Number)this[Constants.DictionaryKeys.Trailer.Size];
     public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
@@ -41,7 +46,8 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
         IndirectObjectReference root,
         IPdfObject? encrypt,
         IndirectObjectReference? info,
-        ArrayObject? id
+        ArrayObject? id,
+        IPdfEditor pdfEditor
         )
     {
         ArgumentNullException.ThrowIfNull(size);
@@ -73,6 +79,6 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
             dict.Add(Constants.DictionaryKeys.Trailer.ID, id);
         }
 
-        return new(dict);
+        return new(dict, pdfEditor);
     }
 }

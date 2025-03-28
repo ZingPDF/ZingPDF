@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -12,6 +14,12 @@ namespace ZingPDF.Graphics
             public const string Image = "Image";
         }
 
+        public XObjectDictionary(Dictionary dict)
+            : base(dict) { }
+
+        public XObjectDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+            : base(dict, pdfEditor) { }
+
         protected XObjectDictionary(
             Name subtype,
             Number length,
@@ -20,7 +28,8 @@ namespace ZingPDF.Graphics
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Number? dL
+            Number? dL,
+            IPdfEditor pdfEditor
             )
             : base(
                   Constants.DictionaryTypes.XObject,
@@ -30,14 +39,13 @@ namespace ZingPDF.Graphics
                   f,
                   fFilter,
                   fDecodeParms,
-                  dL
+                  dL,
+                  pdfEditor
                   )
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
-        
-        protected XObjectDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
     }
 }
