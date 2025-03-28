@@ -1,7 +1,6 @@
-﻿using System.Text;
-using ZingPDF.Extensions;
+﻿using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
-using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -16,7 +15,11 @@ namespace ZingPDF.InteractiveFeatures.Forms
     /// </summary>
     public class FieldDictionary : WidgetAnnotationDictionary
     {
-        private FieldDictionary(Dictionary dict) : base(dict) { }
+        public FieldDictionary(Dictionary dict)
+            : base(dict) { }
+
+        private FieldDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor) { }
 
         /// <summary>
         /// (Required for terminal fields; inheritable)<para></para>
@@ -154,11 +157,9 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set(Constants.DictionaryKeys.Field.VariableText.DA, new LiteralString(await ms.GetAsync()));
         }
 
-        new public static FieldDictionary FromDictionary(Dictionary dict)
+        new public static FieldDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(dict);
-
-            return new(dict);
+            return new(dictionary, pdfEditor);
         }
     }
 }

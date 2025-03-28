@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries
 {
@@ -10,8 +11,16 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     public class Dictionary : PdfObject, IPdfDictionary
     {
         private readonly Dictionary<Name, IPdfObject> _dictionary;
+        private readonly IPdfEditor _pdfEditor;
 
-        public Dictionary(Name? type)
+        public Dictionary(IPdfEditor pdfEditor)
+        {
+            _dictionary = [];
+
+            _pdfEditor = pdfEditor;
+        }
+
+        public Dictionary(Name type, IPdfEditor pdfEditor)
         {
             _dictionary = [];
 
@@ -19,11 +28,20 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             {
                 _dictionary[Constants.DictionaryKeys.Type] = type;
             }
+
+            _pdfEditor = pdfEditor;
         }
 
-        public Dictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary)
+        public Dictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary, IPdfEditor pdfEditor)
         {
             _dictionary = dictionary?.ToDictionary() ?? throw new ArgumentNullException(nameof(dictionary));
+            _pdfEditor = pdfEditor;
+        }
+
+        public Dictionary(Dictionary dictionary)
+        {
+            _dictionary = dictionary._dictionary;
+            _pdfEditor = dictionary._pdfEditor;
         }
 
         public Name? Type => (Name)this[Constants.DictionaryKeys.Type];
@@ -40,7 +58,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         {
             if (_dictionary.TryGetValue(key, out IPdfObject? value))
             {
-                return new AsyncProperty<T>(value);
+                return new AsyncProperty<T>(value, _pdfEditor);
             }
 
             return null;
@@ -58,7 +76,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         {
             if (_dictionary.TryGetValue(key, out IPdfObject? value))
             {
-                return new AsyncMultiProperty<T1, T2>(value);
+                return new AsyncMultiProperty<T1, T2>(value, _pdfEditor);
             }
 
             return null;
@@ -83,11 +101,12 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             await stream.WriteTextAsync(Constants.DictionaryEnd);
         }
 
-        protected void Set<T>(Name key, T? value) where T : class, IPdfObject
+        public void Set<T>(Name key, T? value) where T : class, IPdfObject
         {
             if (value is null)
             {
                 _dictionary.Remove(key);
+                return;
             }
 
             _dictionary[key] = value;
@@ -111,10 +130,5 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         public bool IsReadOnly => ((ICollection<KeyValuePair<Name, IPdfObject>>)_dictionary).IsReadOnly;
         public IPdfObject this[Name key] { get => ((IDictionary<Name, IPdfObject>)_dictionary)[key]; set => ((IDictionary<Name, IPdfObject>)_dictionary)[key] = value; }
         #endregion IDictionary
-
-        public static Dictionary Empty => new((Name?)null);
-
-        public static implicit operator Dictionary(Dictionary<Name, IPdfObject> value) => new(value);
-        public static implicit operator Dictionary<Name, IPdfObject>(Dictionary? value) => new(value ?? Empty);
     }
 }

@@ -9,15 +9,15 @@ namespace ZingPDF.Elements
 {
     public class Page
     {
-        private readonly PdfObjectManager _pdfObjectManager;
+        private readonly IPdfEditor _pdfEditor;
 
-        internal Page(IndirectObject pageObject, PdfObjectManager pdfObjectManager)
+        internal Page(IndirectObject pageObject, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(pageObject, nameof(pageObject));
-            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             IndirectObject = pageObject;
-            _pdfObjectManager = pdfObjectManager;
+            _pdfEditor = pdfEditor;
         }
 
         public IndirectObject IndirectObject { get; }
@@ -27,9 +27,9 @@ namespace ZingPDF.Elements
         {
             ArgumentNullException.ThrowIfNull(text);
 
-            await Dictionary.AddContentAsync([text], _pdfObjectManager);
+            await Dictionary.AddContentAsync([text], _pdfEditor);
 
-            _pdfObjectManager.Update(IndirectObject);
+            _pdfEditor.Update(IndirectObject);
         }
 
         public async Task AddImageAsync(Image image)
@@ -65,12 +65,12 @@ namespace ZingPDF.Elements
                 dL: null
                 //sourceDataIsCompressed: filters.Count > 0 // TODO: This might be wrong. Test image adding
                 )
-                .Create();
+                .Create(_pdfEditor);
 
-            var imageXObjectIndirectObject = _pdfObjectManager.Add(imageXObject);
+            var imageXObjectIndirectObject = _pdfEditor.Add(imageXObject);
 
             var resourceName = UniqueStringGenerator.Generate();
-            await Dictionary.AddXObjectResourceAsync(resourceName, imageXObjectIndirectObject.Id.Reference, _pdfObjectManager);
+            await Dictionary.AddXObjectResourceAsync(resourceName, imageXObjectIndirectObject.Id.Reference, _pdfEditor);
 
             var imageRect = image.MaxBounds;
             if (image.PreserveAspectRatio)
@@ -88,9 +88,9 @@ namespace ZingPDF.Elements
             
             var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
-            await Dictionary.AddContentAsync([imageContentStream], _pdfObjectManager);
+            await Dictionary.AddContentAsync([imageContentStream], _pdfEditor);
 
-            _pdfObjectManager.Update(IndirectObject);
+            _pdfEditor.Update(IndirectObject);
         }
 
         //// TODO: consider coordinate system enum.
@@ -113,14 +113,14 @@ namespace ZingPDF.Elements
             
             if (Dictionary.Rotate != null)
             {
-                existingRotation = await Dictionary.Rotate.GetAsync(_pdfObjectManager);
+                existingRotation = await Dictionary.Rotate.GetAsync();
             }
 
             // The page may already be rotated, or inherit a value for rotation.
             // In practice, it is likely desired to rotate by a further n degrees.
             Dictionary.SetRotation(existingRotation + rotation);
 
-            _pdfObjectManager.Update(IndirectObject);
+            _pdfEditor.Update(IndirectObject);
         }
 
         // TODO: move to testable class (ICalulations maybe)

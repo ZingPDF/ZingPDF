@@ -17,10 +17,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             string? description,
             FieldProperties properties,
             Form parent,
-            PdfObjectManager pdfObjectManager,
+            IPdfEditor pdfEditor,
             Name fontResourceName
             )
-            : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
+            : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
         {
             _fontResourceName = fontResourceName;
         }
@@ -32,7 +32,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 return null;
             }
 
-            return await _fieldDictionary.V.GetAsync(_pdfObjectManager) as LiteralString;
+            return await _fieldDictionary.V.GetAsync() as LiteralString;
         }
 
         public async Task SetValueAsync(string? value)
@@ -46,7 +46,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             }
             else
             {
-                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfObjectManager, fontProviders)
+                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfEditor, fontProviders)
                     .WriteTextAsync(value!);
             }
 
@@ -56,18 +56,18 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         // temp methods for testing
         public async Task<ContentStream?> GetAPAsync()
         {
-            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
+            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfEditor, []);
 
             return await test.GetAPAsync();
         }
         
         public async Task ClearAsync()
         {
-            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfObjectManager, []);
+            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfEditor, []);
 
             await manager.WipeFieldAsync();
 
-            _pdfObjectManager.Update(_fieldIndirectObject);
+            _pdfEditor.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }

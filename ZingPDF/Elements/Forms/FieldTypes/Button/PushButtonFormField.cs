@@ -15,9 +15,9 @@ internal class PushButtonFormField : FormField<IPdfObject>
         string? description,
         FieldProperties properties,
         Form parent,
-        PdfObjectManager pdfObjectManager
+        IPdfEditor pdfEditor
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
     {
     }
 }
