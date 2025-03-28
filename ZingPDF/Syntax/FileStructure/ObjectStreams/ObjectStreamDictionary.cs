@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -7,7 +8,11 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
 {
     internal class ObjectStreamDictionary : StreamDictionary
     {
-        private ObjectStreamDictionary(Dictionary objectStreamDictionary) : base(objectStreamDictionary) { }
+        public ObjectStreamDictionary(Dictionary objectStreamDictionary)
+            : base(objectStreamDictionary) { }
+
+        private ObjectStreamDictionary(Dictionary<Name, IPdfObject> objectStreamDictionary, IPdfEditor pdfEditor)
+            : base(objectStreamDictionary, pdfEditor) { }
 
         /// <summary>
         /// (Required) The number of indirect objects stored in the stream.
@@ -26,7 +31,7 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
         /// </summary>
         public IndirectObjectReference? Extends => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.ObjectStream.Extends);
 
-        new public static ObjectStreamDictionary FromDictionary(Dictionary objectStreamDictionary)
+        new public static ObjectStreamDictionary FromDictionary(Dictionary<Name, IPdfObject> objectStreamDictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(objectStreamDictionary);
 
@@ -35,7 +40,7 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(objectStreamDictionary));
             }
 
-            return new(objectStreamDictionary);
+            return new(objectStreamDictionary, pdfEditor);
         }
     }
 }

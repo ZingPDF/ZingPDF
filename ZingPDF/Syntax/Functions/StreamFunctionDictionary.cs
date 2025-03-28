@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -6,15 +7,17 @@ namespace ZingPDF.Syntax.Functions
 {
     internal abstract class StreamFunctionDictionary : FunctionDictionary, IStreamDictionary
     {
-        protected StreamFunctionDictionary(Number functionType) : base(functionType) { }
+        protected StreamFunctionDictionary(Number functionType, IPdfEditor pdfEditor)
+            : base(functionType, pdfEditor) { }
+
         protected StreamFunctionDictionary(Dictionary dict) : base(dict) { }
 
         public AsyncProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
-        public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
-        public AsyncProperty<ShorthandArrayObject>? DecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
+        public AsyncMultiProperty<Name, ArrayObject>? Filter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.Filter);
+        public AsyncMultiProperty<Dictionary, ArrayObject>? DecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
-        public AsyncProperty<ShorthandArrayObject>? FFilter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
-        public AsyncProperty<ShorthandArrayObject>? FDecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
+        public AsyncMultiProperty<Name, ArrayObject>? FFilter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
+        public AsyncMultiProperty<Dictionary, ArrayObject>? FDecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
         public AsyncProperty<Number>? DL => Get<Number>(Constants.DictionaryKeys.Stream.DL);
 
         //public void SetStreamProperties(Dictionary streamDictionary)

@@ -71,7 +71,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await RotateWholeDocument();
 
-await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -81,6 +81,20 @@ await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await TempFieldApTest();
 
 //await Test();
+
+await Decompress("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+static async Task Decompress(string input, string output)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var pdf = await Pdf.LoadAsync(inputFileStream);
+
+    await pdf.DecompressAsync();
+
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task WipeFields()
 {
@@ -97,7 +111,7 @@ static async Task WipeFields()
 
     foreach (var field in textFields)
     {
-        await field.WipeAsync();
+        await field.ClearAsync();
     }
 
     await pdf.SaveAsync(outputFileStream);
