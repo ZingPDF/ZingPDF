@@ -3,6 +3,7 @@ using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers.FileStructure;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -200,6 +201,21 @@ public class Pdf : IPdf, IDisposable
         {
             if (obj.Object is StreamObject<IStreamDictionary> streamObj)
             {
+                if (streamObj.Dictionary.Filter == null)
+                {
+                    continue;
+                }
+
+                Either<Name, ArrayObject> filterValue = await streamObj.Dictionary.Filter.GetAsync();
+                IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
+
+                // TODO: are there other image types we need to avoid
+                // Do not decompress JPEG images.
+                if (filterNames.Contains((Name)Constants.Filters.DCT))
+                {
+                    continue;
+                }
+
                 var decompressedData = await streamObj.GetDecompressedDataAsync();
 
                 streamObj.Dictionary.Set<Name>(Constants.DictionaryKeys.Stream.Filter, null);
