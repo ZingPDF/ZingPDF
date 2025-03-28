@@ -12,6 +12,7 @@ namespace ZingPDF.IncrementalUpdates
 {
     public class IncrementalUpdate : PdfObject
     {
+        private readonly IPdfEditor _pdfEditor;
         private readonly IEnumerable<IndirectObject> _newObjects;
         private readonly IEnumerable<IndirectObject> _updatedObjects;
         private readonly IEnumerable<IndirectObjectId> _deletedObjects;
@@ -21,6 +22,7 @@ namespace ZingPDF.IncrementalUpdates
         private readonly IncrementalUpdateOptions _options;
 
         public IncrementalUpdate(
+            IPdfEditor pdfEditor,
             IEnumerable<IndirectObject> newObjects,
             IEnumerable<IndirectObject> updatedObjects,
             IEnumerable<IndirectObjectId> deletedObjects,
@@ -29,10 +31,12 @@ namespace ZingPDF.IncrementalUpdates
             IncrementalUpdateOptions? options = null
             )
         {
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
             ArgumentNullException.ThrowIfNull(newObjects, nameof(newObjects));
             ArgumentNullException.ThrowIfNull(updatedObjects, nameof(updatedObjects));
             ArgumentNullException.ThrowIfNull(deletedObjects, nameof(deletedObjects));
 
+            _pdfEditor = pdfEditor;
             _newObjects = newObjects;
             _updatedObjects = updatedObjects;
             _deletedObjects = deletedObjects;
@@ -92,7 +96,8 @@ namespace ZingPDF.IncrementalUpdates
                     existingTrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
                     existingTrailerDictionary.Encrypt,
                     existingTrailerDictionary.Info,
-                    fileIdentifier
+                    fileIdentifier,
+                    _pdfEditor
                     ),
                 xrefTable.ByteOffset!.Value
                 );
@@ -107,15 +112,15 @@ namespace ZingPDF.IncrementalUpdates
         //    // Then build the xref stream, including the dummy object.
         //    // As long as the next thing written is the xref stream, its byte offset will be correct.
 
-        //    IndirectObjectId newObjectId = _indirectObjectDictionary.GetNextFreeId();
+        //    IndirectObjectId newObjectId = _pdfEditor.GetNextFreeId();
 
         //    var xrefStreamIndirectObject = new DummyIndirectObject(newObjectId, stream.Position);
 
-        //    _indirectObjectDictionary.NewObjects.Add(xrefStreamIndirectObject);
+        //    _pdfEditor.NewObjects.Add(xrefStreamIndirectObject);
 
         //    List<CrossReferenceSection> xrefSections = xrefGenerator.Generate(
-        //        _indirectObjectDictionary.NewOrUpdatedObjects,
-        //        _indirectObjectDictionary.DeletedObjects
+        //        _pdfEditor.NewOrUpdatedObjects,
+        //        _pdfEditor.DeletedObjects
         //        );
 
         //    // +1 because the new xref stream should be included in the count

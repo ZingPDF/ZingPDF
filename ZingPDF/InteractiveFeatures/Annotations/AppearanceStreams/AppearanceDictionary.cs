@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -8,7 +9,11 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
 {
     public class AppearanceDictionary : Dictionary
     {
-        private AppearanceDictionary(Dictionary dictionary) : base(dictionary) { }
+        public AppearanceDictionary(Dictionary dictionary)
+            : base(dictionary) { }
+
+        private AppearanceDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor) { }
 
         /// <summary>
         /// (Required) The annotation’s normal appearance.
@@ -27,6 +32,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         public AsyncProperty<IPdfObject>? D => Get<IPdfObject>(Constants.DictionaryKeys.Appearance.D);
 
         public static AppearanceDictionary Create(
+            IPdfEditor pdfEditor,
             IndirectObjectReference normalAppearanceStream,
             IndirectObjectReference? rolloverAppearanceStream = null,
             IndirectObjectReference? downAppearanceStream = null
@@ -44,14 +50,12 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
                 dict.Add(Constants.DictionaryKeys.Appearance.D, downAppearanceStream);
             }
 
-            return new AppearanceDictionary(dict);
+            return new AppearanceDictionary(dict, pdfEditor);
         }
 
-        public static AppearanceDictionary FromDictionary(Dictionary dictionary)
+        public static AppearanceDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(dictionary);
-
-            return new AppearanceDictionary(dictionary);
+            return new AppearanceDictionary(dictionary, pdfEditor);
         }
     }
 }

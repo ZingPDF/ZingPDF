@@ -14,14 +14,12 @@
     internal class SubStream : Stream
     {
         private readonly Stream _source;
-        private readonly long _from;
-        private readonly long _to;
 
         public SubStream(Stream source, long from, long to, bool setToStart = true)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
-            _from = from;
-            _to = to;
+            From = from;
+            To = to;
 
             if (setToStart)
             {
@@ -29,25 +27,28 @@
             }
         }
 
+        public long From { get; }
+        public long To { get; }
+
         public override bool CanRead => _source.CanRead;
         public override bool CanSeek => _source.CanSeek;
         public override bool CanWrite => false;
-        public override long Length => _to - _from;
+        public override long Length => To - From;
 
         public override long Position
         {
-            get => _source.Position - _from;
-            set => _source.Position = value + _from;
+            get => _source.Position - From;
+            set => _source.Position = value + From;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_source.Position < _from || _source.Position > _to)
+            if (_source.Position < From || _source.Position > To)
             {
                 return 0;
             }
 
-            count = (int)Math.Min(count, _to - _from - Position);
+            count = (int)Math.Min(count, To - From - Position);
 
             return _source.Read(buffer, offset, count);
         }
@@ -66,8 +67,8 @@
             }
 
             var adjustedOffset = origin == SeekOrigin.Begin
-                ? offset + _from
-                : _to - offset;
+                ? offset + From
+                : To - offset;
 
             _source.Seek(adjustedOffset, origin);
 

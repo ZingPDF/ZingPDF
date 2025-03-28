@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
@@ -10,13 +11,13 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class IndirectObjectParser : IObjectParser<IndirectObject>
     {
-        private readonly IIndirectObjectDictionary _indirectObjectDictionary;
+        private readonly IPdfEditor _pdfEditor;
 
-        public IndirectObjectParser(IIndirectObjectDictionary indirectObjectDictionary)
+        public IndirectObjectParser(IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
 
-            _indirectObjectDictionary = indirectObjectDictionary;
+            _pdfEditor = pdfEditor;
         }
 
         public async ITask<IndirectObject> ParseAsync(Stream stream)
@@ -51,7 +52,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     var streamDict = (items.Last() as IStreamDictionary)!;
                     items.RemoveAt(items.Count - 1);
 
-                    items.Add(await new StreamObjectParser(_indirectObjectDictionary, streamDict).ParseAsync(stream));
+                    items.Add(await new StreamObjectParser(_pdfEditor, streamDict).ParseAsync(stream));
                     break;
                 }
 
