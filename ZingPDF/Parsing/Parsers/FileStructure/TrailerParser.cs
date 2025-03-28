@@ -12,7 +12,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
         {
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);
 
-            var trailerObjects = await Parser.PdfObjectGroups.ParseAsync(stream);
+            var trailerObjects = await new PdfObjectGroupParser().ParseAsync(stream);
 
             var trailerDict = TrailerDictionary.FromDictionary(trailerObjects.Get<Dictionary>(0));
 

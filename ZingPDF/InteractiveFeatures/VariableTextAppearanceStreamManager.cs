@@ -28,7 +28,7 @@ internal class VariableTextAppearanceStreamManager
 {
     private readonly InteractiveFormDictionary _formDict;
     private readonly FieldDictionary _fieldDict;
-    private readonly PdfObjectManager _pdfObjectManager;
+    private readonly IPdfEditor _pdfEditor;
     private readonly IEnumerable<IFontMetricsProvider> _fontProviders;
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
@@ -43,25 +43,25 @@ internal class VariableTextAppearanceStreamManager
     public VariableTextAppearanceStreamManager(
         InteractiveFormDictionary formDict,
         FieldDictionary fieldDict,
-        PdfObjectManager pdfObjectManager,
+        IPdfEditor pdfEditor,
         IEnumerable<IFontMetricsProvider> fontProviders
         )
     {
         ArgumentNullException.ThrowIfNull(formDict, nameof(formDict));
         ArgumentNullException.ThrowIfNull(fieldDict, nameof(fieldDict));
-        ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
         ArgumentNullException.ThrowIfNull(fontProviders, nameof(fontProviders));
 
         _formDict = formDict;
         _fieldDict = fieldDict;
-        _pdfObjectManager = pdfObjectManager;
+        _pdfEditor = pdfEditor;
         _fontProviders = fontProviders;
 
         _formDA = new AsyncLazy<LiteralString?>(async () =>
         {
             if (_formDict.DA != null)
             {
-                return await _formDict.DA.GetAsync(_pdfObjectManager);
+                return await _formDict.DA.GetAsync();
             }
 
             return null;
@@ -71,7 +71,7 @@ internal class VariableTextAppearanceStreamManager
         {
             if (_fieldDict.DA != null)
             {
-                return await _fieldDict.DA.GetAsync(_pdfObjectManager);
+                return await _fieldDict.DA.GetAsync();
             }
 
             return null;
@@ -94,14 +94,14 @@ internal class VariableTextAppearanceStreamManager
                 return null;
             }
 
-            AppearanceDictionary existingAppearanceDictionary = await _fieldDict.AP.GetAsync(_pdfObjectManager);
+            AppearanceDictionary existingAppearanceDictionary = await _fieldDict.AP.GetAsync();
             if (existingAppearanceDictionary.N == null)
             {
                 return null;
             }
 
-            IndirectObject normalAppearanceIndirectObject = await existingAppearanceDictionary.N.GetIndirectObjectAsync(_pdfObjectManager);
-            Either<StreamObject<IStreamDictionary>, Dictionary> normalAppearance = await existingAppearanceDictionary.N.GetAsync(_pdfObjectManager);
+            IndirectObject normalAppearanceIndirectObject = await existingAppearanceDictionary.N.GetIndirectObjectAsync();
+            Either<StreamObject<IStreamDictionary>, Dictionary> normalAppearance = await existingAppearanceDictionary.N.GetAsync();
 
             return await GetStreamObjectFromNormalAppearanceEntry(normalAppearance);
         });
@@ -115,7 +115,7 @@ internal class VariableTextAppearanceStreamManager
                 return null;
             }
 
-            var apData = await normalApStreamObject.GetDecompressedDataAsync(_pdfObjectManager);
+            var apData = await normalApStreamObject.GetDecompressedDataAsync();
 
             return await new ContentStreamParser().ParseAsync(apData);
         });
@@ -127,7 +127,7 @@ internal class VariableTextAppearanceStreamManager
                 return null;
             }
 
-            return ResourceDictionary.FromDictionary(await _formDict.DR.GetAsync(_pdfObjectManager));
+            return ResourceDictionary.FromDictionary(await _formDict.DR.GetAsync());
         });
     }
 
@@ -158,7 +158,8 @@ internal class VariableTextAppearanceStreamManager
             var newAppearanceStream = await new ContentStream()
                 .WriteTextContentRegionAsync(async stream => await WriteNewAppearanceStreamAsync(stream, value));
 
-            await SetAppearanceStreamAsync(newAppearanceStream, formDefaultResources);
+            await SetAppearanceStreamAsync(newAppearanceStream, formDefaultResources, _pdfEditor);
+
             return;
         }
 
@@ -178,9 +179,9 @@ internal class VariableTextAppearanceStreamManager
         // form dictionary") into the stream’s Resources dictionary. (If the DR and Resources dictionaries contain
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
-        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? []);
+        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdfEditor));
 
-        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary));
+        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdfEditor), _pdfEditor);
     }
 
     /// <summary>
@@ -251,16 +252,16 @@ internal class VariableTextAppearanceStreamManager
         var defaultAppearanceStream = await _defaultAppearanceStream;
 
 
-        var fieldDimensions = await _fieldDict.Rect.GetAsync(_pdfObjectManager);
+        var fieldDimensions = await _fieldDict.Rect.GetAsync();
 
         var fontOperation = defaultAppearanceStream.Operations.FirstOrDefault(x => x.Operator == TextState.Tf);
         var fontResourceName = fontOperation.GetOperand<Name>(0);
         var fontSize = fontOperation.GetOperand<Number>(1);
 
         var formDefaultResources = await _formDefaultResources;
-        var fontMapDict = await formDefaultResources.Font.GetAsync(_pdfObjectManager);
-        var fontDict = await fontMapDict.Get<Dictionary>(fontResourceName).GetAsync(_pdfObjectManager);
-        var fontName = await fontDict.Get<Name>("BaseFont").GetAsync(_pdfObjectManager);
+        var fontMapDict = await formDefaultResources.Font.GetAsync();
+        var fontDict = await fontMapDict.Get<Dictionary>(fontResourceName).GetAsync();
+        var fontName = await fontDict.Get<Name>(Constants.DictionaryKeys.Font.BaseFont).GetAsync();
 
         Coordinate textOrigin;
 
@@ -322,7 +323,7 @@ internal class VariableTextAppearanceStreamManager
             var onStateApRef = normalApDict.FirstOrDefault(k => k.Key != Constants.ButtonStates.Off).Value as IndirectObjectReference
                 ?? throw new InvalidPdfException("Malformed text field encountered");
 
-            normalApStream = await _pdfObjectManager.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
+            normalApStream = await _pdfEditor.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
                 ?? throw new InvalidPdfException("Malformed text field encountered");
         }
         else
@@ -333,9 +334,9 @@ internal class VariableTextAppearanceStreamManager
         return normalApStream;
     }
 
-    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary resourceDictionary)
+    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary resourceDictionary, IPdfEditor pdfEditor)
     {
-        var fieldRect = await _fieldDict.Rect.GetAsync(_pdfObjectManager);
+        var fieldRect = await _fieldDict.Rect.GetAsync();
 
         var ms = new MemoryStream();
 
@@ -351,13 +352,14 @@ internal class VariableTextAppearanceStreamManager
             f: null,
             fFilter: null,
             fDecodeParms: null,
-            dL: ms.Length
+            dL: ms.Length,
+            pdfEditor
             );
 
         var apFormXObject = new StreamObject<Type1FormDictionary>(ms, contentStreamDictionary);
 
-        var apIndirectObject = _pdfObjectManager.Add(apFormXObject);
+        var apIndirectObject = _pdfEditor.Add(apFormXObject);
 
-        _fieldDict.SetAppearanceDictionary(AppearanceDictionary.Create(apIndirectObject.Id.Reference));
+        _fieldDict.SetAppearanceDictionary(AppearanceDictionary.Create(_pdfEditor, apIndirectObject.Id.Reference));
     }
 }

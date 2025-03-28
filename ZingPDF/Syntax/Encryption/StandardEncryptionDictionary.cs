@@ -1,13 +1,13 @@
-﻿using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.Encryption
 {
     internal class StandardEncryptionDictionary : EncryptionDictionary
     {
-        private StandardEncryptionDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary)
-            : base(dictionary)
+        private StandardEncryptionDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor)
         {
         }
 
@@ -93,11 +93,11 @@ namespace ZingPDF.Syntax.Encryption
         /// </summary>
         public BooleanObject? EncryptMetadata => GetAs<BooleanObject>(Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata);
 
-        internal static StandardEncryptionDictionary FromDictionary(Dictionary dictionary)
+        internal static StandardEncryptionDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
 
-            return new StandardEncryptionDictionary(dictionary);
+            return new StandardEncryptionDictionary(dictionary, pdfEditor);
         }
     }
 }

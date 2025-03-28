@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Functions.Type0
@@ -8,7 +9,9 @@ namespace ZingPDF.Syntax.Functions.Type0
     /// </summary>
     internal class Type0FunctionDictionary : StreamFunctionDictionary
     {
-        public Type0FunctionDictionary() : base(Constants.FunctionTypes.Zero) { }
+        public Type0FunctionDictionary(IPdfEditor pdfEditor)
+            : base(Constants.FunctionTypes.Zero, pdfEditor) { }
+
         public Type0FunctionDictionary(Dictionary dict) : base(dict) { }
 
         /// <summary>

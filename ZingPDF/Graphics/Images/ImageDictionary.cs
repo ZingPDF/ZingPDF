@@ -1,4 +1,5 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -13,7 +14,11 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     public class ImageDictionary : XObjectDictionary
     {
-        private ImageDictionary(Dictionary dict) : base(dict) { }
+        public ImageDictionary(Dictionary dict)
+            : base(dict) { }
+
+        private ImageDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+            : base(dict, pdfEditor) { }
 
         public ImageDictionary(
             Number width,
@@ -26,7 +31,8 @@ namespace ZingPDF.Graphics.Images
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Number? dL
+            Number? dL,
+            IPdfEditor pdfEditor
             )
             : base(
                   Subtypes.Image,
@@ -36,7 +42,8 @@ namespace ZingPDF.Graphics.Images
                   f,
                   fFilter,
                   fDecodeParms,
-                  dL
+                  dL,
+                  pdfEditor
                   )
         {
             ArgumentNullException.ThrowIfNull(width, nameof(width));
@@ -227,10 +234,8 @@ namespace ZingPDF.Graphics.Images
         /// </summary>
         public AsyncProperty<Dictionary>? PtData => Get<Dictionary>(Constants.DictionaryKeys.Image.PtData);
 
-        new public static ImageDictionary FromDictionary(Dictionary dict)
+        new public static ImageDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(dict);
-
             if (
                 !dict.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
                 || (Name)type != Constants.DictionaryTypes.XObject
@@ -241,7 +246,7 @@ namespace ZingPDF.Graphics.Images
                 throw new ArgumentException("Supplied argument is not a type 1 form dictionary.", nameof(dict));
             }
 
-            return new(dict);
+            return new(dict, pdfEditor);
         }
     }
 }

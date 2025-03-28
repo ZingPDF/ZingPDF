@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 
@@ -6,6 +7,26 @@ namespace ZingPDF.Parsing.Parsers
 {
     internal class PdfObjectGroupParser : IObjectParser<PdfObjectGroup>
     {
+        private readonly IPdfEditor? _pdfEditor;
+
+        /// <summary>
+        /// This constructor is potentially dangerous, use with care. Objects parsed with this constructor will not 
+        /// contain an internal reference to the <see cref="IPdfEditor"/>. This will cause issues when trying to 
+        /// access any indirect references. This version of the parser should only be used during initial parsing of 
+        /// cross reference streams when building object indexes, or when it is certain that any contained indirect 
+        /// object properties downstream in the object heirarchy are not accessed through their 
+        /// <see cref="Syntax.Objects.Dictionaries.AsyncProperty{T}.GetAsync"/> or 
+        /// <see cref="Syntax.Objects.Dictionaries.AsyncMultiProperty{T1, T2}.GetAsync"/> methods.
+        /// </summary>
+        internal PdfObjectGroupParser()
+        {
+        }
+
+        public PdfObjectGroupParser(IPdfEditor pdfEditor)
+        {
+            _pdfEditor = pdfEditor;
+        }
+
         public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
         {
             Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
@@ -20,7 +41,7 @@ namespace ZingPDF.Parsing.Parsers
                 {
                     try
                     {
-                        items.Add(await Parser.For(type).ParseAsync(stream));
+                        items.Add(await Parser.For(type, _pdfEditor).ParseAsync(stream));
                     }
                     catch
                     {

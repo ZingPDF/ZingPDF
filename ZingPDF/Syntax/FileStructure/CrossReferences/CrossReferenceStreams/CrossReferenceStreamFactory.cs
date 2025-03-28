@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -42,7 +43,7 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
         _id = id;
     }
 
-    public StreamObject<CrossReferenceStreamDictionary> Create()
+    public StreamObject<CrossReferenceStreamDictionary> Create(IPdfEditor pdfEditor)
     {
         var allEntries = _xrefSections.SelectMany(x => x.Entries);
 

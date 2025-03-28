@@ -8,12 +8,11 @@ using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Parsing;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Elements.Forms
@@ -24,20 +23,20 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IndirectObject> _acroForm;
         private readonly AsyncLazy<InteractiveFormDictionary> _acroFormDictionary;
-        private readonly PdfObjectManager _pdfObjectManager;
+        private readonly IPdfEditor _pdfEditor;
 
         private readonly Name _defaultFontResourceName = UniqueStringGenerator.Generate();
 
         private readonly AsyncLazy<IEnumerable<IFontMetricsProvider>> _fontProviders;
 
-        public Form(IndirectObjectReference acroFormReference, PdfObjectManager pdfObjectManager)
+        public Form(IndirectObjectReference acroFormReference, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(acroFormReference, nameof(acroFormReference));
-            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
-            _pdfObjectManager = pdfObjectManager;
+            _pdfEditor = pdfEditor;
 
-            _acroForm = new AsyncLazy<IndirectObject>(async () => await _pdfObjectManager.GetAsync(acroFormReference)
+            _acroForm = new AsyncLazy<IndirectObject>(async () => await _pdfEditor.GetAsync(acroFormReference)
                     ?? throw new InvalidPdfException("Unable to resolve form reference"));
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
@@ -52,22 +51,22 @@ namespace ZingPDF.Elements.Forms
 
                 if (formDict.DR != null)
                 {
-                    ResourceDictionary defaultResources = ResourceDictionary.FromDictionary(await formDict.DR.GetAsync(_pdfObjectManager));
+                    ResourceDictionary defaultResources = ResourceDictionary.FromDictionary(await formDict.DR.GetAsync());
 
                     if (defaultResources.Font != null)
                     {
-                        Dictionary fontDict = await defaultResources.Font.GetAsync(_pdfObjectManager);
+                        Dictionary fontDict = await defaultResources.Font.GetAsync();
 
                         Dictionary<string, Stream> fontStreams = [];
                         foreach (var kvp in fontDict)
                         {
-                            var font = await _pdfObjectManager.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
+                            var font = await _pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
 
                             if (font?.FontDescriptor != null)
                             {
-                                var fontDescriptor = await font.FontDescriptor.GetAsync(_pdfObjectManager);
-                                var widthsArray = await font.Widths.GetAsync(_pdfObjectManager);
-                                var firstCharCode = await font.FirstChar.GetAsync(_pdfObjectManager);
+                                var fontDescriptor = await font.FontDescriptor.GetAsync();
+                                var widthsArray = await font.Widths.GetAsync();
+                                var firstCharCode = await font.FirstChar.GetAsync();
 
                                 var widths = widthsArray
                                     .Cast<Number>()
@@ -75,12 +74,12 @@ namespace ZingPDF.Elements.Forms
                                     .ToDictionary(x => (char)(firstCharCode + x.index), x => (int)x.width);
 
                                 simpleFontMetricsProvider.FontMetrics.Add(
-                                    await fontDescriptor.FontName.GetAsync(_pdfObjectManager),
-                                    await fontDescriptor.ToFontMetricsAsync(widths, _pdfObjectManager)
+                                    await fontDescriptor.FontName.GetAsync(),
+                                    await fontDescriptor.ToFontMetricsAsync(widths)
                                     );
                             }
 
-                            //fontStreams.Add(kvp.Key, await font.GetDecompressedDataAsync(_pdfObjectManager));
+                            //fontStreams.Add(kvp.Key, await font.GetDecompressedDataAsync(_pdfEditor));
                         }
                     }
                 }
@@ -98,12 +97,12 @@ namespace ZingPDF.Elements.Forms
         {
             var formDict = await _acroFormDictionary;
 
-            var fields = await formDict.Fields.GetAsync(_pdfObjectManager);
+            var fields = await formDict.Fields.GetAsync();
 
             var kids = new List<IndirectObject>();
             foreach (var kid in fields!.Cast<IndirectObjectReference>() ?? [])
             {
-                kids.Add(await _pdfObjectManager.GetAsync(kid));
+                kids.Add(await _pdfEditor.GetAsync(kid));
             }
 
             return await GetFieldsAsync(kids, null);
@@ -129,16 +128,16 @@ namespace ZingPDF.Elements.Forms
 
                 if (fieldDict.Kids != null)
                 {
-                    kidRefs = await fieldDict.Kids.GetAsync(_pdfObjectManager);
+                    kidRefs = await fieldDict.Kids.GetAsync();
                 }
 
                 var kids = new List<IndirectObject>();
                 foreach (var kid in kidRefs.Cast<IndirectObjectReference>())
                 {
-                    kids.Add(await _pdfObjectManager.GetAsync(kid));
+                    kids.Add(await _pdfEditor.GetAsync(kid));
                 }
 
-                string partialFieldName = (await fieldDict.T.GetAsync(_pdfObjectManager))!;
+                string partialFieldName = (await fieldDict.T.GetAsync())!;
 
                 string fieldName = prefix is not null ? $"{prefix}.{partialFieldName}" : partialFieldName;
 
@@ -193,7 +192,7 @@ namespace ZingPDF.Elements.Forms
 
             //await EnsureDefaultResourceDictionaryAsync(acroFormDict);
 
-            _pdfObjectManager.Update(await _acroForm);
+            _pdfEditor.Update(await _acroForm);
         }
 
         internal void MarkForUpdate()
@@ -210,7 +209,7 @@ namespace ZingPDF.Elements.Forms
 
         private async Task EnsureDefaultResourceDictionaryAsync(InteractiveFormDictionary acroFormDictionary)
         {
-            ResourceDictionary defaultResources = [];
+            var defaultResources = new ResourceDictionary(new Dictionary<Name, IPdfObject>(), _pdfEditor);
 
             if (acroFormDictionary.DR is null)
             {
@@ -218,18 +217,18 @@ namespace ZingPDF.Elements.Forms
             }
             else
             {
-                defaultResources = new ResourceDictionary(await acroFormDictionary.DR.GetAsync(_pdfObjectManager));
+                defaultResources = new ResourceDictionary(await acroFormDictionary.DR.GetAsync());
             }
 
             if (defaultResources.Font is null)
             {
                 // TODO: can we reuse an existing font?
                 // TODO: make font configurable
-                var defaultFont = new FontDictionary(FontDictionary.Subtypes.Type1);
+                var defaultFont = new FontDictionary(FontDictionary.Subtypes.Type1, _pdfEditor);
 
-                var fontIndirectObject = _pdfObjectManager.Add(defaultFont);
+                var fontIndirectObject = _pdfEditor.Add(defaultFont);
 
-                await defaultResources.AddFontAsync(_defaultFontResourceName, fontIndirectObject.Id.Reference, _pdfObjectManager);
+                await defaultResources.AddFontAsync(_defaultFontResourceName, fontIndirectObject.Id.Reference, _pdfEditor);
             }
         }
 
@@ -257,17 +256,17 @@ namespace ZingPDF.Elements.Forms
 
             if (fieldDictionary.Ff != null)
             {
-                flags = await fieldDictionary.Ff.GetAsync(_pdfObjectManager);
+                flags = await fieldDictionary.Ff.GetAsync();
             }
 
             var fieldProperties = new FieldProperties(flags);
 
-            var fieldTypeName = await fieldDictionary.FT!.GetAsync(_pdfObjectManager);
+            var fieldTypeName = await fieldDictionary.FT!.GetAsync();
 
             string? fieldDescription = null;
             if (fieldDictionary.TU != null)
             {
-                fieldDescription = await fieldDictionary.TU.GetAsync(_pdfObjectManager);
+                fieldDescription = await fieldDictionary.TU.GetAsync();
             }
 
             return fieldTypeName.ToFormFieldType() switch
@@ -279,7 +278,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager,
+                    _pdfEditor,
                     _defaultFontResourceName
                     ),
                 FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties),
@@ -289,7 +288,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager
+                    _pdfEditor
                     ),
                 _ => throw new InvalidOperationException("Unexpected error. Code should be unreachable"),
             };
@@ -310,7 +309,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager
+                    _pdfEditor
                 );
             }
             else
@@ -321,7 +320,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager
+                    _pdfEditor
                 );
             }
         }
@@ -342,7 +341,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager
+                    _pdfEditor
                 );
             }
             else if (fieldProperties.IsRadio)
@@ -353,7 +352,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager,
+                    _pdfEditor,
                     kids
                 );
             }
@@ -365,7 +364,7 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdfObjectManager,
+                    _pdfEditor,
                     kids
                 );
             }

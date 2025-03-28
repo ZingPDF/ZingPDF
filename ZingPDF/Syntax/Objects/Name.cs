@@ -66,8 +66,13 @@ namespace ZingPDF.Syntax.Objects
             return left.Equals(right);
         }
 
-        public static bool operator !=(Name left, Name right)
+        public static bool operator !=(Name? left, Name? right)
         {
+            if (left is null || right is null)
+            {
+                return true;
+            }
+
             return !(left == right);
         }
 

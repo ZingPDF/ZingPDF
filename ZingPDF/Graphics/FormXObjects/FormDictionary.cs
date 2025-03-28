@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Graphics.FormXObjects;
@@ -8,7 +10,11 @@ namespace ZingPDF.Graphics.FormXObjects;
 /// </summary>
 internal abstract class FormDictionary : XObjectDictionary
 {
-    protected FormDictionary(Dictionary dict) : base(dict) { }
+    protected FormDictionary(Dictionary dict)
+        : base(dict) { }
+
+    protected FormDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+        : base(dict, pdfEditor) { }
 
     public FormDictionary(
         Number length,
@@ -17,7 +23,8 @@ internal abstract class FormDictionary : XObjectDictionary
         Dictionary? f,
         ShorthandArrayObject? fFilter,
         ShorthandArrayObject? fDecodeParms,
-        Number? dL
+        Number? dL,
+        IPdfEditor pdfEditor
     ) : base(
             Subtypes.Form,
             length,
@@ -26,7 +33,8 @@ internal abstract class FormDictionary : XObjectDictionary
             f,
             fFilter,
             fDecodeParms,
-            dL
+            dL,
+            pdfEditor
         )
     {
     }

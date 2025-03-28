@@ -20,6 +20,7 @@ public static class Files
     public const string Minimal2 = $"{_pdfBasePath}/minimal2.pdf";
     public const string Minimal3 = $"{_pdfBasePath}/minimal3.pdf";
     public const string Test = $"{_pdfBasePath}/test.pdf";
+    public const string Encrypted = $"{_pdfBasePath}/encrypted.pdf";
 
     public static MemoryStream AsStream(string path) => new(ConcurrentRead(path));
 

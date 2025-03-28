@@ -1,4 +1,5 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
@@ -15,7 +16,11 @@ namespace ZingPDF.Graphics.FormXObjects
     {
         private const int _formType = 1;
 
-        private Type1FormDictionary(Dictionary dict) : base(dict) { }
+        public Type1FormDictionary(Dictionary dict)
+            : base(dict) { }
+
+        private Type1FormDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+            : base(dict, pdfEditor) { }
 
         public Type1FormDictionary(
             Rectangle bBox,
@@ -26,7 +31,8 @@ namespace ZingPDF.Graphics.FormXObjects
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Number? dL
+            Number? dL,
+            IPdfEditor pdfEditor
             )
             : base(
                 length,
@@ -35,7 +41,8 @@ namespace ZingPDF.Graphics.FormXObjects
                 f,
                 fFilter,
                 fDecodeParms,
-                dL
+                dL,
+                pdfEditor
                 )
         {
             ArgumentNullException.ThrowIfNull(bBox);
@@ -172,7 +179,7 @@ namespace ZingPDF.Graphics.FormXObjects
         /// </summary>
         public AsyncProperty<Dictionary>? Measure => Get<Dictionary>(Constants.DictionaryKeys.Form.Type1.Measure);
 
-        new public static Type1FormDictionary FromDictionary(Dictionary dict)
+        new public static Type1FormDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(dict);
 
@@ -186,7 +193,7 @@ namespace ZingPDF.Graphics.FormXObjects
                 throw new ArgumentException("Supplied argument is not a form dictionary.", nameof(dict));
             }
 
-            return new(dict);
+            return new(dict, pdfEditor);
         }
     }
 }

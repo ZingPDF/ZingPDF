@@ -12,9 +12,8 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     /// Special parser for xref streams.
     /// </summary>
     /// <remarks>
-    /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IIndirectObjectDictionary"/> to find any indirect objects if required.
-    /// Although probably invalid, some xref streams use an indirect object for the Length property. This is odd and unnecessary as it's just an integer, however we support
-    /// this scenario by using this parser instead of the usual one.
+    /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IPdfEditor"/> to find any indirect objects if required.
+    /// Some xref streams use an indirect object for the Length property, which we need to create a SubStream.
     /// </remarks>
     internal class CrossReferenceStreamParser : IObjectParser<StreamObject<CrossReferenceStreamDictionary>>
     {
@@ -22,7 +21,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         {
             var initialStreamPosition = stream.Position;
 
-            var dict = await Parser.Dictionaries.ParseAsync(stream) as CrossReferenceStreamDictionary
+            var dict = await new CrossReferenceStreamDictionaryParser().ParseAsync(stream) as CrossReferenceStreamDictionary
                 ?? throw new ParserException("Failed to parse xref stream");
 
             Number streamLength = 0;

@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
@@ -21,7 +22,7 @@ internal class ContentStreamFactory<TDictionary> : IStreamObjectFactory<TDiction
         _dictionary = dictionary;
     }
 
-    public StreamObject<TDictionary> Create()
+    public StreamObject<TDictionary> Create(IPdfEditor pdfEditor)
     {
         var ms = new MemoryStream();
 

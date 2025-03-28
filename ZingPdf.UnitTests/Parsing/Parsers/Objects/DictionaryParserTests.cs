@@ -3,6 +3,8 @@ using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
+using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -13,9 +15,11 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseEmptyAsync()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         using var input = "<< >>".ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         output.Should().BeEmpty();
     }
@@ -23,11 +27,13 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleNestedDictionary_CorrectCounts()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<</Resources <<>>>>";
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -39,11 +45,13 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleNestedDictionary_CorrectStreamPosition()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<</Resources <<>>>>";
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
@@ -54,11 +62,13 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleNestedDictionary_WithWhitespace_CorrectCounts()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<< /Resources << >> >>";
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -70,11 +80,13 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleNestedDictionary_WithWhitepsace_CorrectStreamPosition()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<< /Resources << >> >>";
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(
             contentString.Length,
@@ -86,6 +98,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseComplexCatalogDictionary()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "" +
             "<<" +
             "/AcroForm 90825 0 R" +
@@ -116,12 +130,14 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
     }
 
     [Fact]
     public async Task DelimiterAtStreamBufferBoundary()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         // While the dictionary parser uses a 1024 buffer, the following string representation
         // of a dictionary has a delimiter which straddles the buffer boundary.
 
@@ -155,7 +171,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -165,6 +181,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseThis()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "\r<<" +
             "/ArtBox[0.0 0.0 841.89 595.276]" +
             "/BleedBox[0.0 0.0 841.89 595.276]" +
@@ -198,7 +216,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -208,11 +226,13 @@ public class DictionaryParserTests
     [Fact]
     public async Task DictionaryEndsWithMultipleDelimiters()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<</PieceInfo<</InDesign<<>>>>>>";
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -222,6 +242,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleDictionary_WithWindowsLineEndings_CorrectFields()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<<\r\n" +
             "/Type /Page\r\n" +
             "/Other /Test\r\n" +
@@ -229,7 +251,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         var type = output.Type;
         var other = output.GetAs<Name>("Other");
@@ -246,6 +268,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseCompactDictionary()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<<" +
             "/DocumentID<FEFF0078006D0070002E006400690064003A00630036003800330035003900300034002D0032006500660035002D0034003400300036002D0061003700310036002D006600640033006100360035006100370065003700310065>" +
             "/LastModified<FEFF0044003A00320030003200340031003100310038003000320033003600310033005A>" +
@@ -258,7 +282,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
     }
@@ -266,6 +290,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleDictionary_WithWindowsLineEndings_CorrectStreamPosition()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<<\r\n" +
             "/Type /Page\r\n" +
             "/Other /Test\r\n" +
@@ -273,7 +299,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),
@@ -284,6 +310,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleDictionary_WithUnixLineEndings_CorrectFields()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<<\n" +
             "/Type /Page\n" +
             "/Other /Test\n" +
@@ -291,7 +319,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         var type = output.Type;
         var other = output.GetAs<Name>("Other");
@@ -308,6 +336,8 @@ public class DictionaryParserTests
     [Fact]
     public async Task ParseSimpleDictionary_WithUnixLineEndings_CorrectStreamPosition()
     {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
         var contentString = "<<\n" +
             "/Type /Page\n" +
             "/Other /Test\n" +
@@ -315,7 +345,7 @@ public class DictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new DictionaryParser().ParseAsync(input);
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),

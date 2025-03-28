@@ -25,21 +25,19 @@ namespace ZingPDF.Extensions
 
         public static async Task<FontMetrics> ToFontMetricsAsync(
             this FontDescriptorDictionary fontDescriptor,
-            Dictionary<char, int> widths,
-            IIndirectObjectDictionary indirectObjectDictionary
+            Dictionary<char, int> widths
             )
         {
-            var fontProperties = new FontProperties(await fontDescriptor.Flags.GetAsync(indirectObjectDictionary));
+            var fontProperties = new FontProperties(await fontDescriptor.Flags.GetAsync());
 
             return new FontMetrics
             {
-                Ascent = await fontDescriptor.Ascent.GetAsync(indirectObjectDictionary),
-                Descent = await fontDescriptor.Descent.GetAsync(indirectObjectDictionary),
-                StandardHorizontalWidth = fontDescriptor.StemH != null ? await fontDescriptor.StemH.GetAsync(indirectObjectDictionary) : null,
-                StandardVerticalWidth = fontDescriptor.StemV != null ? await fontDescriptor.StemV.GetAsync(indirectObjectDictionary) : null,
-                CapHeight = await fontDescriptor.CapHeight.GetAsync(indirectObjectDictionary),
-                XHeight = await fontDescriptor.XHeight.GetAsync(indirectObjectDictionary),
-                ItalicAngle = await fontDescriptor.ItalicAngle.GetAsync(indirectObjectDictionary),
+                Ascent = await fontDescriptor.Ascent.GetAsync(),
+                Descent = await fontDescriptor.Descent.GetAsync(),
+                StandardHorizontalWidth = fontDescriptor.StemH != null ? await fontDescriptor.StemH.GetAsync() : null,
+                StandardVerticalWidth = fontDescriptor.StemV != null ? await fontDescriptor.StemV.GetAsync() : null,
+                CapHeight = await fontDescriptor.CapHeight.GetAsync(),
+                ItalicAngle = await fontDescriptor.ItalicAngle.GetAsync(),
                 IsFixedPitch = fontProperties.IsFixedPitch,
                 Widths = widths
             };

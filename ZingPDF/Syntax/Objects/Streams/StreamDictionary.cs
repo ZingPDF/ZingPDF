@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects.Dictionaries;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Objects.Streams
 {
@@ -7,6 +8,12 @@ namespace ZingPDF.Syntax.Objects.Streams
     /// </summary>
     public class StreamDictionary : Dictionary, IStreamDictionary
     {
+        public StreamDictionary(Dictionary dictionary)
+            : base(dictionary) { }
+
+        protected StreamDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
+            : base(streamDictionary, pdfEditor) { }
+
         protected StreamDictionary(
             Name? type,
             Number length,
@@ -15,9 +22,10 @@ namespace ZingPDF.Syntax.Objects.Streams
             Dictionary? f,
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
-            Number? dL
+            Number? dL,
+            IPdfEditor pdfEditor
             )
-            : base(type)
+            : base(type, pdfEditor)
         {
             Set(Constants.DictionaryKeys.Stream.Length, length);
             Set(Constants.DictionaryKeys.Stream.Filter, filter);
@@ -28,17 +36,15 @@ namespace ZingPDF.Syntax.Objects.Streams
             Set(Constants.DictionaryKeys.Stream.DL, dL);
         }
 
-        protected StreamDictionary(Dictionary streamDictionary) : base(streamDictionary) { }
-
         public AsyncProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
-        public AsyncProperty<ShorthandArrayObject>? Filter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.Filter);
-        public AsyncProperty<ShorthandArrayObject>? DecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
+        public AsyncMultiProperty<Name, ArrayObject>? Filter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.Filter);
+        public AsyncMultiProperty<Dictionary, ArrayObject>? DecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
         public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
-        public AsyncProperty<ShorthandArrayObject>? FFilter => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
-        public AsyncProperty<ShorthandArrayObject>? FDecodeParms => Get<ShorthandArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
+        public AsyncMultiProperty<Name, ArrayObject>? FFilter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
+        public AsyncMultiProperty<Dictionary, ArrayObject>? FDecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
         public AsyncProperty<Number>? DL => Get<Number>(Constants.DictionaryKeys.Stream.DL);
 
-        public static StreamDictionary FromDictionary(Dictionary streamDictionary)
+        public static StreamDictionary FromDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
         {
             if (!streamDictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
             {
@@ -47,7 +53,7 @@ namespace ZingPDF.Syntax.Objects.Streams
 
             return streamDictionary is null
                 ? throw new ArgumentNullException(nameof(streamDictionary))
-                : new(streamDictionary);
+                : new(streamDictionary, pdfEditor);
         }
 
         //public void SetStreamProperties(Dictionary streamDictionary)

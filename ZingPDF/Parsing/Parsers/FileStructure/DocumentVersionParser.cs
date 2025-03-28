@@ -1,7 +1,6 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
-using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
@@ -51,7 +50,7 @@ internal static class DocumentVersionParser
             {
                 CrossReferenceTable = xrefTable,
                 Trailer = await Parser.Trailers.ParseAsync(pdfInputStream),
-                IndirectObjects = new IndirectObjectDictionary(pdfInputStream, ProcessXrefTable(xrefTable))
+                IndirectObjects = ProcessXrefTable(xrefTable)
             };
         }
         else if (type == typeof(IndirectObject))
@@ -69,7 +68,7 @@ internal static class DocumentVersionParser
             version = new VersionInformation
             {
                 CrossReferenceStream = xrefStream,
-                IndirectObjects = new IndirectObjectDictionary(pdfInputStream, await ProcessXrefStreamAsync(xrefStream, new IndirectObjectId(id, genNumber), xrefOffset))
+                IndirectObjects = await ProcessXrefStreamAsync(xrefStream, new IndirectObjectId(id, genNumber), xrefOffset)
             };
         }
         else
@@ -102,17 +101,18 @@ internal static class DocumentVersionParser
         return await Parser.Numbers.ParseAsync(pdfStream);
     }
 
-    private static Dictionary<int, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
+    private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
     {
-        Dictionary<int, CrossReferenceEntry> xrefs = [];
+        Dictionary<IndirectObjectId, CrossReferenceEntry> xrefs = [];
 
         foreach (var section in xrefTable.Sections)
         {
             for (var i = 0; i < section.Entries.Count; i++)
             {
                 var entry = section.Entries[i];
+                var key = new IndirectObjectId(section.Index.StartIndex + i, entry.Value2);
 
-                if (!xrefs.TryAdd(section.Index.StartIndex + i, entry))
+                if (!xrefs.TryAdd(key, entry))
                 {
                     throw new InvalidOperationException($"Duplicate xref in table {section.Index.StartIndex + i}:{entry.Value1}:{entry.Value2}");
                 }
@@ -122,13 +122,13 @@ internal static class DocumentVersionParser
         return xrefs;
     }
 
-    private static async Task<Dictionary<int, CrossReferenceEntry>> ProcessXrefStreamAsync(
+    private static async Task<Dictionary<IndirectObjectId, CrossReferenceEntry>> ProcessXrefStreamAsync(
         StreamObject<CrossReferenceStreamDictionary> xrefStream,
         IndirectObjectId xrefStreamObjectId,
         long xrefStreamByteOffset
         )
     {
-        Dictionary<int, CrossReferenceEntry> xrefs = [];
+        Dictionary<IndirectObjectId, CrossReferenceEntry> xrefs = [];
 
         // Get the indices for each subsection
         List<CrossReferenceSectionIndex> xrefIndices = [];
@@ -152,18 +152,7 @@ internal static class DocumentVersionParser
             }
         }
 
-        // TODO: think about this. The property uses the ShorthandArrayObject type as it is written as either a Name OR array of Names.
-        // However during parsing, the object will be identified as either a Name or ArrayObject. The parsed value will never match the property type of ShorthandArrayObject.
-        // For now, we try resolving the property as either type.
-
-        var filters = (xrefStream.Dictionary.Filter?.Value as ArrayObject)?.Cast<Name>()
-            ?? [(xrefStream.Dictionary.Filter?.Value as Name)!];
-
-        var decodeParms = (xrefStream.Dictionary.DecodeParms?.Value as ArrayObject)?.Cast<Dictionary>()
-            ?? [(xrefStream.Dictionary.DecodeParms?.Value as Dictionary)!];
-
-        // TODO: check this, seem to have 2 methods for decompressing data (StreamObject has a method too)
-        var xrefData = await (await xrefStream.Data.UncompressAsync(filters, decodeParms)).ReadToEndAsync();
+        var xrefData = await (await xrefStream.GetDecompressedDataAsync()).ReadToEndAsync();
 
         var entrySize = xrefStream.Dictionary.W.Sum(x => (x as Number)!);
 
@@ -193,16 +182,21 @@ internal static class DocumentVersionParser
                 int field2 = ExtractField(entryData, field1Size, field2Size);
                 int field3 = ExtractField(entryData, field1Size + field2Size, field3Size);
 
-                xrefs.TryAdd(index.StartIndex + j, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: entryType == 2));
+                var isCompressed = entryType == 2;
+                var generationNumber = (ushort)(isCompressed ? 0 : field3);
+
+                var key = new IndirectObjectId(index.StartIndex + j, generationNumber);
+
+                xrefs.TryAdd(key, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: isCompressed));
             }
         }
 
         // Some writers fail to include the xref stream as a reference within itself, as required by the spec.
         // Since this is common, we check for this case and repair.
-        if (!xrefs.ContainsKey(xrefStreamObjectId.Index))
+        if (!xrefs.ContainsKey(xrefStreamObjectId))
         {
             xrefs.Add(
-                xrefStreamObjectId.Index,
+                xrefStreamObjectId,
                 new CrossReferenceEntry(xrefStreamByteOffset, xrefStreamObjectId.GenerationNumber, inUse: true, compressed: false)
                 );
 

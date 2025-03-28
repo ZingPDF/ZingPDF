@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -35,7 +37,7 @@ internal class ImageXObjectFactory(
     private readonly Number _height = height ?? throw new ArgumentNullException(nameof(height));
     private readonly Number _bitDepth = bitDepth ?? throw new ArgumentNullException(nameof(bitDepth));
 
-    public StreamObject<ImageDictionary> Create()
+    public StreamObject<ImageDictionary> Create(IPdfEditor pdfEditor)
     {
         return new StreamObject<ImageDictionary>(
             _image,
@@ -50,7 +52,8 @@ internal class ImageXObjectFactory(
                 f,
                 fFilter,
                 fDecodeParms,
-                dL
+                dL,
+                pdfEditor
                 )
             );
     }

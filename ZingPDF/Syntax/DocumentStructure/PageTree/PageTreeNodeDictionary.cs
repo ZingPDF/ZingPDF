@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -9,7 +10,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
     /// </summary>
     public class PageTreeNodeDictionary : PageNode
     {
-        private PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary) : base(pageTreeNodeDictionary) { }
+        public PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary)
+            : base(pageTreeNodeDictionary) { }
+
+        private PageTreeNodeDictionary(Dictionary<Name, IPdfObject> pageTreeNodeDictionary, IPdfEditor pdfEditor)
+            : base(pageTreeNodeDictionary, pdfEditor) { }
 
         /// <summary>
         /// (Required) An array of indirect references to the immediate children of this node. The children shall only be page objects or other page tree nodes.
@@ -70,17 +75,17 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount - 1));
         }
 
-        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences)
+        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdfEditor pdfEditor)
         {
             return new(new Dictionary<Name, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Pages) },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(pageReferences.Count()) },
-            });
+            }, pdfEditor);
         }
 
-        public static PageTreeNodeDictionary FromDictionary(Dictionary pagesCatalog)
-            => new(pagesCatalog);
+        public static PageTreeNodeDictionary FromDictionary(Dictionary<Name, IPdfObject> pagesCatalog, IPdfEditor pdfEditor)
+            => new(pagesCatalog, pdfEditor);
     }
 }

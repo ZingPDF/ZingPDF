@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Linearization
@@ -8,7 +10,11 @@ namespace ZingPDF.Linearization
     /// </summary
     public class LinearizationParameterDictionary : Dictionary
     {
-        private LinearizationParameterDictionary(Dictionary linearizationDictionary) : base(linearizationDictionary) { }
+        public LinearizationParameterDictionary(Dictionary linearizationDictionary)
+            : base(linearizationDictionary) { }
+
+        private LinearizationParameterDictionary(Dictionary<Name, IPdfObject> linearizationDictionary, IPdfEditor pdfEditor)
+            : base(linearizationDictionary, pdfEditor) { }
 
         /// <summary>
         /// A version identification for the linearized format.
@@ -70,11 +76,11 @@ namespace ZingPDF.Linearization
         /// </summary>
         public AsyncProperty<Number>? P => Get<Number>(Constants.DictionaryKeys.LinearizationParameter.P);
 
-        public static LinearizationParameterDictionary FromDictionary(Dictionary linearizationDictionary)
+        public static LinearizationParameterDictionary FromDictionary(Dictionary<Name, IPdfObject> linearizationDictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(linearizationDictionary);
 
-            return new(linearizationDictionary);
+            return new(linearizationDictionary, pdfEditor);
         }
     }
 }

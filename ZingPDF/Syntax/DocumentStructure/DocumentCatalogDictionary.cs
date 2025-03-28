@@ -1,4 +1,5 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -13,7 +14,11 @@ namespace ZingPDF.Syntax.DocumentStructure
     /// </summary>
     public class DocumentCatalogDictionary : Dictionary
     {
-        private DocumentCatalogDictionary(Dictionary documentCatalogDictionary) : base(documentCatalogDictionary) { }
+        public DocumentCatalogDictionary(Dictionary documentCatalogDictionary)
+            : base(documentCatalogDictionary) { }
+
+        private DocumentCatalogDictionary(Dictionary<Name, IPdfObject> documentCatalogDictionary, IPdfEditor pdfEditor)
+            : base(documentCatalogDictionary, pdfEditor) { }
 
         /// <summary>
         /// (Optional; PDF 1.4)<para></para>
@@ -245,11 +250,11 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// </summary>
         public AsyncProperty<Dictionary>? DPartRoot => Get<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.DPartRoot);
 
-        public static DocumentCatalogDictionary FromDictionary(Dictionary documentCatalogDictionary) 
+        public static DocumentCatalogDictionary FromDictionary(Dictionary<Name, IPdfObject> documentCatalogDictionary, IPdfEditor pdfEditor) 
         {
             return documentCatalogDictionary is null
                 ? throw new ArgumentNullException(nameof(documentCatalogDictionary))
-                : new(documentCatalogDictionary);
+                : new(documentCatalogDictionary, pdfEditor);
         }
     }
 }

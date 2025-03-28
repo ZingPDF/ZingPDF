@@ -81,7 +81,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
                 // Parse objects inside the array
-                var objectGroup = await Parser.PdfObjectGroups.ParseAsync(arrayStream);
+                // TODO: does this need a non-null IPdfEditor?
+                var objectGroup = await new PdfObjectGroupParser().ParseAsync(arrayStream);
 
                 output = objectGroup.Objects.ToArray();
             }

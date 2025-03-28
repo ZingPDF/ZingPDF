@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -11,14 +13,19 @@ internal class FontDictionary : Dictionary
         public const string Type1 = "Type1";
     }
 
-    public FontDictionary(Name subType) : base(Constants.DictionaryTypes.Font)
+    public FontDictionary(Name subType, IPdfEditor pdfEditor)
+        : base(Constants.DictionaryTypes.Font, pdfEditor)
     {
         ArgumentNullException.ThrowIfNull(subType);
 
         Set(Constants.DictionaryKeys.Subtype, subType);
     }
 
-    protected FontDictionary(Dictionary dictionary) : base(dictionary)
+    public FontDictionary(Dictionary dictionary)
+        : base(dictionary){ }
+
+    private FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+        : base(dictionary, pdfEditor)
     {
     }
 
@@ -86,8 +93,8 @@ internal class FontDictionary : Dictionary
     /// </summary>
     public AsyncProperty<StreamObject<StreamDictionary>>? ToUnicode => Get<StreamObject<StreamDictionary>>(Constants.DictionaryKeys.Font.ToUnicode);
 
-    public static FontDictionary FromDictionary(Dictionary dictionary)
+    public static FontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
     {
-        return new FontDictionary(dictionary);
+        return new FontDictionary(dictionary, pdfEditor);
     }
 }
