@@ -15,10 +15,10 @@ internal class RadioButtonFormField : ButtonOptionsFormField
         string? description,
         FieldProperties properties,
         Form parent,
-        PdfObjectManager pdfObjectManager,
+        IPdfEditor pdfEditor,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfObjectManager, kids)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor, kids)
     {
     }
 
@@ -57,7 +57,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
                 }
             }
 
-            _pdfObjectManager.Update(annot);
+            _pdfEditor.Update(annot);
         }
     }
 
@@ -82,7 +82,7 @@ internal class RadioButtonFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _pdfObjectManager.Update(option.AssociatedDictionary);
+        _pdfEditor.Update(option.AssociatedDictionary);
 
         return Task.CompletedTask;
     }

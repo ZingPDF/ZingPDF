@@ -13,9 +13,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         string? description,
         FieldProperties properties,
         Form parent,
-        PdfObjectManager pdfObjectManager
+        IPdfEditor pdfEditor
         )
-        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfObjectManager)
+        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfEditor)
     {
         public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {
@@ -24,7 +24,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
                 return [];
             }
 
-            var optValues = await _fieldDictionary.Opt.GetAsync(_pdfObjectManager);
+            var optValues = await _fieldDictionary.Opt.GetAsync();
 
             List<ChoiceItem> options = [];
 
@@ -80,7 +80,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
                 return [];
             }
 
-            var val = await _fieldDictionary.V.GetAsync(_pdfObjectManager);
+            var val = await _fieldDictionary.V.GetAsync();
 
             if (val is LiteralString singleOption)
             {

@@ -5,7 +5,8 @@ namespace ZingPDF.Syntax
     public class ExtensionsDictionary : Dictionary
     {
         // TODO
-
-        public ExtensionsDictionary() : base(Constants.DictionaryTypes.Extensions) { }
+        public ExtensionsDictionary(Dictionary dictionary) : base(dictionary)
+        {
+        }
     }
 }

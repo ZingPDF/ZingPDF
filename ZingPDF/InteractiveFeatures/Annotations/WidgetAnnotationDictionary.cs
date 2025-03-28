@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -6,9 +7,13 @@ namespace ZingPDF.InteractiveFeatures.Annotations
 {
     public class WidgetAnnotationDictionary : AnnotationDictionary
     {
-        public WidgetAnnotationDictionary() : base(Subtypes.Widget) { }
+        public WidgetAnnotationDictionary(Dictionary dictionary)
+            : base(dictionary) { }
 
-        protected WidgetAnnotationDictionary(Dictionary dict) : base(dict) { }
+        public WidgetAnnotationDictionary(IPdfEditor pdfEditor) : base(Subtypes.Widget, pdfEditor) { }
+
+        protected WidgetAnnotationDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -64,7 +69,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// </summary>
         public AsyncProperty<Dictionary>? Parent => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.Parent);
 
-        new public static WidgetAnnotationDictionary FromDictionary(Dictionary annotationDictionary)
+        new public static WidgetAnnotationDictionary FromDictionary(Dictionary<Name, IPdfObject> annotationDictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(annotationDictionary);
 
@@ -78,7 +83,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
                 throw new ArgumentException("Supplied argument is not a widget annotation dictionary.", nameof(annotationDictionary));
             }
 
-            return new(annotationDictionary);
+            return new(annotationDictionary, pdfEditor);
         }
     }
 }
