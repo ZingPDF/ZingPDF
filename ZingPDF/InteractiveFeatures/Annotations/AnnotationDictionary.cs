@@ -1,7 +1,7 @@
-﻿using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Strings;
@@ -15,14 +15,19 @@ namespace ZingPDF.InteractiveFeatures.Annotations
             public const string Widget = "Widget";
         }
 
-        public AnnotationDictionary(Name subtype) : base(Constants.DictionaryTypes.Annot)
+        public AnnotationDictionary(Dictionary dictionary)
+            : base(dictionary) { }
+
+        public AnnotationDictionary(Name subtype, IPdfEditor pdfEditor)
+            : base(Constants.DictionaryTypes.Annot, pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
 
-        protected AnnotationDictionary(Dictionary dict) : base(dict) { }
+        protected AnnotationDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+            : base(dict, pdfEditor) { }
 
         /// <summary>
         /// <para>(Required)</para>
@@ -219,7 +224,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
             Set(Constants.DictionaryKeys.Annotation.AP, apDict);
         }
 
-        public static AnnotationDictionary FromDictionary(Dictionary annotationDictionary)
+        public static AnnotationDictionary FromDictionary(Dictionary<Name, IPdfObject> annotationDictionary, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(annotationDictionary);
 
@@ -228,7 +233,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
                 throw new ArgumentException("Supplied argument is not an annotation dictionary.", nameof(annotationDictionary));
             }
 
-            return new(annotationDictionary);
+            return new(annotationDictionary, pdfEditor);
         }
     }
 }
