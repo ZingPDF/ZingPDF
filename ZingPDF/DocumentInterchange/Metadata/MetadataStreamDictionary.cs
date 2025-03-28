@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -13,7 +14,8 @@ public class MetadataStreamDictionary : StreamDictionary
         Dictionary? f,
         ShorthandArrayObject? fFilter,
         ShorthandArrayObject? fDecodeParms,
-        Number? dL
+        Number? dL,
+        IPdfEditor pdfEditor
         )
         : base(
             Constants.DictionaryTypes.Metadata,
@@ -23,7 +25,8 @@ public class MetadataStreamDictionary : StreamDictionary
             f,
             fFilter,
             fDecodeParms,
-            dL
+            dL,
+            pdfEditor
             )
     {
         Set<Name>(Constants.DictionaryKeys.Subtype, "XML");

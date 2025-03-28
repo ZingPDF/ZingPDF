@@ -4,7 +4,7 @@ using ZingPDF.Syntax.Filters;
 namespace ZingPDF.Syntax.Objects.Streams;
 
 /// <summary>
-/// ISO 32000-2:2020 7.3.8 - Stream objects.<para></para>
+/// ISO 32000-2:2020 7.3.8 - Stream objects.
 /// </summary>
 /// <remarks>
 /// A Stream object consists of a stream dictionary, followed by the stream data.
@@ -43,10 +43,8 @@ public sealed class StreamObject<TDictionary> : PdfObject
         await new Keyword(Constants.StreamEnd).WriteAsync(stream);
     }
 
-    public async Task<Stream> GetDecompressedDataAsync(IIndirectObjectDictionary indirectObjectDictionary)
+    public async Task<Stream> GetDecompressedDataAsync()
     {
-        ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
-
         // TODO: stream contents may be encrypted, decrypt.
 
         Data.Position = 0;
@@ -59,25 +57,16 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         var workingData = await Data.ReadToEndAsync();
 
-        IEnumerable<Name> filterNames = [];
+        Either<Name, ArrayObject> filterValue = await Dictionary.Filter.GetAsync();
 
-        // TODO: perhaps defer property resolution to the type itself (or allow a type to override the default).
-        // The underlying type for the value here will be Name or ArrayObject rather than ShorthandArrayObject.
-        // For now, manually check the type here and resolve appropriately
-        if (Dictionary.Filter.Value is Name filterName)
-        {
-            filterNames = [filterName];
-        }
-        else if(Dictionary.Filter.Value is ArrayObject ary)
-        {
-            filterNames = ary.Cast<Name>();
-        }
+        IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
 
-        ShorthandArrayObject allFilterParams = [];
+        IEnumerable<Dictionaries.Dictionary> allFilterParams = [];
         
         if (Dictionary.DecodeParms != null)
         {
-            allFilterParams = await Dictionary.DecodeParms.GetAsync(indirectObjectDictionary);
+            var decodeParmsValue = await Dictionary.DecodeParms.GetAsync();
+            allFilterParams = decodeParmsValue.Type1 != null ? [decodeParmsValue.Type1] : decodeParmsValue.Type2!.Cast<Dictionaries.Dictionary>();
         }
 
         var filterInstances = FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>());

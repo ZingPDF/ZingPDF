@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -6,7 +7,8 @@ namespace ZingPDF.Graphics
 {
     internal class GraphicsStateParameterDictionary : Dictionary
     {
-        public GraphicsStateParameterDictionary() : base(Constants.DictionaryTypes.ExtGState) { }
+        public GraphicsStateParameterDictionary(IPdfEditor pdfEditor)
+            : base(Constants.DictionaryTypes.ExtGState, pdfEditor) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) The line width (see 8.4.3.2, "Line width").

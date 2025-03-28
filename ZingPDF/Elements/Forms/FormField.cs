@@ -12,7 +12,7 @@ namespace ZingPDF.Elements.Forms
         protected readonly IndirectObject _fieldIndirectObject;
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
-        protected readonly PdfObjectManager _pdfObjectManager;
+        protected readonly IPdfEditor _pdfEditor;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
@@ -20,13 +20,13 @@ namespace ZingPDF.Elements.Forms
             string? description,
             FieldProperties properties,
             Form parent,
-            PdfObjectManager pdfObjectManager
+            IPdfEditor pdfEditor
             )
         {
             ArgumentNullException.ThrowIfNull(fieldIndirectObject, nameof(fieldIndirectObject));
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
-            ArgumentNullException.ThrowIfNull(pdfObjectManager, nameof(pdfObjectManager));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             _fieldIndirectObject = fieldIndirectObject;
             _fieldDictionary = (FieldDictionary)fieldIndirectObject.Object;
@@ -36,14 +36,14 @@ namespace ZingPDF.Elements.Forms
             Properties = properties;
 
             _parent = parent;
-            _pdfObjectManager = pdfObjectManager;
+            _pdfEditor = pdfEditor;
         }
 
         public string Name { get; }
         public string? Description { get; }
         public FieldProperties Properties { get; }
 
-        public async Task<Size> GetFieldDimensionsAsync() => (await _fieldDictionary.Rect.GetAsync(_pdfObjectManager)).Size;
+        public async Task<Size> GetFieldDimensionsAsync() => (await _fieldDictionary.Rect.GetAsync()).Size;
 
         protected void SetValue(TValue? value)
         {
@@ -52,7 +52,7 @@ namespace ZingPDF.Elements.Forms
                 _fieldDictionary.SetValue(value);
             }
 
-            _pdfObjectManager.Update(_fieldIndirectObject);
+            _pdfEditor.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }

@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -9,8 +10,14 @@ namespace ZingPDF.InteractiveFeatures.Forms
     /// <summary>
     /// ISO 32000-2:2020 12.7.3 - Interactive form dictionary
     /// </summary>
-    public class InteractiveFormDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary) : Dictionary(dictionary)
+    public class InteractiveFormDictionary : Dictionary
     {
+        public InteractiveFormDictionary(Dictionary dictionary)
+            : base(dictionary) { }
+
+        private InteractiveFormDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor) { }
+
         /// <summary>
         /// (Required)<para></para>
         /// An array of references to the document’s root fields (those with no ancestors in the field hierarchy).
@@ -85,11 +92,9 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set(Constants.DictionaryKeys.InteractiveForm.DR, resources);
         }
 
-        public static InteractiveFormDictionary FromDictionary(Dictionary dict)
+        public static InteractiveFormDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(dict);
-
-            return new(dict);
+            return new(dict, pdfEditor);
         }
     }
 }

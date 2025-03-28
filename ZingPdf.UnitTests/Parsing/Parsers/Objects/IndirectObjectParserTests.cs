@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -32,7 +33,7 @@ public class IndirectObjectParserTests
             ">>\r\n" +
             "endobj";
 
-        var output = await new IndirectObjectParser(A.Dummy<IIndirectObjectDictionary>()).ParseAsync(contentString.ToStream());
+        var output = await new IndirectObjectParser(A.Dummy<IPdfEditor>()).ParseAsync(contentString.ToStream());
 
         output.Id.Index.Should().Be(12);
         output.Id.GenerationNumber.Should().Be(0);
@@ -48,7 +49,7 @@ public class IndirectObjectParserTests
             "endstream\r\n" +
             "endobj\r\n";
 
-        var output = await new IndirectObjectParser(A.Dummy<IIndirectObjectDictionary>()).ParseAsync(contentString.ToStream());
+        var output = await new IndirectObjectParser(A.Dummy<IPdfEditor>()).ParseAsync(contentString.ToStream());
 
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);

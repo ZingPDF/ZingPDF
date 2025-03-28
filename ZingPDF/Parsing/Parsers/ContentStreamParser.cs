@@ -7,7 +7,7 @@ namespace ZingPDF.Parsing.Parsers;
 
 internal class ContentStreamParser : IObjectParser<ContentStream>
 {
-    private static readonly HashSet<string> _operatorSet = ContentStream.Operators.All.ToHashSet();
+    private static readonly HashSet<string> _operatorSet = [.. ContentStream.Operators.All];
 
     public async ITask<ContentStream> ParseAsync(Stream stream)
     {

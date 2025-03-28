@@ -1,7 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -10,21 +10,21 @@ namespace ZingPDF.Parsing.Parsers.Objects
     internal class StreamObjectParser : IObjectParser<StreamObject<IStreamDictionary>>
     {
         private readonly IStreamDictionary? _dict;
-        private readonly IIndirectObjectDictionary _indirectObjectDictionary;
+        private readonly IPdfEditor _pdfEditor;
 
-        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary)
+        public StreamObjectParser(IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
 
-            _indirectObjectDictionary = indirectObjectDictionary;
+            _pdfEditor = pdfEditor;
         }
 
-        public StreamObjectParser(IIndirectObjectDictionary indirectObjectDictionary, IStreamDictionary dict)
+        public StreamObjectParser(IPdfEditor pdfEditor, IStreamDictionary dict)
         {
-            ArgumentNullException.ThrowIfNull(nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
             ArgumentNullException.ThrowIfNull(nameof(dict));
 
-            _indirectObjectDictionary = indirectObjectDictionary;
+            _pdfEditor = pdfEditor;
             _dict = dict;
         }
 
@@ -34,12 +34,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
-            // TODO: Parse stream dictionaries as properly typed IStreamDictionary instances so that this FromDictionary call is not required
-            var dict = _dict ?? (IStreamDictionary)await Parser.Dictionaries.ParseAsync(stream);
+            var dict = _dict ?? (IStreamDictionary)await Parser.For<Dictionary>(_pdfEditor).ParseAsync(stream);
 
             //var streamDict = dict as IStreamDictionary ?? throw new ParserException("Invalid stream dictionary");
 
-            var streamLength = await dict.Length.GetAsync(_indirectObjectDictionary);
+            var streamLength = await dict.Length.GetAsync();
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();

@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Elements;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -9,9 +10,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 {
     public abstract class PageNode : Dictionary
     {
-        public PageNode(Dictionary dictionary) : base(dictionary)
-        {
-        }
+        public PageNode(Dictionary dictionary)
+        : base(dictionary) { }
+
+        public PageNode(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+            : base(dictionary, pdfEditor) { } 
 
         /// <summary>
         /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
@@ -79,26 +82,26 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public async Task AddXObjectResourceAsync(
             Name name,
             IndirectObjectReference reference,
-            IIndirectObjectDictionary indirectObjectDictionary
+            IPdfEditor pdfEditor
             )
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
-            ArgumentNullException.ThrowIfNull(indirectObjectDictionary, nameof(indirectObjectDictionary));
+            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             if (Resources == null)
             {
                 Set(
                     Constants.DictionaryKeys.PageTree.Resources,
-                    new ResourceDictionary(xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
+                    new ResourceDictionary(pdfEditor, xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
                     );
 
                 return;
             }
 
-            var resourceDict = await Resources.GetAsync(indirectObjectDictionary);
+            var resourceDict = await Resources.GetAsync();
 
-            await resourceDict.AddXObjectAsync(name, reference, indirectObjectDictionary);
+            await resourceDict.AddXObjectAsync(name, reference, pdfEditor);
         }
     }
 }

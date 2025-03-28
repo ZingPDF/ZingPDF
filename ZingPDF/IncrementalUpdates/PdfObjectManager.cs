@@ -1,17 +1,29 @@
 ﻿using Nito.AsyncEx;
+using System.Text;
+using ZingPDF.Logging;
+using ZingPDF.Parsing;
+using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
-using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.FileStructure.Trailer;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.IncrementalUpdates;
 
-public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
+/// <summary>
+/// Master class for retrieving and mutating objects in a PDF.
+/// </summary>
+/// <remarks>
+/// This class maintains a collection of PDF versions, with each version containing the index for objects created or modified in that version.
+/// </remarks>
+public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 {
+    private readonly Dictionary<IndirectObjectId, IndirectObject> _parsedObjectCache = [];
+    private readonly Stream _pdfInputStream;
+
     private readonly IEnumerable<VersionInformation> _versions;
 
     private readonly List<IndirectObject> _newObjects = [];
@@ -22,10 +34,10 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
 
     //private readonly Queue<IndirectObjectId> _freeIds;
 
-    public PdfObjectManager(IEnumerable<VersionInformation> versions)
+    public PdfObjectManager(Stream pdfInputStream, IEnumerable<VersionInformation> versions)
     {
         ArgumentNullException.ThrowIfNull(versions, nameof(versions));
-
+        _pdfInputStream = pdfInputStream;
         _versions = versions;
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
@@ -65,7 +77,7 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
             .SelectMany(v => v.IndirectObjects.Keys)
             .Concat(_newObjects.Select(x => x.Id));
 
-    public bool ContainsKey(IndirectObjectReference key) => _versions.Any(v => v.IndirectObjects.ContainsKey(key));
+    public bool ContainsKey(IndirectObjectReference key) => _versions.Any(v => v.IndirectObjects.ContainsKey(key.Id));
 
     public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
     {
@@ -86,11 +98,23 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
             }
         }
 
-        foreach(var version in _versions)
+        // Then check the local object cache.
+        if (_parsedObjectCache.TryGetValue(key.Id, out var cachedObj))
         {
-            if (version.IndirectObjects.ContainsKey(key))
+            return cachedObj;
+        }
+
+        // Finally, parse and cache the value.
+        // Search through versions, which are ordered most recent first.
+        foreach (var version in _versions)
+        {
+            if (version.IndirectObjects.TryGetValue(key.Id, out var entry))
             {
-                return await version.IndirectObjects.GetAsync(key);
+                IndirectObject obj = await DereferenceObjectAsync(key, entry);
+
+                _parsedObjectCache.Add(key.Id, obj);
+
+                return obj;
             }
         }
 
@@ -153,6 +177,7 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
         var latestVersion = _versions.First();
 
         return new IncrementalUpdate(
+            this,
             _newObjects,
             _updatedObjects.Values,
             _deletedObjects,
@@ -164,6 +189,14 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
     public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;
 
     public ITrailerDictionary GetTrailerDictionary() => _versions.First().TrailerDictionary;
+
+    public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        foreach (var key in Keys.Where(k => k.Index > 0))
+        {
+            yield return await GetAsync(key.Reference);
+        }
+    }
 
     //private static List<IndirectObjectId> GetFreeIds()
     //{
@@ -186,5 +219,54 @@ public record PdfObjectManager : IIndirectObjectDictionary, IPdfEditor
         var highestIndex = Keys.Max(k => k.Index);
 
         return new IndirectObjectId(highestIndex + 1, 0);
+    }
+
+    private async Task<IndirectObject> DereferenceObjectAsync(IndirectObjectReference key, CrossReferenceEntry xref)
+    {
+        if (!xref.Compressed)
+        {
+            _pdfInputStream.Position = xref.Value1;
+
+            return await Parser.For<IndirectObject>(this).ParseAsync(_pdfInputStream);
+        }
+
+        Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
+
+        // TODO: must support the `Extends` property
+
+        var objStreamIndirectObject = await GetAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)))
+            ?? throw new InvalidOperationException($"Error attempting to parse {key}. Unable to find parent object stream {xref.Value1}");
+
+        var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
+        var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
+
+        // TODO: cache decompressed stream data?
+        // Decompress stream, read bytes up to first object.
+        // These bytes contain pairs of integers, identifying each object number and byte offset.          
+        Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
+        var decompressedData = new byte[objectStreamDictionary.First];
+        await decompressedObjectStream.ReadExactlyAsync(decompressedData, 0, objectStreamDictionary.First);
+
+        // Decode integer pairs
+        var offsets = Encoding.ASCII.GetString(decompressedData)
+            .Split([Constants.Whitespace, .. Constants.EndOfLineCharacters]);
+
+        var indexedOffsets = new int[objectStreamDictionary.N];
+
+        for (var i = 0; i < objectStreamDictionary.N; i++)
+        {
+            var byteOffset = Convert.ToInt32(offsets[i * 2 + 1]);
+
+            indexedOffsets[i] = byteOffset;
+        }
+
+        var objectOffset = indexedOffsets[xref.Value2];
+
+        // The byte offset of an object is relative to the first object.
+        decompressedObjectStream.Position = objectStreamDictionary.First + objectOffset;
+
+        var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
+
+        return new IndirectObject(key.Id, await Parser.For(type, this).ParseAsync(decompressedObjectStream));
     }
 }
