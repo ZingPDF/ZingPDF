@@ -61,6 +61,11 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
 
+        if (!filterNames.Any())
+        {
+            return new MemoryStream(workingData);
+        }
+
         IEnumerable<Dictionaries.Dictionary> allFilterParams = [];
         
         if (Dictionary.DecodeParms != null)
