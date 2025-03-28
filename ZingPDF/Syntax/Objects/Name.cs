@@ -68,6 +68,11 @@ namespace ZingPDF.Syntax.Objects
 
         public static bool operator !=(Name? left, Name? right)
         {
+            if (left is null && right is null)
+            {
+                return false;
+            }
+
             if (left is null || right is null)
             {
                 return true;
