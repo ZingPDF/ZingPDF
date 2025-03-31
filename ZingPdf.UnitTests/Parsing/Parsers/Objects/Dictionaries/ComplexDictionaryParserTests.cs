@@ -4,24 +4,29 @@ using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
+using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
-namespace ZingPDF.Parsing.Parsers.Objects;
+namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
-public class DictionaryParserTests
+public class ComplexDictionaryParserTests
 {
-    [Fact]
-    public async Task ParseEmptyAsync()
+    [Theory]
+    [InlineData("<< >>")]
+    [InlineData("<<>>")]
+    public async Task ParseEmptyAsync(string inputString)
     {
         var pdfEditor = A.Fake<IPdfEditor>();
 
-        using var input = "<< >>".ToStream();
+        using var input = inputString.ToStream();
 
         var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
         output.Should().BeEmpty();
+
+        input.Position.Should().Be(inputString.Length);
     }
 
     [Fact]
@@ -37,7 +42,7 @@ public class DictionaryParserTests
 
         output.Should().NotBeNull().And.HaveCount(1);
 
-        var nestedDictionary = output["Resources"] as Dictionary;
+        var nestedDictionary = output.GetAs<Dictionary>("Resources");
 
         nestedDictionary.Should().NotBeNull().And.BeEmpty();
     }
@@ -72,7 +77,7 @@ public class DictionaryParserTests
 
         output.Should().NotBeNull().And.HaveCount(1);
 
-        var nestedDictionary = output["Resources"] as Dictionary;
+        var nestedDictionary = output.GetAs<Dictionary>("Resources");
 
         nestedDictionary.Should().NotBeNull().And.BeEmpty();
     }
@@ -175,7 +180,7 @@ public class DictionaryParserTests
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
-        output.Count.Should().Be(11);
+        output.Count().Should().Be(11);
     }
 
     [Fact]
@@ -220,7 +225,7 @@ public class DictionaryParserTests
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
-        output.Count.Should().Be(12);
+        output.Count().Should().Be(12);
     }
 
     [Fact]
@@ -236,7 +241,7 @@ public class DictionaryParserTests
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
-        output.Count.Should().Be(1);
+        output.Count().Should().Be(1);
     }
 
     [Fact]
@@ -351,5 +356,75 @@ public class DictionaryParserTests
             Encoding.UTF8.GetByteCount(contentString),
             because: "the parser should move the stream past the dictionary-end delimiter"
             );
+    }
+
+    [Fact]
+    public async Task ParseFieldDictionary()
+    {
+        const int parentIndex = 572;
+        const int parentGenerationNumber = 0;
+
+        var pdfEditor = A.Fake<IPdfEditor>();
+        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new Syntax.Objects.IndirectObjects.IndirectObjectReference(new(parentIndex, parentGenerationNumber))))
+            .Returns(new Dictionary(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Field.FT] = new Name("Tx") }, pdfEditor));
+
+        var contentString = "<<" +
+            "/AP<</N 1794 0 R>>" +
+            "/BS<</S/S/W 1>>" +
+            "/DA(/Montserrat-Regular 9 Tf 0 g)" +
+            "/F 4" +
+            "/Ff 67108866" +
+            "/I[0]" +
+            "/MK<<>>" +
+            "/Opt[(Please Select:)(1800 010 091 - tprecoveries@autogeneral.com.au)(1300 885 996 - motorclaims@autogeneral.com.au)(1800 701 513 - homeclaims@autogeneral.com.au)]" +
+            "/P 1793 0 R" +
+            $"/Parent {parentIndex} {parentGenerationNumber} R" +
+            "/Rect[280.1603 716.7783 577.1978 731.0313]" +
+            "/Subtype/Widget" +
+            "/Type/Annot" +
+            ">>";
+
+        using var input = contentString.ToStream();
+
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
+
+        input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
+
+        output.Count().Should().Be(13);
+
+        // This should be parsed as a FieldDictionary because it inherits a FT entry from its parent
+        // This will only work when property inheritance is implemented.
+
+        output.Should().BeOfType<FieldDictionary>();
+    }
+
+    [Fact]
+    public async Task ParseTextFieldDictionary()
+    {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
+        var contentString = "<<" +
+            "/AP<</N 1795 0 R>>" +
+            "/BS<</S/S/Type/Border/W 1>>" +
+            "/DA(/Montserrat-Regular 10 Tf 0 g)" +
+            "/F 4" +
+            "/FT/Tx" +
+            "/Ff 8388608" +
+            "/MK<<>>" +
+            "/P 1793 0 R" +
+            "/Rect[194.275 611.3085 576.2624 628.8166]" +
+            "/Subtype/Widget" +
+            "/T(Claim / Policy)" +
+            "/Type/Annot" +
+            "/V(117975041 02)" +
+            ">>";
+
+        using var input = contentString.ToStream();
+
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
+
+        input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
+
+        output.Count().Should().Be(13);
     }
 }
