@@ -56,7 +56,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     break;
                 }
 
-                IPdfObject item = await Parser.For(type).ParseAsync(stream);
+                IPdfObject item = await Parser.For(type, _pdfEditor).ParseAsync(stream);
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {

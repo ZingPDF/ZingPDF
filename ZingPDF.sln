@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.FromHTML", "ZingPDF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Fonts", "ZingPDF.Fonts\ZingPDF.Fonts.csproj", "{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.InheritableSourceGenerator", "ZingPDF.InheritableSourceGenerator\ZingPDF.InheritableSourceGenerator.csproj", "{F12B618D-149D-4428-9728-D636DA52EB94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F12B618D-149D-4428-9728-D636DA52EB94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F12B618D-149D-4428-9728-D636DA52EB94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F12B618D-149D-4428-9728-D636DA52EB94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F12B618D-149D-4428-9728-D636DA52EB94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

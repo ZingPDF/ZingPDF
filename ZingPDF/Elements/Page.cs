@@ -109,12 +109,7 @@ namespace ZingPDF.Elements
 
             ArgumentNullException.ThrowIfNull(rotation);
 
-            var existingRotation = 0;
-            
-            if (Dictionary.Rotate != null)
-            {
-                existingRotation = await Dictionary.Rotate.GetAsync();
-            }
+            var existingRotation = await Dictionary.Rotate.GetAsync() ?? Rotation.None;
 
             // The page may already be rotated, or inherit a value for rotation.
             // In practice, it is likely desired to rotate by a further n degrees.

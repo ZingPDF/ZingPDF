@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.FileStructure.Trailer;
+﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -8,7 +9,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
     public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
         private CrossReferenceStreamDictionary(Dictionary<Name, IPdfObject> xrefStreamDictionary)
-            : base(xrefStreamDictionary, null) { }
+            : base(xrefStreamDictionary, EmptyPdfEditor.Instance) { }
 
         /// <summary>
         /// <para>
@@ -53,7 +54,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 
         #region ITrailerDictionary
 
-        public Number Size => (Number)this[Constants.DictionaryKeys.Trailer.Size];
+        public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
         public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
         public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Root);
         public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);

@@ -13,6 +13,7 @@ namespace ZingPDF.Elements
             _amount = amount;
         }
 
+        public static readonly Rotation None = new(0);
         public static readonly Rotation Degrees90 = new(90);
         public static readonly Rotation Degrees180 = new(180);
         public static readonly Rotation Degrees270 = new(270);

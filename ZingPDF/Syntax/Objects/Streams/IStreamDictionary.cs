@@ -13,7 +13,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        AsyncProperty<Number> Length { get; }
+        DictionaryProperty<Number> Length { get; }
 
         /// <summary>
         /// <para>
@@ -25,7 +25,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </para>
         /// </summary>
-        AsyncMultiProperty<Name, ArrayObject>? Filter { get; }
+        DictionaryMultiProperty<Name?, ArrayObject?> Filter { get; }
 
         /// <summary>
         /// (Optional) A parameter dictionary or an array of such dictionaries, used by the filters specified 
@@ -38,7 +38,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// have their default values). If none of the filters have parameters, or if all their parameters have 
         /// default values, the DecodeParms entry may be omitted.
         /// </summary>
-        AsyncMultiProperty<Dictionary, ArrayObject>? DecodeParms { get; }
+        DictionaryMultiProperty<Dictionary?, ArrayObject?> DecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. If this entry is present, the bytes 
@@ -48,27 +48,27 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// specified by FDecodeParms.
         /// </summary>
         // TODO: implement first class FileSpecificationDictionary
-        AsyncProperty<Dictionary>? F { get; }
+        DictionaryProperty<Dictionary?> F { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The name of a filter to be applied in processing the data found in the 
         /// stream’s external file, or an array of zero, one or several such names. The same rules 
         /// apply as for Filter.
         /// </summary>
-        AsyncMultiProperty<Name, ArrayObject>? FFilter { get; }
+        DictionaryMultiProperty<Name?, ArrayObject?> FFilter { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, used by the 
         /// filters specified by FFilter, respectively. The same rules apply as for DecodeParms.
         /// </summary>
-        AsyncMultiProperty<Dictionary, ArrayObject>? FDecodeParms { get; }
+        DictionaryMultiProperty<Dictionary?, ArrayObject?> FDecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        AsyncProperty<Number>? DL { get; }
+        DictionaryProperty<Number?> DL { get; }
 
         ///// <summary>
         ///// Set any stream properties from the given <see cref="Dictionary"/>

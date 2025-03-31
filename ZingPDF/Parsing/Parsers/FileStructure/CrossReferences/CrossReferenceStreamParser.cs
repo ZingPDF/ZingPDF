@@ -26,11 +26,13 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             Number streamLength = 0;
 
-            if (dict.Length.Value is Number sl)
+            var lengthValue = await dict.Length.GetRawValueAsync();
+
+            if (lengthValue is Number sl)
             {
                 streamLength = sl;
             }
-            else if (dict.Length.Value is IndirectObjectReference ior)
+            else if (lengthValue is IndirectObjectReference ior)
             {
                 // Search forward for the length object, parse.
                 var position = stream.Position;

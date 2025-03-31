@@ -13,7 +13,7 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     private TrailerDictionary(Dictionary<Name, IPdfObject> trailerDictionary, IPdfEditor pdfEditor)
         : base(trailerDictionary, pdfEditor) { }
 
-    public Number Size => (Number)this[Constants.DictionaryKeys.Trailer.Size];
+    public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
     public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
     public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Root);
     public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
@@ -27,13 +27,6 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     /// <returns>A <see cref="TrailerDictionary"/> instance.</returns>
     internal static TrailerDictionary FromDictionary(Dictionary trailerDictionary)
     {
-        ArgumentNullException.ThrowIfNull(trailerDictionary);
-
-        if (trailerDictionary[Constants.DictionaryKeys.Trailer.Size] == null)
-        {
-            throw new ArgumentException($"Missing required {Constants.DictionaryKeys.Trailer.Size} entry in {trailerDictionary}", nameof(trailerDictionary));
-        }
-
         return new TrailerDictionary(trailerDictionary);
     }
 

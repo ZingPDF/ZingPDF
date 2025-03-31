@@ -57,9 +57,13 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         var workingData = await Data.ReadToEndAsync();
 
-        Either<Name, ArrayObject> filterValue = await Dictionary.Filter.GetAsync();
+        IEnumerable<Name> filterNames = [];
+        Either<Name?, ArrayObject?> filterValue = await Dictionary.Filter.GetAsync();
 
-        IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
+        if (filterValue.Value != null)
+        {
+            filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
+        }
 
         if (!filterNames.Any())
         {
@@ -67,11 +71,13 @@ public sealed class StreamObject<TDictionary> : PdfObject
         }
 
         IEnumerable<Dictionaries.Dictionary> allFilterParams = [];
-        
-        if (Dictionary.DecodeParms != null)
+        Either<Dictionaries.Dictionary?, ArrayObject?> decodeParmsValue = await Dictionary.DecodeParms.GetAsync();
+
+        if (decodeParmsValue.Value != null)
         {
-            var decodeParmsValue = await Dictionary.DecodeParms.GetAsync();
-            allFilterParams = decodeParmsValue.Type1 != null ? [decodeParmsValue.Type1] : decodeParmsValue.Type2!.Cast<Dictionaries.Dictionary>();
+            allFilterParams = decodeParmsValue.Type1 != null
+                ? [decodeParmsValue.Type1]
+                : decodeParmsValue.Type2!.Cast<Dictionaries.Dictionary>();
         }
 
         var filterInstances = FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>());

@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+	<ProjectReference Include="..\ZingPDF.InheritableSourceGenerator\ZingPDF.InheritableSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Spec\ISO_32000-2-2020.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

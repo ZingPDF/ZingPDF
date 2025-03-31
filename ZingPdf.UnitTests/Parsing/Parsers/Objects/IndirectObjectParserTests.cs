@@ -49,7 +49,9 @@ public class IndirectObjectParserTests
             "endstream\r\n" +
             "endobj\r\n";
 
-        var output = await new IndirectObjectParser(A.Dummy<IPdfEditor>()).ParseAsync(contentString.ToStream());
+        var pdfEditor = A.Fake<IPdfEditor>();
+
+        var output = await new IndirectObjectParser(pdfEditor).ParseAsync(contentString.ToStream());
 
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);
