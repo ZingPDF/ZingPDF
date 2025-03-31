@@ -36,13 +36,13 @@ namespace ZingPDF.Syntax.Objects.Streams
             Set(Constants.DictionaryKeys.Stream.DL, dL);
         }
 
-        public AsyncProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
-        public AsyncMultiProperty<Name, ArrayObject>? Filter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.Filter);
-        public AsyncMultiProperty<Dictionary, ArrayObject>? DecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.DecodeParms);
-        public AsyncProperty<Dictionary>? F => Get<Dictionary>(Constants.DictionaryKeys.Stream.F);
-        public AsyncMultiProperty<Name, ArrayObject>? FFilter => Get<Name, ArrayObject>(Constants.DictionaryKeys.Stream.FFilter);
-        public AsyncMultiProperty<Dictionary, ArrayObject>? FDecodeParms => Get<Dictionary, ArrayObject>(Constants.DictionaryKeys.Stream.FDecodeParms);
-        public AsyncProperty<Number>? DL => Get<Number>(Constants.DictionaryKeys.Stream.DL);
+        public DictionaryProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
+        public DictionaryMultiProperty<Name?, ArrayObject?> Filter => Get<Name?, ArrayObject?>(Constants.DictionaryKeys.Stream.Filter);
+        public DictionaryMultiProperty<Dictionary?, ArrayObject?> DecodeParms => Get<Dictionary?, ArrayObject?>(Constants.DictionaryKeys.Stream.DecodeParms);
+        public DictionaryProperty<Dictionary?> F => Get<Dictionary?>(Constants.DictionaryKeys.Stream.F);
+        public DictionaryMultiProperty<Name?, ArrayObject?> FFilter => Get<Name?, ArrayObject?>(Constants.DictionaryKeys.Stream.FFilter);
+        public DictionaryMultiProperty<Dictionary?, ArrayObject?> FDecodeParms => Get<Dictionary?, ArrayObject?>(Constants.DictionaryKeys.Stream.FDecodeParms);
+        public DictionaryProperty<Number?> DL => Get<Number?>(Constants.DictionaryKeys.Stream.DL);
 
         public static StreamDictionary FromDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
         {

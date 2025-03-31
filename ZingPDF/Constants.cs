@@ -88,6 +88,7 @@ internal static class Constants
     {
         public const string Type = "Type";
         public const string Subtype = "Subtype";
+        public const string Parent = "Parent";
 
         public static class Trailer
         {
@@ -116,6 +117,7 @@ internal static class Constants
             public const string AA = "AA";
             public const string URI = "URI";
             public const string AcroForm = "AcroForm";
+            public const string Metadata = "Metadata";
             public const string StructTreeRoot = "StructTreeRoot";
             public const string MarkInfo = "MarkInfo";
             public const string Lang = "Lang";
@@ -171,7 +173,6 @@ internal static class Constants
 
         public static class PageTree
         {
-            public const string Parent = "Parent";
             public const string Resources = "Resources";
             public const string MediaBox = "MediaBox";
             public const string CropBox = "CropBox";
@@ -241,7 +242,6 @@ internal static class Constants
         public static class Field
         {
             public const string FT = "FT";
-            public const string Parent = "Parent";
             public const string Kids = "Kids";
             public const string T = "T";
             public const string TU = "TU";
@@ -290,7 +290,6 @@ internal static class Constants
             public const string A = "A";
             public const string AA = "AA";
             public const string BS = "BS";
-            public const string Parent = "Parent";
         }
         
         public static class Appearance

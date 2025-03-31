@@ -8,7 +8,6 @@ using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
-using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -29,14 +28,14 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IEnumerable<IFontMetricsProvider>> _fontProviders;
 
-        public Form(IndirectObjectReference acroFormReference, IPdfEditor pdfEditor)
+        public Form(DictionaryProperty<InteractiveFormDictionary?> acroForm, IPdfEditor pdfEditor)
         {
-            ArgumentNullException.ThrowIfNull(acroFormReference, nameof(acroFormReference));
+            ArgumentNullException.ThrowIfNull(acroForm, nameof(acroForm));
             ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
             _pdfEditor = pdfEditor;
 
-            _acroForm = new AsyncLazy<IndirectObject>(async () => await _pdfEditor.GetAsync(acroFormReference)
+            _acroForm = new AsyncLazy<IndirectObject>(async () => await acroForm.GetIndirectObjectAsync()
                     ?? throw new InvalidPdfException("Unable to resolve form reference"));
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
@@ -49,22 +48,22 @@ namespace ZingPDF.Elements.Forms
                 List<IFontMetricsProvider> fontProviders = [new PDFStandardFontMetricsProvider(), simpleFontMetricsProvider];
                 InteractiveFormDictionary formDict = await _acroFormDictionary;
 
-                if (formDict.DR != null)
+                var drProperty = await formDict.DR.GetAsync();
+                if (drProperty != null)
                 {
-                    ResourceDictionary defaultResources = ResourceDictionary.FromDictionary(await formDict.DR.GetAsync());
+                    var defaultResources = ResourceDictionary.FromDictionary(drProperty);
 
-                    if (defaultResources.Font != null)
+                    var fontDict = await defaultResources.Font.GetAsync();
+                    if (fontDict != null)
                     {
-                        Dictionary fontDict = await defaultResources.Font.GetAsync();
-
                         Dictionary<string, Stream> fontStreams = [];
                         foreach (var kvp in fontDict)
                         {
                             var font = await _pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
+                            var fontDescriptor = await font.FontDescriptor.GetAsync();
 
-                            if (font?.FontDescriptor != null)
+                            if (fontDescriptor != null)
                             {
-                                var fontDescriptor = await font.FontDescriptor.GetAsync();
                                 var widthsArray = await font.Widths.GetAsync();
                                 var firstCharCode = await font.FirstChar.GetAsync();
 
@@ -82,6 +81,7 @@ namespace ZingPDF.Elements.Forms
                             //fontStreams.Add(kvp.Key, await font.GetDecompressedDataAsync(_pdfEditor));
                         }
                     }
+
                 }
 
                 return fontProviders;
@@ -124,12 +124,7 @@ namespace ZingPDF.Elements.Forms
                     continue;
                 }
 
-                ArrayObject kidRefs = [];
-
-                if (fieldDict.Kids != null)
-                {
-                    kidRefs = await fieldDict.Kids.GetAsync();
-                }
+                ArrayObject kidRefs = await fieldDict.Kids.GetAsync() ?? [];
 
                 var kids = new List<IndirectObject>();
                 foreach (var kid in kidRefs.Cast<IndirectObjectReference>())
@@ -209,7 +204,7 @@ namespace ZingPDF.Elements.Forms
 
         private async Task EnsureDefaultResourceDictionaryAsync(InteractiveFormDictionary acroFormDictionary)
         {
-            var defaultResources = new ResourceDictionary(new Dictionary<Name, IPdfObject>(), _pdfEditor);
+            var defaultResources = new ResourceDictionary([], _pdfEditor);
 
             if (acroFormDictionary.DR is null)
             {
@@ -252,22 +247,11 @@ namespace ZingPDF.Elements.Forms
             // ?? - there may or may not be a widget annotation initally
             // - when saving a value, a widget annotation defines the visual appearance
 
-            var flags = 0;
+            var fieldProperties = new FieldProperties(await fieldDictionary.Ff.GetAsync() ?? 0);
 
-            if (fieldDictionary.Ff != null)
-            {
-                flags = await fieldDictionary.Ff.GetAsync();
-            }
+            Name fieldTypeName = (await fieldDictionary.FT.GetAsync())!;
 
-            var fieldProperties = new FieldProperties(flags);
-
-            var fieldTypeName = await fieldDictionary.FT!.GetAsync();
-
-            string? fieldDescription = null;
-            if (fieldDictionary.TU != null)
-            {
-                fieldDescription = await fieldDictionary.TU.GetAsync();
-            }
+            string? fieldDescription = await fieldDictionary.TU.GetAsync();
 
             return fieldTypeName.ToFormFieldType() switch
             {
