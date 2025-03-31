@@ -31,7 +31,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>A highlighting mode other than P shall override any down appearance defined for the annotation. 
         /// Default value: I.</para>
         /// </summary>
-        public AsyncProperty<Name>? H => Get<Name>(Constants.DictionaryKeys.WidgetAnnotation.H);
+        public DictionaryProperty<Name?> H => Get<Name?>(Constants.DictionaryKeys.WidgetAnnotation.H);
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -40,34 +40,34 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// appearance stream specifying the annotation’s visual presentation on the page.</para>
         /// <para>The name MK for this entry is of historical significance only and has no direct meaning.</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? MK => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.MK);
+        public DictionaryProperty<Dictionary?> MK => Get<Dictionary?>(Constants.DictionaryKeys.WidgetAnnotation.MK);
 
         /// <summary>
         /// <para>(Optional; PDF 1.1)</para>
         /// <para>An action that shall be performed when the annotation is activated (see 12.6, "Actions").</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? A => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.A);
+        public DictionaryProperty<Dictionary?> A => Get<Dictionary?>(Constants.DictionaryKeys.WidgetAnnotation.A);
 
         /// <summary>
         /// <para>(Optional; PDF 1.2)</para>
         /// <para>An additional-actions dictionary defining the annotation’s behaviour in response to various 
         /// trigger events (see 12.6.3, "Trigger events").</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? AA => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.AA);
+        public DictionaryProperty<Dictionary?> AA => Get<Dictionary?>(Constants.DictionaryKeys.WidgetAnnotation.AA);
 
         /// <summary>
         /// <para>(Optional; PDF 1.2)</para>
         /// <para>A border style dictionary (see "Table 168 — Entries in a border style dictionary") specifying 
         /// the width and dash pattern that shall be used in drawing the annotation’s border.</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? BS => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.BS);
+        public DictionaryProperty<Dictionary?> BS => Get<Dictionary?>(Constants.DictionaryKeys.WidgetAnnotation.BS);
 
         /// <summary>
         /// <para>(Required if this widget annotation is one of multiple children in a field; optional otherwise)</para>
         /// <para>An indirect reference to the widget annotation’s parent field. A widget annotation may have at 
         /// most one parent; that is, it can be included in the Kids array of at most one field</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? Parent => Get<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.Parent);
+        public DictionaryProperty<Dictionary?> Parent => Get<Dictionary?>(Constants.DictionaryKeys.Parent);
 
         new public static WidgetAnnotationDictionary FromDictionary(Dictionary<Name, IPdfObject> annotationDictionary, IPdfEditor pdfEditor)
         {

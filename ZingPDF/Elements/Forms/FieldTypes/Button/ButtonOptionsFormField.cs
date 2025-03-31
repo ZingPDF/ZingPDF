@@ -89,7 +89,8 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
 
             if (_fieldDictionary.V != null)
             {
-                @checked = (Name)await _fieldDictionary.V.GetAsync() == exportValue;
+                var value = await _fieldDictionary.V.GetAsync();
+                @checked = value != null && (Name)value == exportValue;
             }
 
             options.Add(new SelectableOption(Name, exportValue, @checked, SelectOptionAsync, DeselectOptionAsync, annot));
@@ -113,8 +114,6 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
 
         return ap.Keys.First(k => k != Constants.ButtonStates.Off);
     }
-
-    
 
     protected IEnumerable<IndirectObject> WidgetAnnotationObjects
         => !_kids.Any()

@@ -60,7 +60,7 @@ using System;
 
 //await RotateWholeDocument();
 
-//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
 //await WipeFields();
@@ -69,7 +69,7 @@ using System;
 
 //await Test();
 
-await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
 
 static async Task Decompress(string input, string output)
 {

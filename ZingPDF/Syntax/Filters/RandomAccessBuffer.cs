@@ -95,7 +95,7 @@
 
         public RandomAccessBuffer Clone()
         {
-            RandomAccessBuffer copy = new RandomAccessBuffer(chunkSize)
+            RandomAccessBuffer copy = new(chunkSize)
             {
                 bufferList = new List<byte[]>(bufferList.Count)
             };
@@ -420,12 +420,7 @@
          */
         private void CheckClosed()
         {
-            if (currentBuffer == null)
-            {
-                // consider that the rab is closed if there is no current buffer
-                throw new ObjectDisposedException("RandomAccessBuffer already closed");
-            }
-
+            ObjectDisposedException.ThrowIf(currentBuffer == null, "RandomAccessBuffer already closed");
         }
 
         /**

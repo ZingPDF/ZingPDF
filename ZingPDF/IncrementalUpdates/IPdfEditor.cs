@@ -13,7 +13,7 @@ public interface IPdfEditor : IAsyncEnumerable<IndirectObject>
     /// <summary>
     /// Gets an object from the PDF by its object reference. This method unwraps the object from its <see cref="IndirectObject"/> wrapper.
     /// </summary>
-    Task<T?> GetAsync<T>(IndirectObjectReference key) where T : class, IPdfObject;
+    Task<T> GetAsync<T>(IndirectObjectReference key) where T : class?, IPdfObject?;
 
     /// <summary>
     /// Add a new object to the PDF.
