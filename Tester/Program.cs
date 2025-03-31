@@ -71,7 +71,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await RotateWholeDocument();
 
-//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -82,7 +82,7 @@ XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYM
 
 //await Test();
 
-await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
 
 static async Task Decompress(string input, string output)
 {

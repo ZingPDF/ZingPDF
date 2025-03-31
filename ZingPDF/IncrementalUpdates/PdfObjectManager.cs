@@ -36,7 +36,9 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
     public PdfObjectManager(Stream pdfInputStream, IEnumerable<VersionInformation> versions)
     {
+        ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
         ArgumentNullException.ThrowIfNull(versions, nameof(versions));
+
         _pdfInputStream = pdfInputStream;
         _versions = versions;
 
@@ -121,7 +123,7 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         throw new InvalidOperationException($"Unable to dereference indirect object: {key}.");
     }
 
-    public async Task<T?> GetAsync<T>(IndirectObjectReference key) where T : class, IPdfObject
+    public async Task<T> GetAsync<T>(IndirectObjectReference key) where T : class?, IPdfObject?
     {
         var io = await GetAsync(key);
 
