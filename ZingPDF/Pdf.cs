@@ -1,12 +1,10 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
-using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -34,7 +32,7 @@ public class Pdf : IPdf, IDisposable
         _pdfInputStream = pdfInputStream;
         _documentCatalog = documentCatalog;
 
-        PageTree = new PageTree(pdfEditor, (documentCatalog.Pages.Value as IndirectObjectReference)!);
+        PageTree = new PageTree(pdfEditor, documentCatalog.Pages);
 
         IndirectObjects = pdfEditor;
     }
@@ -52,7 +50,7 @@ public class Pdf : IPdf, IDisposable
             return null;
         }
 
-        _form = new Form((_documentCatalog.AcroForm.Value as IndirectObjectReference)!, IndirectObjects);
+        _form = new Form(_documentCatalog.AcroForm, IndirectObjects);
 
         return _form;
     }
@@ -76,7 +74,7 @@ public class Pdf : IPdf, IDisposable
 
         var rootPageTreeNodeIndirectObject = await PageTree.GetRootPageTreeNodeAsync();
 
-        var page = PageDictionary.CreateNew((_documentCatalog.Pages.Value as IndirectObjectReference)!, IndirectObjects, pageCreationOptions);
+        var page = PageDictionary.CreateNew((await _documentCatalog.Pages.GetRawValueAsync() as IndirectObjectReference)!, IndirectObjects, pageCreationOptions);
 
         var pageIndirectObject = IndirectObjects.Add(page);
 
@@ -201,12 +199,12 @@ public class Pdf : IPdf, IDisposable
         {
             if (obj.Object is StreamObject<IStreamDictionary> streamObj)
             {
-                if (streamObj.Dictionary.Filter == null)
+                Either<Name, ArrayObject>? filterValue = await streamObj.Dictionary.Filter.GetAsync();
+                if (filterValue is null)
                 {
                     continue;
                 }
 
-                Either<Name, ArrayObject> filterValue = await streamObj.Dictionary.Filter.GetAsync();
                 IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
 
                 // TODO: are there other image types we need to avoid
@@ -303,13 +301,13 @@ public class Pdf : IPdf, IDisposable
     /// </summary>
     private async Task IncrementPageCountAsync(PageTreeNodeDictionary pageTreeNode)
     {
-        if (pageTreeNode.Parent is null)
+        PageTreeNodeDictionary? parentPageTreeNode = await pageTreeNode.Parent.GetAsync();
+        if (parentPageTreeNode is null)
         {
             return;
         }
 
         var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
-        var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         parentPageTreeNode.IncrementCount();
 
@@ -345,6 +343,8 @@ public class Pdf : IPdf, IDisposable
     /// </summary>
     private async Task<bool> AncestorHasMediaBox(PageTreeNodeDictionary parentPageTreeNode)
     {
+        // TODO: is this required now that inheritance is handled in DictionaryProperty?
+
         if (parentPageTreeNode.MediaBox is not null)
         {
             return true;

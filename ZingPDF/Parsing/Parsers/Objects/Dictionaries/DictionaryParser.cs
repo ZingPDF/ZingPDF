@@ -12,9 +12,9 @@ internal abstract class DictionaryParser
     /// Analyses the given stream forward from the current position and extracts the portion containing the dictionary.
     /// </summary>
     /// <param name="source">The PDF input stream</param>
-    /// <returns>A <see cref="SubStream"/> instance for the portion of the stream containing the dictionary. Returns null if the dictionary is empty.</returns>
+    /// <returns>A <see cref="SubStream"/> instance for the portion of the stream containing the dictionary.</returns>
     /// <exception cref="ParserException"></exception>
-    protected static async Task<SubStream?> ExtractDictionarySegmentAsync(Stream source)
+    protected static async Task<SubStream> ExtractDictionarySegmentAsync(Stream source)
     {
         var buffer = new byte[1024];
 
@@ -88,11 +88,11 @@ internal abstract class DictionaryParser
         }
 
     ReadyToParse:
-        if (dictEnd - dictStart > 1)
-        {
-            return new SubStream(source, dictStart, dictEnd);
-        }
+        //if (dictEnd - dictStart > 1)
+        //{
+        return new SubStream(source, dictStart, dictEnd);
+        //}
 
-        return null;
+        //return null;
     }
 }
