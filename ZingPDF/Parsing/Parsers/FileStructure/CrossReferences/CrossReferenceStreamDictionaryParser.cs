@@ -16,7 +16,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 /// This parser is limited, and is designed for parsing xref stream dictionaries.
 /// <list type="bullet">
 ///     <item>
-///     While the parsed <see cref="Dictionary"/> will contain <see cref="AsyncProperty{T}"/> or values, 
+///     While the parsed <see cref="Dictionary"/> will contain <see cref="DictionaryProperty{T}"/> or values, 
 ///     these values cannot be accessed directly if they are indirect objects.
 ///     </item>
 ///     <item>
@@ -34,7 +34,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         if (dictStream == null)
         {
-            return new Dictionary((PdfObjectManager)null);
+            return new Dictionary((IPdfEditor)null);
         }
 
         var objectGroup = await new PdfObjectGroupParser().ParseAsync(dictStream);

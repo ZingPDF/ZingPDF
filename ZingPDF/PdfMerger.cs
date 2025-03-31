@@ -84,7 +84,7 @@ namespace ZingPDF
         {
             foreach (var entry in dictionary)
             {
-                dictionary[entry.Key] = await CopyReferencesAsync(entry.Value);
+                dictionary.Set(entry.Key, await CopyReferencesAsync(entry.Value));
             }
 
             return dictionary;
@@ -94,7 +94,7 @@ namespace ZingPDF
         {
             foreach (var entry in streamObject.Dictionary)
             {
-                streamObject.Dictionary[entry.Key] = await CopyReferencesAsync(entry.Value);
+                streamObject.Dictionary.Set(entry.Key, await CopyReferencesAsync(entry.Value));
             }
 
             return streamObject;

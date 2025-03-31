@@ -89,19 +89,19 @@ internal class VariableTextAppearanceStreamManager
 
         _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
         {
-            if (_fieldDict.AP == null)
+            var existingAppearanceDictionary = await _fieldDict.AP.GetAsync();
+            if (existingAppearanceDictionary == null)
             {
                 return null;
             }
 
-            AppearanceDictionary existingAppearanceDictionary = await _fieldDict.AP.GetAsync();
-            if (existingAppearanceDictionary.N == null)
+            var normalAppearance = await existingAppearanceDictionary.N.GetAsync();
+            if (normalAppearance == null)
             {
                 return null;
             }
 
             IndirectObject normalAppearanceIndirectObject = await existingAppearanceDictionary.N.GetIndirectObjectAsync();
-            Either<StreamObject<IStreamDictionary>, Dictionary> normalAppearance = await existingAppearanceDictionary.N.GetAsync();
 
             return await GetStreamObjectFromNormalAppearanceEntry(normalAppearance);
         });
@@ -122,12 +122,13 @@ internal class VariableTextAppearanceStreamManager
 
         _formDefaultResources = new AsyncLazy<ResourceDictionary?>(async () =>
         {
-            if (_formDict.DR == null)
+            var defaultResources = await _formDict.DR.GetAsync();
+            if (defaultResources == null)
             {
                 return null;
             }
 
-            return ResourceDictionary.FromDictionary(await _formDict.DR.GetAsync());
+            return ResourceDictionary.FromDictionary(defaultResources);
         });
     }
 
@@ -148,7 +149,6 @@ internal class VariableTextAppearanceStreamManager
 
     public async Task WriteTextAsync(LiteralString value)
     {
-        StreamObject<IStreamDictionary>? fieldApStreamObject = await _fieldAppearanceStreamObject;
         ContentStream? fieldAp = await _fieldAppearanceStream;
         ResourceDictionary? formDefaultResources = await _formDefaultResources;
 
@@ -179,6 +179,7 @@ internal class VariableTextAppearanceStreamManager
         // form dictionary") into the stream’s Resources dictionary. (If the DR and Resources dictionaries contain
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
+        StreamObject<IStreamDictionary>? fieldApStreamObject = (await _fieldAppearanceStreamObject)!;
         var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdfEditor));
 
         await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdfEditor), _pdfEditor);

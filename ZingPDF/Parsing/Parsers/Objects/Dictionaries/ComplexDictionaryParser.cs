@@ -51,12 +51,12 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
 
         var initialStreamPosition = stream.Position; // Reference starting point for output
 
-        SubStream? dictStream = await ExtractDictionarySegmentAsync(stream);
+        SubStream dictStream = await ExtractDictionarySegmentAsync(stream);
 
-        if (dictStream == null)
-        {
-            return new Dictionary(pdfEditor);
-        }
+        //if (dictStream == null)
+        //{
+        //    return new Dictionary(pdfEditor);
+        //}
 
         var objectGroup = await new PdfObjectGroupParser(pdfEditor).ParseAsync(dictStream);
 
@@ -112,7 +112,7 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
                     goto DictionaryParsed;
 
                 case Constants.DictionaryTypes.Annot:
-                    output = CreateAnnotationDictionary(dict, pdfEditor);
+                    output = await CreateAnnotationDictionaryAsync(dict, pdfEditor);
                     goto DictionaryParsed;
 
                 case Constants.DictionaryTypes.XObject:
@@ -171,7 +171,7 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
         return output;
     }
 
-    private static Dictionary CreateAnnotationDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+    private static async Task<Dictionary> CreateAnnotationDictionaryAsync(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
     {
         Dictionary? output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
         {
@@ -182,6 +182,16 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
         if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
         {
             output = FieldDictionary.FromDictionary(dict, pdfEditor);
+        }
+        else
+        {
+            // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
+            // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
+            var fieldDict = FieldDictionary.FromDictionary(dict, pdfEditor);
+            if (await fieldDict.FT.GetAsync() is not null)
+            {
+                output = fieldDict;
+            }
         }
 
         return output;
