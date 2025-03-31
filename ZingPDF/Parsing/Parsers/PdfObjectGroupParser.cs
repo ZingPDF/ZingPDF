@@ -15,8 +15,8 @@ namespace ZingPDF.Parsing.Parsers
         /// access any indirect references. This version of the parser should only be used during initial parsing of 
         /// cross reference streams when building object indexes, or when it is certain that any contained indirect 
         /// object properties downstream in the object heirarchy are not accessed through their 
-        /// <see cref="Syntax.Objects.Dictionaries.AsyncProperty{T}.GetAsync"/> or 
-        /// <see cref="Syntax.Objects.Dictionaries.AsyncMultiProperty{T1, T2}.GetAsync"/> methods.
+        /// <see cref="Syntax.Objects.Dictionaries.DictionaryProperty{T}.GetAsync"/> or 
+        /// <see cref="Syntax.Objects.Dictionaries.DictionaryMultiProperty{T1, T2}.GetAsync"/> methods.
         /// </summary>
         internal PdfObjectGroupParser()
         {

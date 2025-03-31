@@ -58,12 +58,12 @@ namespace ZingPDF.Graphics.Images
         /// <summary>
         /// (Required) The width of the image, in samples.
         /// </summary>
-        public AsyncProperty<Number> Width => Get<Number>(Constants.DictionaryKeys.Image.Width)!;
+        public DictionaryProperty<Number> Width => Get<Number>(Constants.DictionaryKeys.Image.Width);
 
         /// <summary>
         /// (Required) The height of the image, in samples.
         /// </summary>
-        public AsyncProperty<Number> Height => Get<Number>(Constants.DictionaryKeys.Image.Height)!;
+        public DictionaryProperty<Number> Height => Get<Number>(Constants.DictionaryKeys.Image.Height);
 
         /// <summary>
         /// <para>(Required for images, except those that use the JPXDecode filter; not permitted for image masks) 
@@ -73,7 +73,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>• If ColorSpace is absent, the colour space specifications in the JPEG 2000 data shall be used. 
         /// The Decode array shall also be ignored unless ImageMask is true.</para>
         /// </summary>
-        public AsyncProperty<IPdfObject>? ColorSpace => Get<IPdfObject>(Constants.DictionaryKeys.Image.ColorSpace);
+        public DictionaryProperty<IPdfObject?> ColorSpace => Get<IPdfObject?>(Constants.DictionaryKeys.Image.ColorSpace);
 
         /// <summary>
         /// <para>(Required except for image masks and images that use the JPXDecode filter) The number of bits 
@@ -88,21 +88,21 @@ namespace ZingPDF.Graphics.Images
         /// <para>If the image stream uses the JPXDecode filter, this entry is optional and shall be ignored if
         /// present. The bit depth is determined by the PDF processor in the process of decoding the JPEG 2000 image.</para>
         /// </summary>
-        public AsyncProperty<Number>? BitsPerComponent => Get<Number>(Constants.DictionaryKeys.Image.BitsPerComponent);
+        public DictionaryProperty<Number?> BitsPerComponent => Get<Number?>(Constants.DictionaryKeys.Image.BitsPerComponent);
 
         /// <summary>
         /// (Optional; PDF 1.1) The name of a colour rendering intent that shall be used in rendering any image 
         /// that is not an image mask (see 8.6.5.8, "Rendering intents"). This value is ignored if ImageMask is true. 
         /// Default value: the current rendering intent in the graphics state.
         /// </summary>
-        public AsyncProperty<Name>? Intent => Get<Name>(Constants.DictionaryKeys.Image.Intent);
+        public DictionaryProperty<Name?> Intent => Get<Name?>(Constants.DictionaryKeys.Image.Intent);
 
         /// <summary>
         /// (Optional) A flag indicating whether the image shall be treated as an image mask (see 8.9.6, "Masked images"). 
         /// If this flag is true, the value of BitsPerComponent, if present, shall be 1 and Mask and ColorSpace shall 
         /// not be specified; unmasked areas shall be painted using the current nonstroking colour. Default value: false.
         /// </summary>
-        public AsyncProperty<BooleanObject>? ImageMask => Get<BooleanObject>(Constants.DictionaryKeys.Image.ImageMask);
+        public DictionaryProperty<BooleanObject?> ImageMask => Get<BooleanObject?>(Constants.DictionaryKeys.Image.ImageMask);
 
         /// <summary>
         /// (Optional; shall not be present for image masks; PDF 1.3) An image XObject defining an image mask to be 
@@ -110,7 +110,7 @@ namespace ZingPDF.Graphics.Images
         /// be applied to it as a colour key mask (see 8.9.6.4, "Colour key masking"). If ImageMask is true, this 
         /// entry shall not be present.
         /// </summary>
-        public AsyncProperty<IPdfObject>? Mask => Get<IPdfObject>(Constants.DictionaryKeys.Image.Mask);
+        public DictionaryProperty<IPdfObject?> Mask => Get<IPdfObject?>(Constants.DictionaryKeys.Image.Mask);
 
         /// <summary>
         /// (Optional) An array of numbers describing how to map image samples into the range of values appropriate 
@@ -120,13 +120,13 @@ namespace ZingPDF.Graphics.Images
         /// be ignored unless ImageMask is true.
         /// Default value: see "Table 88 — Default decode arrays".
         /// </summary>
-        public AsyncProperty<ArrayObject>? Decode => Get<ArrayObject>(Constants.DictionaryKeys.Image.Decode);
+        public DictionaryProperty<ArrayObject?> Decode => Get<ArrayObject?>(Constants.DictionaryKeys.Image.Decode);
 
         /// <summary>
         /// (Optional) A flag indicating whether image interpolation should be performed by a PDF processor 
         /// (see 8.9.5.3, "Image interpolation"). Default value: false.
         /// </summary>
-        public AsyncProperty<BooleanObject>? Interpolate => Get<BooleanObject>(Constants.DictionaryKeys.Image.Interpolate);
+        public DictionaryProperty<BooleanObject?> Interpolate => Get<BooleanObject?>(Constants.DictionaryKeys.Image.Interpolate);
 
         /// <summary>
         /// (Optional; PDF 1.3) An array of alternate image dictionaries for this image (see 8.9.5.4, "Alternate images"). 
@@ -135,7 +135,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<ArrayObject>? Alternates => Get<ArrayObject>(Constants.DictionaryKeys.Image.Alternates);
+        public DictionaryProperty<ArrayObject?> Alternates => Get<ArrayObject?>(Constants.DictionaryKeys.Image.Alternates);
 
         /// <summary>
         /// <para>(Optional; PDF 1.4) A subsidiary image XObject defining a soft-mask image (see 11.6.5.2, "Soft-mask images") 
@@ -150,7 +150,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<IndirectObjectReference>? SMask => Get<IndirectObjectReference>(Constants.DictionaryKeys.Image.SMask);
+        public DictionaryProperty<IndirectObjectReference?> SMask => Get<IndirectObjectReference?>(Constants.DictionaryKeys.Image.SMask);
 
         /// <summary>
         /// <para>(Optional for images that use the JPXDecode filter, meaningless otherwise; PDF 1.5) A code specifying 
@@ -166,13 +166,13 @@ namespace ZingPDF.Graphics.Images
         /// <para>NOTE 2 Interactions between SMask, SMaskInData and the current soft mask in the graphics state are set out in clause 11.6.4.3, "Mask shape and opacity".</para>
         /// <para>Default value: 0.</para>
         /// </summary>
-        public AsyncProperty<Number>? SMaskInData => Get<Number>(Constants.DictionaryKeys.Image.SMaskInData);
+        public DictionaryProperty<Number?> SMaskInData => Get<Number?>(Constants.DictionaryKeys.Image.SMaskInData);
 
         /// <summary>
         /// (Required in PDF 1.0; optional otherwise; deprecated in PDF 2.0) The name by which this image XObject is 
         /// referenced in the XObject subdictionary of the current resource dictionary (see 7.8.3, "Resource dictionaries").
         /// </summary>
-        public AsyncProperty<Name>? Name => Get<Name>(Constants.DictionaryKeys.Image.Name);
+        public DictionaryProperty<Name?> Name => Get<Name?>(Constants.DictionaryKeys.Image.Name);
 
         /// <summary>
         /// (Required if the image is a structural content item; PDF 1.3) The integer key of the image’s entry in the 
@@ -181,7 +181,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<Number>? StructParent => Get<Number>(Constants.DictionaryKeys.Image.StructParent);
+        public DictionaryProperty<Number?> StructParent => Get<Number?>(Constants.DictionaryKeys.Image.StructParent);
 
         /// <summary>
         /// (Optional; PDF 1.3; indirect reference preferred) The digital identifier of the image’s parent Web Capture 
@@ -190,7 +190,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<HexadecimalString>? ID => Get<HexadecimalString>(Constants.DictionaryKeys.Image.ID);
+        public DictionaryProperty<HexadecimalString?> ID => Get<HexadecimalString?>(Constants.DictionaryKeys.Image.ID);
 
         /// <summary>
         /// (Optional; PDF 1.2; deprecated in PDF 2.0) An OPI version dictionary for the image; see 14.11.7, 
@@ -199,12 +199,12 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public AsyncProperty<Dictionary>? OPI => Get<Dictionary>(Constants.DictionaryKeys.Image.OPI);
+        public DictionaryProperty<Dictionary?> OPI => Get<Dictionary?>(Constants.DictionaryKeys.Image.OPI);
 
         /// <summary>
         /// (Optional; PDF 1.4) A metadata stream containing metadata for the image (see 14.3.2, "Metadata streams").
         /// </summary>
-        public AsyncProperty<StreamObject<MetadataStreamDictionary>>? Metadata => Get<StreamObject<MetadataStreamDictionary>>(Constants.DictionaryKeys.Image.Metadata);
+        public DictionaryProperty<StreamObject<MetadataStreamDictionary>?> Metadata => Get<StreamObject<MetadataStreamDictionary>?>(Constants.DictionaryKeys.Image.Metadata);
 
         /// <summary>
         /// (Optional; PDF 1.5) An optional content group or optional content membership dictionary 
@@ -213,26 +213,26 @@ namespace ZingPDF.Graphics.Images
         /// this entry. If it is determined to be invisible, the entire image shall be skipped, as if there 
         /// were no Do operator to invoke it.
         /// </summary>
-        public AsyncProperty<Dictionary>? OC => Get<Dictionary>(Constants.DictionaryKeys.Image.OC);
+        public DictionaryProperty<Dictionary?> OC => Get<Dictionary?>(Constants.DictionaryKeys.Image.OC);
 
         /// <summary>
         /// (Optional; PDF 2.0) An array of one or more file specification dictionaries 
         /// (7.11.3, "File specification dictionaries") which denote the associated files for this image XObject. 
         /// See 14.13, "Associated files" and 14.13.7, "Associated files linked to XObjects" for more details.
         /// </summary>
-        public AsyncProperty<ArrayObject>? AF => Get<ArrayObject>(Constants.DictionaryKeys.Image.AF);
+        public DictionaryProperty<ArrayObject?> AF => Get<ArrayObject?>(Constants.DictionaryKeys.Image.AF);
 
         /// <summary>
         /// (Optional; PDF 2.0) A measure dictionary (see "Table 266 — Entries in a measure dictionary") 
         /// that specifies the scale and units which shall apply to the image.
         /// </summary>
-        public AsyncProperty<Dictionary>? Measure => Get<Dictionary>(Constants.DictionaryKeys.Image.Measure);
+        public DictionaryProperty<Dictionary?> Measure => Get<Dictionary?>(Constants.DictionaryKeys.Image.Measure);
 
         /// <summary>
         /// (Optional; PDF 2.0) A point data dictionary (see "Table 272 — Entries in a point data dictionary") 
         /// that specifies the extended geospatial data that shall apply to the image.
         /// </summary>
-        public AsyncProperty<Dictionary>? PtData => Get<Dictionary>(Constants.DictionaryKeys.Image.PtData);
+        public DictionaryProperty<Dictionary?> PtData => Get<Dictionary?>(Constants.DictionaryKeys.Image.PtData);
 
         new public static ImageDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
         {
