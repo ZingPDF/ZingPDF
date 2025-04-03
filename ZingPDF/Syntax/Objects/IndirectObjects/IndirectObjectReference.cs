@@ -7,6 +7,11 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     /// </summary>
     public class IndirectObjectReference : PdfObject
     {
+        public IndirectObjectReference(int index, ushort generationNumber)
+        {
+            Id = new(index, generationNumber);
+        }
+
         public IndirectObjectReference(IndirectObjectId id)
         {
             ArgumentNullException.ThrowIfNull(id, nameof(id));
