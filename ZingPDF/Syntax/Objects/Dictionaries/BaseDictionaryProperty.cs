@@ -52,20 +52,23 @@ public abstract class BaseDictionaryProperty
             return value;
         }
 
-        if (GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(_dictionary.GetType(), out var inheritableProperties))
+        if (!GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(_dictionary.GetType(), out var inheritableProperties))
         {
-            if (inheritableProperties.Contains(_key))
-            {
-                var parentRef = _dictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Parent);
-                if (parentRef != null)
-                {
-                    return (await _pdfEditor.GetAsync<Dictionary>(parentRef))?.GetAs<IPdfObject>(_key);
-
-                    // TODO: check if this needs to be recursive to support multiple levels of inheritance (Page.MediaBox?)
-                }
-            }
+            return null;
         }
 
-        return null;
+        if (!inheritableProperties.Contains(_key))
+        {
+            return null;
+        }
+
+        var parentRef = _dictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Parent);
+
+        var parentDictionary = await _pdfEditor.GetAsync<Dictionary>(parentRef) 
+            ?? throw new InvalidPdfException($"Invalid parent reference: {parentRef}");
+
+        return await parentDictionary
+            .Get<IPdfObject>(_key)
+            .GetRawValueAsync(); // Recurse
     }
 }

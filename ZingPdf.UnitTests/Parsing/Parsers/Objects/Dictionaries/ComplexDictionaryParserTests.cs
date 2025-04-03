@@ -4,10 +4,14 @@ using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
@@ -365,7 +369,7 @@ public class ComplexDictionaryParserTests
         const int parentGenerationNumber = 0;
 
         var pdfEditor = A.Fake<IPdfEditor>();
-        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new Syntax.Objects.IndirectObjects.IndirectObjectReference(new(parentIndex, parentGenerationNumber))))
+        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
             .Returns(new Dictionary(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Field.FT] = new Name("Tx") }, pdfEditor));
 
         var contentString = "<<" +
@@ -392,10 +396,7 @@ public class ComplexDictionaryParserTests
 
         output.Count().Should().Be(13);
 
-        // This should be parsed as a FieldDictionary because it inherits a FT entry from its parent
-        // This will only work when property inheritance is implemented.
-
-        output.Should().BeOfType<FieldDictionary>();
+        output.Should().BeOfType<FieldDictionary>(because: "the field inherits the FT entry from its parent");
     }
 
     [Fact]
@@ -426,5 +427,52 @@ public class ComplexDictionaryParserTests
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
         output.Count().Should().Be(13);
+    }
+
+    [Fact]
+    public async Task DeepNestedInheritance()
+    {
+        var pdfEditor = A.Fake<IPdfEditor>();
+
+        // Root page tree node
+        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new IndirectObjectReference(new(1, 0))))
+            .Returns(new Dictionary(
+                new Dictionary<Name, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.Type] = new Name(Constants.DictionaryTypes.Pages),
+                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(2, 0)]),
+                    [Constants.DictionaryKeys.PageTree.MediaBox] = Rectangle.FromDimensions(1, 1)
+                },
+                pdfEditor
+            ));
+
+        // First level page tree node
+        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new IndirectObjectReference(new(2, 0))))
+            .Returns(PageTreeNodeDictionary.FromDictionary(
+                new Dictionary<Name, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.Parent] = new IndirectObjectReference(1, 0),
+                    [Constants.DictionaryKeys.Type] = new Name(Constants.DictionaryTypes.Pages),
+                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(3, 0)]),
+                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Count] = new Number(1)
+                },
+                pdfEditor
+            ));
+
+        // Page does not specify MediaBox, so it should inherit it from the root page tree node
+        var contentString = "<<" +
+            "/Type/Page" +
+            "/Parent 2 0 R" +
+            ">>";
+
+        using var input = contentString.ToStream();
+
+        var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input) as PageDictionary;
+
+        output.Should().NotBeNull();
+
+        input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
+
+        output!.MediaBox.Should().NotBeNull("the page inherits the entry from its grandparent");
     }
 }
