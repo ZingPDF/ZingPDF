@@ -11,7 +11,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Comment from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            await stream.AdvanceBeyondNextAsync(Constants.Percent);
+            await stream.AdvanceBeyondNextAsync(Constants.Characters.Percent);
 
             var value = await stream.ReadUpToExcludingAsync(Constants.EndOfLineCharacters);
 

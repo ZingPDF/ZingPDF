@@ -62,7 +62,7 @@ public class ComplexDictionaryParserTests
 
         var output = await new ComplexDictionaryParser(pdfEditor).ParseAsync(input);
 
-        input.Position.Should().Be(
+        input.Should().HavePosition(
             contentString.Length,
             because: "the parser should move the stream past the dictionary-end delimiter"
             );

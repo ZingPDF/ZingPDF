@@ -1,118 +1,101 @@
 ﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
-namespace ZingPDF.Syntax.Filters
+namespace ZingPDF.Syntax.Filters;
+
+internal class RunLengthDecodeFilter : IFilter
 {
-    /// <summary>
-    /// ISO 32000-2:2020 7.4.5
-    /// 
-    /// RunLengthDecode
-    /// 
-    /// The RunLengthDecode filter decodes data that has been encoded in a simple byte-oriented format based on run length.
-    /// </summary>
-    /// <remarks>
-    /// The encoded data shall be a sequence of runs, where each run shall consist of a length byte followed by 1 to 128 bytes of data.
-    /// If the length byte is in the range 0 to 127, the following length + 1 (1 to 128) bytes shall be copied literally during decompression.
-    /// If length is in the range 129 to 255, the following single byte shall be copied 257 - length (2 to 128) times during decompression.
-    /// A length value of 128 shall denote EOD.
-    /// </remarks>
-    internal class RunLengthDecodeFilter : IFilter
+    public Name Name => Constants.Filters.RunLength;
+    public Dictionary? Params => null;
+
+    public MemoryStream Decode(Stream data)
     {
-        public Name Name => Constants.Filters.RunLength;
-        public Dictionary? Params => null;
+        var output = new MemoryStream();
+        Span<byte> buffer = stackalloc byte[128]; // Max literal run size
 
-        public byte[] Decode(byte[] data)
+        while (true)
         {
-            List<byte> decompressedData = new();
-            int i = 0;
+            int lengthByte = data.ReadByte();
+            if (lengthByte == -1)
+                throw new FilterInputFormatException(nameof(data), "Unexpected end of stream.");
+            if (lengthByte == 128) break; // EOD
 
-            while (i < data.Length)
+            if (lengthByte < 128)
             {
-                byte lengthByte = data[i];
-                i++;
-
-                if (lengthByte < 128)
-                {
-                    // Run consists of length + 1 bytes to be copied literally
-                    int runLength = lengthByte + 1;
-                    for (int j = 0; j < runLength; j++)
-                    {
-                        decompressedData.Add(data[i]);
-                        i++;
-                    }
-                }
-                else if (lengthByte > 128)
-                {
-                    // Run consists of a single byte to be copied multiple times
-                    int runLength = 257 - lengthByte;
-                    byte value = data[i];
-                    for (int j = 0; j < runLength; j++)
-                    {
-                        decompressedData.Add(value);
-                    }
-                    i++;
-                }
-                else
-                {
-                    // End of Data marker (lengthByte == 128)
-                    break;
-                }
+                int runLength = lengthByte + 1;
+                int read = data.Read(buffer[..runLength]);
+                if (read != runLength)
+                    throw new FilterInputFormatException(nameof(data), "Truncated literal run.");
+                output.Write(buffer[..runLength]);
             }
-
-            return decompressedData.ToArray();
+            else // lengthByte > 128
+            {
+                int runLength = 257 - lengthByte;
+                int value = data.ReadByte();
+                if (value == -1)
+                    throw new FilterInputFormatException(nameof(data), "Truncated repeat run.");
+                output.WriteByte((byte)value);
+                for (int i = 1; i < runLength; i++)
+                    output.WriteByte((byte)value);
+            }
         }
 
-        public byte[] Encode(byte[] data)
+        output.Position = 0;
+        return output;
+    }
+
+    public MemoryStream Encode(Stream data)
+    {
+        if (data is null) throw new FilterInputFormatException(nameof(data));
+
+        using var inputBuffer = new MemoryStream();
+        data.CopyTo(inputBuffer);
+        byte[] input = inputBuffer.ToArray();
+
+        var output = new MemoryStream();
+        int i = 0;
+
+        while (i < input.Length)
         {
-            List<byte> compressedData = new();
+            byte currentByte = input[i];
+            int runLength = 1;
 
-            int i = 0;
-
-            while (i < data.Length)
+            // Check for repeating run
+            while (i + runLength < input.Length && input[i + runLength] == currentByte && runLength < 128)
             {
-                byte currentByte = data[i];
-                int runLength = 1;
+                runLength++;
+            }
 
-                // Count the length of the run
-                while (i + runLength < data.Length && data[i + runLength] == currentByte && runLength < 128)
+            if (runLength > 1)
+            {
+                // Emit repeated run
+                output.WriteByte((byte)(257 - runLength));
+                output.WriteByte(currentByte);
+            }
+            else
+            {
+                // Literal run
+                int start = i;
+                runLength = 1;
+                while (
+                    start + runLength < input.Length &&
+                    runLength < 128 &&
+                    (start + runLength == input.Length - 1 || input[start + runLength] != input[start + runLength + 1])
+                )
                 {
                     runLength++;
                 }
 
-                // Encode the run and add it to the compressed data
-                if (runLength > 1)
-                {
-                    compressedData.Add((byte)(257 - runLength));
-                    compressedData.Add(currentByte);
-                }
-                else
-                {
-                    // Count the length of the run where the next byte is different
-
-                    var countWithinArrayRange = () => i + runLength < data.Length;
-                    var countLessThan128 = () => runLength < 128;
-                    var nextByteDifferent = () => i + runLength == data.Length - 1 || data[i + runLength] != data[i + runLength + 1];
-
-                    while (
-                        countWithinArrayRange()
-                        && countLessThan128()
-                        && nextByteDifferent()
-                        )
-                    {
-                        runLength++;
-                    }
-
-                    compressedData.Add((byte)(runLength - 1));
-                    compressedData.AddRange(data[i..(i + runLength)]);
-                }
-
-                i += runLength;
+                output.WriteByte((byte)(runLength - 1));
+                output.Write(input, start, runLength);
             }
 
-            // Add End of Data marker
-            compressedData.Add(128);
-
-            return compressedData.ToArray();
+            i += runLength;
         }
+
+        // End of Data marker
+        output.WriteByte(128);
+        output.Position = 0;
+        return output;
     }
 }

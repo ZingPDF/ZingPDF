@@ -25,34 +25,25 @@ namespace ZingPDF.Graphics.Images
             Number height,
             IPdfObject? ColorSpace,
             Number? bitsPerComponent,
-            Number length,
-            ShorthandArrayObject? filter,
-            ShorthandArrayObject? decodeParms,
-            Dictionary? f,
-            ShorthandArrayObject? fFilter,
-            ShorthandArrayObject? fDecodeParms,
-            Number? dL,
-            IPdfEditor pdfEditor
+            ShorthandArrayObject? filters,
+            ShorthandArrayObject? decodeParms
             )
-            : base(
-                  Subtypes.Image,
-                  length,
-                  filter,
-                  decodeParms,
-                  f,
-                  fFilter,
-                  fDecodeParms,
-                  dL,
-                  pdfEditor
-                  )
+            : this(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Image }, EmptyPdfEditor.Instance)
         {
-            ArgumentNullException.ThrowIfNull(width, nameof(width));
-            ArgumentNullException.ThrowIfNull(height, nameof(height));
-
             Set(Constants.DictionaryKeys.Image.Width, width);
             Set(Constants.DictionaryKeys.Image.Height, height);
             Set(Constants.DictionaryKeys.Image.ColorSpace, ColorSpace);
             Set(Constants.DictionaryKeys.Image.BitsPerComponent, bitsPerComponent);
+
+            if (filters?.Any() ?? false)
+            {
+                Set(Constants.DictionaryKeys.Stream.Filter, filters);
+
+                if (decodeParms?.Any() ?? false)
+                {
+                    Set(Constants.DictionaryKeys.Stream.DecodeParms, decodeParms);
+                } 
+            }
         }
 
         /// <summary>
