@@ -13,26 +13,24 @@ namespace ZingPDF.Syntax.Filters
 
         public Dictionary? Params { get; } = filterParams;
 
-        public byte[] Decode(byte[] data)
+        public MemoryStream Decode(Stream data)
         {
-            using var inputStream = new MemoryStream(data);
-            using var image = Image.Load<Rgba32>(inputStream);
+            using var image = Image.Load<Rgba32>(data);
             using var outputStream = new MemoryStream();
 
             image.Save(outputStream, new BmpEncoder());
 
-            return outputStream.ToArray();
+            return outputStream;
         }
 
-        public byte[] Encode(byte[] data)
+        public MemoryStream Encode(Stream data)
         {
-            using var inputStream = new MemoryStream(data);
-            using var image = Image.Load<Rgba32>(inputStream);
+            using var image = Image.Load<Rgba32>(data);
             using var outputStream = new MemoryStream();
 
             image.Save(outputStream, new JpegEncoder());
 
-            return outputStream.ToArray();
+            return outputStream;
         }
     }
 }

@@ -199,8 +199,8 @@ public class Pdf : IPdf, IDisposable
         {
             if (obj.Object is StreamObject<IStreamDictionary> streamObj)
             {
-                Either<Name, ArrayObject>? filterValue = await streamObj.Dictionary.Filter.GetAsync();
-                if (filterValue is null)
+                Either<Name?, ArrayObject?> filterValue = await streamObj.Dictionary.Filter.GetAsync();
+                if (filterValue.Value is null)
                 {
                     continue;
                 }

@@ -45,7 +45,7 @@ namespace ZingPDF.Syntax.Objects
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.LeftSquareBracket);
+            await stream.WriteCharsAsync(Constants.Characters.LeftSquareBracket);
 
             for (int i = 0; i < _values.Count; i++)
             {
@@ -59,7 +59,7 @@ namespace ZingPDF.Syntax.Objects
                 }
             }
 
-            await stream.WriteCharsAsync(Constants.RightSquareBracket);
+            await stream.WriteCharsAsync(Constants.Characters.RightSquareBracket);
         }
 
         public IEnumerator<IPdfObject> GetEnumerator() => ((IEnumerable<IPdfObject>)_values).GetEnumerator();

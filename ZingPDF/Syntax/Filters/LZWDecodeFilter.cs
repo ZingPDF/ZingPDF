@@ -21,19 +21,27 @@ namespace ZingPDF.Syntax.Filters
 
         public Dictionary? Params { get; }
 
-        public byte[] Decode(byte[] data)
+        public MemoryStream Decode(Stream data)
         {
             if (data is null) throw new FilterInputFormatException(nameof(data));
             //if (data.Last() != EndOfDataMarker) throw new FilterInputFormatException(nameof(data), $"'{nameof(data)}' must end with the EOD marker: {EndOfDataMarker}.");
+            
+            // TODO: This is reading the whole stream then processing, make this more efficient
+            using MemoryStream ms = new();
+            data.CopyTo(ms);
 
-            return data.LzwDecompress();
+            return new MemoryStream(ms.ToArray().LzwDecompress());
         }
 
-        public byte[] Encode(byte[] data)
+        public MemoryStream Encode(Stream data)
         {
             if (data is null) throw new FilterInputFormatException(nameof(data));
 
-            return data.LzwCompress();
+            // TODO: This is reading the whole stream then processing, make this more efficient
+            using MemoryStream ms = new();
+            data.CopyTo(ms);
+
+            return new MemoryStream(ms.ToArray().LzwCompress());
         }
     }
 
