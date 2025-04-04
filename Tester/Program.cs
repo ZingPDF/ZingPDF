@@ -63,7 +63,7 @@ using System;
 
 //await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
-//await AddTextToPage();
+await AddTextToPage();
 
 //await AddImageToPage();
 
@@ -71,7 +71,7 @@ using System;
 
 //await RotateWholeDocument();
 
-await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("testfiles/pdf/combobox-form.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 //LoadAndValidateUsingAbcpdf("output.pdf");
@@ -242,16 +242,15 @@ static async Task AddTextToPage()
 
     var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
 
-    //await page.AddTextAsync(new ZingPDF.Text.TextObject(
-    //    "test",
-    //    new ZingPDF.Text.FontOptions
-    //    {
-    //        FontResourceName = "Helv",
-    //        FontSize = 24,
-    //        FontColour = RGBColour.PrimaryRed,
-    //        Origin = new Coordinate(10, 50),
-    //        Size = new Size(100, 100)
-    //    }));
+    await page.AddTextAsync(new ZingPDF.Text.TextObject(
+        "test",
+        Rectangle.FromDimensions(200, 200),
+        new ZingPDF.Text.FontOptions
+        {
+            ResourceName = "Helv",
+            Size = 24,
+            Colour = RGBColour.PrimaryRed
+        }));
 
     await pdf.SaveAsync(outputFileStream);
 }

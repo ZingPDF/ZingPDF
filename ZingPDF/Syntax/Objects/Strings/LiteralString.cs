@@ -31,7 +31,7 @@ namespace ZingPDF.Syntax.Objects.Strings
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.LeftParenthesis);
+            await stream.WriteCharsAsync(Constants.Characters.LeftParenthesis);
 
             // Write byte order mark
             await stream.WriteAsync(GetEncodingPreamble().AsMemory());
@@ -39,7 +39,7 @@ namespace ZingPDF.Syntax.Objects.Strings
             // TODO: use octals to escape values outside of the specified encoding?
             await stream.WriteTextAsync(Value, _encodeUsing);
 
-            await stream.WriteCharsAsync(Constants.RightParenthesis);
+            await stream.WriteCharsAsync(Constants.Characters.RightParenthesis);
         }
 
         public static implicit operator LiteralString?(string? value) => value is null ? null : new(value);

@@ -1,8 +1,11 @@
 ﻿using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
 
 namespace ZingPDF.Elements
@@ -23,11 +26,19 @@ namespace ZingPDF.Elements
         public IndirectObject IndirectObject { get; }
         public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
 
+        // TODO: AddImage and AddText use different conventions.
+        // This method should accept the text plus options and construct the textobject internally...
+        // or the image one should accept an image object like this one.
         public async Task AddTextAsync(TextObject text)
         {
             ArgumentNullException.ThrowIfNull(text);
 
-            await Dictionary.AddContentAsync([text], _pdfEditor);
+            var textContentStreamObject = await new ContentStreamFactory([text])
+                .CreateAsync(new StreamDictionary(_pdfEditor));
+
+            var textContentStreamIndirectObject = _pdfEditor.Add(textContentStreamObject);
+
+            await Dictionary.AddContentAsync(textContentStreamIndirectObject.Id.Reference);
 
             _pdfEditor.Update(IndirectObject);
         }
@@ -43,7 +54,7 @@ namespace ZingPDF.Elements
             //List<IFilter> filters = [];
             var filter = imageMetadata.CompressionType.ToPDFFilterName();
 
-            ShorthandArrayObject? filterAry = filter != null ? new ShorthandArrayObject([(Name)filter]) : null;
+            //ShorthandArrayObject? filterAry = filter != null ? new ShorthandArrayObject([(Name)filter]) : null;
 
             //if (filter != null)
             //{
@@ -51,21 +62,14 @@ namespace ZingPDF.Elements
             //    filters = [FilterFactory.Create(filter, null)];
             //}
 
-            var imageXObject = new ImageXObjectFactory(
-                image.ImageData,
+            var imageXObject = new StreamObject<ImageDictionary>(image.ImageData, new ImageDictionary(
                 imageMetadata.Width,
                 imageMetadata.Height,
-                imageMetadata.ColorSpace,
+                (Name)imageMetadata.ColorSpace.ToString(),
                 imageMetadata.BitDepth,
-                filterAry,
-                decodeParms: null,
-                f: null,
-                fFilter: null,
-                fDecodeParms: null,
-                dL: null
-                //sourceDataIsCompressed: filters.Count > 0 // TODO: This might be wrong. Test image adding
-                )
-                .Create(_pdfEditor);
+                filters: filter != null ? [(Name)filter] : null,
+                decodeParms: null
+                ));
 
             var imageXObjectIndirectObject = _pdfEditor.Add(imageXObject);
 
@@ -85,10 +89,13 @@ namespace ZingPDF.Elements
                         )
                     );
             }
-            
-            var imageContentStream = new ImageXObjectContentStreamObject(resourceName, imageRect);
 
-            await Dictionary.AddContentAsync([imageContentStream], _pdfEditor);
+            var imageContentStreamObject = await new ContentStreamFactory([new ImageXObjectContentStream(resourceName, imageRect)])
+                .CreateAsync(new StreamDictionary(_pdfEditor));
+
+            var imageContentStreamIndirectObject = _pdfEditor.Add(imageContentStreamObject);
+
+            await Dictionary.AddContentAsync(imageContentStreamIndirectObject.Id.Reference);
 
             _pdfEditor.Update(IndirectObject);
         }

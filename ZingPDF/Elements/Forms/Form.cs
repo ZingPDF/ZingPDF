@@ -105,6 +105,11 @@ namespace ZingPDF.Elements.Forms
                 kids.Add(await _pdfEditor.GetAsync(kid));
             }
 
+            //var repFullNameField = kids.FirstOrDefault(x => x.Object is FieldDictionary fieldDict && fieldDict.T.GetAsync().Result == "RepFullName");
+            //var repRegoField = kids.FirstOrDefault(x => x.Object is FieldDictionary fieldDict && fieldDict.T.GetAsync().Result == "RepRego");
+            //var fieldsWithKids = kids.Where(x => x.Object is FieldDictionary fieldDict && fieldDict.Kids.GetAsync().Result != null);
+            //var notFieldDictionaries = kids.Where(x => x.Object is not FieldDictionary);
+
             return await GetFieldsAsync(kids, null);
         }
 

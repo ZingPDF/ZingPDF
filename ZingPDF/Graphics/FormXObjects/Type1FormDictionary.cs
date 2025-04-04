@@ -12,41 +12,19 @@ namespace ZingPDF.Graphics.FormXObjects
     /// <summary>
     /// ISO 32000-2:2020 8.10.2 - Form dictionaries
     /// </summary>
-    internal class Type1FormDictionary : FormDictionary
+    internal class Type1FormDictionary : XObjectDictionary
     {
         private const int _formType = 1;
-
-        public Type1FormDictionary(Dictionary dict)
-            : base(dict) { }
 
         private Type1FormDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
             : base(dict, pdfEditor) { }
 
         public Type1FormDictionary(
             Rectangle bBox,
-            ResourceDictionary? resources,
-            Number length,
-            ShorthandArrayObject? filter,
-            ShorthandArrayObject? decodeParms,
-            Dictionary? f,
-            ShorthandArrayObject? fFilter,
-            ShorthandArrayObject? fDecodeParms,
-            Number? dL,
-            IPdfEditor pdfEditor
+            ResourceDictionary? resources
             )
-            : base(
-                length,
-                filter,
-                decodeParms,
-                f,
-                fFilter,
-                fDecodeParms,
-                dL,
-                pdfEditor
-                )
+            : this(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Form }, EmptyPdfEditor.Instance)
         {
-            ArgumentNullException.ThrowIfNull(bBox);
-
             Set<Number>(Constants.DictionaryKeys.Form.FormType, _formType);
             Set(Constants.DictionaryKeys.Form.Type1.BBox, bBox);
 

@@ -9,12 +9,12 @@ namespace ZingPDF.Syntax.Filters
 
         public Dictionary? Params => throw new NotImplementedException();
 
-        public byte[] Decode(byte[] data)
+        public MemoryStream Decode(Stream data)
         {
             throw new NotImplementedException();
         }
 
-        public byte[] Encode(byte[] data)
+        public MemoryStream Encode(Stream data)
         {
             throw new NotImplementedException();
         }
