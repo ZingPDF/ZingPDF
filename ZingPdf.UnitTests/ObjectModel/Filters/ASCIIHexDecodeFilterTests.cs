@@ -10,12 +10,7 @@ public class ASCIIHexDecodeFilterTests
     public void DecodeThrowsWhenMissingEODMarker()
     {
         // EOD marker is '>', which is the decimal number 62 in ASCII encoding
-        var encoded = new byte[] {
-            115, 104, 101, 32, 115, 101, 108, 108, 115, 32,
-            115, 101, 97, 115, 104, 101, 108, 108, 115, 32,
-            111, 110, 32, 116, 104, 101, 32, 115, 101, 97,
-            32, 115, 104, 111, 114, 101
-        };
+        using var encoded = new MemoryStream("she sells seashells on the sea shore"u8.ToArray());
 
         var action = () => new ASCIIHexDecodeFilter()
             .Decode(encoded);
@@ -26,13 +21,13 @@ public class ASCIIHexDecodeFilterTests
     [Fact]
     public void DecodeThrowsForCharactersFollowingEODMarker()
     {
-        var encoded = new byte[] {
+        using var encoded = new MemoryStream([
             115, 104, 101, 32, 115, 101, 108, 108, 115, 32,
             115, 101, 97, 115, 104, 101, 108, 108, 115, 32,
             111, 110, 32, 116, 104, 101, 32, 115, 101, 97,
             32, 115, 104, 111, 114, 101, 62, 20, 101
-            // EOD marker ________________|
-        };
+            // EOD marker _______________|
+        ]);
 
         var action = () => new ASCIIHexDecodeFilter()
             .Decode(encoded);
@@ -43,20 +38,24 @@ public class ASCIIHexDecodeFilterTests
     [Fact]
     public void DecodeIgnoresSpacesInEncodedData()
     {
+        using var encoded = new MemoryStream("736865 20 73656C6C73207365617368656C6C73206F6E20746865207365612073686F7265>"u8.ToArray());
+
         new ASCIIHexDecodeFilter()
-            .Decode(Encoding.ASCII.GetBytes("736865 20 73656C6C73207365617368656C6C73206F6E20746865207365612073686F7265>"))
-            .Should().BeEquivalentTo(Encoding.ASCII.GetBytes("she sells seashells on the sea shore"));
+            .Decode(encoded)
+            .ToArray()
+            .Should().BeEquivalentTo("she sells seashells on the sea shore"u8.ToArray());
     }
 
     [Fact]
     public void DecodePadsOddLengthInEncodedData()
     {
         // The odd 2 should be padded to 20. 0x20 is an ASCII space.
-        var encodedString = "7368652073656C6C73207365617368656C6C73206F6E20746865207365612073686F72652>";
+        var encodedString = new MemoryStream("7368652073656C6C73207365617368656C6C73206F6E20746865207365612073686F72652>"u8.ToArray());
 
         new ASCIIHexDecodeFilter()
-            .Decode(Encoding.ASCII.GetBytes(encodedString))
-            .Should().BeEquivalentTo(Encoding.ASCII.GetBytes("she sells seashells on the sea shore "));
+            .Decode(encodedString)
+            .ToArray()
+            .Should().BeEquivalentTo("she sells seashells on the sea shore "u8.ToArray());
     }
 
     [Theory]
@@ -123,8 +122,11 @@ public class ASCIIHexDecodeFilterTests
         })]
     public void DecodeProducesProperBinaryOutput(byte[] encoded, byte[] decoded)
     {
+        var encodedStream = new MemoryStream(encoded);
+
         new ASCIIHexDecodeFilter()
-            .Decode(encoded)
+            .Decode(encodedStream)
+            .ToArray()
             .Should().BeEquivalentTo(decoded);
     }
 
@@ -192,8 +194,11 @@ public class ASCIIHexDecodeFilterTests
         })]
     public void EncodeProducesProperHexOutput(byte[] input, byte[] encoded)
     {
+        using var inputBuffer = new MemoryStream(input);
+
         new ASCIIHexDecodeFilter()
-            .Encode(input)
+            .Encode(inputBuffer)
+            .ToArray()
             .Should().BeEquivalentTo(encoded);
     }
 }

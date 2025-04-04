@@ -40,7 +40,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 {
                     char c = content[i];
 
-                    if (c == Constants.LeftSquareBracket)
+                    if (c == Constants.Characters.LeftSquareBracket)
                     {
                         countStart++;
                         if (countStart == 1)
@@ -49,7 +49,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                         }
                     }
 
-                    if (c == Constants.RightSquareBracket)
+                    if (c == Constants.Characters.RightSquareBracket)
                     {
                         countEnd++;
                         if (countEnd == countStart)

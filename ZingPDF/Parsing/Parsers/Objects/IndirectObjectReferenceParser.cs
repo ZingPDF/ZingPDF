@@ -11,11 +11,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             //Logger.Log(LogLevel.Trace, $"Parsing IndirectObjectReference from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            var content = await stream.ReadUpToIncludingAsync(Constants.IndirectReference);
+            var content = await stream.ReadUpToIncludingAsync(Constants.Characters.IndirectReference);
 
             content = content.TrimStart();
 
-            var parts = content.Split(Constants.Whitespace);
+            var parts = content.Split(Constants.Characters.Whitespace);
 
             var id = int.Parse(parts[0]);
             var generation = ushort.Parse(parts[1]);
