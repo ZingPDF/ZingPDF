@@ -52,6 +52,12 @@ public abstract class BaseDictionaryProperty
             return value;
         }
 
+        var parentRef = _dictionary.GetAs<IndirectObjectReference?>(Constants.DictionaryKeys.Parent);
+        if (parentRef == null)
+        {
+            return null;
+        }
+
         if (!GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(_dictionary.GetType(), out var inheritableProperties))
         {
             return null;
@@ -61,8 +67,6 @@ public abstract class BaseDictionaryProperty
         {
             return null;
         }
-
-        var parentRef = _dictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Parent);
 
         var parentDictionary = await _pdfEditor.GetAsync<Dictionary>(parentRef) 
             ?? throw new InvalidPdfException($"Invalid parent reference: {parentRef}");

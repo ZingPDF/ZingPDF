@@ -11,8 +11,11 @@ public class LZWDecodeFilterTests
     [InlineData(new byte[] { 1, 0, 0, 0, 5, 0, 0, 0 }, new byte[] { 1, 5 })]
     public void DecodeProducesProperOutput(byte[] encoded, byte[] decoded)
     {
+        var encodedStream = new MemoryStream(encoded);
+
         new LZWDecodeFilter(null)
-            .Decode(encoded)
+            .Decode(encodedStream)
+            .ToArray()
             .Should().BeEquivalentTo(decoded);
     }
 
@@ -22,8 +25,11 @@ public class LZWDecodeFilterTests
     [InlineData(new byte[] { 1, 5 }, new byte[] { 1, 0, 0, 0, 5, 0, 0, 0 })]
     public void EncodeProducesProperOutput(byte[] input, byte[] encoded)
     {
+        using var inputStream = new MemoryStream(input);
+
         new LZWDecodeFilter(null)
-            .Encode(input)
+            .Encode(inputStream)
+            .ToArray()
             .Should().BeEquivalentTo(encoded);
     }
 }
