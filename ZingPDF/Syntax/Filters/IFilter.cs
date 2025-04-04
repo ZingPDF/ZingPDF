@@ -13,7 +13,7 @@ namespace ZingPDF.Syntax.Filters
         Name Name { get; }
         //FilterParams? Params { get; }
         Dictionary? Params { get; }
-        byte[] Decode(byte[] data);
-        byte[] Encode(byte[] data);
+        MemoryStream Decode(Stream data);
+        MemoryStream Encode(Stream data);
     }
 }

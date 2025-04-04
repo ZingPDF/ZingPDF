@@ -1,5 +1,4 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
@@ -7,31 +6,30 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources;
 /// <summary>
 /// ISO 32000-2:2020 7.8.2 - Content streams
 /// </summary>
-internal class ContentStreamFactory<TDictionary> : IStreamObjectFactory<TDictionary>
-    where TDictionary : class, IStreamDictionary
+/// <remarks>
+/// This class is used to create a stream object from a collection of content stream objects.
+/// </remarks>
+internal class ContentStreamFactory : StreamObjectFactory
 {
     private readonly IEnumerable<ContentStream> _content;
-    private readonly TDictionary _dictionary;
 
-    public ContentStreamFactory(IEnumerable<ContentStream> content, TDictionary dictionary)
+    public ContentStreamFactory(IEnumerable<ContentStream> content)
     {
         ArgumentNullException.ThrowIfNull(content, nameof(content));
-        ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
 
         _content = content;
-        _dictionary = dictionary;
     }
 
-    public StreamObject<TDictionary> Create(IPdfEditor pdfEditor)
+    protected override async Task<Stream> GetDataAsync()
     {
         var ms = new MemoryStream();
 
         foreach (var graphicsObject in _content)
         {
-            graphicsObject.WriteAsync(ms).Wait();
-            ms.WriteWhitespaceAsync().Wait();
+            await graphicsObject.WriteAsync(ms);
+            await ms.WriteWhitespaceAsync();
         }
 
-        return new StreamObject<TDictionary>(ms, _dictionary);
+        return ms;
     }
 }

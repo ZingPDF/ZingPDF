@@ -14,7 +14,7 @@ internal class NameParser : IObjectParser<Name>
     {
         //Logger.Log(LogLevel.Trace, $"Parsing Name from {stream.GetType().Name} at offset: {stream.Position}.");
 
-        await stream.AdvanceBeyondNextAsync(Constants.Solidus);
+        await stream.AdvanceBeyondNextAsync(Constants.Characters.Solidus);
 
         var nameStart = stream.Position;
 

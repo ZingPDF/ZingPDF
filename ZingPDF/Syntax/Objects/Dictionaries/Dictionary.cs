@@ -45,7 +45,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
 
         public Name? Type => (Name)_dictionary[Constants.DictionaryKeys.Type];
 
-        public T GetAs<T>(Name key) where T : class?, IPdfObject
+        public T GetAs<T>(Name key) where T : class?, IPdfObject?
             => (_dictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;
 
         public DictionaryProperty<T> Get<T>(Name key) where T : class?, IPdfObject?

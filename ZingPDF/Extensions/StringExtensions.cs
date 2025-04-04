@@ -71,24 +71,24 @@ namespace ZingPDF.Extensions
         /// </summary>
         public static string RemoveNextEndOfLineMarker(this string input, out char[] removedChars)
         {
-            var index = input.IndexOf($"{Constants.CarriageReturn}{Constants.LineFeed}");
+            var index = input.IndexOf($"{Constants.Characters.CarriageReturn}{Constants.Characters.LineFeed}");
             if (index != -1)
             {
-                removedChars = [Constants.CarriageReturn, Constants.LineFeed];
+                removedChars = [Constants.Characters.CarriageReturn, Constants.Characters.LineFeed];
                 return input.Remove(index, 2);
             }
 
-            index = input.IndexOf(Constants.LineFeed);
+            index = input.IndexOf(Constants.Characters.LineFeed);
             if (index != -1)
             {
-                removedChars = [Constants.LineFeed];
+                removedChars = [Constants.Characters.LineFeed];
                 return input.Remove(index + 1, 1);
             }
 
-            index = input.IndexOf(Constants.CarriageReturn);
+            index = input.IndexOf(Constants.Characters.CarriageReturn);
             if (index != -1)
             {
-                removedChars = [Constants.CarriageReturn];
+                removedChars = [Constants.Characters.CarriageReturn];
                 return input.Remove(index + 1, 1);
             }
 

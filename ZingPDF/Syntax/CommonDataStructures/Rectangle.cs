@@ -33,7 +33,7 @@ namespace ZingPDF.Syntax.CommonDataStructures
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.LeftSquareBracket);
+            await stream.WriteCharsAsync(Constants.Characters.LeftSquareBracket);
 
             await stream.WriteDoubleAsync(LowerLeft.X);
             await stream.WriteWhitespaceAsync();
@@ -46,7 +46,7 @@ namespace ZingPDF.Syntax.CommonDataStructures
 
             await stream.WriteDoubleAsync(UpperRight.Y);
 
-            await stream.WriteCharsAsync(Constants.RightSquareBracket);
+            await stream.WriteCharsAsync(Constants.Characters.RightSquareBracket);
         }
 
         public static Rectangle FromDimensions(Number width, Number height) => new(new(0, 0), new(width, height));

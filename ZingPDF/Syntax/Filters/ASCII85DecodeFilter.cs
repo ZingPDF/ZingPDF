@@ -31,24 +31,39 @@ namespace ZingPDF.Syntax.Filters
         private int _linePos = 0;
 
 
-        private readonly uint[] _pow85 = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
+        private readonly uint[] _pow85 = [85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1];
 
         private readonly byte[] _endOfDataMarker = Encoding.ASCII.GetBytes("~>");
 
         public Name Name => Constants.Filters.ASCII85;
         public Dictionary? Params => null;
 
-        public byte[] Decode(byte[] data)
+        public MemoryStream Decode(Stream data)
         {
-            if (data is null) throw new ArgumentNullException(nameof(data));
-            if (EnforceSuffixMark && !data.Skip(data.Length - 2).SequenceEqual(_endOfDataMarker)) throw new FilterInputFormatException(nameof(data), $"'{nameof(data)}' must end with the EOD marker: {_endOfDataMarker}.");
+            ArgumentNullException.ThrowIfNull(data);
 
-            data = data[..^_endOfDataMarker.Length];
+            // Check last 2 bytes for the EOD marker
+            data.Position = data.Length - _endOfDataMarker.Length;
+
+            byte[] last2Bytes = [(byte)data.ReadByte(), (byte)data.ReadByte()];
+            bool hasEodMarker = last2Bytes.SequenceEqual(_endOfDataMarker);
+
+            if (EnforceSuffixMark && !hasEodMarker)
+            {
+                throw new FilterInputFormatException(nameof(data), $"'{nameof(data)}' must end with the EOD marker: {_endOfDataMarker}.");
+            }
+
+            data.Position = 0;
+
+            var eodPosition = hasEodMarker ? data.Length - _endOfDataMarker.Length : data.Length;
 
             var ms = new MemoryStream();
             int count = 0;
-            foreach (char c in data)
+
+            while(data.Position < eodPosition)
             {
+                char c = (char)data.ReadByte();
+
                 bool processChar;
                 switch (c)
                 {
@@ -64,13 +79,13 @@ namespace ZingPDF.Syntax.Filters
                         ms.Write(_decodedBlock, 0, _decodedBlock.Length);
                         processChar = false;
                         break;
-                    case '\n':
-                    case '\r':
-                    case '\t':
-                    case '\0':
-                    case '\f':
-                    case '\b':
-                    case ' ':
+                    case Constants.Characters.LineFeed:
+                    case Constants.Characters.CarriageReturn:
+                    case Constants.Characters.HorizontalTab:
+                    case Constants.Characters.Null:
+                    case Constants.Characters.FormFeed:
+                    case Constants.Characters.Backspace:
+                    case Constants.Characters.Whitespace:
                         processChar = false;
                         break;
                     default:
@@ -112,20 +127,24 @@ namespace ZingPDF.Syntax.Filters
                 }
             }
 
-            return ms.ToArray();
+            ms.Position = 0;
+
+            return ms;
         }
 
-        public byte[] Encode(byte[] data)
+        public MemoryStream Encode(Stream data)
         {
-            if (data is null) throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
-            var sb = new StringBuilder(data.Length * (_encodedBlock.Length / _decodedBlock.Length));
+            var sb = new StringBuilder((int)data.Length * (_encodedBlock.Length / _decodedBlock.Length));
             _linePos = 0;
 
             int count = 0;
             _tuple = 0;
-            foreach (byte b in data)
+
+            while(data.Position < data.Length)
             {
+                byte b = (byte)data.ReadByte();
                 if (count >= _decodedBlock.Length - 1)
                 {
                     _tuple |= b;
@@ -158,7 +177,7 @@ namespace ZingPDF.Syntax.Filters
                 AppendString(sb, Encoding.ASCII.GetString(_endOfDataMarker));
             }
 
-            return Encoding.ASCII.GetBytes(sb.ToString());
+            return new MemoryStream(Encoding.ASCII.GetBytes(sb.ToString()));
         }
 
         private void EncodeBlock(StringBuilder sb)

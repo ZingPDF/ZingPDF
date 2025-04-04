@@ -34,7 +34,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         if (dictStream == null)
         {
-            return new Dictionary((IPdfEditor)null);
+            return new Dictionary(EmptyPdfEditor.Instance);
         }
 
         var objectGroup = await new PdfObjectGroupParser().ParseAsync(dictStream);

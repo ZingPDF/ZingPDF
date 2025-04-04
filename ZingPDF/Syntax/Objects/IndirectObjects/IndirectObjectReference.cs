@@ -33,7 +33,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             await stream.WriteIntAsync(Id.GenerationNumber);
             await stream.WriteWhitespaceAsync();
 
-            await stream.WriteCharsAsync(Constants.IndirectReference);
+            await stream.WriteCharsAsync(Constants.Characters.IndirectReference);
         }
 
         public override bool Equals(object? obj)

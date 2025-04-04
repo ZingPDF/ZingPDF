@@ -27,7 +27,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             //Logger.Log(LogLevel.Trace, $"Parsing literal string from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            await stream.AdvanceBeyondNextAsync(Constants.LeftParenthesis);
+            await stream.AdvanceBeyondNextAsync(Constants.Characters.LeftParenthesis);
 
             var stringStart = stream.Position;
 
@@ -75,17 +75,17 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     var c = content[i];
 
                     var asciiChar = asciiContent[asciiCursor];
-                    if (asciiChar == Constants.RightParenthesis)
+                    if (asciiChar == Constants.Characters.RightParenthesis)
                     {
                         countEnd++;
                     }
 
                     switch (c)
                     {
-                        case Constants.LeftParenthesis:
+                        case Constants.Characters.LeftParenthesis:
                             countStart++;
                             break;
-                        case Constants.ReverseSolidus:
+                        case Constants.Characters.ReverseSolidus:
                             // Backslash is used to:
 
                             // - escape parentheses
@@ -174,7 +174,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 + byteEncoding.GetByteCount(output)
                 + removedChars;
 
-            await stream.AdvanceBeyondNextAsync(Constants.RightParenthesis);
+            await stream.AdvanceBeyondNextAsync(Constants.Characters.RightParenthesis);
 
             // Octal strings are essentially double encoded, and written using ASCII
             // - once using the intended encoding (such as UTF16BE)

@@ -14,26 +14,31 @@ internal static class Constants
             public const string Tx = "Tx";
         }
     }
+    public static class Characters
+    {
+        public const char LineFeed = '\n';
+        public const char CarriageReturn = '\r';
+        public const char HorizontalTab = '\t';
+        public const char FormFeed = '\f';
+        public const char Backspace = '\b';
+        public const char Null = '\0';
+        public const char Space = ' ';
+        public const char Percent = '%';
+        public const char Solidus = '/';
+        public const char ReverseSolidus = '\\';
+        public const char LeftParenthesis = '(';
+        public const char RightParenthesis = ')';
+        public const char Whitespace = ' ';
+        public const char LeftSquareBracket = '[';
+        public const char RightSquareBracket = ']';
+        public const char LessThan = '<';
+        public const char GreaterThan = '>';
+        public const char LeftBrace = '{';
+        public const char RightBrace = '}';
+        public const char IndirectReference = 'R';
 
-    public const char LineFeed = '\n';
-    public const char CarriageReturn = '\r';
-    public const char HorizontalTab = '\t';
-    public const char FormFeed = '\f';
-    public const char Backspace = '\b';
-    public const char Space = ' ';
-    public const char Percent = '%';
-    public const char Solidus = '/';
-    public const char ReverseSolidus = '\\';
-    public const char LeftParenthesis = '(';
-    public const char RightParenthesis = ')';
-    public const char Whitespace = ' ';
-    public const char LeftSquareBracket = '[';
-    public const char RightSquareBracket = ']';
-    public const char LessThan = '<';
-    public const char GreaterThan = '>';
-    public const char LeftBrace = '{';
-    public const char RightBrace = '}';
-    public const char IndirectReference = 'R';
+
+    }
 
     public static readonly string PdfVersionPrefix = "PDF-";
     public static readonly string ObjStart = "obj";
@@ -55,16 +60,16 @@ internal static class Constants
     /// Special characters used to delimit syntactic entities such as arrays, names, comments.
     /// </summary>
     public static readonly char[] Delimiters = [
-        LeftParenthesis, RightParenthesis,
-        LessThan, GreaterThan,
-        LeftSquareBracket, RightSquareBracket,
-        LeftBrace, RightBrace,
-        Solidus,
-        Percent
+        Characters.LeftParenthesis, Characters.RightParenthesis,
+        Characters.LessThan, Characters.GreaterThan,
+        Characters.LeftSquareBracket, Characters.RightSquareBracket,
+        Characters.LeftBrace, Characters.RightBrace,
+        Characters.Solidus,
+        Characters.Percent
     ];
 
-    public static readonly char[] WhitespaceCharacters = [Space, HorizontalTab, LineFeed, CarriageReturn, FormFeed];
-    public static readonly char[] EndOfLineCharacters = [CarriageReturn, LineFeed];
+    public static readonly char[] WhitespaceCharacters = [Characters.Space, Characters.HorizontalTab, Characters.LineFeed, Characters.CarriageReturn, Characters.FormFeed];
+    public static readonly char[] EndOfLineCharacters = [Characters.CarriageReturn, Characters.LineFeed];
 
     public static class ButtonStates
     {

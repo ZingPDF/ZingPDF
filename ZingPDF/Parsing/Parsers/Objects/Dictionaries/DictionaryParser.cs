@@ -4,7 +4,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
 internal abstract class DictionaryParser
 {
-    private static readonly List<char> _halfDelimiters = [Constants.LessThan, Constants.GreaterThan];
+    private static readonly List<char> _halfDelimiters = [Constants.Characters.LessThan, Constants.Characters.GreaterThan];
 
     private static bool IsHalfADelimiter(char c) => _halfDelimiters.Contains(c);
 

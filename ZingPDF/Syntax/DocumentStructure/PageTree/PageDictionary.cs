@@ -68,8 +68,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// a Contents array containing no elements.
         /// </para>
         /// </summary>
-        public DictionaryMultiProperty<ArrayObject?, IndirectObjectReference?> Contents
-            => Get<ArrayObject?, IndirectObjectReference?>(Constants.DictionaryKeys.PageTree.Page.Contents);
+        public DictionaryMultiProperty<StreamObject<IStreamDictionary>?, ArrayObject?> Contents
+            => Get<StreamObject<IStreamDictionary>?, ArrayObject?>(Constants.DictionaryKeys.PageTree.Page.Contents);
 
         /// <summary>
         /// (Optional; PDF 1.4) A group attributes dictionary that shall specify the attributes of 
@@ -216,11 +216,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public DictionaryProperty<Dictionary?> DPart => Get<Dictionary?>(Constants.DictionaryKeys.PageTree.Page.DPart);
 
-        public async Task AddContentAsync(IEnumerable<ContentStream> content, IPdfEditor pdfEditor)
+        public async Task AddContentAsync(IndirectObjectReference contentRef)
         {
-            ArgumentNullException.ThrowIfNull(content, nameof(content));
-            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
-
             ShorthandArrayObject contentsArray = [];
 
             if (Contents != null)
@@ -237,15 +234,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 }
             }
 
-            var contentStream = new ContentStreamFactory<StreamDictionary>(
-                content,
-                StreamDictionary.FromDictionary([], pdfEditor)
-                )
-                .Create(pdfEditor);
-
-            var contentObject = pdfEditor.Add(contentStream);
-
-            contentsArray.Add(contentObject.Id.Reference);
+            contentsArray.Add(contentRef);
 
             Set(Constants.DictionaryKeys.PageTree.Page.Contents, contentsArray);
         }

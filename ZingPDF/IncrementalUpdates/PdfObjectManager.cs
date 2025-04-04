@@ -234,41 +234,52 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
 
-        // TODO: must support the `Extends` property
-
-        var objStreamIndirectObject = await GetAsync(new IndirectObjectReference(new IndirectObjectId((int)xref.Value1, 0)))
-            ?? throw new InvalidOperationException($"Error attempting to parse {key}. Unable to find parent object stream {xref.Value1}");
+        // Resolve the correct object stream that contains the object.
+        var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0), xref.Value2);
 
         var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
         var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
 
         // TODO: cache decompressed stream data?
-        // Decompress stream, read bytes up to first object.
-        // These bytes contain pairs of integers, identifying each object number and byte offset.          
+        // Now that we have the correct stream, decompress it.
         Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
-        var decompressedData = new byte[objectStreamDictionary.First];
-        await decompressedObjectStream.ReadExactlyAsync(decompressedData, 0, objectStreamDictionary.First);
+
+        // Read the offset table without unnecessary allocations
+        var offsetTableBytes = new byte[objectStreamDictionary.First];
+        await decompressedObjectStream.ReadExactlyAsync(offsetTableBytes, 0, objectStreamDictionary.First);
 
         // Decode integer pairs
-        var offsets = Encoding.ASCII.GetString(decompressedData)
-            .Split([Constants.Whitespace, .. Constants.EndOfLineCharacters]);
+        var offsets = Encoding.ASCII.GetString(offsetTableBytes)
+            .Split([Constants.Characters.Whitespace, .. Constants.EndOfLineCharacters]);
 
-        var indexedOffsets = new int[objectStreamDictionary.N];
-
-        for (var i = 0; i < objectStreamDictionary.N; i++)
-        {
-            var byteOffset = Convert.ToInt32(offsets[i * 2 + 1]);
-
-            indexedOffsets[i] = byteOffset;
-        }
-
-        var objectOffset = indexedOffsets[xref.Value2];
+        var objectOffset = Convert.ToInt32(offsets[adjustedIndex * 2 + 1]);
 
         // The byte offset of an object is relative to the first object.
+        // Seek to the object's position and parse it
         decompressedObjectStream.Position = objectStreamDictionary.First + objectOffset;
 
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
         return new IndirectObject(key.Id, await Parser.For(type, this).ParseAsync(decompressedObjectStream));
+    }
+
+    private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)
+    {
+        var objStreamIndirectObject = await GetAsync(objectStreamRef)
+            ?? throw new InvalidOperationException($"Unable to find parent object stream {objectStreamRef}");
+
+        var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
+        var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
+
+        // If the object index is within bounds, return the current stream.
+        if (objectIndex < objectStreamDictionary.N)
+            return (objStreamIndirectObject, objectIndex);
+
+        // Otherwise, check the Extends reference.
+        if (objectStreamDictionary.Extends is null)
+            throw new InvalidOperationException($"Requested object index {objectIndex} is out of bounds, and no Extends reference exists.");
+
+        // Recurse to resolve the correct object stream.
+        return await ResolveObjectStreamAsync(objectStreamDictionary.Extends, objectIndex);
     }
 }

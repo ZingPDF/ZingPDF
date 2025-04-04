@@ -11,9 +11,9 @@ namespace ZingPDF.Parsing.Parsers.Objects
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Hexadecimal string from {stream.GetType().Name} at offset: {stream.Position}.");
 
-            await stream.AdvanceBeyondNextAsync(Constants.LessThan);
+            await stream.AdvanceBeyondNextAsync(Constants.Characters.LessThan);
 
-            var content = await stream.ReadUpToIncludingAsync(Constants.GreaterThan);
+            var content = await stream.ReadUpToIncludingAsync(Constants.Characters.GreaterThan);
 
             var value = content[..^1];
 

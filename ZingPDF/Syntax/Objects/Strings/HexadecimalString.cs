@@ -19,9 +19,9 @@ namespace ZingPDF.Syntax.Objects.Strings
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await stream.WriteCharsAsync(Constants.LessThan);
+            await stream.WriteCharsAsync(Constants.Characters.LessThan);
             await stream.WriteTextAsync(Value);
-            await stream.WriteCharsAsync(Constants.GreaterThan);
+            await stream.WriteCharsAsync(Constants.Characters.GreaterThan);
         }
 
         public static HexadecimalString FromBytes(byte[] value) => new() { Value = Convert.ToHexString(value) };

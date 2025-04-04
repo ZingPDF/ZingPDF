@@ -1,7 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
-using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -9,41 +6,20 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 /// <summary>
 /// ISO 32000-2:2020 7.5.8 - Cross-reference streams
 /// </summary>
-internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReferenceStreamDictionary>
+internal class CrossReferenceStreamFactory : StreamObjectFactory
 {
     private readonly IEnumerable<CrossReferenceSection> _xrefSections;
-    private readonly Number _size;
-    private readonly Number? _prev;
-    private readonly IndirectObjectReference _root;
-    private readonly Dictionary? _encrypt;
-    private readonly IndirectObjectReference? _info;
-    private readonly ArrayObject? _id;
 
     public CrossReferenceStreamFactory(
-        IEnumerable<CrossReferenceSection> xrefSections,
-        Number size,
-        IndirectObjectReference root,
-        Number? prev,
-        Dictionary? encrypt,
-        IndirectObjectReference? info,
-        ArrayObject? id
+        IEnumerable<CrossReferenceSection> xrefSections
         )
     {
         ArgumentNullException.ThrowIfNull(xrefSections, nameof(xrefSections));
-        ArgumentNullException.ThrowIfNull(size, nameof(size));
-        ArgumentNullException.ThrowIfNull(root, nameof(root));
-
 
         _xrefSections = xrefSections;
-        _size = size;
-        _root = root;
-        _prev = prev;    
-        _encrypt = encrypt;
-        _info = info;
-        _id = id;
     }
 
-    public StreamObject<CrossReferenceStreamDictionary> Create(IPdfEditor pdfEditor)
+    protected override Task<Stream> GetDataAsync()
     {
         var allEntries = _xrefSections.SelectMany(x => x.Entries);
 
@@ -55,11 +31,9 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
 
         var w = (ArrayObject)new Number[] { field1Size, field2Size, field3Size };
 
-        var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
+        //var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
 
-        var data = CreateStreamData(_xrefSections, field1Size, field2Size, field3Size);
-
-        return new StreamObject<CrossReferenceStreamDictionary>(data, dictionary);
+        return Task.FromResult(CreateStreamData(_xrefSections, field1Size, field2Size, field3Size));
     }
 
     // Method to get the size of the field based on the entries
@@ -75,7 +49,7 @@ internal class CrossReferenceStreamFactory : IStreamObjectFactory<CrossReference
         return Math.Max(size, 1);
     }
 
-    private static MemoryStream CreateStreamData(IEnumerable<CrossReferenceSection> xrefSections, int field1Size, int field2Size, int field3Size)
+    private static Stream CreateStreamData(IEnumerable<CrossReferenceSection> xrefSections, int field1Size, int field2Size, int field3Size)
     {
         var ms = new MemoryStream();
 

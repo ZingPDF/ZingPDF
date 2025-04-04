@@ -38,13 +38,13 @@ internal static class StreamExtensions
     /// Write a single whitespace character to the stream.
     /// </summary>
     public static async Task WriteWhitespaceAsync(this Stream stream)
-        => await stream.WriteCharsAsync(Constants.Whitespace);
+        => await stream.WriteCharsAsync(Constants.Characters.Whitespace);
 
     /// <summary>
     /// Write a unix-style new line character to the stream (\n).
     /// </summary>
     public static async Task WriteNewLineAsync(this Stream stream)
-        => await stream.WriteCharsAsync(Constants.LineFeed);
+        => await stream.WriteCharsAsync(Constants.Characters.LineFeed);
 
     /// <summary>
     /// Write a full new line character sequence to the stream (\r\n).

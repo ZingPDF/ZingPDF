@@ -162,10 +162,10 @@ public class LiteralStringParserTests
 
         var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(input));
-        inputBytes.Add((byte)Constants.RightParenthesis);
+        inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         LiteralString expectedLiteralString = input;
 
@@ -183,10 +183,10 @@ public class LiteralStringParserTests
 
         var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(input));
-        inputBytes.Add((byte)Constants.RightParenthesis);
+        inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         LiteralString expectedLiteralString = input;
 
@@ -204,10 +204,10 @@ public class LiteralStringParserTests
 
         var encoding = new UnicodeEncoding(bigEndian: true, byteOrderMark: true);
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(input));
-        inputBytes.AddRange(Encoding.ASCII.GetBytes($"{Constants.RightParenthesis} /P 12 0 R /NM (0001-0001)"));
+        inputBytes.AddRange(Encoding.ASCII.GetBytes($"{Constants.Characters.RightParenthesis} /P 12 0 R /NM (0001-0001)"));
 
         LiteralString expectedLiteralString = input;
 
@@ -225,9 +225,9 @@ public class LiteralStringParserTests
         var textInput = "TEST";
         var encoding = Encoding.UTF8;
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
-        inputBytes.AddRange(encoding.GetBytes($"{textInput}{Constants.RightParenthesis}"));
+        inputBytes.AddRange(encoding.GetBytes($"{textInput}{Constants.Characters.RightParenthesis}"));
 
         LiteralString expectedLiteralString = textInput;
 
@@ -245,10 +245,10 @@ public class LiteralStringParserTests
         var textInput = "Usage on RedHat Linux";
         var encoding = Encoding.BigEndianUnicode;
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(textInput));
-        inputBytes.Add((byte)Constants.RightParenthesis);
+        inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser().ParseAsync(ms);
@@ -264,10 +264,10 @@ public class LiteralStringParserTests
         var textInput = "Usage on RedHat Linux";
         var encoding = Encoding.BigEndianUnicode;
 
-        inputBytes.Add((byte)Constants.LeftParenthesis);
+        inputBytes.Add((byte)Constants.Characters.LeftParenthesis);
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(textInput));
-        inputBytes.Add((byte)Constants.RightParenthesis);
+        inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         // Add some extraneous content to ensure the parsing ends in the correct place.
         inputBytes.AddRange(Encoding.ASCII.GetBytes("\r\n<< /S /GoTo /D (section.23.5) >>\r\n"));
