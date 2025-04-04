@@ -10,7 +10,7 @@
         /// <remarks>
         /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
         /// </remarks>
-        T GetAs<T>(Name key) where T : class?, IPdfObject;
+        T GetAs<T>(Name key) where T : class?, IPdfObject?;
 
         /// <summary>
         /// Strongly typed access to the underlying <see cref="PdfObject"/>.

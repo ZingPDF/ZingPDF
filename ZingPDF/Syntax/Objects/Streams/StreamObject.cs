@@ -19,8 +19,6 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         Data = data;
         Dictionary = dictionary;
-
-        //Dictionary.SetStreamProperties(GetStreamDictionary());
     }
 
     public TDictionary Dictionary { get; }
@@ -55,8 +53,6 @@ public sealed class StreamObject<TDictionary> : PdfObject
             return Data;
         }
 
-        var workingData = await Data.ReadToEndAsync();
-
         IEnumerable<Name> filterNames = [];
         Either<Name?, ArrayObject?> filterValue = await Dictionary.Filter.GetAsync();
 
@@ -67,7 +63,7 @@ public sealed class StreamObject<TDictionary> : PdfObject
 
         if (!filterNames.Any())
         {
-            return new MemoryStream(workingData);
+            return Data;
         }
 
         IEnumerable<Dictionaries.Dictionary> allFilterParams = [];
@@ -80,61 +76,18 @@ public sealed class StreamObject<TDictionary> : PdfObject
                 : decodeParmsValue.Type2!.Cast<Dictionaries.Dictionary>();
         }
 
-        var filterInstances = FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>());
+        var ms = new MemoryStream();
+        Data.Position = 0;
+        Data.CopyTo(ms);
+        ms.Position = 0;
 
-        foreach (var filter in filterInstances)
+        foreach (var filter in FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>()))
         {
-            workingData = filter.Decode(workingData);
+            ms = filter.Decode(ms);
+
+            ms.Position = 0;
         }
 
-        return new MemoryStream(workingData);
+        return ms;
     }
-
-    //public StreamDictionary GetStreamDictionary()
-    //{
-    //    var streamDictionary = new Dictionary<Name, IPdfObject>
-    //    {
-    //        { Constants.DictionaryKeys.Stream.Length, (Integer)Data.Length },
-    //        { Constants.DictionaryKeys.Stream.DL, (Integer)Data.Length }
-    //    };
-
-    //    if (Filters.Count == 0)
-    //    {
-    //        return StreamDictionary.FromDictionary(streamDictionary);
-    //    }
-
-    //    // TODO: consider encapsulating this common logic, there are many properties which can be a single item or array of such.
-    //    if (Filters.Count == 1)
-    //    {
-    //        streamDictionary.Add(Constants.DictionaryKeys.Stream.Filter, Filters.First().Name);
-    //    }
-    //    else
-    //    {
-    //        streamDictionary.Add(Constants.DictionaryKeys.Stream.Filter, new ArrayObject(Filters.Select(f => f.Name).ToArray()));
-    //    }
-
-    //    if (Filters.Any(f => f.Params != null))
-    //    {
-    //        if (Filters.Count == 1)
-    //        {
-    //            streamDictionary.Add(Constants.DictionaryKeys.Stream.DecodeParms, Filters.First().Params!);
-    //        }
-    //        else
-    //        {
-    //            streamDictionary.Add(Constants.DictionaryKeys.Stream.DecodeParms, new ArrayObject(Filters.Select<IFilter, IPdfObject>(f =>
-    //            {
-    //                if (f.Params != null)
-    //                {
-    //                    return f.Params;
-    //                }
-    //                else
-    //                {
-    //                    return new Null();
-    //                }
-    //            }).ToArray()));
-    //        }
-    //    }
-
-    //    return StreamDictionary.FromDictionary(streamDictionary);
-    //}
 }
