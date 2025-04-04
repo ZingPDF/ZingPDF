@@ -343,21 +343,13 @@ internal class VariableTextAppearanceStreamManager
 
         await appearanceStream.WriteAsync(ms);
 
-        // TODO: when reliably complete, add flatedecode filter
         var contentStreamDictionary = new Type1FormDictionary(
             bBox: Rectangle.FromSize(fieldRect.Size),
-            resources: resourceDictionary,
-            length: ms.Length,
-            filter: null,
-            decodeParms: null,
-            f: null,
-            fFilter: null,
-            fDecodeParms: null,
-            dL: ms.Length,
-            pdfEditor
+            resources: resourceDictionary
             );
 
-        var apFormXObject = new StreamObject<Type1FormDictionary>(ms, contentStreamDictionary);
+        // TODO: when reliably complete, add flatedecode filter (will need to implement GetFilters method in ContentStreamFactory)
+        var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary);
 
         var apIndirectObject = _pdfEditor.Add(apFormXObject);
 

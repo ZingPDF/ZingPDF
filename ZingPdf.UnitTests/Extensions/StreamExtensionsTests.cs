@@ -34,13 +34,13 @@ public class StreamExtensionsTests
     {
         char[] _nameDelimiters =
         [
-            Constants.Solidus,
-            Constants.Space,
-            Constants.CarriageReturn,
-            Constants.LineFeed,
-            Constants.LessThan,
-            Constants.LeftSquareBracket,
-            Constants.LeftParenthesis
+            Constants.Characters.Solidus,
+            Constants.Characters.Space,
+            Constants.Characters.CarriageReturn,
+            Constants.Characters.LineFeed,
+            Constants.Characters.LessThan,
+            Constants.Characters.LeftSquareBracket,
+            Constants.Characters.LeftParenthesis
         ];
 
         var inputStream = "test ".ToStream();

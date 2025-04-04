@@ -32,7 +32,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </para>
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<ResourceDictionary?> Resources => Get<ResourceDictionary?>(Constants.DictionaryKeys.PageTree.Resources);
+        public DictionaryProperty<Dictionary?> Resources => Get<Dictionary?>(Constants.DictionaryKeys.PageTree.Resources);
 
         /// <summary>
         /// (Required; inheritable) A rectangle (see 7.9.5, "Rectangles"), expressed in default user space units, that shall define the boundaries 
@@ -105,7 +105,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 return;
             }
 
-            await resources.AddXObjectAsync(name, reference, pdfEditor);
+            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdfEditor);
         }
     }
 }

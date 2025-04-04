@@ -34,7 +34,7 @@ namespace ZingPDF.Syntax.Objects
                 }
             }
 
-            await stream.WriteCharsAsync(Constants.Solidus);
+            await stream.WriteCharsAsync(Constants.Characters.Solidus);
             await stream.WriteTextAsync(sb.ToString());
         }
 

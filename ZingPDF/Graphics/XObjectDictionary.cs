@@ -19,33 +19,5 @@ namespace ZingPDF.Graphics
 
         public XObjectDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
             : base(dict, pdfEditor) { }
-
-        protected XObjectDictionary(
-            Name subtype,
-            Number length,
-            ShorthandArrayObject? filter,
-            ShorthandArrayObject? decodeParms,
-            Dictionary? f,
-            ShorthandArrayObject? fFilter,
-            ShorthandArrayObject? fDecodeParms,
-            Number? dL,
-            IPdfEditor pdfEditor
-            )
-            : base(
-                  Constants.DictionaryTypes.XObject,
-                  length,
-                  filter,
-                  decodeParms,
-                  f,
-                  fFilter,
-                  fDecodeParms,
-                  dL,
-                  pdfEditor
-                  )
-        {
-            ArgumentNullException.ThrowIfNull(subtype);
-
-            Set(Constants.DictionaryKeys.Subtype, subtype);
-        }
     }
 }

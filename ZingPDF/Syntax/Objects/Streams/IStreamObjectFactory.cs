@@ -1,9 +1,7 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿namespace ZingPDF.Syntax.Objects.Streams;
 
-namespace ZingPDF.Syntax.Objects.Streams;
-
-internal interface IStreamObjectFactory<TDictionary> where TDictionary : class, IStreamDictionary
+internal interface IStreamObjectFactory
 {
-    StreamObject<TDictionary> Create(IPdfEditor pdfEditor);
+    Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary) where TDictionary : class, IStreamDictionary;
 }
 
