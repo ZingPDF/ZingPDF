@@ -52,7 +52,7 @@ using System;
 
 //await AddPage("testfiles/pdf/test.pdf", "output.pdf");
 
-await AddTextToPage();
+//await AddTextToPage();
 
 //await AddImageToPage();
 
@@ -70,6 +70,16 @@ await AddTextToPage();
 //await Test();
 
 //await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
+
+await ExtractText("testfiles/pdf/complex-form.pdf");
+
+static async Task ExtractText(string input)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    var pdf = await Pdf.LoadAsync(inputFileStream);
+
+    await pdf.ExtractTextAsync();
+}
 
 static async Task Decompress(string input, string output)
 {
