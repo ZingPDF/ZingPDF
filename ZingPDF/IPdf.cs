@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Elements;
+using ZingPDF.Elements.Drawing.Text;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -18,6 +19,8 @@ public interface IPdf
     Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null);
     Task DeletePageAsync(int pageNumber);
     Task SetRotationAsync(Rotation rotation);
+
+    Task<IEnumerable<ExtractedText>> ExtractTextAsync();
 
     void AddWatermark();
 
