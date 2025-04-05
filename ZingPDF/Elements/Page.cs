@@ -1,6 +1,5 @@
 ﻿using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
