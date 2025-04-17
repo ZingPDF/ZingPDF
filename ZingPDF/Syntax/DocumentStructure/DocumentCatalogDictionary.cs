@@ -4,6 +4,7 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 

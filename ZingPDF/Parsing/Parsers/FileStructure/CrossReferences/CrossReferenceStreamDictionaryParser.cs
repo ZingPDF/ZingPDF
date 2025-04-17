@@ -6,6 +6,7 @@ using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 
@@ -37,7 +38,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
             return new Dictionary(EmptyPdfEditor.Instance);
         }
 
-        var objectGroup = await new PdfObjectGroupParser().ParseAsync(dictStream);
+        var objectGroup = await new PdfObjectGroupParser(EmptyPdfEditor.Instance).ParseAsync(dictStream);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {

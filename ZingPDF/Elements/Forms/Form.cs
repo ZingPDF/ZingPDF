@@ -11,6 +11,7 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text.SimpleFonts;
 
@@ -43,45 +44,13 @@ namespace ZingPDF.Elements.Forms
 
             _fontProviders = new AsyncLazy<IEnumerable<IFontMetricsProvider>>(async() =>
             {
-                var simpleFontMetricsProvider = new SimpleFontMetricsProvider();
+                List<IFontMetricsProvider> fontProviders = [new PDFStandardFontMetricsProvider()];
 
-                List<IFontMetricsProvider> fontProviders = [new PDFStandardFontMetricsProvider(), simpleFontMetricsProvider];
                 InteractiveFormDictionary formDict = await _acroFormDictionary;
-
                 var drProperty = await formDict.DR.GetAsync();
                 if (drProperty != null)
                 {
-                    var defaultResources = ResourceDictionary.FromDictionary(drProperty);
-
-                    var fontDict = await defaultResources.Font.GetAsync();
-                    if (fontDict != null)
-                    {
-                        Dictionary<string, Stream> fontStreams = [];
-                        foreach (var kvp in fontDict)
-                        {
-                            var font = await _pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
-                            var fontDescriptor = await font.FontDescriptor.GetAsync();
-
-                            if (fontDescriptor != null)
-                            {
-                                var widthsArray = await font.Widths.GetAsync();
-                                var firstCharCode = await font.FirstChar.GetAsync();
-
-                                var widths = widthsArray
-                                    .Cast<Number>()
-                                    .Select((width, index) => new { width, index })
-                                    .ToDictionary(x => (char)(firstCharCode + x.index), x => (int)x.width);
-
-                                simpleFontMetricsProvider.FontMetrics.Add(
-                                    await fontDescriptor.FontName.GetAsync(),
-                                    await fontDescriptor.ToFontMetricsAsync(widths)
-                                    );
-                            }
-
-                            //fontStreams.Add(kvp.Key, await font.GetDecompressedDataAsync(_pdfEditor));
-                        }
-                    }
-
+                    fontProviders.AddRange(await ResourceDictionary.FromDictionary(drProperty).GetFontMetricsProvidersAsync(_pdfEditor));
                 }
 
                 return fontProviders;

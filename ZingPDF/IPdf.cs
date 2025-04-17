@@ -1,5 +1,5 @@
 ﻿using ZingPDF.Elements;
-using ZingPDF.Elements.Drawing.Text;
+using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;

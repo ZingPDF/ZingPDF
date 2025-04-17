@@ -237,16 +237,15 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         // Resolve the correct object stream that contains the object.
         var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0), xref.Value2);
 
-        var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
-        var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
+        var objectStream = (StreamObject<ObjectStreamDictionary>)objStreamIndirectObject.Object;
 
         // TODO: cache decompressed stream data?
         // Now that we have the correct stream, decompress it.
         Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
 
         // Read the offset table without unnecessary allocations
-        var offsetTableBytes = new byte[objectStreamDictionary.First];
-        await decompressedObjectStream.ReadExactlyAsync(offsetTableBytes, 0, objectStreamDictionary.First);
+        var offsetTableBytes = new byte[objectStream.Dictionary.First];
+        await decompressedObjectStream.ReadExactlyAsync(offsetTableBytes, 0, objectStream.Dictionary.First);
 
         // Decode integer pairs
         var offsets = Encoding.ASCII.GetString(offsetTableBytes)
@@ -256,7 +255,7 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
         // The byte offset of an object is relative to the first object.
         // Seek to the object's position and parse it
-        decompressedObjectStream.Position = objectStreamDictionary.First + objectOffset;
+        decompressedObjectStream.Position = objectStream.Dictionary.First + objectOffset;
 
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
@@ -268,18 +267,17 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         var objStreamIndirectObject = await GetAsync(objectStreamRef)
             ?? throw new InvalidOperationException($"Unable to find parent object stream {objectStreamRef}");
 
-        var objectStream = (StreamObject<IStreamDictionary>)objStreamIndirectObject.Object;
-        var objectStreamDictionary = (objectStream.Dictionary as ObjectStreamDictionary)!;
+        var objectStream = (StreamObject<ObjectStreamDictionary>)objStreamIndirectObject.Object;
 
         // If the object index is within bounds, return the current stream.
-        if (objectIndex < objectStreamDictionary.N)
+        if (objectIndex < objectStream.Dictionary.N)
             return (objStreamIndirectObject, objectIndex);
 
         // Otherwise, check the Extends reference.
-        if (objectStreamDictionary.Extends is null)
+        if (objectStream.Dictionary.Extends is null)
             throw new InvalidOperationException($"Requested object index {objectIndex} is out of bounds, and no Extends reference exists.");
 
         // Recurse to resolve the correct object stream.
-        return await ResolveObjectStreamAsync(objectStreamDictionary.Extends, objectIndex);
+        return await ResolveObjectStreamAsync(objectStream.Dictionary.Extends, objectIndex);
     }
 }

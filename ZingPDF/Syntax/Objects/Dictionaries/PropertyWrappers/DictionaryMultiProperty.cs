@@ -1,7 +1,6 @@
 ﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Syntax.Objects.Dictionaries;
+namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 public class DictionaryMultiProperty<T1, T2> : BaseDictionaryProperty
     where T1 : class?, IPdfObject?
@@ -14,19 +13,11 @@ public class DictionaryMultiProperty<T1, T2> : BaseDictionaryProperty
 
     public async Task<Either<T1, T2>> GetAsync()
     {
-        var value = await GetRawValueAsync();
+        var value = await ResolveAsync();
 
         if (value is null)
         {
             return new Either<T1, T2>((T1)null!);
-        }
-
-        if (value is IndirectObjectReference ior)
-        {
-            var indirectObject = await _pdfEditor.GetAsync(ior)
-                ?? throw new InvalidPdfException($"Unable to resolve indirect object reference: {ior}");
-
-            value = indirectObject.Object;
         }
 
         return value switch

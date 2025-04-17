@@ -1,11 +1,19 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
+using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Text;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
@@ -45,14 +53,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     continue;
                 }
 
-                if (type == typeof(StreamObject<IStreamDictionary>))
+                if (type == typeof(StreamObject<>))
                 {
                     // It's difficult to reliably identify a stream, which is a dictionary followed by the stream contents.
                     // The token identifier will recognise the stream keyword, at which point we've already parsed the dictionary.
                     var streamDict = (items.Last() as IStreamDictionary)!;
                     items.RemoveAt(items.Count - 1);
 
-                    items.Add(await new StreamObjectParser(_pdfEditor, streamDict).ParseAsync(stream));
+                    items.Add(await ParseTypedStreamObjectAsync(streamDict, stream));
                     break;
                 }
 
@@ -71,6 +79,29 @@ namespace ZingPDF.Parsing.Parsers.Objects
             Logger.Log(LogLevel.Trace, $"Parsed IndirectObject {{{id.Value} {genNumber.Value} obj}} between offsets: {initialStreamPosition} - {stream.Position}.");
 
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
+        }
+
+        private static async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream)
+        {
+            return dict switch
+            {
+                CrossReferenceStreamDictionary xrefStreamDict
+                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict).ParseAsync(stream),
+
+                ObjectStreamDictionary objectStreamDict
+                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict).ParseAsync(stream),
+
+                Type1FormDictionary type1FormDict
+                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict).ParseAsync(stream),
+
+                ImageDictionary imageDict
+                    => await new StreamObjectParser<ImageDictionary>(imageDict).ParseAsync(stream),
+
+                StreamDictionary streamDict
+                    => await new StreamObjectParser<StreamDictionary>(streamDict).ParseAsync(stream),
+
+                _ => throw new InvalidOperationException($"Unsupported dictionary type: {dict.GetType().Name}"),
+            };
         }
     }
 }
