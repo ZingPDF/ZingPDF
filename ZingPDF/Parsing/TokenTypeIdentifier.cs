@@ -44,7 +44,7 @@ namespace ZingPDF.Parsing
             { $"{Constants.Characters.LeftParenthesis}", typeof(LiteralString) },
             { $"{Constants.Characters.LeftSquareBracket}", typeof(ArrayObject) },
             { Constants.Trailer, typeof(Trailer) },
-            { Constants.StreamStart, typeof(StreamObject<IStreamDictionary>) },
+            { Constants.StreamStart, typeof(StreamObject<>) },
             { "true", typeof(BooleanObject) },
             { "false", typeof(BooleanObject) },
         };

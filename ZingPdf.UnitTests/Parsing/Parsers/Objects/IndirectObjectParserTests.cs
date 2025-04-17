@@ -3,6 +3,7 @@ using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -56,6 +57,6 @@ public class IndirectObjectParserTests
         output.Id.Index.Should().Be(90824);
         output.Id.GenerationNumber.Should().Be(0);
         output.Object.Should().NotBeNull();
-        output.Object.Should().BeAssignableTo<StreamObject<IStreamDictionary>>();
+        output.Object.Should().BeAssignableTo<StreamObject<CrossReferenceStreamDictionary>>();
     }
 }

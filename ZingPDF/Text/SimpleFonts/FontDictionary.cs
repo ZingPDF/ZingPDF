@@ -2,11 +2,12 @@
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Text.SimpleFonts;
 
-internal class FontDictionary : Dictionary
+public class FontDictionary : Dictionary
 {
     public static class Subtypes
     {
@@ -96,5 +97,10 @@ internal class FontDictionary : Dictionary
     public static FontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
     {
         return new FontDictionary(dictionary, pdfEditor);
+    }
+
+    public static FontDictionary FromDictionary(Dictionary dictionary)
+    {
+        return new FontDictionary(dictionary);
     }
 }
