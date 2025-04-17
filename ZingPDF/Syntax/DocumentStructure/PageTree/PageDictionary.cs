@@ -5,6 +5,7 @@ using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
@@ -68,8 +69,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// a Contents array containing no elements.
         /// </para>
         /// </summary>
-        public DictionaryMultiProperty<StreamObject<IStreamDictionary>?, ArrayObject?> Contents
-            => Get<StreamObject<IStreamDictionary>?, ArrayObject?>(Constants.DictionaryKeys.PageTree.Page.Contents);
+        public OptionalArrayOrSingle<StreamObject<StreamDictionary>> Contents
+            => GetOptionalArrayOrSingle<StreamObject<StreamDictionary>>(Constants.DictionaryKeys.PageTree.Page.Contents);
 
         /// <summary>
         /// (Optional; PDF 1.4) A group attributes dictionary that shall specify the attributes of 
@@ -222,13 +223,13 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             if (Contents != null)
             {
-                var existingContents = await Contents.GetAsync();
+                var existingContents = await Contents.GetRawValueAsync();
 
-                if (existingContents.Value is ArrayObject ary)
+                if (existingContents is ArrayObject ary)
                 {
                     contentsArray.AddRange(ary);
                 }
-                else if(existingContents.Value is IndirectObjectReference ior)
+                else if(existingContents is IndirectObjectReference ior)
                 {
                     contentsArray.Add(ior);
                 }

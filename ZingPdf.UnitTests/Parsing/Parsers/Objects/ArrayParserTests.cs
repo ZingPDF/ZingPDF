@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Strings;
 
@@ -14,7 +15,7 @@ public class ArrayParserTests
     {
         using var input = "[]".ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Should().BeEmpty();
@@ -25,7 +26,7 @@ public class ArrayParserTests
     {
         using var input = "[]".ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         input.Position.Should().Be(2);
@@ -36,7 +37,7 @@ public class ArrayParserTests
     {
         using var input = "[ ]".ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Should().BeEmpty();
@@ -47,7 +48,7 @@ public class ArrayParserTests
     {
         using var input = "[ ]".ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         input.Position.Should().Be(3);
@@ -75,7 +76,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(inputStream);
 
         output.Should().HaveCount(expectedCount);
@@ -88,7 +89,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(inputStream);
 
         inputStream.Position.Should().Be(input.Length);
@@ -101,7 +102,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(inputStream);
 
         output.Should().HaveCount(expectedCount);
@@ -114,7 +115,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(inputStream);
 
         inputStream.Position.Should().Be(
@@ -133,7 +134,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.All(x => x is Number).Should().BeTrue();
@@ -148,7 +149,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Count().Should().Be(2);
@@ -164,7 +165,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Should().HaveCount(1);
@@ -178,7 +179,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         input.Position.Should().Be(7, because: "the parser should move the stream past the array-end delimiter");
@@ -191,7 +192,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Should().HaveCount(1);
@@ -205,7 +206,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         input.Position.Should().Be(
@@ -221,7 +222,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         output.Should().HaveCount(2);
@@ -235,7 +236,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser()
+        var output = await new ArrayParser(EmptyPdfEditor.Instance)
             .ParseAsync(input);
 
         input.Position.Should().Be(

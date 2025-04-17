@@ -1,5 +1,6 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Objects.Streams
 {
@@ -39,12 +40,12 @@ namespace ZingPDF.Syntax.Objects.Streams
             Set(Constants.DictionaryKeys.Stream.DL, dL);
         }
 
-        public DictionaryProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length)!;
-        public DictionaryMultiProperty<Name?, ArrayObject?> Filter => Get<Name?, ArrayObject?>(Constants.DictionaryKeys.Stream.Filter);
-        public DictionaryMultiProperty<Dictionary?, ArrayObject?> DecodeParms => Get<Dictionary?, ArrayObject?>(Constants.DictionaryKeys.Stream.DecodeParms);
+        public DictionaryProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length);
+        public OptionalArrayOrSingle<Name> Filter => GetOptionalArrayOrSingle<Name>(Constants.DictionaryKeys.Stream.Filter);
+        public OptionalArrayOrSingle<Dictionary> DecodeParms => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.Stream.DecodeParms);
         public DictionaryProperty<Dictionary?> F => Get<Dictionary?>(Constants.DictionaryKeys.Stream.F);
-        public DictionaryMultiProperty<Name?, ArrayObject?> FFilter => Get<Name?, ArrayObject?>(Constants.DictionaryKeys.Stream.FFilter);
-        public DictionaryMultiProperty<Dictionary?, ArrayObject?> FDecodeParms => Get<Dictionary?, ArrayObject?>(Constants.DictionaryKeys.Stream.FDecodeParms);
+        public OptionalArrayOrSingle<Name> FFilter => GetOptionalArrayOrSingle<Name>(Constants.DictionaryKeys.Stream.FFilter);
+        public OptionalArrayOrSingle<Dictionary> FDecodeParms => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.Stream.FDecodeParms);
         public DictionaryProperty<Number?> DL => Get<Number?>(Constants.DictionaryKeys.Stream.DL);
 
         public static StreamDictionary FromDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)

@@ -26,7 +26,7 @@ using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
-internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser, IObjectParser<Dictionary>
+internal class ComplexDictionaryParser : DictionaryParser, IObjectParser<Dictionary>
 {
     // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
     private readonly List<Name> _rectKeys =
@@ -39,6 +39,13 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
         Constants.DictionaryKeys.Annotation.Rect,
         Constants.DictionaryKeys.Form.Type1.BBox,
     ];
+
+    private readonly IPdfEditor _pdfEditor;
+
+    public ComplexDictionaryParser(IPdfEditor pdfEditor)
+    {
+        _pdfEditor = pdfEditor;
+    }
 
     public async ITask<Dictionary> ParseAsync(Stream stream)
     {
@@ -53,12 +60,7 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
 
         SubStream dictStream = await ExtractDictionarySegmentAsync(stream);
 
-        //if (dictStream == null)
-        //{
-        //    return new Dictionary(pdfEditor);
-        //}
-
-        var objectGroup = await new PdfObjectGroupParser(pdfEditor).ParseAsync(dictStream);
+        var objectGroup = await new PdfObjectGroupParser(_pdfEditor).ParseAsync(dictStream);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {
@@ -87,79 +89,82 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
 
         Dictionary? output = null;
 
-        if (dict.ContainsKey(Constants.DictionaryKeys.Type))
+        var dictType = await DictionaryIdentifier.IdentifyAsync(dict, _pdfEditor);
+
+        if (dictType is null)
         {
-            switch ((Name)dict[Constants.DictionaryKeys.Type])
-            {
-                case Constants.DictionaryTypes.Catalog:
-                    output = DocumentCatalogDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.Page:
-                    output = PageDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.Pages:
-                    output = PageTreeNodeDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.XRef:
-                    output = CrossReferenceStreamDictionary.FromDictionary(dict);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.ObjStm:
-                    output = ObjectStreamDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.Annot:
-                    output = await CreateAnnotationDictionaryAsync(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.XObject:
-                    output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
-                    {
-                        XObjectDictionary.Subtypes.Form => Type1FormDictionary.FromDictionary(dict, pdfEditor), // There is only 1 type of form dictionary
-                        XObjectDictionary.Subtypes.Image => ImageDictionary.FromDictionary(dict, pdfEditor),
-                        _ => throw new ParserException("Unexpected XObject Subtype")
-                    };
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.Font:
-                    output = FontDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-
-                case Constants.DictionaryTypes.FontDescriptor:
-                    output = FontDescriptorDictionary.FromDictionary(dict, pdfEditor);
-                    goto DictionaryParsed;
-            }
-        }
-
-        if (dict.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
-        {
-            output = InteractiveFormDictionary.FromDictionary(dict, pdfEditor);
+            output = new Dictionary(dict, _pdfEditor);
             goto DictionaryParsed;
         }
 
-        if (dict.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
+        switch (dictType)
         {
-            output = LinearizationParameterDictionary.FromDictionary(dict, pdfEditor);
-            goto DictionaryParsed;
+            case Type t when t == typeof(DocumentCatalogDictionary):
+                output = DocumentCatalogDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(PageDictionary):
+                output = PageDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(PageTreeNodeDictionary):
+                output = PageTreeNodeDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(CrossReferenceStreamDictionary):
+                output = CrossReferenceStreamDictionary.FromDictionary(dict);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(ObjectStreamDictionary):
+                output = ObjectStreamDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(AnnotationDictionary):
+                output = AnnotationDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(WidgetAnnotationDictionary):
+                output = WidgetAnnotationDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(FieldDictionary):
+                output = FieldDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(Type1FormDictionary):
+                output = Type1FormDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(ImageDictionary):
+                output = ImageDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(FontDictionary):
+                output = FontDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(FontDescriptorDictionary):
+                output = FontDescriptorDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(InteractiveFormDictionary):
+                output = InteractiveFormDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(LinearizationParameterDictionary):
+                output = InteractiveFormDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(StreamDictionary):
+                output = StreamDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(AppearanceDictionary):
+                output = AppearanceDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
         }
 
-        // TODO: using length to identify a stream dictionary, which seems dodgy, revisit this to make it more reliable.
-        if (dict.ContainsKey(Constants.DictionaryKeys.Stream.Length))
-        {
-            output = StreamDictionary.FromDictionary(dict, pdfEditor);
-            goto DictionaryParsed;
-        }
-
-        if (dict.ContainsKey(Constants.DictionaryKeys.Appearance.N))
-        {
-            output = AppearanceDictionary.FromDictionary(dict, pdfEditor);
-            goto DictionaryParsed;
-        }
-
-        output ??= new Dictionary(dict, pdfEditor);
+        output ??= new Dictionary(dict, _pdfEditor); 
 
     DictionaryParsed:
         stream.Position = dictStream.To + 2;
@@ -167,32 +172,6 @@ internal class ComplexDictionaryParser(IPdfEditor pdfEditor) : DictionaryParser,
         output!.ByteOffset = initialStreamPosition;
 
         Logger.Log(LogLevel.Trace, $"Parsed Dictionary from {stream.GetType().Name} between offsets: {initialStreamPosition} - {stream.Position}");
-
-        return output;
-    }
-
-    private static async Task<Dictionary> CreateAnnotationDictionaryAsync(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
-    {
-        Dictionary? output = (string)(Name)dict[Constants.DictionaryKeys.Subtype] switch
-        {
-            AnnotationDictionary.Subtypes.Widget => WidgetAnnotationDictionary.FromDictionary(dict, pdfEditor),
-            _ => AnnotationDictionary.FromDictionary(dict, pdfEditor),
-        };
-
-        if (dict.ContainsKey(Constants.DictionaryKeys.Field.FT))
-        {
-            output = FieldDictionary.FromDictionary(dict, pdfEditor);
-        }
-        else
-        {
-            // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
-            // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
-            var fieldDict = FieldDictionary.FromDictionary(dict, pdfEditor);
-            if (await fieldDict.FT.GetAsync() is not null)
-            {
-                output = fieldDict;
-            }
-        }
 
         return output;
     }
