@@ -71,14 +71,14 @@ using System;
 
 //await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
 
-await ExtractText("testfiles/pdf/complex-form.pdf");
+await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
 static async Task ExtractText(string input)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
     var pdf = await Pdf.LoadAsync(inputFileStream);
 
-    await pdf.ExtractTextAsync();
+    var extract = await pdf.ExtractTextAsync();
 }
 
 static async Task Decompress(string input, string output)

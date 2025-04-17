@@ -1,5 +1,5 @@
 ﻿using ZingPDF.Elements;
-using ZingPDF.Elements.Drawing.Text;
+using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers;
@@ -186,80 +186,7 @@ public class Pdf : IPdf, IDisposable
         }
     }
 
-    public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
-    {
-        // For each page:
-        // - Collect content streams(page + XObjects + annotations if needed).
-        // - Tokenize and parse operators in the content streams.
-        // - Track the graphics / text state(especially current font).
-        // - Identify and decode text showing operators.
-        // - Accumulate decoded strings and track positions if layout matters.
-
-        var pagesIndirectObjects = await PageTree.GetPagesAsync();
-        Dictionary<int, List<StreamObject<IStreamDictionary>>> contentStreamObjects = [];
-
-        for (int i = 0; i < pagesIndirectObjects.Count; i++)
-        {
-            IndirectObject? pageObject = pagesIndirectObjects[i];
-
-            contentStreamObjects.Add(i + 1, []);
-
-            var page = (PageDictionary)pageObject.Object;
-            Either<StreamObject<IStreamDictionary>?, ArrayObject?> contents = await page.Contents.GetAsync();
-
-            if (contents.Value is null)
-            {
-                continue;
-            }
-
-            if (contents.Type1 is not null)
-            {
-                contentStreamObjects[i + 1].Add(contents.Type1);
-            }
-            else
-            {
-                foreach(var item in contents.Type2!)
-                {
-                    if (item is IndirectObjectReference ior)
-                    {
-                        var streamIndirectObject = await IndirectObjects.GetAsync(ior);
-                        contentStreamObjects[i + 1].Add((StreamObject<IStreamDictionary>)streamIndirectObject.Object);
-                    }
-                    else
-                    {
-                        contentStreamObjects[i + 1].Add((StreamObject<IStreamDictionary>)item);
-                    }
-                }
-            }
-        }
-
-        var contentStreamParser = new ContentStreamParser();
-
-        List<ExtractedText> extractedText = [];
-
-        foreach (var pageContents in contentStreamObjects
-            .SelectMany(kvp => kvp.Value
-                .Select(streamObject => new { PageNumber = kvp.Key, StreamObject = streamObject })))
-        {
-            var data = await pageContents.StreamObject.GetDecompressedDataAsync();
-            var contentStream = await contentStreamParser.ParseAsync(data);
-
-            var textShowingOperators = contentStream.Operations
-                .Where(o => ContentStream.Operators.TextShowing.All.Contains(o.Operator));
-
-            var text = textShowingOperators.Select(o => o.Operands?.Select(s => s.ToString()).ToArray() ?? [])
-                .SelectMany(s => s)
-                .ToList();
-
-            extractedText.Add(new ExtractedText
-            {
-                PageNumber = pageContents.PageNumber,
-                Text = string.Join("", text)
-            });
-        }
-
-        return extractedText;
-    }
+    public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => new TextExtractor(this).ExtractTextAsync();
 
     public void AddWatermark()
     {
@@ -277,13 +204,11 @@ public class Pdf : IPdf, IDisposable
         {
             if (obj.Object is StreamObject<IStreamDictionary> streamObj)
             {
-                Either<Name?, ArrayObject?> filterValue = await streamObj.Dictionary.Filter.GetAsync();
-                if (filterValue.Value is null)
+                ArrayObject? filterNames = await streamObj.Dictionary.Filter.GetAsync();
+                if (filterNames is null || !filterNames.Any())
                 {
                     continue;
                 }
-
-                IEnumerable<Name> filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
 
                 // TODO: are there other image types we need to avoid
                 // Do not decompress JPEG images.
