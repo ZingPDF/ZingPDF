@@ -1,7 +1,7 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree;

@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Objects.Streams
 {
@@ -25,7 +26,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// NOTE It is not recommended to include the same filter more than once in a Filter array.
         /// </para>
         /// </summary>
-        DictionaryMultiProperty<Name?, ArrayObject?> Filter { get; }
+        OptionalArrayOrSingle<Name> Filter { get; }
 
         /// <summary>
         /// (Optional) A parameter dictionary or an array of such dictionaries, used by the filters specified 
@@ -38,7 +39,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// have their default values). If none of the filters have parameters, or if all their parameters have 
         /// default values, the DecodeParms entry may be omitted.
         /// </summary>
-        DictionaryMultiProperty<Dictionary?, ArrayObject?> DecodeParms { get; }
+        OptionalArrayOrSingle<Dictionary> DecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The file containing the stream data. If this entry is present, the bytes 
@@ -55,13 +56,13 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// stream’s external file, or an array of zero, one or several such names. The same rules 
         /// apply as for Filter.
         /// </summary>
-        DictionaryMultiProperty<Name?, ArrayObject?> FFilter { get; }
+        OptionalArrayOrSingle<Name> FFilter { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) A parameter dictionary, or an array of such dictionaries, used by the 
         /// filters specified by FFilter, respectively. The same rules apply as for DecodeParms.
         /// </summary>
-        DictionaryMultiProperty<Dictionary?, ArrayObject?> FDecodeParms { get; }
+        OptionalArrayOrSingle<Dictionary> FDecodeParms { get; }
 
         /// <summary>
         /// (Optional; PDF 1.5) A non-negative integer representing the number of bytes 
