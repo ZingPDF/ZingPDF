@@ -1,44 +1,29 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class StreamObjectParser : IObjectParser<StreamObject<IStreamDictionary>>
+    internal class StreamObjectParser<TDictionary>
+        where TDictionary : class, IStreamDictionary
     {
-        private readonly IStreamDictionary? _dict;
-        private readonly IPdfEditor _pdfEditor;
+        private readonly TDictionary _dict;
 
-        public StreamObjectParser(IPdfEditor pdfEditor)
+        public StreamObjectParser(TDictionary dict)
         {
-            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
-
-            _pdfEditor = pdfEditor;
-        }
-
-        public StreamObjectParser(IPdfEditor pdfEditor, IStreamDictionary dict)
-        {
-            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
             ArgumentNullException.ThrowIfNull(nameof(dict));
 
-            _pdfEditor = pdfEditor;
             _dict = dict;
         }
 
-        public async ITask<StreamObject<IStreamDictionary>> ParseAsync(Stream stream)
+        public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream)
         {
             var initialStreamPosition = stream.Position;
 
             //Logger.Log(LogLevel.Trace, $"Parsing StreamObject from {stream.GetType().Name} at offset: {initialStreamPosition}.");
 
-            var dict = _dict ?? (IStreamDictionary)await Parser.For<Dictionary>(_pdfEditor).ParseAsync(stream);
-
-            //var streamDict = dict as IStreamDictionary ?? throw new ParserException("Invalid stream dictionary");
-
-            var streamLength = await dict.Length.GetAsync();
+            var streamLength = await _dict.Length.GetAsync();
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
             stream.AdvancePastWhitepace();
@@ -49,14 +34,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
 
-            return new StreamObject<IStreamDictionary>(
+            return new StreamObject<TDictionary>(
                 new SubStream(
                     stream,
                     streamDataOffset,
                     streamDataOffset + streamLength,
                     setToStart: false
                     ),
-                dict
+                _dict
                 )
             {
                 ByteOffset = initialStreamPosition

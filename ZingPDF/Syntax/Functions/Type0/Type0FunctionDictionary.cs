@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Functions.Type0
 {

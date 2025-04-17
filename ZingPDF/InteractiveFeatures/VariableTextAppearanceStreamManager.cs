@@ -84,7 +84,7 @@ internal class VariableTextAppearanceStreamManager
 
             var daStream = new MemoryStream(Encoding.ASCII.GetBytes((fieldDa ?? formDa)!));
 
-            return await new ContentStreamParser().ParseAsync(daStream);
+            return await new ContentStreamParser(_pdfEditor).ParseAsync(daStream);
         });
 
         _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
@@ -117,7 +117,7 @@ internal class VariableTextAppearanceStreamManager
 
             var apData = await normalApStreamObject.GetDecompressedDataAsync();
 
-            return await new ContentStreamParser().ParseAsync(apData);
+            return await new ContentStreamParser(_pdfEditor).ParseAsync(apData);
         });
 
         _formDefaultResources = new AsyncLazy<ResourceDictionary?>(async () =>

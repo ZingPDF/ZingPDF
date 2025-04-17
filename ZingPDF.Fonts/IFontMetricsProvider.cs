@@ -1,9 +1,8 @@
-﻿namespace ZingPDF.Fonts
+﻿namespace ZingPDF.Fonts;
+
+public interface IFontMetricsProvider
 {
-    public interface IFontMetricsProvider
-    {
-        FontMetrics GetFontMetrics(string fontName);
-        bool IsSupported(string fontName);
-        double MeasureText(string text, string fontName, double fontSize);
-    }
+    FontMetrics GetFontMetrics(string fontName);
+    bool IsSupported(string fontName);
+    double MeasureText(string text, string fontName, double fontSize);
 }

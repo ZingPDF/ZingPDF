@@ -1,4 +1,4 @@
-﻿using ZingPDF.Syntax.Objects.Dictionaries;
+﻿using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 

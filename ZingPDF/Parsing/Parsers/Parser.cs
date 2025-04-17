@@ -12,7 +12,6 @@ using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
-using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers
@@ -23,7 +22,6 @@ namespace ZingPDF.Parsing.Parsers
         private static readonly KeywordParser _keywordParser = new();
         private static readonly CommentParser _commentParser = new();
         private static readonly NameParser _nameParser = new();
-        private static readonly ArrayParser _arrayParser = new();
         private static readonly BooleanObjectParser _booleanObjectParser = new();
         private static readonly NumberParser _numberParser = new();
         private static readonly IndirectObjectReferenceParser _indirectObjectReferenceParser = new();
@@ -40,7 +38,6 @@ namespace ZingPDF.Parsing.Parsers
         internal static KeywordParser Keywords => _keywordParser;
         internal static CommentParser Comments => _commentParser;
         internal static NameParser Names => _nameParser;
-        internal static ArrayParser Arrays => _arrayParser;
         internal static BooleanObjectParser Booleans => _booleanObjectParser;
         internal static NumberParser Numbers => _numberParser;
         internal static IndirectObjectReferenceParser IndirectObjectReferences => _indirectObjectReferenceParser;
@@ -63,13 +60,13 @@ namespace ZingPDF.Parsing.Parsers
         {
             return type switch
             {
-                Type t when t == typeof(IndirectObject) => new IndirectObjectParser(pdfEditor!),
+                Type t when t == typeof(IndirectObject) => new IndirectObjectParser(pdfEditor),
                 Type t when t == typeof(Header) => _headerParser,
                 Type t when t == typeof(Keyword) => _keywordParser,
                 Type t when t == typeof(Comment) => _commentParser,
                 Type t when t == typeof(Name) => _nameParser,
-                Type t when t == typeof(Dictionary) => new ComplexDictionaryParser(pdfEditor!),
-                Type t when t == typeof(ArrayObject) => _arrayParser,
+                Type t when t == typeof(Dictionary) => new ComplexDictionaryParser(pdfEditor),
+                Type t when t == typeof(ArrayObject) => new ArrayParser(pdfEditor),
                 Type t when t == typeof(BooleanObject) => _booleanObjectParser,
                 Type t when t == typeof(Number) => _numberParser,
                 Type t when t == typeof(IndirectObjectReference) => _indirectObjectReferenceParser,
@@ -80,7 +77,6 @@ namespace ZingPDF.Parsing.Parsers
                 Type t when t == typeof(CrossReferenceSectionIndex) => _xrefSectionIndexParser,
                 Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
                 Type t when t == typeof(Date) => _dateParser,
-                Type t when t == typeof(StreamObject<IStreamDictionary>) => new StreamObjectParser(pdfEditor!),
                 Type t when t == typeof(Trailer) => _trailerParser,
                 _ => throw new ParserException()
             };
