@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries
 {
@@ -59,6 +60,12 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         {
             return new DictionaryMultiProperty<T1, T2>(key, this, _pdfEditor);
         }
+
+        public ArrayOrSingle<T> GetArrayOrSingle<T>(Name key) where T : class, IPdfObject
+            => new(key, this, _pdfEditor);
+
+        public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(Name key) where T : class?, IPdfObject?
+            => new(key, this, _pdfEditor);
 
         public void Set<T>(Name key, T? value) where T : class, IPdfObject
         {
