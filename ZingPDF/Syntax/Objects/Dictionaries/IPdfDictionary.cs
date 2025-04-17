@@ -1,4 +1,6 @@
-﻿namespace ZingPDF.Syntax.Objects.Dictionaries
+﻿using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
+
+namespace ZingPDF.Syntax.Objects.Dictionaries
 {
     public interface IPdfDictionary : IEnumerable<KeyValuePair<Name, IPdfObject>>
     {

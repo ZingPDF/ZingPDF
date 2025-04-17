@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Syntax.Objects.Streams;
 
@@ -48,40 +49,20 @@ public sealed class StreamObject<TDictionary> : PdfObject
         Data.Position = 0;
 
         // If there are no filters, return the source data as-is.
-        if (Dictionary.Filter == null)
+        ArrayObject? filterNames = await Dictionary.Filter.GetAsync();
+        if (filterNames is null || !filterNames.Any())
         {
             return Data;
         }
 
-        IEnumerable<Name> filterNames = [];
-        Either<Name?, ArrayObject?> filterValue = await Dictionary.Filter.GetAsync();
-
-        if (filterValue.Value != null)
-        {
-            filterNames = filterValue.Type1 != null ? [filterValue.Type1] : filterValue.Type2!.Cast<Name>();
-        }
-
-        if (!filterNames.Any())
-        {
-            return Data;
-        }
-
-        IEnumerable<Dictionaries.Dictionary> allFilterParams = [];
-        Either<Dictionaries.Dictionary?, ArrayObject?> decodeParmsValue = await Dictionary.DecodeParms.GetAsync();
-
-        if (decodeParmsValue.Value != null)
-        {
-            allFilterParams = decodeParmsValue.Type1 != null
-                ? [decodeParmsValue.Type1]
-                : decodeParmsValue.Type2!.Cast<Dictionaries.Dictionary>();
-        }
+        IEnumerable<Dictionary> allFilterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
 
         var ms = new MemoryStream();
         Data.Position = 0;
         Data.CopyTo(ms);
         ms.Position = 0;
 
-        foreach (var filter in FilterFactory.CreateFilterInstances(filterNames, allFilterParams.Cast<Dictionaries.Dictionary>()))
+        foreach (var filter in FilterFactory.CreateFilterInstances(filterNames.Cast<Name>(), allFilterParams))
         {
             ms = filter.Decode(ms);
 

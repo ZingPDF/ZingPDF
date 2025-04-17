@@ -1,7 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Syntax.Objects.Dictionaries;
+namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 public abstract class BaseDictionaryProperty
 {
@@ -74,5 +74,25 @@ public abstract class BaseDictionaryProperty
         return await parentDictionary
             .Get<IPdfObject>(_key)
             .GetRawValueAsync(); // Recurse
+    }
+
+    public async Task<IPdfObject?> ResolveAsync()
+    {
+        var rawValue = await GetRawValueAsync();
+
+        if (rawValue is null)
+        {
+            return null;
+        }
+
+        if (rawValue is IndirectObjectReference ior)
+        {
+            var dereferenced = await _pdfEditor.GetAsync(ior)
+                ?? throw new InvalidPdfException($"Unable to resolve indirect object reference: {ior}");
+
+            return dereferenced.Object;
+        }
+
+        return rawValue;
     }
 }

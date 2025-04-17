@@ -1,4 +1,4 @@
-﻿namespace ZingPDF.Elements.Drawing.Text;
+﻿namespace ZingPDF.Elements.Drawing.Text.Extraction;
 
 public class ExtractedText
 {
