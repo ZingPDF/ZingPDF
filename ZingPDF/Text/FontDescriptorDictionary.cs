@@ -3,12 +3,13 @@ using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Text;
 
-internal class FontDescriptorDictionary : Dictionary
+public class FontDescriptorDictionary : Dictionary
 {
     public FontDescriptorDictionary(IPdfEditor pdfEditor)
         : base(Constants.DictionaryTypes.FontDescriptor, pdfEditor) { }

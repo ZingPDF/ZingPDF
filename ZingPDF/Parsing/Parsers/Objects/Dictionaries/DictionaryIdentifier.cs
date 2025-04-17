@@ -1,0 +1,104 @@
+﻿using ZingPDF.Graphics;
+using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.Graphics.Images;
+using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
+using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Linearization;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Text;
+using ZingPDF.Text.SimpleFonts;
+
+namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
+
+public static class DictionaryIdentifier
+{
+    private static readonly Dictionary<Name, Type> _dictionaryTypeMap = new()
+    {
+        [Constants.DictionaryTypes.Catalog] = typeof(DocumentCatalogDictionary),
+        [Constants.DictionaryTypes.Page] = typeof(PageDictionary),
+        [Constants.DictionaryTypes.Pages] = typeof(PageTreeNodeDictionary),
+        [Constants.DictionaryTypes.XRef] = typeof(CrossReferenceStreamDictionary),
+        [Constants.DictionaryTypes.ObjStm] = typeof(ObjectStreamDictionary),
+        [Constants.DictionaryTypes.XObject] = typeof(XObjectDictionary),
+        [Constants.DictionaryTypes.Font] = typeof(FontDictionary),
+        [Constants.DictionaryTypes.FontDescriptor] = typeof(FontDescriptorDictionary),
+        [Constants.DictionaryTypes.Annot] = typeof(AnnotationDictionary),
+    };
+
+    private static readonly Dictionary<Name, Type> _dictionarySubtypeMap = new()
+    {
+        [XObjectDictionary.Subtypes.Form] = typeof(Type1FormDictionary),
+        [XObjectDictionary.Subtypes.Image] = typeof(ImageDictionary),
+        [Constants.DictionaryTypes.Annot] = typeof(AnnotationDictionary),
+        [AnnotationDictionary.Subtypes.Widget] = typeof(WidgetAnnotationDictionary),
+    };
+
+    public static async Task<Type?> IdentifyAsync(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    {
+        _ = dictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type);
+        _ = dictionary.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subtype);
+
+        if (type is not null)
+        {
+            _ = _dictionaryTypeMap.TryGetValue((Name)type, out Type? dictType);
+            Type? dictSubtype = null;
+
+            // Widget annotations can double as form fields
+            if (subtype is not null)
+            {
+                if ((Name)subtype == AnnotationDictionary.Subtypes.Widget)
+                {
+                    if (dictionary.ContainsKey(Constants.DictionaryKeys.Field.FT))
+                    {
+                        return typeof(FieldDictionary);
+                    }
+                    else
+                    {
+                        // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
+                        // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
+                        var fieldDict = FieldDictionary.FromDictionary(dictionary, pdfEditor);
+                        if (await fieldDict.FT.GetAsync() is not null)
+                        {
+                            return typeof(FieldDictionary);
+                        }
+                    }
+                }
+
+                _ = _dictionarySubtypeMap.TryGetValue((Name)subtype, out dictSubtype);
+            }
+
+            return dictSubtype ?? dictType;
+        }
+
+        if (dictionary.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
+        {
+            return typeof(InteractiveFormDictionary);
+        }
+
+        if (dictionary.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
+        {
+            return typeof(LinearizationParameterDictionary);
+        }
+
+        // TODO: using length to identify a stream dictionary, which seems dodgy, revisit this to make it more reliable.
+        if (dictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
+        {
+            return typeof(StreamDictionary);
+        }
+
+        if (dictionary.ContainsKey(Constants.DictionaryKeys.Appearance.N))
+        {
+            return typeof(AppearanceDictionary);
+        }
+
+        return null;
+    }
+}

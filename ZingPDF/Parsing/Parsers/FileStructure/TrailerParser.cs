@@ -1,8 +1,9 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
+using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure
 {
@@ -12,11 +13,13 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
         {
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);
 
-            var trailerObjects = await new PdfObjectGroupParser().ParseAsync(stream);
+            //var trailerObjects = await new PdfObjectGroupParser().ParseAsync(stream);
 
-            var trailerDict = TrailerDictionary.FromDictionary(trailerObjects.Get<Dictionary>(0));
+            //var trailerDict = TrailerDictionary.FromDictionary(trailerObjects.Get<Dictionary>(0));
+            var trailerDict = TrailerDictionary.FromDictionary(await new ComplexDictionaryParser(EmptyPdfEditor.Instance).ParseAsync(stream));
 
-            var xrefTableOffset = trailerObjects.Get<Number>(2);
+            _ = await Parser.For<Keyword>().ParseAsync(stream); // startxref
+            var xrefTableOffset = await Parser.For<Number>().ParseAsync(stream);
 
             return new Trailer(trailerDict, xrefTableOffset);
         }
