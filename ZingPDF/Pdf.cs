@@ -1,11 +1,10 @@
-﻿using ZingPDF.Elements;
+﻿using System.Text;
+using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing.Parsers;
 using ZingPDF.Parsing.Parsers.FileStructure;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.CommonDataStructures.Strings;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -21,6 +20,11 @@ public class Pdf : IPdf, IDisposable
     private readonly DocumentCatalogDictionary _documentCatalog;
 
     private Form? _form;
+
+    static Pdf()
+    {
+        Encoding.RegisterProvider(new PdfDocEncodingProvider());
+    }
 
     private Pdf(
         Stream pdfInputStream,
