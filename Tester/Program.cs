@@ -71,7 +71,7 @@ using System;
 
 //await Decompress("testfiles/pdf/complex-form.pdf", "output.pdf");
 
-await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+await ExtractText("testfiles/pdf/form.pdf");
 
 static async Task ExtractText(string input)
 {
