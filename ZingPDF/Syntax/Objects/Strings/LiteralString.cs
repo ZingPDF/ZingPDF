@@ -53,7 +53,7 @@ namespace ZingPDF.Syntax.Objects.Strings
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,
                 LiteralStringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                LiteralStringEncoding.PDFDocEncoding => Encoding.Latin1,
+                LiteralStringEncoding.PDFDocEncoding => Encoding.Latin1, // TODO: replace with PDFDocEncoding
                 _ => throw new InvalidOperationException(),
             };
         }

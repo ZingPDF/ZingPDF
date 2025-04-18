@@ -92,7 +92,9 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         private IEnumerable<PositionedGlyph> HandleTj(ContentStreamOperation op, int pageNumber)
         {
-            var unicode = MapCharacterCode(Encoding.UTF8.GetBytes((LiteralString)op.Operands[0]));
+            string unicode = (LiteralString)op.Operands[0];
+            var test = MapCharacterCode(Encoding.Unicode.GetBytes(unicode));
+
             char? prev = null;
             foreach (var ch in unicode)
             {
@@ -120,7 +122,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             {
                 if (elem is LiteralString so)
                 {
-                    var unicode = MapCharacterCode(Encoding.UTF8.GetBytes(so));
+                    string unicode = so;
                     foreach (var ch in unicode)
                     {
                         var (x, y, adv) = CalculateNextCharPosition(ch, prev);
@@ -152,8 +154,27 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             TextMatrix = Matrix3x2.CreateTranslation(tx, 0) * TextMatrix;
         }
 
+        /// <summary>
+        /// Map a byte sequence to Unicode using ToUnicode, PdfDocEncoding, WinAnsi, or ASCII.
+        /// Assumes PdfDocEncodingProvider is registered on startup.
+        /// </summary>
         public string MapCharacterCode(byte[] code)
-            => ToUnicodeCMap?.Map(code) ?? Encoding.ASCII.GetString(code);
+        {
+            // 1) ToUnicode CMap
+            if (ToUnicodeCMap != null && ToUnicodeCMap.Map(code) is string mapped)
+                return mapped;
+
+            // 2) PDFDocEncoding
+            try
+            {
+                return Encoding.GetEncoding("PdfDocEncoding").GetString(code);
+            }
+            catch
+            {
+                // 3) UTF8 fallback
+                return Encoding.UTF8.GetString(code);
+            }
+        }
 
         private void MoveTextPosition(float tx, float ty)
         {
@@ -269,39 +290,62 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         /// <summary>Extract logical text lines by grouping glyphs into strings.</summary>
         public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
         {
-            var glyphs = (await ExtractGlyphsAsync()).ToList();
-            const float gapFactor = 0.2f;
+            var glyphs = await ExtractGlyphsAsync();
 
-            var lines = glyphs
+            return [.. glyphs
                 .GroupBy(g => g.PageNumber)
-                .SelectMany(pg => pg
-                    .OrderBy(g => g.Y)           // from top to bottom
-                    .GroupBy(g => MathF.Round(g.Y, 2))
-                    .Select(lg => lg.OrderBy(g => g.X).ToList())
-                )
-                .Select(sorted =>
+                .SelectMany(pageGroup =>
                 {
-                    var sb = new StringBuilder();
-                    for (int i = 0; i < sorted.Count; i++)
+                    // Group glyphs by Y-position (allowing for small variations)
+                    var lines = pageGroup
+                        .GroupBy(g => Math.Round(g.Y, 1)) // tweak rounding as needed
+                        .OrderByDescending(g => g.Key);   // higher Y first (PDF origin is bottom-left)
+
+                    return lines.Select(lineGroup => new ExtractedText
                     {
-                        if (i > 0)
-                        {
-                            var prev = sorted[i - 1];
-                            var curr = sorted[i];
-                            var gap = curr.X - (prev.X + prev.Width);
-
-                            if (gap > prev.FontSize * gapFactor)
-                            {
-                                sb.Append(' ');
-                            }
-                        }
-                        sb.Append(sorted[i].Character);
-                    }
-                    return new ExtractedText { PageNumber = sorted.First().PageNumber, Text = sb.ToString() };
-                })
-                .ToList();
-
-            return lines;
+                        PageNumber = pageGroup.Key,
+                        Text = string.Concat(lineGroup.Select(g => g.Character))
+                    });
+                })];
         }
+
+
+        ///// <summary>Extract logical text lines by grouping glyphs into strings.</summary>
+        //public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
+        //{
+        //    var glyphs = (await ExtractGlyphsAsync()).ToList();
+        //    const float gapFactor = 0.2f;
+
+        //    var lines = glyphs
+        //        .GroupBy(g => g.PageNumber)
+        //        .SelectMany(pg => pg
+        //            .OrderBy(g => g.Y)           // from top to bottom
+        //            .GroupBy(g => MathF.Round(g.Y, 2))
+        //            .Select(lg => lg.OrderBy(g => g.X).ToList())
+        //        )
+        //        .Select(sorted =>
+        //        {
+        //            var sb = new StringBuilder();
+        //            for (int i = 0; i < sorted.Count; i++)
+        //            {
+        //                if (i > 0)
+        //                {
+        //                    var prev = sorted[i - 1];
+        //                    var curr = sorted[i];
+        //                    var gap = curr.X - (prev.X + prev.Width);
+
+        //                    if (gap > prev.FontSize * gapFactor)
+        //                    {
+        //                        sb.Append(' ');
+        //                    }
+        //                }
+        //                sb.Append(sorted[i].Character);
+        //            }
+        //            return new ExtractedText { PageNumber = sorted.First().PageNumber, Text = sb.ToString() };
+        //        })
+        //        .ToList();
+
+        //    return lines;
+        //}
     }
 }
