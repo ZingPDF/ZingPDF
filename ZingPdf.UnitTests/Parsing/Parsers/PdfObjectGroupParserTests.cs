@@ -3,6 +3,7 @@ using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -41,7 +42,7 @@ public class PdfObjectGroupParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input);
+        var output = await new PdfObjectGroupParser(EmptyPdfEditor.Instance).ParseAsync(input);
 
         output.Objects.Should().HaveCount(2);
 
@@ -60,7 +61,7 @@ public class PdfObjectGroupParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input);
+        var output = await new PdfObjectGroupParser(EmptyPdfEditor.Instance).ParseAsync(input);
 
         output.Objects.Should().HaveCount(4);
 
@@ -114,6 +115,6 @@ public class PdfObjectGroupParserTests
         await input.WriteAsync(streamData);
         await input.WriteAsync(Encoding.ASCII.GetBytes(contentString2));
 
-        var output = await new PdfObjectGroupParser().ParseAsync(input);
+        var output = await new PdfObjectGroupParser(EmptyPdfEditor.Instance).ParseAsync(input);
     }
 }
