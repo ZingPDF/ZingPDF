@@ -71,7 +71,6 @@ public sealed class PdfDocEncoding : Encoding
         UnicodeToCode = new Dictionary<char, byte>(CodeToUnicode.Count);
         foreach (var kv in CodeToUnicode)
         {
-            // If multiple bytes map to same char, later entries overwrite, which is acceptable
             UnicodeToCode[kv.Value] = kv.Key;
         }
     }
@@ -80,8 +79,6 @@ public sealed class PdfDocEncoding : Encoding
     {
         if (chars == null) throw new ArgumentNullException(nameof(chars));
         if (index < 0 || count < 0 || index + count > chars.Length) throw new ArgumentOutOfRangeException();
-
-        // One byte per char
         return count;
     }
 
@@ -98,7 +95,6 @@ public sealed class PdfDocEncoding : Encoding
             char c = chars[charIndex + i];
             if (!UnicodeToCode.TryGetValue(c, out byte b))
             {
-                // Fallback to substitution or throw
                 throw new EncoderFallbackException($"Character '{c}' cannot be encoded in PDFDocEncoding.");
             }
             bytes[byteIndex + i] = b;
@@ -110,8 +106,6 @@ public sealed class PdfDocEncoding : Encoding
     {
         if (bytes == null) throw new ArgumentNullException(nameof(bytes));
         if (index < 0 || count < 0 || index + count > bytes.Length) throw new ArgumentOutOfRangeException();
-
-        // One char per byte
         return count;
     }
 
@@ -128,8 +122,8 @@ public sealed class PdfDocEncoding : Encoding
             byte b = bytes[byteIndex + i];
             if (!CodeToUnicode.TryGetValue(b, out char c))
             {
-                // Undefined mapping: use replacement character
-                c = '\uFFFD';
+                // Undefined byte: preserve raw value as Unicode code point
+                c = (char)b;
             }
             chars[charIndex + i] = c;
         }
@@ -151,7 +145,7 @@ public sealed class PdfDocEncoding : Encoding
     /// <summary>
     /// PDFDocEncoding does not use a preamble (BOM).
     /// </summary>
-    public override byte[] GetPreamble() => [];
+    public override byte[] GetPreamble() => Array.Empty<byte>();
 
     public override string BodyName => "PDFDocEncoding";
     public override string EncodingName => "PDF Doc Encoding";
