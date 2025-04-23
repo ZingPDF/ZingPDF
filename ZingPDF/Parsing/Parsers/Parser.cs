@@ -4,6 +4,7 @@ using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Parsing.Parsers.Objects;
 using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
+using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.FileStructure;
