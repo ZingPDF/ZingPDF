@@ -1,8 +1,8 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Extensions;
-using ZingPDF.Syntax.CommonDataStructures.Strings;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
 {
@@ -27,13 +27,11 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
             Encoding encoding = detection.Encoding;
             int preambleLen = detection.PreambleLength;
 
-            // 4) Strip BOM/preamble bytes and decode to .NET string
-            byte[] contentBytes = unescaped.Skip(preambleLen).ToArray();
-            string text = encoding.GetString(contentBytes);
+            // 4) Strip BOM/preamble bytes
+            byte[] contentBytes = [.. unescaped.Skip(preambleLen)];
 
-            // 5) Map to enum and return
-            var enumEnc = MapToLiteralStringEncoding(encoding);
-            var result = new LiteralString(text, enumEnc);
+            // 5) Return
+            var result = new LiteralString(contentBytes, MapToLiteralStringEncoding(encoding));
 
             return result;
         }
@@ -42,7 +40,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
         {
             if (enc is UTF8Encoding) return LiteralStringEncoding.UTF8;
             if (enc is UnicodeEncoding u && u.CodePage == 1201) return LiteralStringEncoding.UTF16BE;
-            if (enc is PdfDocEncoding) return LiteralStringEncoding.PDFDocEncoding;
+            if (enc is PDFDocEncoding) return LiteralStringEncoding.PDFDocEncoding;
             // default/fallback: treat as PDFDocEncoding
             return LiteralStringEncoding.PDFDocEncoding;
         }

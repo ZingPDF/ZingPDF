@@ -44,7 +44,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             _pdfEditor = dictionary._pdfEditor;
         }
 
-        public Name? Type => (Name)_dictionary[Constants.DictionaryKeys.Type];
+        public Name? Type => GetAs<Name>(Constants.DictionaryKeys.Type);
 
         public T GetAs<T>(Name key) where T : class?, IPdfObject?
             => (_dictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;

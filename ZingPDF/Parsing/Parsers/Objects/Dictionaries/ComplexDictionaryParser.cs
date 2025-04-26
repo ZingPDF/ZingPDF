@@ -1,8 +1,6 @@
 ﻿using MorseCode.ITask;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using ZingPDF.DocumentInterchange.Metadata;
 using ZingPDF.Elements.Drawing;
-using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
@@ -22,6 +20,7 @@ using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
+using ZingPDF.Text.CompositeFonts;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
@@ -123,6 +122,10 @@ internal class ComplexDictionaryParser : DictionaryParser, IObjectParser<Diction
                 output = AnnotationDictionary.FromDictionary(dict, _pdfEditor);
                 goto DictionaryParsed;
 
+            case Type t when t == typeof(MetadataStreamDictionary):
+                output = MetadataStreamDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
             case Type t when t == typeof(WidgetAnnotationDictionary):
                 output = WidgetAnnotationDictionary.FromDictionary(dict, _pdfEditor);
                 goto DictionaryParsed;
@@ -139,8 +142,20 @@ internal class ComplexDictionaryParser : DictionaryParser, IObjectParser<Diction
                 output = ImageDictionary.FromDictionary(dict, _pdfEditor);
                 goto DictionaryParsed;
 
-            case Type t when t == typeof(FontDictionary):
-                output = FontDictionary.FromDictionary(dict, _pdfEditor);
+            case Type t when t == typeof(Type1FontDictionary):
+                output = Type1FontDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(TrueTypeFontDictionary):
+                output = TrueTypeFontDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(Type3FontDictionary):
+                output = Type3FontDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(Type0FontDictionary):
+                output = Type0FontDictionary.FromDictionary(dict, _pdfEditor);
                 goto DictionaryParsed;
 
             case Type t when t == typeof(FontDescriptorDictionary):
