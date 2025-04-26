@@ -5,29 +5,39 @@ using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
 
-namespace ZingPDF.Text.SimpleFonts;
+namespace ZingPDF.Text;
 
-public class FontDictionary : Dictionary
+public abstract class FontDictionary : Dictionary
 {
     public static class Subtypes
     {
-        public const string Type1 = "Type1";
+        public static class Simple
+        {
+            public const string Type1 = "Type1";
+            public const string TrueType = "TrueType";
+            public const string Type3 = "Type3";
+        }
+
+        public static class Composite
+        {
+            public const string Type0 = "Type0";
+        }
     }
 
-    public FontDictionary(Name subType, IPdfEditor pdfEditor)
+    protected FontDictionary(Dictionary dictionary)
+        : base(dictionary) { }
+
+    protected FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+        : base(dictionary, pdfEditor)
+    {
+    }
+
+    protected FontDictionary(Name subType, IPdfEditor pdfEditor)
         : base(Constants.DictionaryTypes.Font, pdfEditor)
     {
         ArgumentNullException.ThrowIfNull(subType);
 
         Set(Constants.DictionaryKeys.Subtype, subType);
-    }
-
-    public FontDictionary(Dictionary dictionary)
-        : base(dictionary){ }
-
-    private FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
-    {
     }
 
     /// <summary>
@@ -36,7 +46,7 @@ public class FontDictionary : Dictionary
     /// <c>/CIDFontType0</c>, and <c>/CIDFontType2</c>.
     /// Each subtype has its own required and optional entries and methods for rendering or mapping characters.
     /// </summary>
-    public DictionaryProperty<Name> Subtype => Get<Name>(Constants.DictionaryKeys.Subtype);
+    public Name Subtype => GetAs<Name>(Constants.DictionaryKeys.Subtype);
 
     /// <summary>
     /// (Required for most simple fonts) The PostScript name of the font.
@@ -54,7 +64,7 @@ public class FontDictionary : Dictionary
     /// For Type 3 fonts, this entry is required and determines the glyph procedure to invoke for each character code.
     /// Composite fonts (Type 0) do not use this entry; they use CMaps for character code mapping.
     /// </summary>
-    public DictionaryProperty<Dictionary?> Encoding => Get<Dictionary?>(Constants.DictionaryKeys.Font.Encoding);
+    public DictionaryMultiProperty<Name?, Dictionary?> Encoding => Get<Name?, Dictionary?>(Constants.DictionaryKeys.Font.Encoding);
 
     /// <summary>
     /// (Required for Type 1, TrueType, and Type 3 fonts) The first character code for which widths are specified in the <c>/Widths</c> array.
@@ -93,14 +103,4 @@ public class FontDictionary : Dictionary
     /// Strongly recommended when using custom encodings or CIDFonts, as it provides a Unicode mapping independent of glyph names or positions.
     /// </summary>
     public DictionaryProperty<StreamObject<StreamDictionary>?> ToUnicode => Get<StreamObject<StreamDictionary>?>(Constants.DictionaryKeys.Font.ToUnicode);
-
-    public static FontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-    {
-        return new FontDictionary(dictionary, pdfEditor);
-    }
-
-    public static FontDictionary FromDictionary(Dictionary dictionary)
-    {
-        return new FontDictionary(dictionary);
-    }
 }
