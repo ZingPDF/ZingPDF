@@ -15,17 +15,29 @@ namespace ZingPDF.Syntax.Objects.Strings
     {
         private readonly Encoding _encodeUsing;
 
+        public LiteralString(byte[] rawBytes, LiteralStringEncoding encodeUsing = LiteralStringEncoding.PDFDocEncoding)
+        {
+            ArgumentNullException.ThrowIfNull(rawBytes, nameof(rawBytes));
+
+            RawBytes = rawBytes;
+
+            _encodeUsing = GetEncoding(encodeUsing);
+        }
+
         public LiteralString(string value, LiteralStringEncoding encodeUsing = LiteralStringEncoding.PDFDocEncoding)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             if (!Enum.IsDefined(encodeUsing))
                 throw new InvalidEnumArgumentException(nameof(encodeUsing), (int)encodeUsing, typeof(LiteralStringEncoding));
 
             _encodeUsing = GetEncoding(encodeUsing);
+
+            RawBytes = _encodeUsing.GetBytes(value);
         }
 
-        public string Value { get; private set; }
+        public byte[] RawBytes { get; }
+        public string Value => _encodeUsing.GetString(RawBytes);
 
         public byte[] GetEncodingPreamble() => _encodeUsing.GetPreamble();
 
@@ -53,7 +65,7 @@ namespace ZingPDF.Syntax.Objects.Strings
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,
                 LiteralStringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                LiteralStringEncoding.PDFDocEncoding => Encoding.Latin1, // TODO: replace with PDFDocEncoding
+                LiteralStringEncoding.PDFDocEncoding => Encoding.GetEncoding("PdfDocEncoding"),
                 _ => throw new InvalidOperationException(),
             };
         }
