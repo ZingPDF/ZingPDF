@@ -13,6 +13,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Text;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Elements.Forms
@@ -193,7 +194,7 @@ namespace ZingPDF.Elements.Forms
             {
                 // TODO: can we reuse an existing font?
                 // TODO: make font configurable
-                var defaultFont = new FontDictionary(FontDictionary.Subtypes.Type1, _pdfEditor);
+                var defaultFont = new Type1FontDictionary(_pdfEditor);
 
                 var fontIndirectObject = _pdfEditor.Add(defaultFont);
 
