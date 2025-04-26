@@ -70,7 +70,7 @@
                 }
             }
 
-            return buffer.ToArray();
+            return [.. buffer];
         }
     }
 }

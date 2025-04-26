@@ -64,7 +64,7 @@ namespace ZingPDF
             {
                 return await CopyDictionaryReferencesAsync(dict);
             }
-            else if (obj is StreamObject<IStreamDictionary> streamObject)
+            else if (obj is IStreamObject streamObject)
             {
                 return await CopyStreamObjectReferencesAsync(streamObject);
             }
@@ -90,7 +90,7 @@ namespace ZingPDF
             return dictionary;
         }
 
-        private async Task<StreamObject<IStreamDictionary>> CopyStreamObjectReferencesAsync(StreamObject<IStreamDictionary> streamObject)
+        private async Task<IStreamObject> CopyStreamObjectReferencesAsync(IStreamObject streamObject)
         {
             foreach (var entry in streamObject.Dictionary)
             {

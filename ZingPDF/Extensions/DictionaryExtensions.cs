@@ -3,9 +3,9 @@ using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
-using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Extensions
 {
@@ -31,9 +31,8 @@ namespace ZingPDF.Extensions
 
         public static async Task<IEnumerable<IFontMetricsProvider>> GetFontMetricsProvidersAsync(this ResourceDictionary resources, IPdfEditor pdfEditor)
         {
-            var fontDict = await resources.Font.GetAsync();
-
-            if (fontDict == null)
+            var fontResourceMap = await resources.Font.GetAsync();
+            if (fontResourceMap == null)
             {
                 return [];
             }
@@ -43,15 +42,15 @@ namespace ZingPDF.Extensions
             List<IFontMetricsProvider> fontProviders = [simpleFontMetricsProvider];
 
             Dictionary<string, Stream> fontStreams = [];
-            foreach (var kvp in fontDict)
+            foreach (var kvp in fontResourceMap)
             {
-                var font = await pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
-                var fontDescriptor = await font.FontDescriptor.GetAsync();
+                var fontDict = await pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
+                var fontDescriptor = await fontDict.FontDescriptor.GetAsync();
 
                 if (fontDescriptor != null)
                 {
-                    var widthsArray = await font.Widths.GetAsync();
-                    var firstCharCode = await font.FirstChar.GetAsync();
+                    var widthsArray = await fontDict.Widths.GetAsync();
+                    var firstCharCode = await fontDict.FirstChar.GetAsync();
 
                     var widths = widthsArray
                         .Cast<Number>()
