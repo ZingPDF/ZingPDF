@@ -4,13 +4,12 @@ using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers.FileStructure;
-using ZingPDF.Syntax.CommonDataStructures.Strings;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF;
 
@@ -23,7 +22,8 @@ public class Pdf : IPdf, IDisposable
 
     static Pdf()
     {
-        Encoding.RegisterProvider(new PdfDocEncodingProvider());
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding.RegisterProvider(PDFDocEncodingProvider.Instance);
     }
 
     private Pdf(
@@ -204,9 +204,13 @@ public class Pdf : IPdf, IDisposable
 
     public async Task DecompressAsync()
     {
+        List<IndirectObject> toBeUpdated = [];
+
         await foreach(var obj in IndirectObjects)
         {
-            if (obj.Object is StreamObject<IStreamDictionary> streamObj)
+            Console.WriteLine($"Decompressing {obj.Id}");
+
+            if (obj.Object is IStreamObject streamObj)
             {
                 ArrayObject? filterNames = await streamObj.Dictionary.Filter.GetAsync();
                 if (filterNames is null || !filterNames.Any())
@@ -223,18 +227,36 @@ public class Pdf : IPdf, IDisposable
 
                 var decompressedData = await streamObj.GetDecompressedDataAsync();
 
-                streamObj.Dictionary.Set<Name>(Constants.DictionaryKeys.Stream.Filter, null);
-                streamObj.Dictionary.Set<Dictionary>(Constants.DictionaryKeys.Stream.DecodeParms, null);
-                streamObj.Dictionary.Set<Number>(Constants.DictionaryKeys.Stream.Length, decompressedData.Length);
-                streamObj.Dictionary.Set<Number>(Constants.DictionaryKeys.Stream.DL, decompressedData.Length);
+                // Must create a new dictionary to hold the stream properties.
+                // If we change the values then it could break subsequent decompression of object streams within this loop.
+                // (Currently decompressed object streams are not cached in the PdfObjectManager)
+                var newStreamDict = StreamDictionary.FromDictionary(new Dictionary<Name, Syntax.IPdfObject>
+                    {
+                        [Constants.DictionaryKeys.Stream.Length] = (Number)decompressedData.Length,
+                        [Constants.DictionaryKeys.Stream.DL] = (Number)decompressedData.Length
+                    },
+                    IndirectObjects
+                );
+
+                if (streamObj.Dictionary.Type != null)
+                {
+                    newStreamDict.Set(Constants.DictionaryKeys.Type, streamObj.Dictionary.Type);
+                }
 
                 var newObj = new StreamObject<IStreamDictionary>(
                     decompressedData,
-                    streamObj.Dictionary
+                    newStreamDict
                 );
 
-                IndirectObjects.Update(new IndirectObject(obj.Id, newObj));
+                toBeUpdated.Add(new IndirectObject(obj.Id, newObj));
             }
+        }
+
+        Console.WriteLine($"Completed all decompression");
+
+        foreach (var io in toBeUpdated)
+        {
+            IndirectObjects.Update(io);
         }
     }
 
