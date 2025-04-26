@@ -63,7 +63,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
                 }
             }
 
-            return output.ToArray();
+            return [.. output];
         }
     }
 }

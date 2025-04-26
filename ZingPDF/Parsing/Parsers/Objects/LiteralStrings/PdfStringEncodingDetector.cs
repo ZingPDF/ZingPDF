@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using ZingPDF.Logging;
-using ZingPDF.Syntax.CommonDataStructures.Strings;
+using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
 {
@@ -30,7 +30,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
             // Any other BOM (e.g. FF FE) is non-conformant; log and treat as PDFDocEncoding
             Logger.Log(LogLevel.Warn, "Non-conformant BOM in literal string; defaulting to PDFDocEncoding.");
 
-            return new DetectionResult { Encoding = new PdfDocEncoding(), PreambleLength = 0 };
+            return new DetectionResult { Encoding = new PDFDocEncoding(), PreambleLength = 0 };
         }
     }
 }
