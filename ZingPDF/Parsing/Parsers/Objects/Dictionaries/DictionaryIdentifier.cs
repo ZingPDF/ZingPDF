@@ -1,4 +1,5 @@
-﻿using ZingPDF.Graphics;
+﻿using ZingPDF.DocumentInterchange.Metadata;
+using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
@@ -14,6 +15,7 @@ using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
+using ZingPDF.Text.CompositeFonts;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
@@ -31,6 +33,7 @@ public static class DictionaryIdentifier
         [Constants.DictionaryTypes.Font] = typeof(FontDictionary),
         [Constants.DictionaryTypes.FontDescriptor] = typeof(FontDescriptorDictionary),
         [Constants.DictionaryTypes.Annot] = typeof(AnnotationDictionary),
+        [Constants.DictionaryTypes.Metadata] = typeof(MetadataStreamDictionary),
     };
 
     private static readonly Dictionary<Name, Type> _dictionarySubtypeMap = new()
@@ -39,6 +42,10 @@ public static class DictionaryIdentifier
         [XObjectDictionary.Subtypes.Image] = typeof(ImageDictionary),
         [Constants.DictionaryTypes.Annot] = typeof(AnnotationDictionary),
         [AnnotationDictionary.Subtypes.Widget] = typeof(WidgetAnnotationDictionary),
+        [FontDictionary.Subtypes.Simple.Type1] = typeof(Type1FontDictionary),
+        [FontDictionary.Subtypes.Simple.TrueType] = typeof(TrueTypeFontDictionary),
+        [FontDictionary.Subtypes.Simple.Type3] = typeof(Type3FontDictionary),
+        [FontDictionary.Subtypes.Composite.Type0] = typeof(Type0FontDictionary),
     };
 
     public static async Task<Type?> IdentifyAsync(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)

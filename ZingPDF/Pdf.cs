@@ -208,8 +208,6 @@ public class Pdf : IPdf, IDisposable
 
         await foreach(var obj in IndirectObjects)
         {
-            Console.WriteLine($"Decompressing {obj.Id}");
-
             if (obj.Object is IStreamObject streamObj)
             {
                 ArrayObject? filterNames = await streamObj.Dictionary.Filter.GetAsync();
@@ -251,8 +249,6 @@ public class Pdf : IPdf, IDisposable
                 toBeUpdated.Add(new IndirectObject(obj.Id, newObj));
             }
         }
-
-        Console.WriteLine($"Completed all decompression");
 
         foreach (var io in toBeUpdated)
         {

@@ -96,7 +96,7 @@ internal class VariableTextAppearanceStreamManager
             }
 
             var normalAppearance = await existingAppearanceDictionary.N.GetAsync();
-            if (normalAppearance == null)
+            if (normalAppearance == null) // TODO: fix optional Either properties. This can't be null.
             {
                 return null;
             }

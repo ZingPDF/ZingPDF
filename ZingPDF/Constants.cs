@@ -412,6 +412,14 @@ internal static class Constants
             public const string FirstChar = "FirstChar";
             public const string LastChar = "LastChar";
             public const string Widths = "Widths";
+
+            public static class Type3
+            {
+                public const string FontBBox = "FontBBox";
+                public const string FontMatrix = "FontMatrix";
+                public const string CharProcs = "CharProcs";
+                public const string Resources = "Resources";
+            }
         }
 
         public static class FontDescriptor
