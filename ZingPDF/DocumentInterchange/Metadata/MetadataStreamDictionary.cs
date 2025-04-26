@@ -1,4 +1,5 @@
 ﻿using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
@@ -30,5 +31,20 @@ public class MetadataStreamDictionary : StreamDictionary
             )
     {
         Set<Name>(Constants.DictionaryKeys.Subtype, "XML");
+    }
+
+    protected MetadataStreamDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
+            : base(streamDictionary, pdfEditor) { }
+
+    new public static MetadataStreamDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    {
+        if (!dictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
+        {
+            throw new ArgumentException("Missing stream Length property.");
+        }
+
+        return dictionary is null
+            ? throw new ArgumentNullException(nameof(dictionary))
+            : new(dictionary, pdfEditor);
     }
 }
