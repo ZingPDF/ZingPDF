@@ -32,7 +32,7 @@ public class FontDescriptorDictionary : Dictionary
     /// <para>(Optional; PDF 1.5) A byte string specifying the preferred font family name.</para>
     /// <para>EXAMPLE 1 For the font Times Bold Italic, the FontFamily is Times.</para>
     /// </summary>
-    public DictionaryProperty<Name?> FontFamily => Get<Name?>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
+    public DictionaryProperty<LiteralString?> FontFamily => Get<LiteralString?>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
 
     /// <summary>
     /// <para>
