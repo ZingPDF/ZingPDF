@@ -75,7 +75,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         {
             var glyphs = (await ExtractGlyphsAsync()).ToList();
             const float yTolerance = 2.0f;     // how close in Y to be same line
-            const float gapFactor = 0.1f;      // fraction of fontSize to consider a “word gap”
+            const float gapFactor = 0.05f;      // fraction of fontSize to consider a “word gap”
 
             var output = new List<ExtractedText>();
 
@@ -88,7 +88,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     var lg = lineGroups
                         .FirstOrDefault(l => Math.Abs(l[0].Y - g.Y) < yTolerance);
                     if (lg == null)
-                        lineGroups.Add(new List<PositionedGlyph> { g });
+                        lineGroups.Add([g]);
                     else
                         lg.Add(g);
                 }
@@ -97,6 +97,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 foreach (var line in lineGroups)
                 {
                     var sorted = line.OrderBy(g => g.X).ToList();
+
                     var segment = new List<PositionedGlyph>();
 
                     for (int i = 0; i < sorted.Count; i++)
@@ -108,7 +109,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                             float gap = curr.X - (prev.X + prev.Width);
 
                             // if the gap is large, flush the current segment
-                            if (gap > prev.FontSize * gapFactor)
+                            if (gap > prev.Width * gapFactor)
                             {
                                 if (segment.Count > 0)
                                 {
