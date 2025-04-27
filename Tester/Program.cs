@@ -82,7 +82,7 @@ using System;
 
 //await Test();
 
-//await Decompress("testfiles/pdf/form.pdf", "output.pdf");
+//await Decompress("testfiles/pdf/form.pdf", "decompressed-form.pdf");
 
 await ExtractText("testfiles/pdf/form.pdf");
 

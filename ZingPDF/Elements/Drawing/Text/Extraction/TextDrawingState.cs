@@ -26,6 +26,14 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         private readonly IEnumerable<IFontMetricsProvider> _fontMetricsProviders;
         private readonly Dictionary _fontResourceMap;
 
+        public TextDrawingState(IEnumerable<IFontMetricsProvider> fontMetricsProviders, Dictionary fontResourceMap)
+        {
+            _fontMetricsProviders = fontMetricsProviders;
+            _fontResourceMap = fontResourceMap;
+
+            FontSize = 12f; // Default font size. This shouldn't be needed, but a malformed content stream may not set it.
+        }
+
         public Matrix3x2 TextMatrix { get; private set; } = Matrix3x2.Identity;
         public Matrix3x2 TextLineMatrix { get; private set; } = Matrix3x2.Identity;
         public string? FontResourceName { get; private set; }
@@ -38,11 +46,18 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         public float TextLeading { get; private set; } = 0f;
         public CMap? ToUnicodeCMap { get; private set; }
 
-        public TextDrawingState(IEnumerable<IFontMetricsProvider> fontMetricsProviders, Dictionary fontResourceMap)
-        {
-            _fontMetricsProviders = fontMetricsProviders;
-            _fontResourceMap = fontResourceMap;
-        }
+        /// <summary>
+        /// Returns the effective font size on the page by combining
+        /// the current PDF font size and the vertical scale factor
+        /// from the text‐line matrix (the d component of Tm).
+        /// </summary>
+        public float EffectiveFontSizeVertical => FontSize * TextLineMatrix.M22;
+
+        /// <summary>
+        /// Returns the effective horizontal scaling of the font, in case
+        /// you ever need to measure gaps in the X direction.
+        /// </summary>
+        public float EffectiveFontSizeHorizontal => FontSize * TextLineMatrix.M11;
 
         /// <summary>Process a content‐stream operator and emit any glyphs drawn.</summary>
         public async Task<IEnumerable<PositionedGlyph>> ProcessOperatorAsync(ContentStreamOperation op, int pageNumber)
@@ -72,6 +87,8 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     ToUnicodeCMap = await ResolveCMapAsync(FontResourceName);
                     TextMatrix = TextLineMatrix;
                     _fontEncoding = await ResolveFontEncodingAsync(FontResourceName);
+                    // Reset leading per Acrobat default
+                    TextLeading = FontSize * 1.2f;
                     break;
 
                 case ContentStream.Operators.TextState.Tc:
@@ -128,6 +145,67 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             return [];
         }
 
+        public string MapCharacterCode(byte[] code)
+        {
+            // 1) ToUnicode CMap
+            if (ToUnicodeCMap != null && ToUnicodeCMap.Map(code) is string mapped)
+                return mapped;
+
+            // 2) Font’s single-byte encoding
+            //    (Standard, WinAnsi, MacRoman or PdfDocEncoding)
+            return _fontEncoding.GetString(code);
+        }
+
+        public async Task<(float x, float y, float deviceAdvance)> CalculateNextCharPositionAsync(char c, char? prev)
+        {
+            // 1) Look up raw glyph width (in glyph units)
+            float rawWidth = 0f;
+            if (FontDictionary != null)
+            {
+                var fontName = await FontDictionary.BaseFont.GetAsync();
+                var metrics = _fontMetricsProviders
+                    .FirstOrDefault(p => p.IsSupported(fontName))
+                    ?.GetFontMetrics(fontName);
+
+                if (metrics != null)
+                {
+                    metrics.Widths.TryGetValue(c, out var w);
+                    w = w == 0 ? metrics.StandardHorizontalWidth ?? 500 : w;
+                    rawWidth = w / 1000f;          // convert to text-space units
+                    if (prev.HasValue && metrics.KerningPairs.TryGetValue((prev.Value, c), out var k))
+                        rawWidth += k / 1000f;     // add kerning
+                }
+            }
+
+            // 2) Scale by font size
+            float textAdvance = rawWidth * FontSize;
+
+            // 3) Add character & word spacing (still text-space)
+            float hScale = HorizontalScaling / 100f;
+            textAdvance += CharSpacing * hScale;
+            if (char.IsWhiteSpace(c))
+                textAdvance += WordSpacing * hScale;
+
+            // 4) Compute device-space advance:
+            //    matrixScale = TextLineMatrix.M11 (horizontal scale from Tm)
+            float matrixScale = TextLineMatrix.M11;
+            float deviceAdvance = textAdvance * matrixScale;
+
+            // 5) Grab current position
+            float x = TextMatrix.Translation.X;
+            float y = TextMatrix.Translation.Y + TextRise;
+
+            // 6) Move text matrix in text-space by (textAdvance * hScale)
+            //    so that future text uses the right origin
+            float textTranslation = textAdvance * hScale;
+            TextMatrix = Matrix3x2
+                .CreateTranslation(textTranslation, 0)
+                * TextMatrix;
+
+            // 7) Return the on-page advance for grouping, etc.
+            return (x, y, deviceAdvance);
+        }
+
         private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(LiteralString text, int pageNumber)
         {
             var unicode = MapCharacterCode(text.RawBytes);
@@ -144,7 +222,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     X = x,
                     Y = y,
                     Width = adv,
-                    Height = FontSize,
+                    Height = EffectiveFontSizeVertical,
                     FontName = FontResourceName ?? string.Empty,
                     FontSize = FontSize
                 });
@@ -221,7 +299,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 return null;
             }
 
-            Syntax.Either<Name?, Dictionary?> encoding = await FontDictionary!.Encoding.GetAsync();
+            Either<Name?, Dictionary?> encoding = await FontDictionary!.Encoding.GetAsync();
 
             if (encoding.Value == null)
             {
@@ -257,52 +335,11 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             TextMatrix = Matrix3x2.CreateTranslation(tx, 0) * TextMatrix;
         }
 
-        public string MapCharacterCode(byte[] code)
-        {
-            // 1) ToUnicode CMap
-            if (ToUnicodeCMap != null && ToUnicodeCMap.Map(code) is string mapped)
-                return mapped;
-
-            // 2) Font’s single-byte encoding
-            //    (Standard, WinAnsi, MacRoman or PdfDocEncoding)
-            return _fontEncoding.GetString(code);
-        }
-
         private void MoveTextPosition(float tx, float ty)
         {
             var t = Matrix3x2.CreateTranslation(tx, ty);
             TextMatrix = t * TextLineMatrix;
             TextLineMatrix = TextMatrix;
-        }
-
-        public async Task<(float x, float y, float advance)> CalculateNextCharPositionAsync(char c, char? prev)
-        {
-            float h = HorizontalScaling / 100f;
-            float adv = 0f;
-            if (FontDictionary != null)
-            {
-                var fontName = await FontDictionary.BaseFont.GetAsync();
-
-                var metrics = _fontMetricsProviders
-                    .FirstOrDefault(p => p.IsSupported(fontName))
-                    ?.GetFontMetrics(fontName);
-
-                if (metrics != null)
-                {
-                    metrics.Widths.TryGetValue(c, out var w);
-                    w = w == 0 ? metrics.StandardHorizontalWidth ?? 500 : w;
-                    adv = (w / 1000f) * FontSize;
-                    if (prev.HasValue && metrics.KerningPairs.TryGetValue((prev.Value, c), out var k))
-                        adv += (k / 1000f) * FontSize;
-                }
-            }
-            adv += CharSpacing * h;
-            if (char.IsWhiteSpace(c)) adv += WordSpacing * h;
-            var x = TextMatrix.Translation.X;
-            var y = TextMatrix.Translation.Y + TextRise;
-            TextMatrix = Matrix3x2.CreateTranslation(adv * h, 0) * TextMatrix;
-
-            return (x, y, adv);
         }
     }
 }
