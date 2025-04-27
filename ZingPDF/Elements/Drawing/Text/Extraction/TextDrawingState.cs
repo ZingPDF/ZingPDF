@@ -210,6 +210,8 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         {
             var unicode = MapCharacterCode(text.RawBytes);
 
+            var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
+
             char? prev = null;
             List<PositionedGlyph> glyphs = [];
             foreach (var ch in unicode)
@@ -223,7 +225,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     Y = y,
                     Width = adv,
                     Height = EffectiveFontSizeVertical,
-                    FontName = FontResourceName ?? string.Empty,
+                    FontName = await fontDescriptor.FontFamily.GetAsync(),
                     FontSize = FontSize
                 });
                 prev = ch;
@@ -234,6 +236,8 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         private async Task<IEnumerable<PositionedGlyph>> HandleTJAsync(ContentStreamOperation op, int pageNumber)
         {
+            var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
+
             var array = (ArrayObject)op.Operands[0];
             char? prev = null;
 
@@ -256,7 +260,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                             Y = y,
                             Width = adv,
                             Height = FontSize,
-                            FontName = FontResourceName ?? string.Empty,
+                            FontName = await fontDescriptor.FontFamily.GetAsync(),
                             FontSize = FontSize
                         });
                         prev = ch;

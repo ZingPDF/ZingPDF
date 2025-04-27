@@ -116,7 +116,11 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                                     output.Add(new ExtractedText
                                     {
                                         PageNumber = pageGroup.Key,
-                                        Text = string.Concat(segment.Select(g2 => g2.Character))
+                                        Text = string.Concat(segment.Select(g2 => g2.Character)),
+                                        FontName = segment[0].FontName,
+                                        FontSize = segment[0].FontSize,
+                                        X = segment[0].X,
+                                        Y = segment[0].Y,
                                     });
                                     segment.Clear();
                                 }
@@ -132,7 +136,11 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                         output.Add(new ExtractedText
                         {
                             PageNumber = pageGroup.Key,
-                            Text = string.Concat(segment.Select(g2 => g2.Character))
+                            Text = string.Concat(segment.Select(g2 => g2.Character)),
+                            FontName = segment[0].FontName,
+                            FontSize = segment[0].FontSize,
+                            X = segment[0].X,
+                            Y = segment[0].Y,
                         });
                     }
                 }
