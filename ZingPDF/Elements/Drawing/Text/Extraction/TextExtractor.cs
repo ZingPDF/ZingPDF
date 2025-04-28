@@ -1,4 +1,5 @@
-﻿using ZingPDF.Extensions;
+﻿using System.Text;
+using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
@@ -25,12 +26,14 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             _baseProviders = baseProviders ?? [new PDFStandardFontMetricsProvider()];
         }
 
-        /// <summary>Extract raw positioned glyphs from all pages.</summary>
-        public async Task<IEnumerable<PositionedGlyph>> ExtractGlyphsAsync()
+        /// <summary>
+        /// Extracts raw glyph runs (one run per Tj/TJ/'/" operator) in document order.
+        /// </summary>
+        public async Task<IEnumerable<GlyphRun>> ExtractGlyphRunsAsync()
         {
             var pages = await _pdf.PageTree.GetPagesAsync();
             var parser = new ContentStreamParser(_pdf.IndirectObjects);
-            var glyphs = new List<PositionedGlyph>();
+            var glyphRuns = new List<GlyphRun>();
 
             for (int i = 0; i < pages.Count; i++)
             {
@@ -63,91 +66,110 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
                     foreach (ContentStreamOperation op in ops)
                     {
-                        glyphs.AddRange(await state.ProcessOperatorAsync(op, pageNum));
+                        var emittedGlyphs = await state.ProcessOperatorAsync(op, pageNum);
+                        if (emittedGlyphs != null)
+                        {
+                            glyphRuns.Add(emittedGlyphs);
+                        }
                     }
                 }
             }
-            return glyphs;
+
+            return glyphRuns;
         }
 
-        /// <summary>Extract logical text lines by grouping glyphs into strings.</summary>
+        /// <summary>
+        /// Groups glyph runs by page & line, then concatenates into ExtractedText.
+        /// </summary>
         public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
         {
-            var glyphs = (await ExtractGlyphsAsync()).ToList();
-            const float yTolerance = 2.0f;     // how close in Y to be same line
-            const float gapFactor = 0.05f;      // fraction of fontSize to consider a “word gap”
+            var runs = (await ExtractGlyphRunsAsync()).ToList();
+            const float yTolerance = 2f;
+            const float gapFactor = 0.2f;  // threshold relative to glyph height
 
-            var output = new List<ExtractedText>();
+            var texts = new List<ExtractedText>();
 
-            foreach (var pageGroup in glyphs.GroupBy(g => g.PageNumber))
+            foreach (var pageGroup in runs.GroupBy(r => r.PageNumber))
             {
-                // 1) cluster into lines
-                var lineGroups = new List<List<PositionedGlyph>>();
-                foreach (var g in pageGroup)
+                // 1) Cluster runs into lines by Y
+                var lineGroups = new List<List<GlyphRun>>();
+
+                foreach (var run in pageGroup)
                 {
-                    var lg = lineGroups
-                        .FirstOrDefault(l => Math.Abs(l[0].Y - g.Y) < yTolerance);
-                    if (lg == null)
-                        lineGroups.Add([g]);
-                    else
-                        lg.Add(g);
-                }
-
-                // 2) for each line, sort and then split on X gaps
-                foreach (var line in lineGroups)
-                {
-                    var sorted = line.OrderBy(g => g.X).ToList();
-
-                    var segment = new List<PositionedGlyph>();
-
-                    for (int i = 0; i < sorted.Count; i++)
+                    if (!run.Glyphs.Any())
                     {
-                        if (i > 0)
-                        {
-                            var prev = sorted[i - 1];
-                            var curr = sorted[i];
-                            float gap = curr.X - (prev.X + prev.Width);
-
-                            // if the gap is large, flush the current segment
-                            if (gap > prev.Width * gapFactor)
-                            {
-                                if (segment.Count > 0)
-                                {
-                                    output.Add(new ExtractedText
-                                    {
-                                        PageNumber = pageGroup.Key,
-                                        Text = string.Concat(segment.Select(g2 => g2.Character)),
-                                        FontName = segment[0].FontName,
-                                        FontSize = segment[0].FontSize,
-                                        X = segment[0].X,
-                                        Y = segment[0].Y,
-                                    });
-                                    segment.Clear();
-                                }
-                            }
-                        }
-
-                        segment.Add(sorted[i]);
+                        continue;
                     }
 
-                    // flush the last segment
-                    if (segment.Count > 0)
+                    float y = run.Glyphs[0].Y;
+
+                    // find the first line that is close to this Y
+                    var line = lineGroups.FirstOrDefault(l => Math.Abs(l[0].Glyphs[0].Y - y) < yTolerance);
+                    if (line == null)
                     {
-                        output.Add(new ExtractedText
+                        lineGroups.Add([run]);
+                    }
+                    else
+                    {
+                        line.Add(run);
+                    }
+                }
+
+                // 2) For each line, sort by X and split by large gaps
+                foreach (var line in lineGroups)
+                {
+                    var orderedRuns = line.OrderBy(lr => lr.Glyphs[0].X).ToList();
+                    var segments = new List<List<GlyphRun>>();
+                    var segment = new List<GlyphRun> { orderedRuns.First() };
+
+                    for (int i = 1; i < orderedRuns.Count; i++)
+                    {
+                        var prevRun = orderedRuns[i - 1];
+                        var currRun = orderedRuns[i];
+                        var prevGlyphs = prevRun.Glyphs;
+                        var lastGlyph = prevGlyphs[prevGlyphs.Count - 1];
+                        float prevEnd = lastGlyph.X + lastGlyph.Width;
+                        float gap = currRun.Glyphs[0].X - prevEnd;
+                        float threshold = lastGlyph.Height * gapFactor;
+
+                        if (gap > threshold)
+                        {
+                            segments.Add(segment);
+                            segment = new List<GlyphRun>();
+                        }
+
+                        segment.Add(currRun);
+                    }
+                    segments.Add(segment);
+
+                    // 3) Build ExtractedText for each segment
+                    foreach (var seg in segments)
+                    {
+                        // skip segments of whitespace
+                        if (seg.All(r => r.Glyphs.All(g => char.IsWhiteSpace(g.Character))))
+                            continue;
+
+                        var sb = new StringBuilder();
+                        foreach (var runSeg in seg)
+                        {
+                            sb.Append(string.Concat(runSeg.Glyphs.Select(g => g.Character)));
+                        }
+
+                        var firstGlyph = seg[0].Glyphs[0];
+                        texts.Add(new ExtractedText
                         {
                             PageNumber = pageGroup.Key,
-                            Text = string.Concat(segment.Select(g2 => g2.Character)),
-                            FontName = segment[0].FontName,
-                            FontSize = segment[0].FontSize,
-                            X = segment[0].X,
-                            Y = segment[0].Y,
+                            Text = sb.ToString(),
+                            FontName = firstGlyph.FontName,
+                            FontSize = firstGlyph.FontSize,
+                            X = firstGlyph.X,
+                            Y = firstGlyph.Y
                         });
                     }
                 }
             }
 
-            return output;
+            return texts;
         }
-
     }
 }
