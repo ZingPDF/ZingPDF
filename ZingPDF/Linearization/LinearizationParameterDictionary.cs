@@ -2,7 +2,6 @@
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
-using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Linearization
 {
@@ -81,7 +80,7 @@ namespace ZingPDF.Linearization
         /// (Optional) The page number of the first page; see F.3.4, "First-page cross-reference table and 
         /// trailer (Part 3)". Default value: 0.
         /// </summary>
-        public DictionaryProperty<Number?> P => Get<Number?>(Constants.DictionaryKeys.LinearizationParameter.P);
+        public Number? P => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.P);
 
         public static LinearizationParameterDictionary FromDictionary(Dictionary<Name, IPdfObject> linearizationDictionary, IPdfEditor pdfEditor)
         {

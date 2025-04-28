@@ -48,7 +48,7 @@ namespace ZingPDF
             ((PageTreeNodeDictionary)newObj.Object).SetParent(rootPageTreeNodeIndirectObject.Id.Reference);
 
             // Add incoming root page tree node as a child of this PDF's root page tree node.
-            rootPageTreeNode.AddChild(_oldToNewMap[rootPageTreeNodeToAppend.Id.Reference]);
+            await rootPageTreeNode.AddChildAsync(_oldToNewMap[rootPageTreeNodeToAppend.Id.Reference]);
 
             _mainPdf.IndirectObjects.Update(rootPageTreeNodeIndirectObject);
         }
