@@ -261,8 +261,8 @@ internal class VariableTextAppearanceStreamManager
 
         var formDefaultResources = await _formDefaultResources;
         var fontMapDict = await formDefaultResources.Font.GetAsync();
-        var fontDict = await fontMapDict.Get<Dictionary>(fontResourceName).GetAsync();
-        var fontName = await fontDict.Get<Name>(Constants.DictionaryKeys.Font.BaseFont).GetAsync();
+        var fontDict = await fontMapDict.GetRequiredProperty<Dictionary>(fontResourceName).GetAsync();
+        var fontName = await fontDict.GetRequiredProperty<Name>(Constants.DictionaryKeys.Font.BaseFont).GetAsync();
 
         Coordinate textOrigin;
 

@@ -13,7 +13,7 @@ public class PageTree
     private readonly AsyncLazy<IndirectObject> _rootPageTreeNode;
     private readonly ResettableAsyncLazy<IList<IndirectObject>> _nodes;
 
-    public PageTree(IPdfEditor pdfEditor, DictionaryProperty<PageTreeNodeDictionary> rootPageTreeNode)
+    public PageTree(IPdfEditor pdfEditor, RequiredProperty<PageTreeNodeDictionary> rootPageTreeNode)
     {
         ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
         ArgumentNullException.ThrowIfNull(rootPageTreeNode, nameof(rootPageTreeNode));
@@ -46,7 +46,7 @@ public class PageTree
         return [.. (await _nodes).Where(n => n.Object is PageDictionary)];
     }
 
-    public async Task<int> GetPageCountAsync() => (await GetRootPageTreeNodeDictionaryAsync()).PageCount;
+    public async Task<int> GetPageCountAsync() => await (await GetRootPageTreeNodeDictionaryAsync()).PageCount.GetAsync();
 
     public Task<IList<IndirectObject>> GetAllNodesAsync() => _nodes.Task;
 

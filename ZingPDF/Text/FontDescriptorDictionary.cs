@@ -26,13 +26,13 @@ public class FontDescriptorDictionary : Dictionary
     /// name shall be the same as the value of BaseFont in the font or CIDFont dictionary that refers to 
     /// this font descriptor.
     /// </summary>
-    public DictionaryProperty<Name> FontName => Get<Name>(Constants.DictionaryKeys.FontDescriptor.FontName);
+    public RequiredProperty<Name> FontName => GetRequiredProperty<Name>(Constants.DictionaryKeys.FontDescriptor.FontName);
 
     /// <summary>
     /// <para>(Optional; PDF 1.5) A byte string specifying the preferred font family name.</para>
     /// <para>EXAMPLE 1 For the font Times Bold Italic, the FontFamily is Times.</para>
     /// </summary>
-    public DictionaryProperty<LiteralString?> FontFamily => Get<LiteralString?>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
+    public OptionalProperty<LiteralString> FontFamily => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
 
     /// <summary>
     /// <para>
@@ -43,7 +43,7 @@ public class FontDescriptorDictionary : Dictionary
     /// <para>The specific interpretation of these values varies from font to font.</para>
     /// <para>EXAMPLE 2 Condensed in one font might appear most similar to Normal in another.</para>
     /// </summary>
-    public DictionaryProperty<Name?> FontStretch => Get<Name?>(Constants.DictionaryKeys.FontDescriptor.FontStretch);
+    public OptionalProperty<Name> FontStretch => GetOptionalProperty<Name>(Constants.DictionaryKeys.FontDescriptor.FontStretch);
 
     /// <summary>
     /// <para>
@@ -55,19 +55,19 @@ public class FontDescriptorDictionary : Dictionary
     /// <para>The specific interpretation of these values varies from font to font.</para>
     /// <para>EXAMPLE 3 300 in one font might appear most similar to 500 in another.</para>
     /// </summary>
-    public DictionaryProperty<Number?> FontWeight => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.FontWeight);
+    public OptionalProperty<Number> FontWeight => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.FontWeight);
 
     /// <summary>
     /// (Required) A collection of flags defining various characteristics of the font (see 9.8.2, "Font descriptor flags").
     /// </summary>
-    public DictionaryProperty<Number> Flags => Get<Number>(Constants.DictionaryKeys.FontDescriptor.Flags);
+    public RequiredProperty<Number> Flags => GetRequiredProperty<Number>(Constants.DictionaryKeys.FontDescriptor.Flags);
 
     /// <summary>
     /// (Required except for Type 3 fonts) A rectangle (see 7.9.5, "Rectangles"), expressed in the glyph coordinate 
     /// system, that shall specify the font bounding box. This should be the smallest rectangle enclosing the shape 
     /// that would result if all of the glyphs of the font were placed with their origins coincident and then filled.
     /// </summary>
-    public DictionaryProperty<Rectangle?> FontBBox => Get<Rectangle?>(Constants.DictionaryKeys.FontDescriptor.FontBBox);
+    public OptionalProperty<Rectangle> FontBBox => GetOptionalProperty<Rectangle>(Constants.DictionaryKeys.FontDescriptor.FontBBox);
 
     /// <summary>
     /// <para>
@@ -77,82 +77,85 @@ public class FontDescriptorDictionary : Dictionary
     /// <para>EXAMPLE 4 The 9-o’clock position is 90 degrees, and the 3-o’clock position is –90 degrees.</para>
     /// <para>The value shall be negative for fonts that slope to the right, as almost all italic fonts do</para>
     /// </summary>
-    public DictionaryProperty<Number> ItalicAngle => Get<Number>(Constants.DictionaryKeys.FontDescriptor.ItalicAngle);
+    public RequiredProperty<Number> ItalicAngle => GetRequiredProperty<Number>(Constants.DictionaryKeys.FontDescriptor.ItalicAngle);
 
     /// <summary>
     /// (Required, except for Type 3 fonts) The maximum height above the baseline reached by glyphs in this font. 
     /// The height of glyphs for accented characters shall be excluded.
     /// </summary>
-    public DictionaryProperty<Number?> Ascent => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.Ascent);
+    public OptionalProperty<Number> Ascent => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.Ascent);
 
     /// <summary>
     /// (Required, except for Type 3 fonts) The maximum depth below the baseline reached by glyphs in this font. 
     /// The value shall be a negative number.
     /// </summary>
-    public DictionaryProperty<Number?> Descent => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.Descent);
+    public OptionalProperty<Number> Descent => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.Descent);
 
     /// <summary>
     /// <para>(Optional) The spacing between baselines of consecutive lines of text.</para>
     /// <para>Default value: 0.</para>
     /// </summary>
-    public DictionaryProperty<Number?> Leading => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.Leading);
+    public OptionalProperty<Number> Leading => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.Leading);
 
     /// <summary>
     /// (Required for fonts that have Latin characters, except for Type 3 fonts) The vertical coordinate of the top 
     /// of flat capital letters, measured from the baseline.
     /// </summary>
-    public DictionaryProperty<Number?> CapHeight => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.CapHeight);
+    public OptionalProperty<Number> CapHeight => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.CapHeight);
 
     /// <summary>
     /// (Optional) The font’s x height: the vertical coordinate of the top of flat nonascending lowercase letters 
     /// (like the letter x), measured from the baseline, in fonts that have Latin characters. Default value: 0.
     /// </summary>
-    public DictionaryProperty<Number?> XHeight => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.XHeight);
+    public OptionalProperty<Number> XHeight => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.XHeight);
 
     /// <summary>
     /// (Required except for Type 3 fonts) The thickness measured horizontally, of the dominant vertical stems of 
     /// glyphs in the font. Values shall be positive. A value of 0 indicates an unknown stem thickness.
     /// </summary>
-    public DictionaryProperty<Number?> StemV => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.StemV);
+    public OptionalProperty<Number> StemV => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.StemV);
 
     /// <summary>
     /// (Optional) The thickness measured vertically of the dominant horizontal stems of glyphs in the font. Values 
     /// shall be positive. A value of 0 indicates an unknown stem thickness. Default value: 0.
     /// </summary>
-    public DictionaryProperty<Number?> StemH => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.StemH);
+    public OptionalProperty<Number> StemH => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.StemH);
 
     /// <summary>
     /// (Optional) The average width of glyphs in the font. Default value: 0.
     /// </summary>
-    public DictionaryProperty<Number?> AvgWidth => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.AvgWidth);
+    public OptionalProperty<Number> AvgWidth => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.AvgWidth);
 
     /// <summary>
     /// (Optional) The maximum width of glyphs in the font. Default value: 0.
     /// </summary>
-    public DictionaryProperty<Number?> MaxWidth => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.MaxWidth);
+    public OptionalProperty<Number> MaxWidth => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.MaxWidth);
 
     /// <summary>
     /// (Optional) The width to use for character codes whose widths are not specified in a font dictionary’s Widths 
     /// array. This shall have a predictable effect only if all such codes map to glyphs whose actual widths are the 
     /// same as the value of the MissingWidth entry. Default value: 0.
     /// </summary>
-    public DictionaryProperty<Number?> MissingWidth => Get<Number?>(Constants.DictionaryKeys.FontDescriptor.MissingWidth);
+    public OptionalProperty<Number> MissingWidth => GetOptionalProperty<Number>(Constants.DictionaryKeys.FontDescriptor.MissingWidth);
 
     /// <summary>
     /// (Optional) A stream containing a Type 1 font program (see 9.9, "Embedded font programs").
     /// </summary>
-    public DictionaryProperty<StreamObject<IStreamDictionary>?> FontFile => Get<StreamObject<IStreamDictionary>?>(Constants.DictionaryKeys.FontDescriptor.FontFile);
+    public OptionalProperty<StreamObject<IStreamDictionary>> FontFile
+        => GetOptionalProperty<StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.FontDescriptor.FontFile);
 
     /// <summary>
     /// (Optional; PDF 1.1) A stream containing a TrueType font program (see 9.9, "Embedded font programs").
     /// </summary>
-    public DictionaryProperty<StreamObject<IStreamDictionary>?> FontFile2 => Get<StreamObject<IStreamDictionary>?>(Constants.DictionaryKeys.FontDescriptor.FontFile2);
+    public OptionalProperty<StreamObject<IStreamDictionary>> FontFile2
+        => GetOptionalProperty<StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.FontDescriptor.FontFile2);
 
     /// <summary>
     /// (Optional; PDF 1.2) A stream containing a font program whose format is specified by the Subtype entry in the 
     /// stream dictionary (see "Table 124 — Embedded font organisation for various font types").
     /// </summary>
-    public DictionaryProperty<StreamObject<IStreamDictionary>?> FontFile3 => Get<StreamObject<IStreamDictionary>?>(Constants.DictionaryKeys.FontDescriptor.FontFile3);
+    public OptionalProperty<StreamObject<IStreamDictionary>> FontFile3
+        => GetOptionalProperty<StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.FontDescriptor.FontFile3);
 
     /// <summary>
     /// (Optional; meaningful only in Type 1 fonts; PDF 1.1; deprecated in PDF 2.0) A string listing the character names 
@@ -160,8 +163,8 @@ public class FontDescriptorDictionary : Dictionary
     /// The names may appear in any order. The name .notdef shall be omitted; it shall exist in the font subset. If this 
     /// entry is absent, the only indication of a font subset shall be the subset tag in the FontName entry (see 9.9.2, "Font subsets").
     /// </summary>
-    public DictionaryMultiProperty<LiteralString?, HexadecimalString?> CharSet
-        => Get<LiteralString?, HexadecimalString?>(Constants.DictionaryKeys.FontDescriptor.CharSet);
+    public OptionalMultiProperty<LiteralString, HexadecimalString> CharSet
+        => GetOptionalMultiProperty<LiteralString, HexadecimalString>(Constants.DictionaryKeys.FontDescriptor.CharSet);
 
     internal static FontDescriptorDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
     {
