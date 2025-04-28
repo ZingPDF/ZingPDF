@@ -420,6 +420,23 @@ internal static class Constants
                 public const string CharProcs = "CharProcs";
                 public const string Resources = "Resources";
             }
+
+            public static class CID
+            {
+                public const string CIDSystemInfo = "CIDSystemInfo";
+                public const string DW = "DW";
+                public const string W = "W";
+                public const string DW2 = "DW2";
+                public const string W2 = "W2";
+                public const string CIDToGIDMap = "CIDToGIDMap";
+            }
+
+            public static class CIDSystemInfo
+            {
+                public const string Registry = "Registry";
+                public const string Ordering = "Ordering";
+                public const string Supplement = "Supplement";
+            }
         }
 
         public static class FontDescriptor
