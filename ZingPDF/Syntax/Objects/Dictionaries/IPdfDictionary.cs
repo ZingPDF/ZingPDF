@@ -6,31 +6,23 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     {
         Name? Type { get; }
 
-        /// <summary>
-        /// Strongly typed access to the underlying <see cref="PdfObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// Will return null if the specified key does not exist or the value is not assignable to the requested type.
-        /// </remarks>
         T GetAs<T>(Name key) where T : class?, IPdfObject?;
 
-        /// <summary>
-        /// Strongly typed access to the underlying <see cref="PdfObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// Returns a <see cref="DictionaryProperty{T}"/> which can be used to access the value asynchronously.
-        /// </remarks>
-        DictionaryProperty<T> Get<T>(Name key) where T : class?, IPdfObject?;
+        RequiredProperty<T> GetRequiredProperty<T>(Name key) where T : class, IPdfObject;
 
-        /// <summary>
-        /// Strongly typed access to the underlying <see cref="PdfObject"/>.
-        /// </summary>
-        /// <remarks>
-        /// Returns a <see cref="DictionaryMultiProperty{T1, T2}"/> which can be used to access the value asynchronously.
-        /// </remarks>
-        DictionaryMultiProperty<T1, T2> Get<T1, T2>(Name key)
-            where T1 : class?, IPdfObject?
-            where T2 : class?, IPdfObject?;
+        OptionalProperty<T> GetOptionalProperty<T>(Name key) where T : class, IPdfObject;
+
+        OptionalMultiProperty<T1, T2> GetOptionalMultiProperty<T1, T2>(Name key)
+            where T1 : class, IPdfObject
+            where T2 : class, IPdfObject;
+
+        RequiredMultiProperty<T1, T2> GetRequiredMultiProperty<T1, T2>(Name key)
+            where T1 : class, IPdfObject
+            where T2 : class, IPdfObject;
+
+        RequiredArrayOrSingle<T> GetArrayOrSingle<T>(Name key) where T : class, IPdfObject;
+
+        OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(Name key) where T : class, IPdfObject;
 
         void Set<T>(Name key, T? value) where T : class, IPdfObject;
 

@@ -40,13 +40,13 @@ namespace ZingPDF.Syntax.Objects.Streams
             Set(Constants.DictionaryKeys.Stream.DL, dL);
         }
 
-        public DictionaryProperty<Number> Length => Get<Number>(Constants.DictionaryKeys.Stream.Length);
+        public RequiredProperty<Number> Length => GetRequiredProperty<Number>(Constants.DictionaryKeys.Stream.Length);
         public OptionalArrayOrSingle<Name> Filter => GetOptionalArrayOrSingle<Name>(Constants.DictionaryKeys.Stream.Filter);
         public OptionalArrayOrSingle<Dictionary> DecodeParms => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.Stream.DecodeParms);
-        public DictionaryProperty<Dictionary?> F => Get<Dictionary?>(Constants.DictionaryKeys.Stream.F);
+        public OptionalProperty<Dictionary> F => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Stream.F);
         public OptionalArrayOrSingle<Name> FFilter => GetOptionalArrayOrSingle<Name>(Constants.DictionaryKeys.Stream.FFilter);
         public OptionalArrayOrSingle<Dictionary> FDecodeParms => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.Stream.FDecodeParms);
-        public DictionaryProperty<Number?> DL => Get<Number?>(Constants.DictionaryKeys.Stream.DL);
+        public OptionalProperty<Number> DL => GetOptionalProperty<Number>(Constants.DictionaryKeys.Stream.DL);
 
         public static StreamDictionary FromDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
         {

@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree
@@ -19,7 +20,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <summary>
         /// (Required) An array of indirect references to the immediate children of this node. The children shall only be page objects or other page tree nodes.
         /// </summary>
-        public ArrayObject Kids => GetAs<ArrayObject>(Constants.DictionaryKeys.PageTree.PageTreeNode.Kids)!;
+        public RequiredProperty<ArrayObject> Kids => GetRequiredProperty<ArrayObject>(Constants.DictionaryKeys.PageTree.PageTreeNode.Kids);
 
         /// <summary>
         /// <para>(Required) The number of leaf nodes (page objects) that are descendants of this node within the page tree.</para>
@@ -36,43 +37,57 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// which already defines a `Count` property, therefore it is called `PageCount` here.
         /// </para>
         /// </summary>
-        public Number PageCount => GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count)!;
+        public RequiredProperty<Number> PageCount => GetRequiredProperty<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count);
 
-        public void AddChild(IndirectObjectReference key)
+        public async Task AddChildAsync(IndirectObjectReference key)
         {
             ArgumentNullException.ThrowIfNull(key, nameof(key));
 
-            Kids.Add(key);
+            ArrayObject kids = await Kids.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount + 1));
+            kids.Add(key);
+
+            Number count = await PageCount.GetAsync();
+
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count + 1));
         }
 
-        public void RemoveChild(IndirectObjectReference key)
+        public async Task RemoveChildAsync(IndirectObjectReference key)
         {
             ArgumentNullException.ThrowIfNull(key, nameof(key));
 
-            Kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);   
+            ArrayObject kids = await Kids.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount - 1));
+            kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);
+
+            Number count = await PageCount.GetAsync();
+
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count - 1));
         }
 
-        public void ReplaceAllChildren(IEnumerable<IndirectObjectReference> kids)
+        public async Task ReplaceAllChildrenAsync(IEnumerable<IndirectObjectReference> newKids)
         {
-            ArgumentNullException.ThrowIfNull(kids, nameof(kids));
+            ArgumentNullException.ThrowIfNull(newKids, nameof(newKids));
 
-            Kids.Clear();
+            ArrayObject kids = await Kids.GetAsync();
 
-            Kids.AddRange(kids);
+            kids.Clear();
+
+            kids.AddRange(newKids);
         }
 
-        public void IncrementCount()
+        public async Task IncrementCountAsync()
         {
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount + 1));
+            Number count = await PageCount.GetAsync();
+
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count + 1));
         }
 
-        public void DecrementCount()
+        public async Task DecrementCountAsync()
         {
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(PageCount - 1));
+            Number count = await PageCount.GetAsync();
+
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count - 1));
         }
 
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdfEditor pdfEditor)

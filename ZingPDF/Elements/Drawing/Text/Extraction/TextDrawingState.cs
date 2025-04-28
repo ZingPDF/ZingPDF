@@ -83,7 +83,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 case ContentStream.Operators.TextState.Tf:
                     FontResourceName = ((Name)op.Operands[0]).Value;
                     FontSize = (Number)op.Operands[1];
-                    FontDictionary = await _fontResourceMap.Get<FontDictionary>(FontResourceName).GetAsync();
+                    FontDictionary = await _fontResourceMap.GetRequiredProperty<FontDictionary>(FontResourceName).GetAsync();
                     ToUnicodeCMap = await ResolveCMapAsync(FontResourceName);
                     TextMatrix = TextLineMatrix;
                     _fontEncoding = await ResolveFontEncodingAsync(FontResourceName);
@@ -303,7 +303,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 return null;
             }
 
-            Either<Name?, Dictionary?> encoding = await FontDictionary!.Encoding.GetAsync();
+            Either<Name, Dictionary> encoding = await FontDictionary!.Encoding.GetAsync();
 
             if (encoding.Value == null)
             {

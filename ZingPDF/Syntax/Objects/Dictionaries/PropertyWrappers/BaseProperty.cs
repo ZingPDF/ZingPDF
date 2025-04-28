@@ -3,14 +3,14 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public abstract class BaseDictionaryProperty
+public abstract class BaseProperty
 {
     private readonly Dictionary _dictionary;
     private readonly Name _key;
 
     protected readonly IPdfEditor _pdfEditor;
 
-    public BaseDictionaryProperty(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
+    public BaseProperty(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
     {
         _key = key;
         _pdfEditor = pdfEditor ?? throw new ArgumentNullException(nameof(pdfEditor));
@@ -72,7 +72,7 @@ public abstract class BaseDictionaryProperty
             ?? throw new InvalidPdfException($"Invalid parent reference: {parentRef}");
 
         return await parentDictionary
-            .Get<IPdfObject>(_key)
+            .GetRequiredProperty<IPdfObject>(_key)
             .GetRawValueAsync(); // Recurse
     }
 
