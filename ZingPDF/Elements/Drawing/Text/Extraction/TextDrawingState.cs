@@ -60,25 +60,25 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         public float EffectiveFontSizeHorizontal => FontSize * TextLineMatrix.M11;
 
         /// <summary>Process a content‐stream operator and emit any glyphs drawn.</summary>
-        public async Task<IEnumerable<PositionedGlyph>> ProcessOperatorAsync(ContentStreamOperation op, int pageNumber)
+        public async Task<GlyphRun?> ProcessOperatorAsync(ContentStreamOperation op, int pageNumber)
         {
             switch (op.Operator)
             {
                 case ContentStream.Operators.TextShowing.Tj:
-                    return await HandleTjAsync((LiteralString)op.Operands[0], pageNumber);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.TJ:
-                    return await HandleTJAsync(op, pageNumber);
+                    return new GlyphRun(pageNumber, [.. await HandleTJAsync(op, pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Apostrophe:
                     MoveTextPosition(0, -TextLeading);
-                    return await HandleTjAsync((LiteralString)op.Operands[0], pageNumber);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Quote:
                     WordSpacing = (Number)op.Operands[0];
                     CharSpacing = (Number)op.Operands[1];
                     MoveTextPosition(0, -TextLeading);
-                    return await HandleTjAsync((LiteralString)op.Operands[0], pageNumber);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextState.Tf:
                     FontResourceName = ((Name)op.Operands[0]).Value;
@@ -142,7 +142,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     break;
             }
 
-            return [];
+            return null;
         }
 
         public string MapCharacterCode(byte[] code)
@@ -220,7 +220,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 glyphs.Add(new PositionedGlyph
                 {
                     PageNumber = pageNumber,
-                    Character = ch.ToString(),
+                    Character = ch,
                     X = x,
                     Y = y,
                     Width = adv,
@@ -255,7 +255,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                         glyphs.Add(new PositionedGlyph
                         {
                             PageNumber = pageNumber,
-                            Character = ch.ToString(),
+                            Character = ch,
                             X = x,
                             Y = y,
                             Width = adv,
