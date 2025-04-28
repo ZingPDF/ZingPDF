@@ -1,6 +1,8 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Syntax.Encryption
 {
@@ -38,7 +40,7 @@ namespace ZingPDF.Syntax.Encryption
         /// 6 (PDF 2.0) if the document is encrypted with a V value of 5.
         /// </para>
         /// </summary>
-        public Number R => GetAs<Number>(Constants.DictionaryKeys.Encryption.Standard.R)!;
+        public RequiredProperty<Number> R => GetRequiredProperty<Number>(Constants.DictionaryKeys.Encryption.Standard.R)!;
 
         /// <summary>
         /// <para>
@@ -52,7 +54,7 @@ namespace ZingPDF.Syntax.Encryption
         /// "Password algorithms".
         /// </para>
         /// </summary>
-        public IndirectObjectReference O => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Encryption.Standard.O)!;
+        public RequiredProperty<LiteralString> O => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.O)!;
 
         /// <summary>
         /// (Required) A byte string, 32 bytes long if the value of R is 4 or less and 48 bytes long if 
@@ -60,38 +62,38 @@ namespace ZingPDF.Syntax.Encryption
         /// whether to prompt the user for a password and, if so, whether a valid user or owner password 
         /// was entered. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public IndirectObjectReference U => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Encryption.Standard.U)!;
+        public RequiredProperty<LiteralString> U => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.U)!;
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 32-byte string, based on the owner and user password, that 
         /// shall be used in computing the file encryption key. For more information, see 7.6.4.4, 
         /// "Password algorithms".
         /// </summary>
-        public IndirectObjectReference? OE => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Encryption.Standard.OE);
+        public OptionalProperty<LiteralString> OE => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.OE);
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 32-byte string, based on the user password, that shall be 
         /// used in computing the file encryption key. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public IndirectObjectReference? UE => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Encryption.Standard.UE);
+        public OptionalProperty<LiteralString> UE => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.UE);
 
         /// <summary>
         /// (Required) A set of flags specifying which operations shall be permitted when the document is 
         /// opened with user access (see "Table 22 — Standard security handler user access permissions").
         /// </summary>
-        public Number P => GetAs<Number>(Constants.DictionaryKeys.Encryption.Standard.P)!;
+        public RequiredProperty<Number> P => GetRequiredProperty<Number>(Constants.DictionaryKeys.Encryption.Standard.P)!;
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 16-byte string, encrypted with the file encryption key, that contains an encrypted copy of the permissions flags. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public IndirectObjectReference? Perms => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Encryption.Standard.Perms);
+        public OptionalProperty<LiteralString> Perms => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.Perms);
 
         /// <summary>
         /// (Optional; meaningful only when the value of V is 4 (PDF 1.5) or 5 (PDF 2.0)) Indicates whether 
         /// the document-level metadata stream (see 14.3.2, "Metadata streams") shall be encrypted. 
         /// Default value: true.
         /// </summary>
-        public BooleanObject? EncryptMetadata => GetAs<BooleanObject>(Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata);
+        public OptionalProperty<BooleanObject> EncryptMetadata => GetOptionalProperty<BooleanObject>(Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata);
 
         internal static StandardEncryptionDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
         {

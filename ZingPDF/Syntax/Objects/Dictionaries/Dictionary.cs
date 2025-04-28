@@ -45,26 +45,31 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         }
 
         public Name? Type => GetAs<Name>(Constants.DictionaryKeys.Type);
+        public Name Subtype => GetAs<Name>(Constants.DictionaryKeys.Subtype);
 
         public T GetAs<T>(Name key) where T : class?, IPdfObject?
             => (_dictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;
 
-        public DictionaryProperty<T> Get<T>(Name key) where T : class?, IPdfObject?
-        {
-            return new DictionaryProperty<T>(key, this, _pdfEditor);
-        }
-
-        public DictionaryMultiProperty<T1, T2> Get<T1, T2>(Name key)
-            where T1 : class?, IPdfObject?
-            where T2 : class?, IPdfObject?
-        {
-            return new DictionaryMultiProperty<T1, T2>(key, this, _pdfEditor);
-        }
-
-        public ArrayOrSingle<T> GetArrayOrSingle<T>(Name key) where T : class, IPdfObject
+        public RequiredProperty<T> GetRequiredProperty<T>(Name key) where T : class, IPdfObject
             => new(key, this, _pdfEditor);
 
-        public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(Name key) where T : class?, IPdfObject?
+        public OptionalProperty<T> GetOptionalProperty<T>(Name key) where T : class, IPdfObject
+            => new(key, this, _pdfEditor);
+
+        public RequiredMultiProperty<T1, T2> GetRequiredMultiProperty<T1, T2>(Name key)
+            where T1 : class, IPdfObject
+            where T2 : class, IPdfObject
+            => new(key, this, _pdfEditor);
+
+        public OptionalMultiProperty<T1, T2> GetOptionalMultiProperty<T1, T2>(Name key)
+            where T1 : class, IPdfObject
+            where T2 : class, IPdfObject
+            => new(key, this, _pdfEditor);
+
+        public RequiredArrayOrSingle<T> GetArrayOrSingle<T>(Name key) where T : class, IPdfObject
+            => new(key, this, _pdfEditor);
+
+        public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(Name key) where T : class, IPdfObject
             => new(key, this, _pdfEditor);
 
         public void Set<T>(Name key, T? value) where T : class, IPdfObject

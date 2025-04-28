@@ -22,7 +22,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// <summary>
         /// (Required) An array of references to the document’s root fields (those with no ancestors in the field hierarchy).
         /// </summary>
-        public DictionaryProperty<ArrayObject> Fields => Get<ArrayObject>(Constants.DictionaryKeys.InteractiveForm.Fields);
+        public RequiredProperty<ArrayObject> Fields => GetRequiredProperty<ArrayObject>(Constants.DictionaryKeys.InteractiveForm.Fields);
 
         /// <summary>
         /// (Optional; deprecated in PDF 2.0)<para></para>
@@ -32,7 +32,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// if it has not provided appearance streams for all visible widget annotations present in the document.
         /// NOTE Appearance streams are required in PDF 2.0 and later.
         /// </summary>
-        public DictionaryProperty<BooleanObject?> NeedAppearances => Get<BooleanObject?>(Constants.DictionaryKeys.InteractiveForm.NeedAppearances);
+        public OptionalProperty<BooleanObject> NeedAppearances => GetOptionalProperty<BooleanObject>(Constants.DictionaryKeys.InteractiveForm.NeedAppearances);
 
         /// <summary>
         /// <para>
@@ -41,7 +41,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </para>
         /// <para>Default value: 0.</para>
         /// </summary>
-        public DictionaryProperty<Number?> SigFlags=> Get<Number?>(Constants.DictionaryKeys.InteractiveForm.SigFlags);
+        public OptionalProperty<Number> SigFlags => GetOptionalProperty<Number>(Constants.DictionaryKeys.InteractiveForm.SigFlags);
 
         /// <summary>
         /// <para>(Required if any fields in the document have additional-actions dictionaries containing a C entry; PDF 1.3)</para>
@@ -50,7 +50,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// order in which their values will be recalculated when the value of any field changes (see 12.6.3, "Trigger events").
         /// </para>
         /// </summary>
-        public DictionaryProperty<ArrayObject?> CO => Get<ArrayObject?>(Constants.DictionaryKeys.InteractiveForm.CO);
+        public OptionalProperty<ArrayObject> CO => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.InteractiveForm.CO);
 
         /// <summary>
         /// (Optional) A resource dictionary (see 7.8.3, "Resource dictionaries") containing default resources 
@@ -59,17 +59,17 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// dictionary of the default font for displaying text.
         /// </summary>
         // TODO: Is there a way to parse this as a proper ResourceDictionary?
-        public DictionaryProperty<Dictionary?> DR => Get<Dictionary?>(Constants.DictionaryKeys.InteractiveForm.DR);
+        public OptionalProperty<Dictionary> DR => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.InteractiveForm.DR);
 
         /// <summary>
         /// (Optional) A document-wide default value for the DA attribute of variable text fields (see 12.7.4.3, "Variable text").
         /// </summary>
-        public DictionaryProperty<LiteralString?> DA => Get<LiteralString?>(Constants.DictionaryKeys.InteractiveForm.DA);
+        public OptionalProperty<LiteralString> DA => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.InteractiveForm.DA);
 
         /// <summary>
         /// (Optional) A document-wide default value for the Q attribute of variable text fields (see 12.7.4.3, "Variable text").
         /// </summary>
-        public DictionaryProperty<Number?> Q => Get<Number?>(Constants.DictionaryKeys.InteractiveForm.Q);
+        public OptionalProperty<Number> Q => GetOptionalProperty<Number>(Constants.DictionaryKeys.InteractiveForm.Q);
 
         /// <summary>
         /// <para>
@@ -78,7 +78,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// </para>
         /// <para>See Annex K, “XFA forms”.</para>
         /// </summary>
-        public DictionaryProperty<IPdfObject?> XFA => Get<IPdfObject?>(Constants.DictionaryKeys.InteractiveForm.XFA);
+        public OptionalProperty<IPdfObject> XFA => GetOptionalProperty<IPdfObject>(Constants.DictionaryKeys.InteractiveForm.XFA);
 
         public void SetNeedAppearances(BooleanObject needAppearances)
         {

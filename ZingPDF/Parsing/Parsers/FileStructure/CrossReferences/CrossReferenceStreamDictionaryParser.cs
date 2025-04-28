@@ -17,7 +17,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 /// This parser is limited, and is designed for parsing xref stream dictionaries.
 /// <list type="bullet">
 ///     <item>
-///     While the parsed <see cref="Dictionary"/> will contain <see cref="DictionaryProperty{T}"/> or values, 
+///     While the parsed <see cref="Dictionary"/> will contain <see cref="RequiredProperty{T}"/> or values, 
 ///     these values cannot be accessed directly if they are indirect objects.
 ///     </item>
 ///     <item>
