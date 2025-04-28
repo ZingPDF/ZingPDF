@@ -90,7 +90,7 @@ public class Pdf : IPdf, IDisposable
         // TODO: For now, to simplify adding pages,
         // new pages are appended to the root page tree node.
         // Determine if there's a better way, like ensuring a balanced tree.
-        rootPageTreeNode.AddChild(pageIndirectObject.Id.Reference);
+        await rootPageTreeNode.AddChildAsync(pageIndirectObject.Id.Reference);
 
         IndirectObjects.Update(rootPageTreeNodeIndirectObject);
 
@@ -122,12 +122,12 @@ public class Pdf : IPdf, IDisposable
         var parentPageTreeNodeIndirectObject = await pageAtNumber.Dictionary.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
-        var kidsIndex = parentPageTreeNode.Kids.ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
+        var kidsIndex = (await parentPageTreeNode.Kids.GetAsync()).ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
 
         // Ensure page has all required properties.
         // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
         // TODO: if linearized, required properties may need to be set on all pages. (7.7.3.4 Inheritance of page attributes)
-        if (pageCreationOptions.MediaBox is null && !await AncestorHasMediaBox(parentPageTreeNode))
+        if (pageCreationOptions.MediaBox is null && (await parentPageTreeNode.MediaBox.GetAsync() == null))
         {
             throw new Exception("This PDF does not have a default page size, you must therefore provide a PageCreationOptions.MediaBox property or ensure an ancestor has a value for this property."); // TODO: proper exception
         }
@@ -140,7 +140,7 @@ public class Pdf : IPdf, IDisposable
 
         var newPageIndirectObject = IndirectObjects.Add(page);
 
-        parentPageTreeNode.AddChild(newPageIndirectObject.Id.Reference);
+        await parentPageTreeNode.AddChildAsync(newPageIndirectObject.Id.Reference);
 
         await IncrementPageCountAsync(parentPageTreeNode);
 
@@ -169,7 +169,7 @@ public class Pdf : IPdf, IDisposable
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
-        parent.RemoveChild(page.IndirectObject.Id.Reference);
+        await parent.RemoveChildAsync(page.IndirectObject.Id.Reference);
 
         await DecrementPageCountAsync(parent);
 
@@ -334,7 +334,7 @@ public class Pdf : IPdf, IDisposable
 
         var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
 
-        parentPageTreeNode.IncrementCount();
+        await parentPageTreeNode.IncrementCountAsync();
 
         IndirectObjects.Update(parentPageTreeNodeIndirectObject);
 
@@ -355,43 +355,11 @@ public class Pdf : IPdf, IDisposable
         var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
-        parentPageTreeNode.DecrementCount();
+        await parentPageTreeNode.DecrementCountAsync();
 
         IndirectObjects.Update(parentPageTreeNodeIndirectObject);
 
         await DecrementPageCountAsync(parentPageTreeNode);
-    }
-
-    // TODO: move to testable class?
-    /// <summary>
-    /// Recursively walk up the page tree to check for the presence of a MediaBox property.
-    /// </summary>
-    private async Task<bool> AncestorHasMediaBox(PageTreeNodeDictionary parentPageTreeNode)
-    {
-        // TODO: is this required now that inheritance is handled in DictionaryProperty?
-
-        if (parentPageTreeNode.MediaBox is not null)
-        {
-            return true;
-        }
-
-        if (parentPageTreeNode.Parent is null)
-        {
-            return false;
-        }
-
-        var parent = await parentPageTreeNode.Parent.GetAsync();
-        if (parent == null)
-        {
-            return false;
-        }
-
-        if (await AncestorHasMediaBox(parent))
-        {
-            return true;
-        }
-
-        return false;
     }
 
     #region IDisposable

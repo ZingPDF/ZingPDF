@@ -3,7 +3,6 @@ using ZingPDF.Fonts.FontProviders;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
 
@@ -49,8 +48,8 @@ namespace ZingPDF.Extensions
 
                 if (fontDescriptor != null)
                 {
-                    var widthsArray = await fontDict.Widths.GetAsync();
-                    var firstCharCode = await fontDict.FirstChar.GetAsync();
+                    ArrayObject? widthsArray = await fontDict.Widths.GetAsync();
+                    Number? firstCharCode = await fontDict.FirstChar.GetAsync();
 
                     var widths = widthsArray
                         .Cast<Number>()

@@ -21,7 +21,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <summary>
         /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
         /// </summary>
-        public DictionaryProperty<PageTreeNodeDictionary?> Parent => Get<PageTreeNodeDictionary?>(Constants.DictionaryKeys.Parent);
+        public OptionalProperty<PageTreeNodeDictionary> Parent => GetOptionalProperty<PageTreeNodeDictionary>(Constants.DictionaryKeys.Parent);
 
         /// <summary>
         /// <para>
@@ -33,14 +33,14 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </para>
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Dictionary?> Resources => Get<Dictionary?>(Constants.DictionaryKeys.PageTree.Resources);
+        public RequiredProperty<Dictionary> Resources => GetRequiredProperty<Dictionary>(Constants.DictionaryKeys.PageTree.Resources);
 
         /// <summary>
         /// (Required; inheritable) A rectangle (see 7.9.5, "Rectangles"), expressed in default user space units, that shall define the boundaries 
         /// of the physical medium on which the page shall be displayed or printed (see 14.11.2, "Page boundaries").
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Rectangle?> MediaBox => Get<Rectangle?>(Constants.DictionaryKeys.PageTree.MediaBox);
+        public RequiredProperty<Rectangle> MediaBox => GetRequiredProperty<Rectangle>(Constants.DictionaryKeys.PageTree.MediaBox);
 
         /// <summary>
         /// <para>
@@ -55,14 +55,14 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </para>
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Rectangle?> CropBox => Get<Rectangle?>(Constants.DictionaryKeys.PageTree.CropBox);
+        public OptionalProperty<Rectangle> CropBox => GetOptionalProperty<Rectangle>(Constants.DictionaryKeys.PageTree.CropBox);
 
         /// <summary>
         /// (Optional; inheritable) The number of degrees by which the page shall be rotated clockwise when displayed or printed. 
         /// The value shall be a multiple of 90. Default value: 0.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Number?> Rotate => Get<Number?>(Constants.DictionaryKeys.PageTree.Rotate);
+        public OptionalProperty<Number> Rotate => GetOptionalProperty<Number>(Constants.DictionaryKeys.PageTree.Rotate);
 
         public void SetParent(IndirectObjectReference parent)
         {

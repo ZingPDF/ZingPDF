@@ -1,6 +1,7 @@
 ﻿using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Encryption;
 
@@ -24,14 +25,14 @@ public class EncryptionDictionary : Dictionary
     /// security handlers may be registered by using the procedure described in Annex E, "Extending PDF".
     /// </para>
     /// </summary>
-    public Name Filter => GetAs<Name>(Constants.DictionaryKeys.Encryption.Filter)!;
+    public RequiredProperty<Name> Filter => GetRequiredProperty<Name>(Constants.DictionaryKeys.Encryption.Filter)!;
 
     /// <summary>
     /// (Optional; PDF 1.3) A name that completely specifies the format and interpretation of the contents 
     /// of the encryption dictionary. It allows security handlers other than the one specified by Filter 
     /// to decrypt the document. If this entry is absent, other security handlers shall not decrypt the document.
     /// </summary>
-    public Name? SubFilter => GetAs<Name>(Constants.DictionaryKeys.Encryption.SubFilter);
+    public OptionalProperty<Name> SubFilter => GetOptionalProperty<Name>(Constants.DictionaryKeys.Encryption.SubFilter);
 
     /// <summary>
     /// <para>
@@ -66,13 +67,13 @@ public class EncryptionDictionary : Dictionary
     /// using the AES algorithms" with a file encryption key length of 256 bits.
     /// </para>
     /// </summary>
-    public Number V => GetAs<Number>(Constants.DictionaryKeys.Encryption.V)!;
+    public RequiredProperty<Number> V => GetRequiredProperty<Number>(Constants.DictionaryKeys.Encryption.V)!;
 
     /// <summary>
     /// (Optional; PDF 1.4; only if V is 2 or 3; deprecated in PDF 2.0) The length of the file encryption key, 
     /// in bits. The value shall be a multiple of 8, in the range 40 to 128. Default value: 40.
     /// </summary>
-    public Number? Length => GetAs<Number>(Constants.DictionaryKeys.Encryption.Length);
+    public OptionalProperty<Number> Length => GetOptionalProperty<Number>(Constants.DictionaryKeys.Encryption.Length);
 
     /// <summary>
     /// <para>
@@ -88,7 +89,7 @@ public class EncryptionDictionary : Dictionary
     /// crypt filters.
     /// </para>
     /// </summary>
-    public Dictionary? CF => GetAs<Dictionary>(Constants.DictionaryKeys.Encryption.CF);
+    public OptionalProperty<Dictionary> CF => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Encryption.CF);
 
     /// <summary>
     /// <para>(Optional; meaningful only when the value of V is 4 (PDF 1.5) or 5 (PDF 2.0)) The name of the crypt 
@@ -99,7 +100,7 @@ public class EncryptionDictionary : Dictionary
     /// handler, using this crypt filter.</para>
     /// <para>Default value: Identity.</para>
     /// </summary>
-    public Name? StmF => GetAs<Name>(Constants.DictionaryKeys.Encryption.StmF);
+    public OptionalProperty<Name> StmF => GetOptionalProperty<Name>(Constants.DictionaryKeys.Encryption.StmF);
 
     /// <summary>
     /// <para>(Optional; meaningful only when the value of V is 4 (PDF 1.5) or 5 (PDF 2.0)) The name of the crypt 
@@ -107,7 +108,7 @@ public class EncryptionDictionary : Dictionary
     /// dictionary or a standard crypt filter name specified in "Table 26 — Standard crypt filter names".</para>
     /// <para>Default value: Identity.</para>
     /// </summary>
-    public Name? StrF => GetAs<Name>(Constants.DictionaryKeys.Encryption.StrF);
+    public OptionalProperty<Name> StrF => GetOptionalProperty<Name>(Constants.DictionaryKeys.Encryption.StrF);
 
     /// <summary>
     /// <para>(Optional; meaningful only when the value of V is 4 (PDF 1.6) or 5 (PDF 2.0)) The name of the crypt 
@@ -119,5 +120,5 @@ public class EncryptionDictionary : Dictionary
     /// If this entry is not present, and the embedded file stream does not contain a crypt filter specifier, the 
     /// stream shall be encrypted using the default stream crypt filter specified by StmF.</para>
     /// </summary>
-    public Name? EFF => GetAs<Name>(Constants.DictionaryKeys.Encryption.EFF);
+    public OptionalProperty<Name> EFF => GetOptionalProperty<Name>(Constants.DictionaryKeys.Encryption.EFF);
 }
