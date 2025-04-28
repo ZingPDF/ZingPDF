@@ -4,7 +4,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 public class OptionalArrayOrSingle<T>(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-    : BaseDictionaryProperty(key, dictionary, pdfEditor) where T : class?, IPdfObject?
+    : BaseProperty(key, dictionary, pdfEditor) where T : class, IPdfObject
 {
     public async Task<ArrayObject?> GetAsync()
     {
@@ -12,8 +12,7 @@ public class OptionalArrayOrSingle<T>(Name key, Dictionary dictionary, IPdfEdito
 
         if (rawValue is null)
         {
-            // The compiler should be able to infer that this is ok from the `class?` constraint, but it doesn't
-            return null!;
+            return null;
         }
 
         if (rawValue is T typed)

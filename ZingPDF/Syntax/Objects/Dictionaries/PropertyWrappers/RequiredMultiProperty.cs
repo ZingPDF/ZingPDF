@@ -2,23 +2,14 @@
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public class DictionaryMultiProperty<T1, T2> : BaseDictionaryProperty
-    where T1 : class?, IPdfObject?
-    where T2 : class?, IPdfObject?
+public class RequiredMultiProperty<T1, T2>(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
+    : BaseProperty(key, dictionary, pdfEditor)
+    where T1 : class, IPdfObject
+    where T2 : class, IPdfObject
 {
-    public DictionaryMultiProperty(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-        : base(key, dictionary, pdfEditor)
-    {
-    }
-
     public async Task<Either<T1, T2>> GetAsync()
     {
-        var value = await ResolveAsync();
-
-        if (value is null)
-        {
-            return new Either<T1, T2>((T1)null!);
-        }
+        var value = await ResolveAsync() ?? throw new InvalidPdfException($"Missing value for required property: {key}");
 
         return value switch
         {

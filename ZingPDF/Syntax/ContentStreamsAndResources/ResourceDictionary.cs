@@ -45,51 +45,51 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// <para>A dictionary that maps resource names to graphics state parameter 
         /// dictionaries (see 8.4.5, "Graphics state parameter dictionaries").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> ExtGState => Get<Dictionary?>(Constants.DictionaryKeys.Resource.ExtGState);
+        public OptionalProperty<Dictionary> ExtGState => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.ExtGState);
 
         /// <summary>
         /// <para>(Optional)</para>
         /// <para>A dictionary that maps each resource name to either the name of a device-dependent 
         /// colour space or an array describing a colour space (see 8.6, "Colour spaces").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> ColorSpace => Get<Dictionary?>(Constants.DictionaryKeys.Resource.ColorSpace);
+        public OptionalProperty<Dictionary> ColorSpace => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.ColorSpace);
 
         /// <summary>
         /// <para>(Optional)</para>
         /// <para>A dictionary that maps resource names to pattern objects (see 8.7, "Patterns").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> Pattern => Get<Dictionary?>(Constants.DictionaryKeys.Resource.Pattern);
+        public OptionalProperty<Dictionary> Pattern => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.Pattern);
 
         /// <summary>
         /// <para>(Optional; PDF 1.3)</para>
         /// <para>A dictionary that maps resource names to shading dictionaries (see 8.7.4.3, "Shading dictionaries").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> Shading => Get<Dictionary?>(Constants.DictionaryKeys.Resource.Shading);
+        public OptionalProperty<Dictionary> Shading => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.Shading);
 
         /// <summary>
         /// <para>(Optional)</para>
         /// <para>A dictionary that maps resource names to external objects (see 8.8, "External objects").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> XObject => Get<Dictionary?>(Constants.DictionaryKeys.Resource.XObject);
+        public OptionalProperty<Dictionary> XObject => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.XObject);
 
         /// <summary>
         /// <para>(Optional)</para>
         /// <para>A dictionary that maps resource names to font dictionaries (see 9, "Text").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> Font => Get<Dictionary?>(Constants.DictionaryKeys.Resource.Font);
+        public OptionalProperty<Dictionary> Font => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.Font);
 
         /// <summary>
         /// <para>(Optional; deprecated in PDF 2.0)</para>
         /// <para>An array of predefined procedure set names (see 14.2, "Procedure sets").</para>
         /// </summary>
-        public DictionaryProperty<ArrayObject?> ProcSet => Get<ArrayObject?>(Constants.DictionaryKeys.Resource.ProcSet);
+        public OptionalProperty<ArrayObject> ProcSet => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.Resource.ProcSet);
 
         /// <summary>
         /// <para>(Optional; PDF 1.2)</para>
         /// <para>A dictionary that maps resource names to property list dictionaries for 
         /// marked-content (see 14.6.2, "Property lists").</para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> Properties => Get<Dictionary?>(Constants.DictionaryKeys.Resource.Properties);
+        public OptionalProperty<Dictionary> Properties => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.Properties);
 
         public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IPdfEditor pdfEditor)
         {
@@ -130,7 +130,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         }
 
         private static async Task<Dictionary> AddRefToSubDictionaryAsync(
-            DictionaryProperty<Dictionary?> dictionaryProperty,
+            OptionalProperty<Dictionary> dictionaryProperty,
             Name name,
             IndirectObjectReference reference,
             IPdfEditor pdfEditor

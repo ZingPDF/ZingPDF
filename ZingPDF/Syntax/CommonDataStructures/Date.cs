@@ -1,23 +1,22 @@
 ﻿using System.Globalization;
 using ZingPDF.Extensions;
 
-namespace ZingPDF.Syntax.CommonDataStructures
+namespace ZingPDF.Syntax.CommonDataStructures;
+
+public class Date : PdfObject
 {
-    internal class Date : PdfObject
+    public Date(DateTimeOffset dateTimeOffset)
     {
-        public Date(DateTimeOffset dateTimeOffset)
-        {
-            DateTimeOffset = dateTimeOffset;
-        }
+        DateTimeOffset = dateTimeOffset;
+    }
 
-        public DateTimeOffset DateTimeOffset { get; }
+    public DateTimeOffset DateTimeOffset { get; }
 
-        protected override async Task WriteOutputAsync(Stream stream)
-        {
-            string formattedDateTime = DateTimeOffset.ToString("yyyyMMddHHmmss", DateTimeFormatInfo.InvariantInfo);
-            string offsetString = $"{(DateTimeOffset.Offset.Hours >= 0 ? "+" : "-")}{Math.Abs(DateTimeOffset.Offset.Hours)}'{DateTimeOffset.Offset.Minutes:00}'";
+    protected override async Task WriteOutputAsync(Stream stream)
+    {
+        string formattedDateTime = DateTimeOffset.ToString("yyyyMMddHHmmss", DateTimeFormatInfo.InvariantInfo);
+        string offsetString = $"{(DateTimeOffset.Offset.Hours >= 0 ? "+" : "-")}{Math.Abs(DateTimeOffset.Offset.Hours)}'{DateTimeOffset.Offset.Minutes:00}'";
 
-            await stream.WriteTextAsync($"(D:{formattedDateTime}{offsetString})");
-        }
+        await stream.WriteTextAsync($"(D:{formattedDateTime}{offsetString})");
     }
 }

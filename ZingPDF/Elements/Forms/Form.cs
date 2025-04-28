@@ -30,7 +30,7 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IEnumerable<IFontMetricsProvider>> _fontProviders;
 
-        public Form(DictionaryProperty<InteractiveFormDictionary?> acroForm, IPdfEditor pdfEditor)
+        public Form(OptionalProperty<InteractiveFormDictionary> acroForm, IPdfEditor pdfEditor)
         {
             ArgumentNullException.ThrowIfNull(acroForm, nameof(acroForm));
             ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));

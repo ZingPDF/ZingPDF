@@ -36,7 +36,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// intended for descendant terminal fields of any type.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Name?> FT => Get<Name?>(Constants.DictionaryKeys.Field.FT);
+        public OptionalProperty<Name> FT => GetOptionalProperty<Name>(Constants.DictionaryKeys.Field.FT);
 
         /// <summary>
         /// (Sometimes required, as described below)<para></para>
@@ -48,13 +48,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// widget annotation, and its contents have been merged into the field dictionary, 
         /// Kids shall be omitted.
         /// </summary>
-        public DictionaryProperty<ArrayObject?> Kids => Get<ArrayObject?>(Constants.DictionaryKeys.Field.Kids);
+        public OptionalProperty<ArrayObject> Kids => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.Field.Kids);
 
         /// <summary>
         /// (Optional)<para></para>
         /// The partial field name (see 12.7.4.2, "Field names").
         /// </summary>
-        public DictionaryProperty<LiteralString?> T => Get<LiteralString?>(Constants.DictionaryKeys.Field.T);
+        public OptionalProperty<LiteralString> T => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.T);
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
@@ -64,13 +64,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// This text is also useful when extracting the document’s contents in support 
         /// of accessibility to users with disabilities or for other purposes (see 14.9.3, "Alternate descriptions").
         /// </summary>
-        public DictionaryProperty<LiteralString?> TU => Get<LiteralString?>(Constants.DictionaryKeys.Field.TU);
+        public OptionalProperty<LiteralString> TU => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.TU);
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
         /// The mapping name that shall be used when exporting interactive form field data from the document.
         /// </summary>
-        public DictionaryProperty<LiteralString?> TM => Get<LiteralString?>(Constants.DictionaryKeys.Field.TM);
+        public OptionalProperty<LiteralString> TM => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.TM);
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -79,7 +79,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// Default value: 0.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Number?> Ff => Get<Number?>(Constants.DictionaryKeys.Field.Ff);
+        public OptionalProperty<Number> Ff => GetOptionalProperty<Number>(Constants.DictionaryKeys.Field.Ff);
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -87,7 +87,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// See the descriptions of individual field types for further information.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<IPdfObject?> V => Get<IPdfObject?>(Constants.DictionaryKeys.Field.V);
+        public OptionalProperty<IPdfObject> V => GetOptionalProperty<IPdfObject>(Constants.DictionaryKeys.Field.V);
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -95,7 +95,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (see 12.7.6.3, "Reset-form action"). The format of this value is the same as that of V.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<IPdfObject?> DV => Get<IPdfObject?>(Constants.DictionaryKeys.Field.DV);
+        public OptionalProperty<IPdfObject> DV => GetOptionalProperty<IPdfObject>(Constants.DictionaryKeys.Field.DV);
 
         /// <summary>
         /// <para>For Button fields (checkboxes/radio buttons):</para>
@@ -113,20 +113,20 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// <para>If this entry is not present, no choices should be presented to the user.</para>
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<ArrayObject> Opt => Get<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
+        public RequiredProperty<ArrayObject> Opt => GetRequiredProperty<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
 
         /// <summary>
         /// (Optional) For scrollable list boxes, the top index (the index in the Opt array of the first 
         /// option visible in the list). Default value: 0.
         /// </summary>
-        public DictionaryProperty<Number?> TI => Get<Number?>(Constants.DictionaryKeys.Field.TI);
+        public OptionalProperty<Number> TI => GetOptionalProperty<Number>(Constants.DictionaryKeys.Field.TI);
 
         /// <summary>
         /// (Required; inheritable) The default appearance string containing a sequence of valid page-content graphics 
         /// or text state operators that define such properties as the field’s text size and colour.
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<LiteralString> DA => Get<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA);
+        public RequiredProperty<LiteralString> DA => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA);
 
         /// <summary>
         /// (Optional; inheritable) A code specifying the form of quadding (justification) that shall be used in displaying the text:
@@ -136,18 +136,18 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// Default value: 0 (left-justified).
         /// </summary>
         [Inheritable]
-        public DictionaryProperty<Number?> Q => Get<Number?>(Constants.DictionaryKeys.Field.VariableText.Q);
+        public OptionalProperty<Number> Q => GetOptionalProperty<Number>(Constants.DictionaryKeys.Field.VariableText.Q);
 
         /// <summary>
         /// (Optional; PDF 1.5) A default style string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
         /// </summary>
-        public DictionaryProperty<LiteralString?> DS => Get<LiteralString?>(Constants.DictionaryKeys.Field.VariableText.DS);
+        public OptionalProperty<LiteralString> DS => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DS);
 
         /// <summary>
         /// (Optional; PDF 1.5) A rich text string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
         /// </summary>
-        public DictionaryMultiProperty<LiteralString?, StreamObject<IStreamDictionary>?> RV
-            => Get<LiteralString?, StreamObject<IStreamDictionary>?>(Constants.DictionaryKeys.Field.VariableText.RV);
+        public OptionalMultiProperty<LiteralString, StreamObject<IStreamDictionary>> RV
+            => GetOptionalMultiProperty<LiteralString, StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.Field.VariableText.RV);
 
         public void SetValue(IPdfObject? value)
         {

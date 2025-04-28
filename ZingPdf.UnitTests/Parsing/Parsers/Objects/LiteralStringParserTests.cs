@@ -4,11 +4,17 @@ using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
 public class LiteralStringParserTests
 {
+    static LiteralStringParserTests()
+    {
+        Encoding.RegisterProvider(PDFDocEncodingProvider.Instance);
+    }
+
     [Fact]
     public async Task ParseSimpleString()
     {
@@ -61,11 +67,9 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = expected;
-
         var output = await new LiteralStringParser().ParseAsync(input);
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Value.Should().Be(expected);
     }
 
     [Fact]
@@ -119,11 +123,9 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = expected;
-
         var output = await new LiteralStringParser().ParseAsync(input);
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Value.Should().Be(expected);
     }
 
     [Theory]
@@ -167,12 +169,10 @@ public class LiteralStringParserTests
         inputBytes.AddRange(encoding.GetBytes(input));
         inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
-        LiteralString expectedLiteralString = input;
-
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser().ParseAsync(ms);
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Value.Should().Be(input);
     }
 
     [Fact]
@@ -188,12 +188,10 @@ public class LiteralStringParserTests
         inputBytes.AddRange(encoding.GetBytes(input));
         inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
-        LiteralString expectedLiteralString = input;
-
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser().ParseAsync(ms);
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Value.Should().Be(input);
     }
 
     [Fact]
@@ -208,8 +206,6 @@ public class LiteralStringParserTests
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes(input));
         inputBytes.AddRange(Encoding.ASCII.GetBytes($"{Constants.Characters.RightParenthesis} /P 12 0 R /NM (0001-0001)"));
-
-        LiteralString expectedLiteralString = input;
 
         using var ms = new MemoryStream([.. inputBytes]);
         _ = await new LiteralStringParser().ParseAsync(ms);

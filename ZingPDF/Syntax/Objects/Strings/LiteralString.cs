@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Text.Encoding;
 
 namespace ZingPDF.Syntax.Objects.Strings
 {
@@ -65,7 +66,7 @@ namespace ZingPDF.Syntax.Objects.Strings
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,
                 LiteralStringEncoding.UTF16BE => Encoding.BigEndianUnicode,
-                LiteralStringEncoding.PDFDocEncoding => Encoding.GetEncoding("PdfDocEncoding"),
+                LiteralStringEncoding.PDFDocEncoding => Encoding.GetEncoding(PDFEncoding.PDFDoc),
                 _ => throw new InvalidOperationException(),
             };
         }

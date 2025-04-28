@@ -14,7 +14,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// EOL marker, preceding endstream, that is not included in the count and is not logically 
         /// part of the stream data.) See 7.3.8.2, "Stream extent", for further discussion.
         /// </summary>
-        DictionaryProperty<Number> Length { get; }
+        RequiredProperty<Number> Length { get; }
 
         /// <summary>
         /// <para>
@@ -49,7 +49,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// specified by FDecodeParms.
         /// </summary>
         // TODO: implement first class FileSpecificationDictionary
-        DictionaryProperty<Dictionary?> F { get; }
+        OptionalProperty<Dictionary> F { get; }
 
         /// <summary>
         /// (Optional; PDF 1.2) The name of a filter to be applied in processing the data found in the 
@@ -69,6 +69,6 @@ namespace ZingPDF.Syntax.Objects.Streams
         /// in the decoded (defiltered) stream. This value is only a hint; for some 
         /// stream filters, it may not be possible to determine this value precisely.
         /// </summary>
-        DictionaryProperty<Number?> DL { get; }
+        OptionalProperty<Number> DL { get; }
     }
 }

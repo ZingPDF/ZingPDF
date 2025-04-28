@@ -34,19 +34,19 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// be preceded by a SOLIDUS (2Fh) character (/) when written in the PDF file (for example, /1.4).
         /// </para>
         /// </summary>
-        public DictionaryProperty<Name?> Version => Get<Name?>(Constants.DictionaryKeys.DocumentCatalog.Version);
+        public OptionalProperty<Name> Version => GetOptionalProperty<Name>(Constants.DictionaryKeys.DocumentCatalog.Version);
 
         /// <summary>
         /// (Optional; ISO 32000-1) An extensions dictionary containing developer prefix identification and 
         /// version numbers for developer extensions that occur in this document. 7.12, "Extensions dictionary", 
         /// describes this dictionary and how it shall be used.
         /// </summary>
-        public DictionaryProperty<ExtensionsDictionary?> Extensions => Get<ExtensionsDictionary?>(Constants.DictionaryKeys.DocumentCatalog.Extensions);
+        public OptionalProperty<ExtensionsDictionary> Extensions => GetOptionalProperty<ExtensionsDictionary>(Constants.DictionaryKeys.DocumentCatalog.Extensions);
 
         /// <summary>
         /// (Required) The page tree node that shall be the root of the document’s page tree (see 7.7.3, "Page tree").
         /// </summary>
-        public DictionaryProperty<PageTreeNodeDictionary> Pages => Get<PageTreeNodeDictionary>(Constants.DictionaryKeys.DocumentCatalog.Pages);
+        public RequiredProperty<PageTreeNodeDictionary> Pages => GetRequiredProperty<PageTreeNodeDictionary>(Constants.DictionaryKeys.DocumentCatalog.Pages);
 
         /// <summary>
         /// (Optional; PDF 1.3) A number tree (see 7.9.7, "Number trees") defining the page labelling for the document. 
@@ -55,7 +55,7 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// the specified page label dictionary applies. The tree shall include a value for page index 0.
         /// </summary>
         // TODO: Implement NumberTreeNodeDictionary
-        public DictionaryProperty<Dictionary?> PageLabels => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.PageLabels);
+        public OptionalProperty<Dictionary> PageLabels => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.PageLabels);
 
         /// <summary>
         /// <para>
@@ -66,18 +66,18 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// (see 7.6.7, "Unencrypted wrapper document") the Names dictionary is required and shall contain the EmbeddedFiles name tree.
         /// </para>
         /// </summary>
-        public DictionaryProperty<NameDictionary?> Names => Get<NameDictionary?>(Constants.DictionaryKeys.DocumentCatalog.Names);
+        public OptionalProperty<NameDictionary> Names => GetOptionalProperty<NameDictionary>(Constants.DictionaryKeys.DocumentCatalog.Names);
 
         /// <summary>
         /// (Optional; PDF 1.1; shall be an indirect reference) A dictionary of names and corresponding destinations (see 12.3.2.4, "Named destinations").
         /// </summary>
-        public DictionaryProperty<Dictionary?> Dests => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.Dests);
+        public OptionalProperty<Dictionary> Dests => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.Dests);
 
         /// <summary>
         /// (Optional; PDF 1.2) A viewer preferences dictionary (see 12.2, "Viewer preferences") specifying the way the document shall be 
         /// displayed on the screen. If this entry is absent, PDF readers shall use their own current user preference settings.
         /// </summary>
-        public DictionaryProperty<Dictionary?> ViewerPreferences => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.ViewerPreferences);
+        public OptionalProperty<Dictionary> ViewerPreferences => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.ViewerPreferences);
 
         /// <summary>
         /// <para>(Optional) A name object specifying the page layout shall be used when the document is opened:</para>
@@ -89,7 +89,7 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// <para>TwoPageRight      (PDF 1.5) Display the pages two at a time, with odd-numbered pages on the right</para>
         /// <para>Default value: SinglePage.</para>
         /// </summary>
-        public DictionaryProperty<Name?> PageLayout => Get<Name?>(Constants.DictionaryKeys.DocumentCatalog.PageLayout);
+        public OptionalProperty<Name> PageLayout => GetOptionalProperty<Name>(Constants.DictionaryKeys.DocumentCatalog.PageLayout);
 
         /// <summary>
         /// <para>(Optional) A name object specifying how the document shall be displayed when opened:</para>
@@ -101,19 +101,19 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// <para>UseAttachments    (PDF 1.6) Attachments panel visible</para>
         /// <para>Default value: UseNone.</para>
         /// </summary>
-        public DictionaryProperty<Name?> PageMode => Get<Name?>(Constants.DictionaryKeys.DocumentCatalog.PageMode);
+        public OptionalProperty<Name> PageMode => GetOptionalProperty<Name>(Constants.DictionaryKeys.DocumentCatalog.PageMode);
 
         /// <summary>
         /// (Optional; shall be an indirect reference) The outline dictionary that shall be the root of the document’s outline 
         /// hierarchy (see 12.3.3, "Document outline").
         /// </summary>
-        public DictionaryProperty<Dictionary?> Outlines => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.Outlines);
+        public OptionalProperty<Dictionary> Outlines => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.Outlines);
 
         /// <summary>
         /// (Optional; PDF 1.1; shall be an indirect reference) An array of thread dictionaries that shall represent the 
         /// document’s article threads (see 12.4.3, "Articles").
         /// </summary>
-        public DictionaryProperty<ArrayObject?> Threads => Get<ArrayObject?>(Constants.DictionaryKeys.DocumentCatalog.Threads);
+        public OptionalProperty<ArrayObject> Threads => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.DocumentCatalog.Threads);
 
         /// <summary>
         /// (Optional; PDF 1.1) A value specifying a destination that shall be displayed or an action that shall be performed 
@@ -121,90 +121,89 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// or an action dictionary representing an action (12.6.2, "Action dictionaries"). If this entry is absent, the document 
         /// shall be opened to the top of the first page at the default magnification factor.
         /// </summary>
-        // TODO: This can be an array or dictionary, devise a type for this?
-        public DictionaryProperty<IPdfObject?> OpenAction => Get<IPdfObject?>(Constants.DictionaryKeys.DocumentCatalog.OpenAction);
+        public OptionalArrayOrSingle<Dictionary> OpenAction => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.OpenAction);
 
         /// <summary>
         /// (Optional; PDF 1.2) An additional-actions dictionary defining the actions that shall be taken in response to various 
         /// trigger events affecting the document as a whole (see 12.6.3, "Trigger events").
         /// </summary>
-        public DictionaryProperty<Dictionary?> AA => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.AA);
+        public OptionalProperty<Dictionary> AA => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.AA);
 
         /// <summary>
         /// (Optional; PDF 1.1) A URI dictionary containing document-level information for URI (uniform resource identifier) 
         /// actions (see 12.6.4.8, "URI actions").
         /// </summary>
-        public DictionaryProperty<Dictionary?> URI => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.URI);
+        public OptionalProperty<Dictionary> URI => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.URI);
 
         /// <summary>
         /// (Optional; PDF 1.2)<para></para>
         /// The document’s interactive form (AcroForm) dictionary (see 12.7.3, "Interactive form dictionary").
         /// </summary>
-        public DictionaryProperty<InteractiveFormDictionary?> AcroForm => Get<InteractiveFormDictionary?>(Constants.DictionaryKeys.DocumentCatalog.AcroForm);
+        public OptionalProperty<InteractiveFormDictionary> AcroForm => GetOptionalProperty<InteractiveFormDictionary>(Constants.DictionaryKeys.DocumentCatalog.AcroForm);
 
         /// <summary>
         /// (Optional; PDF 1.4; shall be an indirect reference) A metadata stream that shall contain metadata for the document (see 14.3.2, "Metadata streams").
         /// </summary>
-        public DictionaryProperty<StreamObject<MetadataStreamDictionary>?> Metadata
-            => Get<StreamObject<MetadataStreamDictionary>?>(Constants.DictionaryKeys.DocumentCatalog.Metadata);
+        public OptionalProperty<StreamObject<MetadataStreamDictionary>> Metadata
+            => GetOptionalProperty<StreamObject<MetadataStreamDictionary>>(Constants.DictionaryKeys.DocumentCatalog.Metadata);
 
         /// <summary>
         /// (Optional; PDF 1.3) The document’s structure tree root dictionary (see 14.7.2, "Structure hierarchy").
         /// </summary>
-        public DictionaryProperty<Dictionary?> StructTreeRoot => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.StructTreeRoot);
+        public OptionalProperty<Dictionary> StructTreeRoot => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.StructTreeRoot);
 
         /// <summary>
         /// (Optional; PDF 1.4) A mark information dictionary that shall contain information about the document’s usage of tagged PDF conventions (see 14.7, "Logical structure").
         /// </summary>
-        public DictionaryProperty<Dictionary?> MarkInfo => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.MarkInfo);
+        public OptionalProperty<Dictionary> MarkInfo => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.MarkInfo);
 
         /// <summary>
         /// (Optional; PDF 1.4) A language identifier that shall specify the natural language for all text in the document except where overridden by language 
         /// specifications for structure elements or marked-content (see 14.9.2, "Natural language specification"). If this entry is absent, the language shall 
         /// be considered unknown.
         /// </summary>
-        public DictionaryProperty<LiteralString?> Lang => Get<LiteralString?>(Constants.DictionaryKeys.DocumentCatalog.Lang);
+        public OptionalProperty<LiteralString> Lang => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.DocumentCatalog.Lang);
 
         /// <summary>
         /// (Optional; PDF 1.3) A Web Capture information dictionary that shall contain state information used by any Web Capture extension 
         /// (see 14.10.2, "Web capture information dictionary").
         /// </summary>
-        public DictionaryProperty<Dictionary?> SpiderInfo => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.SpiderInfo);
+        public OptionalProperty<Dictionary> SpiderInfo => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.SpiderInfo);
 
         /// <summary>
         /// (Optional; PDF 1.4) An array of output intent dictionaries that shall specify the colour characteristics of output devices on which the document might 
         /// be rendered (see 14.11.5, "Output intents").
         /// </summary>
-        public DictionaryProperty<ArrayObject?> OutputIntents => Get<ArrayObject?>(Constants.DictionaryKeys.DocumentCatalog.OutputIntents);
+        public OptionalProperty<ArrayObject> OutputIntents => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.DocumentCatalog.OutputIntents);
 
         /// <summary>
         /// (Optional; PDF 1.4) A page-piece dictionary associated with the document (see 14.5, "Page-piece dictionaries").
         /// </summary>
-        public DictionaryProperty<Dictionary?> PieceInfo => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.PieceInfo);
+        public OptionalProperty<Dictionary> PieceInfo => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.PieceInfo);
 
         /// <summary>
         /// (Optional; PDF 1.5; required if a document contains optional content) The document’s optional content properties dictionary 
         /// (see 8.11.4, "Configuring optional content").
         /// </summary>
-        public DictionaryProperty<Dictionary?> OCProperties => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.OCProperties);
+        public OptionalProperty<Dictionary> OCProperties => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.OCProperties);
 
         /// <summary>
         /// (Optional; PDF 1.5) A permissions dictionary that shall specify user access permissions for the document. 12.8.6, "Permissions", describes 
         /// this dictionary and how it shall be used.
         /// </summary>
-        public DictionaryProperty<Dictionary?> Perms => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.Perms);
+        public  OptionalProperty<Dictionary> Perms => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.Perms);
 
         /// <summary>
         /// (Optional; PDF 1.5) A dictionary that shall contain attestations regarding the content of a PDF document, as it relates to the 
         /// legality of digital signatures (see 12.8.7, "Legal content attestations").
         /// </summary>
-        public DictionaryProperty<Dictionary?> Legal => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.Legal);
+        public OptionalProperty<Dictionary> Legal => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.Legal);
 
         /// <summary>
         /// (Optional; PDF 1.7) An array of requirement dictionaries that shall represent requirements for the document. Subclause 12.11, 
         /// "Document requirements", describes this dictionary and how it shall be used.
         /// </summary>
-        public DictionaryProperty<ArrayObject?> Requirements => Get<ArrayObject?>(Constants.DictionaryKeys.DocumentCatalog.Requirements);
+        public OptionalProperty<ArrayObject> Requirements => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.DocumentCatalog.Requirements);
 
         /// <summary>
         /// <para>
@@ -217,7 +216,7 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// further specify that the collection View should be initially H (hidden).
         /// </para>
         /// </summary>
-        public DictionaryProperty<Dictionary?> Collection => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.Collection);
+        public OptionalProperty<Dictionary> Collection => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.Collection);
 
         /// <summary>
         /// <para>
@@ -226,12 +225,12 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// </para>
         /// <para>Default value: false.</para>
         /// </summary>
-        public DictionaryProperty<BooleanObject?> NeedsRendering => Get<BooleanObject?>(Constants.DictionaryKeys.DocumentCatalog.NeedsRendering);
+        public OptionalProperty<BooleanObject> NeedsRendering => GetOptionalProperty<BooleanObject>(Constants.DictionaryKeys.DocumentCatalog.NeedsRendering);
 
         /// <summary>
         /// (Optional; PDF 2.0) A DSS dictionary containing document-wide security information. See 12.8.4.3, "Document Security Store (DSS)".
         /// </summary>
-        public DictionaryProperty<Dictionary?> DSS => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.DSS);
+        public OptionalProperty<Dictionary> DSS => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.DSS);
 
         /// <summary>
         /// <para>
@@ -243,12 +242,12 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// include a reference to the file specification dictionary for the encrypted payload document.
         /// </para>
         /// </summary>
-        public DictionaryProperty<ArrayObject?> AF => Get<ArrayObject?>(Constants.DictionaryKeys.DocumentCatalog.AF);
+        public OptionalProperty<ArrayObject> AF => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.DocumentCatalog.AF);
 
         /// <summary>
         /// (Optional; PDF 2.0) A DPartRoot dictionary used to describe the document parts hierarchy for this PDF document. See 14.12, "Document parts".
         /// </summary>
-        public DictionaryProperty<Dictionary?> DPartRoot => Get<Dictionary?>(Constants.DictionaryKeys.DocumentCatalog.DPartRoot);
+        public OptionalProperty<Dictionary> DPartRoot => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.DPartRoot);
 
         public static DocumentCatalogDictionary FromDictionary(Dictionary<Name, IPdfObject> documentCatalogDictionary, IPdfEditor pdfEditor) 
         {
