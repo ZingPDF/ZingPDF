@@ -92,6 +92,12 @@ static async Task ExtractText(string input)
     var pdf = await Pdf.LoadAsync(inputFileStream);
 
     var extract = await pdf.ExtractTextAsync();
+
+    extract.ToList().ForEach(x =>
+    {
+        Console.WriteLine($"Text: {x.Text}");
+        Console.WriteLine();
+    });
 }
 
 static async Task Decompress(string input, string output)
