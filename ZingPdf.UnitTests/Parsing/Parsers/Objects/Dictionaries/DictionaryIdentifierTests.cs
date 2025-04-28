@@ -19,6 +19,8 @@ using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
+using ZingPDF.Text.CompositeFonts;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
@@ -50,6 +52,10 @@ public class DictionaryIdentifierTests
     [InlineData(Constants.DictionaryTypes.XObject, XObjectDictionary.Subtypes.Form, typeof(Type1FormDictionary))]
     [InlineData(Constants.DictionaryTypes.XObject, XObjectDictionary.Subtypes.Image, typeof(ImageDictionary))]
     [InlineData(Constants.DictionaryTypes.Annot, AnnotationDictionary.Subtypes.Widget, typeof(WidgetAnnotationDictionary))]
+    [InlineData(Constants.DictionaryTypes.Font, FontDictionary.Subtypes.Simple.Type1, typeof(Type1FontDictionary))]
+    [InlineData(Constants.DictionaryTypes.Font, FontDictionary.Subtypes.Simple.TrueType, typeof(TrueTypeFontDictionary))]
+    [InlineData(Constants.DictionaryTypes.Font, FontDictionary.Subtypes.Simple.Type3, typeof(Type3FontDictionary))]
+    [InlineData(Constants.DictionaryTypes.Font, FontDictionary.Subtypes.Composite.Type0, typeof(Type0FontDictionary))]
     public async Task IdentifyBySubtype(string typeName, string subtypeName, Type expectedType)
     {
         (await DictionaryIdentifier.IdentifyAsync(
@@ -146,17 +152,5 @@ public class DictionaryIdentifierTests
 
         (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
             .Should().Be(typeof(AppearanceDictionary));
-    }
-
-    [Fact]
-    public async Task IdentifyFontDictionaryWithSubtype()
-    {
-        var dictionary = new Dictionary<Name, IPdfObject>
-        {
-            [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Font,
-            [Constants.DictionaryKeys.Subtype] = (Name)FontDictionary.Subtypes.Type1,
-        };
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
-            .Should().Be(typeof(FontDictionary), because: "Classes for font subtypes are not implemented");
     }
 }

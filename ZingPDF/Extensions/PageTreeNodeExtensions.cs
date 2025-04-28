@@ -17,8 +17,9 @@ namespace ZingPDF.Extensions
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
             List<IndirectObject> nodes = [];
+            Syntax.Objects.ArrayObject kids = await pageTreeNode.Kids.GetAsync();
 
-            foreach (var refObj in pageTreeNode.Kids)
+            foreach (var refObj in kids)
             {
                 var ior = (IndirectObjectReference)refObj;
 
