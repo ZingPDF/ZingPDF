@@ -70,8 +70,9 @@ using System;
 //await Test();
 
 //await Decompress("testfiles/pdf/form.pdf", "decompressed-form.pdf");
+//await Decompress("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", "decompressed-MikeyFlemingFreelance_Folio.pdf");
 
-await ExtractText("testfiles/pdf/form.pdf");
+await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 
 static async Task ExtractText(string input)
 {
@@ -82,7 +83,7 @@ static async Task ExtractText(string input)
 
     extract.ToList().ForEach(x =>
     {
-        Console.WriteLine($"Text: {x.Text}");
+        Console.WriteLine($"Page: {x.PageNumber}, Font: {x.FontName}, Text: {x.Text}");
         Console.WriteLine();
     });
 }
