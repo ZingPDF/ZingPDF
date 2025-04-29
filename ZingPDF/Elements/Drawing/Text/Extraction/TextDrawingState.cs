@@ -89,6 +89,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     _fontEncoding = await ResolveFontEncodingAsync(FontResourceName);
                     // Reset leading per Acrobat default
                     TextLeading = FontSize * 1.2f;
+                    //Console.WriteLine($"[Tf] Switched font to {FontResourceName} (Has ToUnicode: {ToUnicodeCMap != null})");
                     break;
 
                 case ContentStream.Operators.TextState.Tc:
@@ -136,7 +137,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     TextMatrix = Matrix3x2.Identity;
                     TextLineMatrix = Matrix3x2.Identity;
                     break;
-
+                        
                 case "ET":
                     // No state change needed for extraction
                     break;
@@ -282,54 +283,105 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 return cm;
             }
 
-            // TODO: for Type 0 fonts, the encoding entry gives the name of the cmap.
-
             StreamObject<StreamDictionary>? toUnicode = await FontDictionary!.ToUnicode.GetAsync();
             if (toUnicode != null)
             {
                 cm = CMapParser.Parse(await toUnicode.GetDecompressedDataAsync());
 
-                _cmapCache[fontResourceName] = cm;
-            }
-
-            return cm;
-        }
-
-        private async Task<Encoding?> ResolveFontEncodingAsync(Name fontResourceName)
-        {
-            if (FontDictionary is Type0FontDictionary)
-            {
-                // Type 0 fonts use a CMap
-                return null;
-            }
-
-            Either<Name, Dictionary> encoding = await FontDictionary!.Encoding.GetAsync();
-
-            if (encoding.Value == null)
-            {
-                return null;
-            }
-
-            if (encoding.Type1 != null)
-            {
-                return encoding.Type1.Value switch
+                // Only accept if the CMap is non-null and has mappings
+                if (cm != null && cm.CharMap.Count != 0)
                 {
-                    PDFEncoding.Standard => Encoding.Latin1,
-                    PDFEncoding.WinAnsi => Encoding.GetEncoding(1252),
-                    PDFEncoding.MacRoman => Encoding.GetEncoding(10000),
-                    PDFEncoding.PDFDoc => Encoding.GetEncoding(PDFEncoding.PDFDoc),
-                    //PDFEncoding.MacExpert => Encoding.GetEncoding(PDFEncoding.MacExpert), // TODO
-                    _ => throw new NotSupportedException($"Font encoding '{encoding.Type1}' is not supported."),
-                };
-            }
-
-            if (encoding.Type2 != null)
-            {
-                // TODO: implement encoding dictionary and difference encoding class
-                throw new NotImplementedException();
+                    _cmapCache[fontResourceName] = cm;
+                    return cm;
+                }
+                else
+                {
+                    // CMap was invalid, treat as no ToUnicode available
+                    return null;
+                }
             }
 
             return null;
+        }
+
+
+        private async Task<Encoding?> ResolveFontEncodingAsync(Name fontResourceName)
+        {
+            // PDF spec §9.6.5: Type0 fonts use CMap only
+            if (FontDictionary is Type0FontDictionary)
+                return null;
+
+            // Fetch the Encoding entry: either a name or a dictionary
+            Either<Name, EncodingDictionary> encoding = await FontDictionary!.Encoding.GetAsync();
+
+            // 1) No Encoding entry -> fall back to PDFDocEncoding as a safe default
+            if (encoding.Value == null)
+                return Encoding.GetEncoding(PDFEncoding.PDFDoc);
+
+            // 2) Named Encoding (Type1): Standard, WinAnsi, MacRoman, PDFDoc
+            if (encoding.Type1 != null)
+            {
+                return GetEncoding(encoding.Type1.Value);
+            }
+
+            // 3) Dictionary Encoding (Type2) with Differences
+            if (encoding.Type2 != null)
+            {
+                Encoding baseEnc;
+
+                var dict = encoding.Type2;
+
+                // Determine base encoding
+                var baseEncoding = await dict.BaseEncoding.GetAsync();
+                if (baseEncoding != null)
+                {
+                    baseEnc = GetEncoding(baseEncoding.Value);
+                }
+                else
+                {
+                    // If BaseEncoding is not present, we take it from the font if embedded.
+                    // If not, fallback to StandardEncoding.
+                    FontDescriptorDictionary? fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
+                    FontProperties fontProperties = new(await fontDescriptor.Flags.GetAsync());
+                    StreamObject<IStreamDictionary>? fontFile = await fontDescriptor.FontFile.GetAsync();
+
+                    bool hasEmbeddedFont = fontFile != null;
+
+                    if (hasEmbeddedFont)
+                    {
+                        // For embedded fonts, the base encoding is the font’s built-in encoding
+                        // Returning null here and handling the font's char mapping in MapCharacterCode
+                        return null;
+                    }
+                    else
+                    {
+                        baseEnc = Encoding.GetEncoding(PDFEncoding.Standard);
+                    }
+                }
+
+                // Build the Differences map
+                var differences = await dict.Differences.GetAsync();
+                var diffs = new Dictionary<byte, char>();
+                byte currentCode = 0;
+                foreach (var item in differences)
+                {
+                    if (item is Number intVal)
+                    {
+                        currentCode = (byte)intVal.Value;
+                    }
+                    else if (item is Name nameVal)
+                    {
+                        char mappedChar = GlyphToUnicodeTranslator.Translate(nameVal.Value);
+                        diffs[currentCode] = mappedChar;
+                        currentCode++;
+                    }
+                }
+
+                return new DerivedEncoding(baseEnc, diffs);
+            }
+
+            // 4) Fallback
+            return Encoding.GetEncoding(PDFEncoding.PDFDoc);
         }
 
         private void ApplyTJAdjustment(double adjust)
@@ -344,6 +396,18 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             var t = Matrix3x2.CreateTranslation(tx, ty);
             TextMatrix = t * TextLineMatrix;
             TextLineMatrix = TextMatrix;
+        }
+
+        private static Encoding GetEncoding(string name)
+        {
+            return name switch
+            {
+                PDFEncoding.Standard => Encoding.GetEncoding(PDFEncoding.Standard),
+                PDFEncoding.PDFDoc => Encoding.GetEncoding(PDFEncoding.PDFDoc),
+                PDFEncoding.WinAnsi => Encoding.GetEncoding(1252),
+                PDFEncoding.MacRoman => Encoding.GetEncoding(10000),
+                _ => throw new NotSupportedException($"Unsupported encoding name: {name}"),
+            };
         }
     }
 }

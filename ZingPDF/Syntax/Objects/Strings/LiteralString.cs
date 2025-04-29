@@ -62,6 +62,7 @@ namespace ZingPDF.Syntax.Objects.Strings
 
         private static Encoding GetEncoding(LiteralStringEncoding encoding)
         {
+            // TODO: think about how to consolidate these encodings with those used in content streams
             return encoding switch
             {
                 LiteralStringEncoding.UTF8 => Encoding.UTF8,

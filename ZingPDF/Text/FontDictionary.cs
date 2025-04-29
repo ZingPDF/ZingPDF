@@ -4,6 +4,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Text.Encoding;
 
 namespace ZingPDF.Text;
 
@@ -21,6 +22,12 @@ public abstract class FontDictionary : Dictionary
         public static class Composite
         {
             public const string Type0 = "Type0";
+        }
+
+        public static class CID
+        {
+            public const string CIDFontType0 = "CIDFontType0";
+            public const string CIDFontType2 = "CIDFontType2";
         }
     }
 
@@ -56,7 +63,7 @@ public abstract class FontDictionary : Dictionary
     /// For Type 3 fonts, this entry is required and determines the glyph procedure to invoke for each character code.
     /// Composite fonts (Type 0) do not use this entry; they use CMaps for character code mapping.
     /// </summary>
-    public OptionalMultiProperty<Name, Dictionary> Encoding => GetOptionalMultiProperty<Name, Dictionary>(Constants.DictionaryKeys.Font.Encoding);
+    public OptionalMultiProperty<Name, EncodingDictionary> Encoding => GetOptionalMultiProperty<Name, EncodingDictionary>(Constants.DictionaryKeys.Font.Encoding);
 
     /// <summary>
     /// (Required for Type 1, TrueType, and Type 3 fonts) The first character code for which widths are specified in the <c>/Widths</c> array.
