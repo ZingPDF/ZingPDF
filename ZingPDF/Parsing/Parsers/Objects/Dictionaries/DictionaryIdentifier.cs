@@ -16,6 +16,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
 using ZingPDF.Text.CompositeFonts;
+using ZingPDF.Text.Encoding;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
@@ -34,6 +35,7 @@ public static class DictionaryIdentifier
         [Constants.DictionaryTypes.FontDescriptor] = typeof(FontDescriptorDictionary),
         [Constants.DictionaryTypes.Annot] = typeof(AnnotationDictionary),
         [Constants.DictionaryTypes.Metadata] = typeof(MetadataStreamDictionary),
+        [Constants.DictionaryTypes.Encoding] = typeof(EncodingDictionary),
     };
 
     private static readonly Dictionary<Name, Type> _dictionarySubtypeMap = new()
@@ -46,6 +48,8 @@ public static class DictionaryIdentifier
         [FontDictionary.Subtypes.Simple.TrueType] = typeof(TrueTypeFontDictionary),
         [FontDictionary.Subtypes.Simple.Type3] = typeof(Type3FontDictionary),
         [FontDictionary.Subtypes.Composite.Type0] = typeof(Type0FontDictionary),
+        [FontDictionary.Subtypes.CID.CIDFontType0] = typeof(CIDFontDictionary),
+        [FontDictionary.Subtypes.CID.CIDFontType2] = typeof(CIDFontDictionary),
     };
 
     public static async Task<Type?> IdentifyAsync(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)

@@ -464,6 +464,12 @@ internal static class Constants
             public const string CharSet = "CharSet";
         }
 
+        public static class Encoding
+        {
+            public const string BaseEncoding = "BaseEncoding";
+            public const string Differences = "Differences";
+        }
+
         public static class Encryption
         {
             public const string Filter = "Filter";
@@ -503,6 +509,7 @@ internal static class Constants
         public const string Metadata = "Metadata"; // Metadata Stream
         public const string Font = "Font"; // Font
         public const string FontDescriptor = "FontDescriptor"; // Font Descriptor
+        public const string Encoding = "Encoding"; // Encoding
     }
 
     public static class FunctionTypes
