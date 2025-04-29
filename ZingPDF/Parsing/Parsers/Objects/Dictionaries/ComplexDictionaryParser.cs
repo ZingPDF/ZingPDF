@@ -21,6 +21,7 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Text;
 using ZingPDF.Text.CompositeFonts;
+using ZingPDF.Text.Encoding;
 using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
@@ -176,6 +177,18 @@ internal class ComplexDictionaryParser : DictionaryParser, IObjectParser<Diction
 
             case Type t when t == typeof(AppearanceDictionary):
                 output = AppearanceDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(EncodingDictionary):
+                output = EncodingDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(CIDFontDictionary):
+                output = CIDFontDictionary.FromDictionary(dict, _pdfEditor);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(CIDSystemInfoDictionary):
+                output = CIDSystemInfoDictionary.FromDictionary(dict, _pdfEditor);
                 goto DictionaryParsed;
         }
 
