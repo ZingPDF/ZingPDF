@@ -7,7 +7,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class NumberParser : IObjectParser<Number>
     {
-        public async ITask<Number> ParseAsync(Stream stream)
+        private IPdfContext _pdfContext;
+
+        public NumberParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<Number> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace(); 
 
@@ -21,7 +28,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             Logger.Log(LogLevel.Trace, $"Parsed Number: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
 
-            return value;
+            return new Number(value, context.Origin);
         }
     }
 }

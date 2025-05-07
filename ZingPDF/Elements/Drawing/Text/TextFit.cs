@@ -4,6 +4,6 @@ namespace ZingPDF.Elements.Drawing.Text;
 
 public record TextFit
 {
-    public required Number FontSize { get; init; }
+    public required double FontSize { get; init; }
     public required Coordinate TextOrigin { get; init; }
 }

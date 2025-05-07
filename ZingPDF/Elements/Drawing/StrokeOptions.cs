@@ -15,7 +15,7 @@ namespace ZingPDF.Elements.Drawing
         /// <summary>
         /// Stroke colour.
         /// </summary>
-        public RGBColour Colour { get; } = RGBColour.Black;
+        public RGBColour Colour { get; }
 
         /// <summary>
         /// Stroke width in pixels.

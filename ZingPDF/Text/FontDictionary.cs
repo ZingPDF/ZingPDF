@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -34,13 +33,13 @@ public abstract class FontDictionary : Dictionary
     protected FontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    protected FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    protected FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
-    protected FontDictionary(Name subType, IPdfEditor pdfEditor)
-        : base(Constants.DictionaryTypes.Font, pdfEditor)
+    protected FontDictionary(Name subType, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(Constants.DictionaryTypes.Font, pdfContext, objectOrigin)
     {
         ArgumentNullException.ThrowIfNull(subType);
 

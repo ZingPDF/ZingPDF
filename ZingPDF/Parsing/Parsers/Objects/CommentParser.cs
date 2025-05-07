@@ -7,7 +7,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class CommentParser : IObjectParser<Comment>
     {
-        public async ITask<Comment> ParseAsync(Stream stream)
+        private readonly IPdfContext _pdfContext;
+
+        public CommentParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<Comment> ParseAsync(Stream stream, ParseContext context)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing Comment from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -19,7 +26,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             stream.AdvancePastWhitepace();
 
-            return value;
+            return new Comment(value, context.Origin);
         }
     }
 }

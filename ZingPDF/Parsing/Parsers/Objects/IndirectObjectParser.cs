@@ -2,33 +2,28 @@
 using ZingPDF.Extensions;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
-using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
-using ZingPDF.Text;
-using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class IndirectObjectParser : IObjectParser<IndirectObject>
     {
-        private readonly IPdfEditor _pdfEditor;
+        private readonly IPdfContext _pdfContext;
 
-        public IndirectObjectParser(IPdfEditor pdfEditor)
+        public IndirectObjectParser(IPdfContext pdfContext)
         {
-            ArgumentNullException.ThrowIfNull(nameof(pdfEditor));
+            ArgumentNullException.ThrowIfNull(nameof(pdfContext));
 
-            _pdfEditor = pdfEditor;
+            _pdfContext = pdfContext;
         }
 
-        public async ITask<IndirectObject> ParseAsync(Stream stream)
+        public async ITask<IndirectObject> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace();
 
@@ -36,11 +31,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var initialStreamPosition = stream.Position;
 
-            var id = await Parser.Numbers.ParseAsync(stream);
-            var genNumber = await Parser.Numbers.ParseAsync(stream);
+            var id = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
+            var genNumber = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
 
             // obj keyword
-            _ = await Parser.Keywords.ParseAsync(stream);
+            _ = await _pdfContext.Parser.Keywords.ParseAsync(stream, context);
 
             var items = new List<IPdfObject>();
 
@@ -60,11 +55,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     var streamDict = (items.Last() as IStreamDictionary)!;
                     items.RemoveAt(items.Count - 1);
 
-                    items.Add(await ParseTypedStreamObjectAsync(streamDict, stream));
+                    items.Add(await ParseTypedStreamObjectAsync(streamDict, stream, context));
                     break;
                 }
 
-                IPdfObject item = await Parser.For(type, _pdfEditor).ParseAsync(stream);
+                IPdfObject item = await _pdfContext.Parser.For(type).ParseAsync(stream, context);
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {
@@ -81,24 +76,24 @@ namespace ZingPDF.Parsing.Parsers.Objects
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
 
-        private static async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream)
+        private async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream, ParseContext context)
         {
             return dict switch
             {
                 CrossReferenceStreamDictionary xrefStreamDict
-                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict).ParseAsync(stream),
+                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict, _pdfContext).ParseAsync(stream, context),
 
                 ObjectStreamDictionary objectStreamDict
-                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict).ParseAsync(stream),
+                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict, _pdfContext).ParseAsync(stream, context),
 
                 Type1FormDictionary type1FormDict
-                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict).ParseAsync(stream),
+                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict, _pdfContext).ParseAsync(stream, context),
 
                 ImageDictionary imageDict
-                    => await new StreamObjectParser<ImageDictionary>(imageDict).ParseAsync(stream),
+                    => await new StreamObjectParser<ImageDictionary>(imageDict, _pdfContext).ParseAsync(stream, context),
 
                 StreamDictionary streamDict
-                    => await new StreamObjectParser<StreamDictionary>(streamDict).ParseAsync(stream),
+                    => await new StreamObjectParser<StreamDictionary>(streamDict, _pdfContext).ParseAsync(stream, context),
 
                 _ => throw new InvalidOperationException($"Unsupported dictionary type: {dict.GetType().Name}"),
             };
