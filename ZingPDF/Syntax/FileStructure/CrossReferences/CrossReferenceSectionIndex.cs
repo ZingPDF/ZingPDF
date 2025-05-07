@@ -4,7 +4,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
 {
     public class CrossReferenceSectionIndex : PdfObject
     {
-        public CrossReferenceSectionIndex(int startIndex, int count)
+        public CrossReferenceSectionIndex(int startIndex, int count, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             StartIndex = startIndex;
             Count = count;
@@ -19,6 +20,11 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
             await stream.WriteWhitespaceAsync();
             await stream.WriteIntAsync(Count);
             await stream.WriteNewLineAsync();
+        }
+
+        public override object Clone()
+        {
+            return new CrossReferenceSectionIndex(StartIndex, Count, Origin);
         }
     }
 }

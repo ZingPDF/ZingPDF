@@ -27,7 +27,14 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 /// </remarks>
 internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectParser<Dictionary>
 {
-    public async ITask<Dictionary> ParseAsync(Stream stream)
+    private readonly IPdfContext _pdfContext;
+
+    public CrossReferenceStreamDictionaryParser(IPdfContext pdfContext)
+    {
+        _pdfContext = pdfContext;
+    }
+
+    public async ITask<Dictionary> ParseAsync(Stream stream, ParseContext context)
     {
         var initialStreamPosition = stream.Position; // Reference starting point for output
 
@@ -35,17 +42,17 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         if (dictStream == null)
         {
-            return new Dictionary(EmptyPdfEditor.Instance);
+            return new Dictionary(_pdfContext, context.Origin);
         }
 
-        var objectGroup = await new PdfObjectGroupParser(EmptyPdfEditor.Instance).ParseAsync(dictStream);
+        var objectGroup = await new PdfObjectGroupParser(_pdfContext).ParseAsync(dictStream, context);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {
             throw new InvalidOperationException("Odd count of objects parsed from dictionary.");
         }
 
-        Dictionary<Name, IPdfObject> dict = [];
+        Dictionary<string, IPdfObject> dict = [];
 
         for (int j = 0; j < objectGroup.Objects.Count; j += 2)
         {
@@ -57,7 +64,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         stream.Position = dictStream.To + 2;
 
-        var output = CrossReferenceStreamDictionary.FromDictionary(dict);
+        var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdfContext, context.Origin);
 
         output!.ByteOffset = initialStreamPosition;
 

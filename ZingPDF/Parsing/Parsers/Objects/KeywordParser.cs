@@ -7,7 +7,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class KeywordParser : IObjectParser<Keyword>
     {
-        public async ITask<Keyword> ParseAsync(Stream stream)
+        private readonly IPdfContext _pdfContext;
+
+        public KeywordParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<Keyword> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace();
 
@@ -17,7 +24,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             Logger.Log(LogLevel.Trace, $"Parsed Keyword: {{{keyword}}}. {stream.GetType().Name} now at: {stream.Position}.");
 
-            return keyword;
+            return new Keyword(keyword, context.Origin);
         }
     }
 }

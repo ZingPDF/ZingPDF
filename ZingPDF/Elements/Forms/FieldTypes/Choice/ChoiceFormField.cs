@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -13,9 +12,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor
+        IPdfContext pdfContext
         )
-        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfEditor)
+        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfContext)
     {
         public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {
@@ -51,7 +50,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             {
                 selectedOptions.Add(value);
 
-                SetValue(new ArrayObject(selectedOptions));
+                SetValue(new ArrayObject(selectedOptions, ObjectOrigin.UserCreated));
             }
         }
 
@@ -67,7 +66,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
             else
             {
-                SetValue(new ArrayObject(selectedOptions));
+                SetValue(new ArrayObject(selectedOptions, ObjectOrigin.UserCreated));
             }
         }
 

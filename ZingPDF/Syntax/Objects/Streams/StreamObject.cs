@@ -13,13 +13,19 @@ namespace ZingPDF.Syntax.Objects.Streams;
 public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
     where TDictionary : class, IStreamDictionary
 {
-    public StreamObject(Stream data, TDictionary dictionary)
+    public StreamObject(Stream data, TDictionary dictionary, ObjectOrigin objectOrigin)
+        : base(objectOrigin)
     {
         ArgumentNullException.ThrowIfNull(data, nameof(data));
         ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
 
         Data = data;
         Dictionary = dictionary;
+    }
+
+    public StreamObject(Stream data, TDictionary dictionary)
+        : this(data, dictionary, ObjectOrigin.UserCreated)
+    {
     }
 
     IStreamDictionary IStreamObject.Dictionary => Dictionary;
@@ -35,13 +41,13 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
 
         Data.Position = 0;
 
-        await new Keyword(Constants.StreamStart).WriteAsync(stream);
+        await new Keyword(Constants.StreamStart, Origin).WriteAsync(stream);
         await stream.WriteNewLineAsync();
 
         await Data.CopyToAsync(stream);
 
         await stream.WriteNewLineAsync();
-        await new Keyword(Constants.StreamEnd).WriteAsync(stream);
+        await new Keyword(Constants.StreamEnd, Origin).WriteAsync(stream);
     }
 
     public async Task<Stream> GetDecompressedDataAsync()
@@ -72,5 +78,15 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
         }
 
         return ms;
+    }
+
+    public override object Clone()
+    {
+        var ms = new MemoryStream();
+        Data.Position = 0;
+        Data.CopyTo(ms);
+        ms.Position = 0;
+
+        return new StreamObject<TDictionary>(ms, (TDictionary)Dictionary.Clone(), Origin);
     }
 }

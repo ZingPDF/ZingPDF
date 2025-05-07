@@ -81,9 +81,107 @@ public sealed class PDFDocEncoding : System.Text.Encoding
         [0x9F] = '\u00A1', // inverted exclamation mark
 
         // 0xA0–0xFF: same as ISO-8859-1
-        [0xA0] = '\u00A0', [0xA1] = '\u00A1', [0xA2] = '\u00A2',
-        /* … through … */
-        [0xFE] = '\u00FE', [0xFF] = '\u00FF'
+        [0xA0] = '\u00A0', // Non-breaking space
+        [0xA1] = '\u00A1', // Inverted exclamation mark
+        [0xA2] = '\u00A2', // Cent sign
+        [0xA3] = '\u00A3', // Pound sign
+        [0xA4] = '\u00A4', // Currency sign
+        [0xA5] = '\u00A5', // Yen sign
+        [0xA6] = '\u00A6', // Broken bar
+        [0xA7] = '\u00A7', // Section sign
+        [0xA8] = '\u00A8', // Diaeresis
+        [0xA9] = '\u00A9', // Copyright sign
+        [0xAA] = '\u00AA', // Feminine ordinal indicator
+        [0xAB] = '\u00AB', // Left-pointing double angle quotation mark
+        [0xAC] = '\u00AC', // Not sign
+        [0xAD] = '\u00AD', // Soft hyphen
+        [0xAE] = '\u00AE', // Registered sign
+        [0xAF] = '\u00AF', // Macron
+
+        [0xB0] = '\u00B0', // Degree sign
+        [0xB1] = '\u00B1', // Plus-minus sign
+        [0xB2] = '\u00B2', // Superscript two
+        [0xB3] = '\u00B3', // Superscript three
+        [0xB4] = '\u00B4', // Acute accent
+        [0xB5] = '\u00B5', // Micro sign
+        [0xB6] = '\u00B6', // Pilcrow sign
+        [0xB7] = '\u00B7', // Middle dot
+        [0xB8] = '\u00B8', // Cedilla
+        [0xB9] = '\u00B9', // Superscript one
+        [0xBA] = '\u00BA', // Masculine ordinal indicator
+        [0xBB] = '\u00BB', // Right-pointing double angle quotation mark
+        [0xBC] = '\u00BC', // Vulgar fraction one quarter
+        [0xBD] = '\u00BD', // Vulgar fraction one half
+        [0xBE] = '\u00BE', // Vulgar fraction three quarters
+        [0xBF] = '\u00BF', // Inverted question mark
+
+        [0xC0] = '\u00C0', // Latin capital letter A with grave
+        [0xC1] = '\u00C1', // Latin capital letter A with acute
+        [0xC2] = '\u00C2', // Latin capital letter A with circumflex
+        [0xC3] = '\u00C3', // Latin capital letter A with tilde
+        [0xC4] = '\u00C4', // Latin capital letter A with diaeresis
+        [0xC5] = '\u00C5', // Latin capital letter A with ring above
+        [0xC6] = '\u00C6', // Latin capital letter AE
+        [0xC7] = '\u00C7', // Latin capital letter C with cedilla
+        [0xC8] = '\u00C8', // Latin capital letter E with grave
+        [0xC9] = '\u00C9', // Latin capital letter E with acute
+        [0xCA] = '\u00CA', // Latin capital letter E with circumflex
+        [0xCB] = '\u00CB', // Latin capital letter E with diaeresis
+        [0xCC] = '\u00CC', // Latin capital letter I with grave
+        [0xCD] = '\u00CD', // Latin capital letter I with acute
+        [0xCE] = '\u00CE', // Latin capital letter I with circumflex
+        [0xCF] = '\u00CF', // Latin capital letter I with diaeresis
+
+        [0xD0] = '\u00D0', // Latin capital letter Eth
+        [0xD1] = '\u00D1', // Latin capital letter N with tilde
+        [0xD2] = '\u00D2', // Latin capital letter O with grave
+        [0xD3] = '\u00D3', // Latin capital letter O with acute
+        [0xD4] = '\u00D4', // Latin capital letter O with circumflex
+        [0xD5] = '\u00D5', // Latin capital letter O with tilde
+        [0xD6] = '\u00D6', // Latin capital letter O with diaeresis
+        [0xD7] = '\u00D7', // Multiplication sign
+        [0xD8] = '\u00D8', // Latin capital letter O with stroke
+        [0xD9] = '\u00D9', // Latin capital letter U with grave
+        [0xDA] = '\u00DA', // Latin capital letter U with acute
+        [0xDB] = '\u00DB', // Latin capital letter U with circumflex
+        [0xDC] = '\u00DC', // Latin capital letter U with diaeresis
+        [0xDD] = '\u00DD', // Latin capital letter Y with acute
+        [0xDE] = '\u00DE', // Latin capital letter Thorn
+        [0xDF] = '\u00DF', // Latin small letter sharp s
+
+        [0xE0] = '\u00E0', // Latin small letter a with grave
+        [0xE1] = '\u00E1', // Latin small letter a with acute
+        [0xE2] = '\u00E2', // Latin small letter a with circumflex
+        [0xE3] = '\u00E3', // Latin small letter a with tilde
+        [0xE4] = '\u00E4', // Latin small letter a with diaeresis
+        [0xE5] = '\u00E5', // Latin small letter a with ring above
+        [0xE6] = '\u00E6', // Latin small letter ae
+        [0xE7] = '\u00E7', // Latin small letter c with cedilla
+        [0xE8] = '\u00E8', // Latin small letter e with grave
+        [0xE9] = '\u00E9', // Latin small letter e with acute
+        [0xEA] = '\u00EA', // Latin small letter e with circumflex
+        [0xEB] = '\u00EB', // Latin small letter e with diaeresis
+        [0xEC] = '\u00EC', // Latin small letter i with grave
+        [0xED] = '\u00ED', // Latin small letter i with acute
+        [0xEE] = '\u00EE', // Latin small letter i with circumflex
+        [0xEF] = '\u00EF', // Latin small letter i with diaeresis
+
+        [0xF0] = '\u00F0', // Latin small letter eth
+        [0xF1] = '\u00F1', // Latin small letter n with tilde
+        [0xF2] = '\u00F2', // Latin small letter o with grave
+        [0xF3] = '\u00F3', // Latin small letter o with acute
+        [0xF4] = '\u00F4', // Latin small letter o with circumflex
+        [0xF5] = '\u00F5', // Latin small letter o with tilde
+        [0xF6] = '\u00F6', // Latin small letter o with diaeresis
+        [0xF7] = '\u00F7', // Division sign
+        [0xF8] = '\u00F8', // Latin small letter o with stroke
+        [0xF9] = '\u00F9', // Latin small letter u with grave
+        [0xFA] = '\u00FA', // Latin small letter u with acute
+        [0xFB] = '\u00FB', // Latin small letter u with circumflex
+        [0xFC] = '\u00FC', // Latin small letter u with diaeresis
+        [0xFD] = '\u00FD', // Latin small letter y with acute
+        [0xFE] = '\u00FE', // Latin small letter thorn
+        [0xFF] = '\u00FF'  // Latin small letter y with diaeresis
     };
 
     // Reverse mapping from Unicode characters to byte values
@@ -100,8 +198,10 @@ public sealed class PDFDocEncoding : System.Text.Encoding
 
     public override int GetByteCount(char[] chars, int index, int count)
     {
-        if (chars == null) throw new ArgumentNullException(nameof(chars));
+        ArgumentNullException.ThrowIfNull(chars);
+
         if (index < 0 || count < 0 || index + count > chars.Length) throw new ArgumentOutOfRangeException();
+
         return count;
     }
 
@@ -118,6 +218,8 @@ public sealed class PDFDocEncoding : System.Text.Encoding
             char c = chars[charIndex + i];
             if (!UnicodeToCode.TryGetValue(c, out byte b))
             {
+                // Every byte should map to a character, in dev, throw.
+                // TODO: in prod, replace with the replacement character '\uFFFD'
                 throw new EncoderFallbackException($"Character '{c}' cannot be encoded in PDFDocEncoding.");
             }
             bytes[byteIndex + i] = b;

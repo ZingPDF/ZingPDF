@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using ZingPDF.Extensions;
 
 namespace ZingPDF.Syntax.Objects
@@ -9,7 +8,8 @@ namespace ZingPDF.Syntax.Objects
     /// </summary>
     public class Name : PdfObject
     {
-        public Name(string value)
+        public Name(string value, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"'{nameof(value)}' cannot be null or whitespace.", nameof(value));
 
@@ -37,12 +37,6 @@ namespace ZingPDF.Syntax.Objects
             await stream.WriteCharsAsync(Constants.Characters.Solidus);
             await stream.WriteTextAsync(sb.ToString());
         }
-
-        //public override bool Equals(object? obj)
-        //{
-        //    return obj is Name name &&
-        //           Value == name.Value;
-        //}
 
         public override bool Equals(object? obj)
         {
@@ -85,7 +79,9 @@ namespace ZingPDF.Syntax.Objects
 
         public override string ToString() => $"{nameof(Name)}: /{Value}";
 
-        public static implicit operator Name(string value) => new(value);
+        public override object Clone() => new Name(Value, Origin);
+
         public static implicit operator string(Name value) => value.Value;
+        public static implicit operator Name(string value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
     }
 }

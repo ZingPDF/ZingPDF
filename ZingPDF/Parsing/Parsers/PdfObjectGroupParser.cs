@@ -1,5 +1,4 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 
@@ -7,16 +6,16 @@ namespace ZingPDF.Parsing.Parsers
 {
     internal class PdfObjectGroupParser : IObjectParser<PdfObjectGroup>
     {
-        private readonly IPdfEditor? _pdfEditor;
+        private readonly IPdfContext _pdfContext;
 
-        public PdfObjectGroupParser(IPdfEditor pdfEditor)
+        public PdfObjectGroupParser(IPdfContext pdfContext)
         {
-            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
+            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
 
-            _pdfEditor = pdfEditor;
+            _pdfContext = pdfContext;
         }
 
-        public async ITask<PdfObjectGroup> ParseAsync(Stream stream)
+        public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
         {
             Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -30,7 +29,7 @@ namespace ZingPDF.Parsing.Parsers
                 {
                     try
                     {
-                        items.Add(await Parser.For(type, _pdfEditor).ParseAsync(stream));
+                        items.Add(await _pdfContext.Parser.For(type).ParseAsync(stream, context));
                     }
                     catch
                     {
@@ -47,7 +46,7 @@ namespace ZingPDF.Parsing.Parsers
                 }
             }
 
-            return items.ToArray();
+            return new PdfObjectGroup(items, context.Origin);
         }
     }
 }

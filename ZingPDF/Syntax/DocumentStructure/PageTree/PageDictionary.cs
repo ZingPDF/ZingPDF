@@ -1,8 +1,6 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
 using ZingPDF.Graphics.Images;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.CommonDataStructures;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -20,8 +18,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageDictionary(Dictionary pageDictionary)
             : base(pageDictionary) { }
 
-        private PageDictionary(Dictionary<Name, IPdfObject> pageDictionary, IPdfEditor pdfEditor)
-            : base(pageDictionary, pdfEditor) { }
+        private PageDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(pageDictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
@@ -246,17 +244,17 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
         /// <returns>A <see cref="PageDictionary"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdfEditor pdfEditor, PageCreationOptions? options = null)
+        internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdfContext pdfContext, PageCreationOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(parent);
 
             options ??= new PageCreationOptions();
 
-            var dict = new Dictionary<Name, IPdfObject>
+            var dict = new Dictionary<string, IPdfObject>
             {
-                { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Page) },
+                { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Page },
                 { Constants.DictionaryKeys.Parent, parent },
-                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdfEditor) },
+                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdfContext, ObjectOrigin.UserCreated) },
             };
 
             if (options.MediaBox is not null)
@@ -264,7 +262,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 dict[Constants.DictionaryKeys.PageTree.MediaBox] = options.MediaBox;
             }
 
-            return new(dict, pdfEditor);
+            return new(dict, pdfContext, ObjectOrigin.UserCreated);
         }
 
         /// <summary>
@@ -272,11 +270,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         /// <param name="pageDictionary"></param>
         /// <returns></returns>
-        internal static PageDictionary FromDictionary(Dictionary<Name, IPdfObject> pageDictionary, IPdfEditor pdfEditor)
+        internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
 
-            return new PageDictionary(pageDictionary, pdfEditor);
+            return new PageDictionary(pageDictionary, pdfContext, objectOrigin);
         }
 
         public class PageCreationOptions
@@ -297,13 +295,14 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 return options;
             }
 
+            // TODO: I can't remember why this was needed. Check if we can remove it.
             public PageCreationOptions Clone()
             {
                 var deepCopy = new PageCreationOptions();
 
                 if (MediaBox != null)
                 {
-                    deepCopy.MediaBox = new Rectangle(MediaBox.LowerLeft, MediaBox.UpperRight);
+                    deepCopy.MediaBox = (Rectangle)MediaBox.Clone();
                 }
 
                 return deepCopy;

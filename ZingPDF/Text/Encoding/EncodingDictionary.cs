@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -8,8 +7,8 @@ namespace ZingPDF.Text.Encoding;
 
 public class EncodingDictionary : Dictionary
 {
-    public EncodingDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    public EncodingDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
@@ -32,8 +31,8 @@ public class EncodingDictionary : Dictionary
     /// </summary>
     public OptionalProperty<ArrayObject> Differences => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.Encoding.Differences);
 
-    public static EncodingDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static EncodingDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new(dictionary, pdfEditor);
+        return new(dictionary, pdfContext, objectOrigin);
     }
 }

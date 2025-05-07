@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
+﻿using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
@@ -19,16 +18,16 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         public AnnotationDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        public AnnotationDictionary(Name subtype, IPdfEditor pdfEditor)
-            : base(Constants.DictionaryTypes.Annot, pdfEditor)
+        public AnnotationDictionary(Name subtype, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(Constants.DictionaryTypes.Annot, pdfContext, objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(subtype);
 
             Set(Constants.DictionaryKeys.Subtype, subtype);
         }
 
-        protected AnnotationDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
-            : base(dict, pdfEditor) { }
+        protected AnnotationDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dict, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// <para>(Required)</para>
@@ -219,7 +218,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
             Set(Constants.DictionaryKeys.Annotation.AP, apDict);
         }
 
-        public static AnnotationDictionary FromDictionary(Dictionary<Name, IPdfObject> annotationDictionary, IPdfEditor pdfEditor)
+        public static AnnotationDictionary FromDictionary(Dictionary<string, IPdfObject> annotationDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(annotationDictionary);
 
@@ -228,7 +227,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
                 throw new ArgumentException("Supplied argument is not an annotation dictionary.", nameof(annotationDictionary));
             }
 
-            return new(annotationDictionary, pdfEditor);
+            return new(annotationDictionary, pdfContext, objectOrigin);
         }
     }
 }

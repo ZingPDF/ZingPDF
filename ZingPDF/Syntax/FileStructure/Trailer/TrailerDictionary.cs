@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -10,8 +9,8 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     public TrailerDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private TrailerDictionary(Dictionary<Name, IPdfObject> trailerDictionary, IPdfEditor pdfEditor)
-        : base(trailerDictionary, pdfEditor) { }
+    private TrailerDictionary(Dictionary<string, IPdfObject> trailerDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(trailerDictionary, pdfContext, objectOrigin) { }
 
     public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
     public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
@@ -34,27 +33,28 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     /// Create a new <see cref="TrailerDictionary"/>.
     /// </summary>
     internal static TrailerDictionary CreateNew(
-        Number size,
-        Number? prev,
+        int size,
+        long? prev,
         IndirectObjectReference root,
         IPdfObject? encrypt,
         IndirectObjectReference? info,
         ArrayObject? id,
-        IPdfEditor pdfEditor
+        IPdfContext pdfContext,
+        ObjectOrigin objectOrigin
         )
     {
         ArgumentNullException.ThrowIfNull(size);
         ArgumentNullException.ThrowIfNull(root);
 
-        var dict = new Dictionary<Name, IPdfObject>
+        var dict = new Dictionary<string, IPdfObject>
         {
-            { Constants.DictionaryKeys.Trailer.Size, size },
+            { Constants.DictionaryKeys.Trailer.Size, (Number)size },
             { Constants.DictionaryKeys.Trailer.Root, root },
         };
 
         if (prev != null)
         {
-            dict.Add(Constants.DictionaryKeys.Trailer.Prev, prev);
+            dict.Add(Constants.DictionaryKeys.Trailer.Prev, (Number)prev.Value);
         }
 
         if (encrypt != null)
@@ -72,6 +72,6 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
             dict.Add(Constants.DictionaryKeys.Trailer.ID, id);
         }
 
-        return new(dict, pdfEditor);
+        return new(dict, pdfContext, objectOrigin);
     }
 }

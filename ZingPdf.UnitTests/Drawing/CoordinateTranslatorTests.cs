@@ -22,7 +22,7 @@ public class CoordinateTranslatorTests
         var lowerLeft = new Coordinate(10, 10);
         var upperRight = new Coordinate(100, 100);
 
-        var boundingBox = new Rectangle(lowerLeft, upperRight);
+        var boundingBox = Rectangle.FromCoordinates(lowerLeft, upperRight);
 
         new CoordinateTranslator(A.Fake<ICalculations>())
             .FlipTextCoordinatesIfRequired(0, 100, 100, CoordinateSystem.BottomUp, boundingBox).Should().BeEquivalentTo(boundingBox);
@@ -88,8 +88,8 @@ public class CoordinateTranslatorTests
         var arbitraryBoxWidth = 100;
         var arbitraryPageWidth = 100;
 
-        var boundingBox = new Rectangle(new Coordinate(arbitraryXValue, y), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
-        var translatedBoundingBox = new Rectangle(new Coordinate(arbitraryXValue, expectedYValue), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
+        var boundingBox = Rectangle.FromCoordinates(new Coordinate(arbitraryXValue, y), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
+        var translatedBoundingBox = Rectangle.FromCoordinates(new Coordinate(arbitraryXValue, expectedYValue), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
 
         new CoordinateTranslator(calculations)
             .FlipTextCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, boundingBox)

@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.DocumentStructure.PageTree;
+﻿using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Extensions
@@ -11,7 +10,7 @@ namespace ZingPDF.Extensions
         /// </summary>
         public static async Task<IList<IndirectObject>> GetSubNodesAsync(
             this PageTreeNodeDictionary pageTreeNode,
-            IPdfEditor pdfEditor
+            IPdfObjectCollection pdfEditor
             )
         {
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers

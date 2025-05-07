@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.Dictionaries;
+﻿using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Objects.Streams
@@ -9,17 +8,17 @@ namespace ZingPDF.Syntax.Objects.Streams
     /// </summary>
     public class StreamDictionary : Dictionary, IStreamDictionary
     {
-        public StreamDictionary(IPdfEditor pdfEditor)
-            : base(pdfEditor) { }
+        public StreamDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(pdfContext, objectOrigin) { }
 
-        public StreamDictionary(Dictionary dictionary)
+        public StreamDictionary(IPdfDictionary dictionary)
             : base(dictionary) { }
 
-        protected StreamDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
-            : base(streamDictionary, pdfEditor) { }
+        protected StreamDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(streamDictionary, pdfContext, objectOrigin) { }
 
         protected StreamDictionary(
-            Name? type,
+            string? type,
             Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
@@ -27,9 +26,10 @@ namespace ZingPDF.Syntax.Objects.Streams
             ShorthandArrayObject? fFilter,
             ShorthandArrayObject? fDecodeParms,
             Number? dL,
-            IPdfEditor pdfEditor
+            IPdfContext pdfContext,
+            ObjectOrigin objectOrigin
             )
-            : base(type, pdfEditor)
+            : base(type, pdfContext, objectOrigin)
         {
             Set(Constants.DictionaryKeys.Stream.Length, length);
             Set(Constants.DictionaryKeys.Stream.Filter, filter);
@@ -48,7 +48,7 @@ namespace ZingPDF.Syntax.Objects.Streams
         public OptionalArrayOrSingle<Dictionary> FDecodeParms => GetOptionalArrayOrSingle<Dictionary>(Constants.DictionaryKeys.Stream.FDecodeParms);
         public OptionalProperty<Number> DL => GetOptionalProperty<Number>(Constants.DictionaryKeys.Stream.DL);
 
-        public static StreamDictionary FromDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
+        public static StreamDictionary FromDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             if (!streamDictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
             {
@@ -57,7 +57,12 @@ namespace ZingPDF.Syntax.Objects.Streams
 
             return streamDictionary is null
                 ? throw new ArgumentNullException(nameof(streamDictionary))
-                : new(streamDictionary, pdfEditor);
+                : new(streamDictionary, pdfContext, objectOrigin);
+        }
+
+        public static StreamDictionary FromDictionary(IPdfDictionary streamDictionary)
+        {
+            return new(streamDictionary);
         }
     }
 }

@@ -12,7 +12,7 @@ public class PdfTests
     [Fact]
     public async Task AppendPage_PageCount()
     {
-        var pdf = await Pdf.LoadAsync(Files.AsStream(Files.Minimal1));
+        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
 
         var pageCount1 = await pdf.GetPageCountAsync();
 
@@ -26,7 +26,7 @@ public class PdfTests
     [Fact]
     public async Task AppendPage_CanRetrieveAfterAdding()
     {
-        var pdf = await Pdf.LoadAsync(Files.AsStream(Files.Minimal1));
+        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
 
         _ = await pdf.AppendPageAsync();
 
@@ -38,7 +38,7 @@ public class PdfTests
     [Fact]
     public async Task InsertPage_PageCount()
     {
-        var pdf = await Pdf.LoadAsync(Files.AsStream(Files.Minimal1));
+        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
 
         var pageCount1 = await pdf.GetPageCountAsync();
 

@@ -2,8 +2,6 @@
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
-using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -16,7 +14,6 @@ namespace ZingPDF;
 public class Pdf : IPdf, IDisposable
 {
     private readonly Stream _pdfInputStream;
-    private readonly DocumentCatalogDictionary _documentCatalog;
 
     private Form? _form;
 
@@ -26,38 +23,29 @@ public class Pdf : IPdf, IDisposable
         Encoding.RegisterProvider(PDFDocEncodingProvider.Instance);
     }
 
-    private Pdf(
-        Stream pdfInputStream,
-        DocumentCatalogDictionary documentCatalog,
-        IPdfEditor pdfEditor
-        )
+    private Pdf(Stream pdfInputStream)
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
-        ArgumentNullException.ThrowIfNull(documentCatalog, nameof(documentCatalog));
-        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
 
         _pdfInputStream = pdfInputStream;
-        _documentCatalog = documentCatalog;
 
-        PageTree = new PageTree(pdfEditor, documentCatalog.Pages);
-
-        IndirectObjects = pdfEditor;
+        Context = new PdfContext(pdfInputStream);
     }
 
-    public IPdfEditor IndirectObjects { get; }
+    public IPdfContext Context { get; }
 
-    public PageTree PageTree { get; }
+    public Task<IList<IndirectObject>> GetAllPagesAsync() => Context.Objects.PageTree.GetPagesAsync();
 
-    public Task<IList<IndirectObject>> GetAllPagesAsync() => PageTree.GetPagesAsync();
-
-    public Form? GetForm()
+    public async Task<Form?> GetFormAsync()
     {
-        if (_documentCatalog.AcroForm is null)
+        var documentCatalog = await Context.Objects.GetDocumentCatalogAsync();
+
+        if (documentCatalog.AcroForm is null)
         {
             return null;
         }
 
-        _form = new Form(_documentCatalog.AcroForm, IndirectObjects);
+        _form = new Form(documentCatalog.AcroForm, Context);
 
         return _form;
     }
@@ -66,35 +54,37 @@ public class Pdf : IPdf, IDisposable
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
 
-        var pageIndirectObject = (await PageTree.GetPagesAsync())[pageNumber - 1];
+        var pageIndirectObject = (await Context.Objects.PageTree.GetPagesAsync())[pageNumber - 1];
 
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
-            : new Page(pageIndirectObject, IndirectObjects);
+            : new Page(pageIndirectObject, Context);
     }
 
-    public Task<int> GetPageCountAsync() => PageTree.GetPageCountAsync();
+    public Task<int> GetPageCountAsync() => Context.Objects.PageTree.GetPageCountAsync();
 
     public async Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
         var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
 
-        var rootPageTreeNodeIndirectObject = await PageTree.GetRootPageTreeNodeAsync();
+        var rootPageTreeNodeIndirectObject = await Context.Objects.PageTree.GetRootPageTreeNodeAsync();
 
-        var page = PageDictionary.CreateNew((await _documentCatalog.Pages.GetRawValueAsync() as IndirectObjectReference)!, IndirectObjects, pageCreationOptions);
+        DocumentCatalogDictionary documentCatalog = await Context.Objects.GetDocumentCatalogAsync();
 
-        var pageIndirectObject = IndirectObjects.Add(page);
+        var page = PageDictionary.CreateNew((await documentCatalog.Pages.GetRawValueAsync() as IndirectObjectReference)!, Context, pageCreationOptions);
+
+        var pageIndirectObject = await Context.Objects.AddAsync(page);
 
         var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
         // TODO: For now, to simplify adding pages,
         // new pages are appended to the root page tree node.
         // Determine if there's a better way, like ensuring a balanced tree.
-        await rootPageTreeNode.AddChildAsync(pageIndirectObject.Id.Reference);
+        await rootPageTreeNode.AddChildAsync(pageIndirectObject.Reference);
 
-        IndirectObjects.Update(rootPageTreeNodeIndirectObject);
+        Context.Objects.Update(rootPageTreeNodeIndirectObject);
 
-        return new Page(pageIndirectObject, IndirectObjects);
+        return new Page(pageIndirectObject, Context);
     }
 
     public async Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null)
@@ -122,7 +112,7 @@ public class Pdf : IPdf, IDisposable
         var parentPageTreeNodeIndirectObject = await pageAtNumber.Dictionary.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
-        var kidsIndex = (await parentPageTreeNode.Kids.GetAsync()).ToList().IndexOf(pageAtNumber.IndirectObject.Id.Reference);
+        var kidsIndex = (await parentPageTreeNode.Kids.GetAsync()).ToList().IndexOf(pageAtNumber.IndirectObject.Reference);
 
         // Ensure page has all required properties.
         // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
@@ -133,20 +123,20 @@ public class Pdf : IPdf, IDisposable
         }
 
         var page = PageDictionary.CreateNew(
-            parentPageTreeNodeIndirectObject.Id.Reference,
-            IndirectObjects,
+            parentPageTreeNodeIndirectObject.Reference,
+            Context,
             pageCreationOptions
             );
 
-        var newPageIndirectObject = IndirectObjects.Add(page);
+        var newPageIndirectObject = await Context.Objects.AddAsync(page);
 
-        await parentPageTreeNode.AddChildAsync(newPageIndirectObject.Id.Reference);
+        await parentPageTreeNode.AddChildAsync(newPageIndirectObject.Reference);
 
         await IncrementPageCountAsync(parentPageTreeNode);
 
-        IndirectObjects.Update(parentPageTreeNodeIndirectObject);
+        Context.Objects.Update(parentPageTreeNodeIndirectObject);
 
-        return new Page(newPageIndirectObject, IndirectObjects);
+        return new Page(newPageIndirectObject, Context);
     }
 
     public async Task DeletePageAsync(int pageNumber)
@@ -169,12 +159,12 @@ public class Pdf : IPdf, IDisposable
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
 
-        await parent.RemoveChildAsync(page.IndirectObject.Id.Reference);
+        await parent.RemoveChildAsync(page.IndirectObject.Reference);
 
         await DecrementPageCountAsync(parent);
 
-        IndirectObjects.Delete(page.IndirectObject.Id);
-        IndirectObjects.Update(new IndirectObject(parentIndirectObject.Id, parent));
+        Context.Objects.Delete(page.IndirectObject.Id);
+        Context.Objects.Update(new IndirectObject(parentIndirectObject.Id, parent));
     }
 
     public async Task SetRotationAsync(Rotation rotation)
@@ -183,14 +173,14 @@ public class Pdf : IPdf, IDisposable
 
         // Each page may have a rotation property already, therefore a loop is required to set all.
         // i.e. you can't just set an inheritable property on the root page tree node.
-        foreach (var page in await PageTree.GetPagesAsync())
+        foreach (var page in await Context.Objects.PageTree.GetPagesAsync())
         {
             ((PageDictionary)page.Object).SetRotation(rotation);
-            IndirectObjects.Update(page);
+            Context.Objects.Update(page);
         }
     }
 
-    public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => new TextExtractor(this).ExtractTextAsync();
+    public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => new TextExtractor(Context).ExtractTextAsync();
 
     public void AddWatermark()
     {
@@ -206,7 +196,7 @@ public class Pdf : IPdf, IDisposable
     {
         List<IndirectObject> toBeUpdated = [];
 
-        await foreach(var obj in IndirectObjects)
+        await foreach(var obj in Context.Objects)
         {
             if (obj.Object is IStreamObject streamObj)
             {
@@ -218,7 +208,7 @@ public class Pdf : IPdf, IDisposable
 
                 // TODO: are there other image types we need to avoid
                 // Do not decompress JPEG images.
-                if (filterNames.Contains((Name)Constants.Filters.DCT))
+                if (filterNames.Cast<Name>().Any(x => x.Value == Constants.Filters.DCT))
                 {
                     continue;
                 }
@@ -228,13 +218,12 @@ public class Pdf : IPdf, IDisposable
                 // Must create a new dictionary to hold the stream properties.
                 // If we change the values then it could break subsequent decompression of object streams within this loop.
                 // (Currently decompressed object streams are not cached in the PdfObjectManager)
-                var newStreamDict = StreamDictionary.FromDictionary(new Dictionary<Name, Syntax.IPdfObject>
-                    {
-                        [Constants.DictionaryKeys.Stream.Length] = (Number)decompressedData.Length,
-                        [Constants.DictionaryKeys.Stream.DL] = (Number)decompressedData.Length
-                    },
-                    IndirectObjects
-                );
+                var newStreamDict = StreamDictionary.FromDictionary(streamObj.Dictionary);
+
+                newStreamDict.Unset(Constants.DictionaryKeys.Stream.Filter);
+                newStreamDict.Unset(Constants.DictionaryKeys.Stream.DecodeParms);
+                newStreamDict.Set<Number>(Constants.DictionaryKeys.Stream.Length, decompressedData.Length);
+                newStreamDict.Set<Number>(Constants.DictionaryKeys.Stream.DL, decompressedData.Length);
 
                 if (streamObj.Dictionary.Type != null)
                 {
@@ -252,7 +241,7 @@ public class Pdf : IPdf, IDisposable
 
         foreach (var io in toBeUpdated)
         {
-            IndirectObjects.Update(io);
+            Context.Objects.Update(io);
         }
     }
 
@@ -273,7 +262,7 @@ public class Pdf : IPdf, IDisposable
 
     public async Task AppendPdfAsync(Stream stream)
     {
-        await new PdfMerger(this, await LoadAsync(stream)).AppendAsync();
+        await new PdfMerger(this, Load(stream)).AppendAsync();
     }
 
     public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions = null)
@@ -292,7 +281,7 @@ public class Pdf : IPdf, IDisposable
 
         _form?.UpdateAsync();
 
-        var incrementalUpdate = await IndirectObjects.GenerateUpdateDeltaAsync();
+        var incrementalUpdate = await Context.Objects.GenerateUpdateDeltaAsync(Context);
         if (incrementalUpdate != null)
         {
             await incrementalUpdate.WriteAsync(outputStream);
@@ -303,7 +292,7 @@ public class Pdf : IPdf, IDisposable
         Dispose();
     }
 
-    public static async Task<Pdf> LoadAsync(Stream pdfInputStream)
+    public static Pdf Load(Stream pdfInputStream)
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
 
@@ -312,12 +301,7 @@ public class Pdf : IPdf, IDisposable
             throw new ArgumentException("Provided stream must be seekable");
         }
 
-        var documentVersions = await DocumentVersionParser.ParseDocumentVersionsAsync(pdfInputStream);
-
-        var pdfEditor = new PdfObjectManager(pdfInputStream, documentVersions);
-        var catalog = await pdfEditor.GetDocumentCatalogAsync();
-
-        return new Pdf(pdfInputStream, catalog, pdfEditor);
+        return new Pdf(pdfInputStream);
     }
 
     // TODO: move to testable class?
@@ -336,7 +320,7 @@ public class Pdf : IPdf, IDisposable
 
         await parentPageTreeNode.IncrementCountAsync();
 
-        IndirectObjects.Update(parentPageTreeNodeIndirectObject);
+        Context.Objects.Update(parentPageTreeNodeIndirectObject);
 
         await IncrementPageCountAsync(parentPageTreeNode);
     }
@@ -357,7 +341,7 @@ public class Pdf : IPdf, IDisposable
 
         await parentPageTreeNode.DecrementCountAsync();
 
-        IndirectObjects.Update(parentPageTreeNodeIndirectObject);
+        Context.Objects.Update(parentPageTreeNodeIndirectObject);
 
         await DecrementPageCountAsync(parentPageTreeNode);
     }
