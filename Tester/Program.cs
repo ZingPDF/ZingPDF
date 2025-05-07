@@ -17,6 +17,8 @@ using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Extensions;
 using System;
+using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //XSettings.InstallLicense("X/VKS0cPn5FgsCJaaaGHZIP1K7JIQ4MYlq3wxL3FA0ojxkiVPH3rYMVWQ0lkwg8KCtYy4j5CuSEXr6IrQbB/xFEsfGKZBH4/3DFMO/XgBjbi1y7S5MlUFrjUWBKMcmImUL1oUMFb8wtwCFVZoTCQbGhYcSuWVW7qmqUR6D9AYuLEkpsjtDvZ9nfHqPN1nS8YTR8X9X1YxRzwMAM7U5B+zgFTpkGfF8Z/KMLeOGHkfuTbfV4bi8H8Pj4gmWjM");
 
@@ -84,13 +86,17 @@ using System;
 
 //await Decompress("testfiles/pdf/form.pdf", "decompressed-form.pdf");
 //await Decompress("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", "decompressed-MikeyFlemingFreelance_Folio.pdf");
+//await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await ExtractText("testfiles/pdf/combobox-form.pdf");
+
+var test = new CrossReferenceEntry(0, 0, true, true);
 
 static async Task ExtractText(string input)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var extract = await pdf.ExtractTextAsync();
 
@@ -106,7 +112,7 @@ static async Task Decompress(string input, string output)
     using var inputFileStream = new FileStream(input, FileMode.Open);
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     await pdf.DecompressAsync();
 
@@ -118,9 +124,9 @@ static async Task WipeFields()
     using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("blank-form.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
-    var form = pdf.GetForm();
+    var form = await pdf.GetFormAsync();
 
     var fields = await form!.GetFieldsAsync();
 
@@ -138,9 +144,9 @@ static async Task TempFieldApTest()
 {
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
-    var form = pdf.GetForm();
+    var form = await pdf.GetFormAsync();
 
     var fields = await form!.GetFieldsAsync();
 
@@ -173,7 +179,7 @@ static async Task Test()
     //using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
     using var inputFileStream = new FileStream("testfiles/pdf/encrypted.pdf", FileMode.Open);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     //var encrypted = pdf.Encrypted;
 
@@ -185,7 +191,7 @@ static async Task Parse(string input)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var pageCount = await pdf.GetPageCountAsync();
 }
@@ -196,7 +202,7 @@ static async Task AppendPdf(string input1, string input2, string output)
     using var inputFileStream2 = new FileStream(input2, FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream1);
+    var pdf = Pdf.Load(inputFileStream1);
 
     await pdf.AppendPdfAsync(inputFileStream2);
 
@@ -208,9 +214,9 @@ static async Task CompleteForm(string input, string output)
     using var inputFileStream = new FileStream(input, FileMode.Open);
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
-    var form = pdf.GetForm()!;
+    var form = await pdf.GetFormAsync()!;
     
     var fields = await form.GetFieldsAsync();
 
@@ -255,7 +261,7 @@ static async Task AddTextToPage()
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
 
@@ -277,7 +283,7 @@ static async Task RotateWholeDocument()
     using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     await pdf.SetRotationAsync(Rotation.Degrees90);
 
@@ -289,7 +295,7 @@ static async Task RotatePage()
     using var inputFileStream = new FileStream("testfiles/pdf/test.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var page = await pdf.GetPageAsync(1);
 
@@ -303,7 +309,7 @@ static async Task AddImageToPage()
     using var inputFileStream = new FileStream("testfiles/pdf/minimal.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var page = await pdf.GetPageAsync(1);
 
@@ -340,7 +346,7 @@ static async Task AddPage(string input, string output)
     using var inputFileStream = new FileStream(input, FileMode.Open);
     using var outputFileStream = new FileStream(output, FileMode.Create);
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     var count1 = await pdf.GetPageCountAsync();
 
@@ -358,7 +364,7 @@ static async Task ParseResaveValidate(string input, string output)
     var errors = ValidatePdf("Before", inputFileStream).ToList();
     inputFileStream.Position = 0;
 
-    var pdf = await Pdf.LoadAsync(inputFileStream);
+    var pdf = Pdf.Load(inputFileStream);
 
     //var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
 

@@ -5,12 +5,20 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceSectionIndexParser : IObjectParser<CrossReferenceSectionIndex>
     {
-        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream)
+        private IPdfContext _pdfContext;
+
+        public CrossReferenceSectionIndexParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, ParseContext context)
         {
             // Example: 0 28
             return new CrossReferenceSectionIndex(
-                await Parser.Numbers.ParseAsync(stream),
-                await Parser.Numbers.ParseAsync(stream)
+                await _pdfContext.Parser.Numbers.ParseAsync(stream, context),
+                await _pdfContext.Parser.Numbers.ParseAsync(stream, context),
+                context.Origin
                 );
         }
     }

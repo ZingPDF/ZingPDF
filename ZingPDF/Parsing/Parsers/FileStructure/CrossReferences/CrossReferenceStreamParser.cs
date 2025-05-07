@@ -12,19 +12,26 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     /// Special parser for xref streams.
     /// </summary>
     /// <remarks>
-    /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IPdfEditor"/> to find any indirect objects if required.
+    /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IPdfObjectCollection"/> to find any indirect objects if required.
     /// Some xref streams use an indirect object for the Length property, which we need to create a SubStream.
     /// </remarks>
     internal class CrossReferenceStreamParser : IObjectParser<StreamObject<CrossReferenceStreamDictionary>>
     {
-        public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream)
+        private readonly IPdfContext _pdfContext;
+
+        public CrossReferenceStreamParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream, ParseContext context)
         {
             var initialStreamPosition = stream.Position;
 
-            var dict = await new CrossReferenceStreamDictionaryParser().ParseAsync(stream) as CrossReferenceStreamDictionary
+            var dict = await new CrossReferenceStreamDictionaryParser(_pdfContext).ParseAsync(stream, context) as CrossReferenceStreamDictionary
                 ?? throw new ParserException("Failed to parse xref stream");
 
-            Number streamLength = 0;
+            long streamLength = 0;
 
             var lengthValue = await dict.Length.GetRawValueAsync();
 
@@ -45,7 +52,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
                 stream.Position = location;
 
-                streamLength = await Parser.Numbers.ParseAsync(stream);
+                streamLength = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
 
                 stream.Position = position;
             }
@@ -66,7 +73,8 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
                     streamDataOffset + streamLength,
                     setToStart: false
                     ),
-                dict
+                dict,
+                context.Origin
                 )
             {
                 ByteOffset = initialStreamPosition

@@ -1,5 +1,4 @@
 ﻿using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 using ZingPDF.Syntax;
@@ -20,8 +19,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public FieldDictionary(Dictionary dict)
             : base(dict) { }
 
-        private FieldDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-            : base(dictionary, pdfEditor) { }
+        private FieldDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// (Required for terminal fields; inheritable)<para></para>
@@ -163,12 +162,12 @@ namespace ZingPDF.InteractiveFeatures.Forms
 
             ms.Position = 0;
 
-            Set(Constants.DictionaryKeys.Field.VariableText.DA, new LiteralString(await ms.GetAsync()));
+            Set<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA, await ms.GetAsync());
         }
 
-        new public static FieldDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+        new public static FieldDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
-            return new(dictionary, pdfEditor);
+            return new(dictionary, pdfContext, objectOrigin);
         }
     }
 }

@@ -8,8 +8,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
     public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(Dictionary<Name, IPdfObject> xrefStreamDictionary)
-            : base(xrefStreamDictionary, EmptyPdfEditor.Instance) { }
+        private CrossReferenceStreamDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(xrefStreamDictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// <para>
@@ -68,6 +68,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         public Number Field3Size => W.Get<Number>(2)!;
 
         public static CrossReferenceStreamDictionary CreateNew(
+            IPdfContext pdfContext,
             ArrayObject index,
             ArrayObject w,
             Number size,
@@ -83,9 +84,9 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
             ArgumentNullException.ThrowIfNull(size);
             ArgumentNullException.ThrowIfNull(root);
 
-            var dict = new Dictionary<Name, IPdfObject>
+            var dict = new Dictionary<string, IPdfObject>
             {
-                { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.XRef) },
+                { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.XRef },
                 { Constants.DictionaryKeys.CrossReferenceStream.Index, index },
                 { Constants.DictionaryKeys.CrossReferenceStream.W, w },
                 { Constants.DictionaryKeys.Trailer.Size, size },
@@ -112,17 +113,17 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
                 dict[Constants.DictionaryKeys.Trailer.ID] = id;
             }
 
-            return new(dict);
+            return new(dict, pdfContext, ObjectOrigin.UserCreated);
         }
 
-        public static CrossReferenceStreamDictionary FromDictionary(Dictionary<Name, IPdfObject> xrefStreamDictionary)
+        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
             }
 
-            return new(xrefStreamDictionary);
+            return new(xrefStreamDictionary, pdfContext, objectOrigin);
         }
 
         internal void SetSize(Number size)

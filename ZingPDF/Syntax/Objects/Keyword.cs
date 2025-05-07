@@ -5,14 +5,10 @@ namespace ZingPDF.Syntax.Objects
     /// <summary>
     /// Represents special PDF keywords, such as 'trailer', or 'startxref'.
     /// </summary>
-    public class Keyword : PdfObject
+    public class Keyword(string value, ObjectOrigin objectOrigin)
+        : PdfObject(objectOrigin)
     {
-        public Keyword(string value)
-        {
-            Value = value;
-        }
-
-        public string Value { get; }
+        public string Value { get; } = value;
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -21,7 +17,9 @@ namespace ZingPDF.Syntax.Objects
 
         public override string ToString() => $"{nameof(Keyword)}: {Value}";
 
-        public static implicit operator Keyword(string value) => new(value);
+        public override object Clone() => new Keyword(Value, Origin);
+
         public static implicit operator string(Keyword value) => value.Value;
+        public static implicit operator Keyword(string value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
     }
 }

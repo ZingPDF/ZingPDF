@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.InteractiveFeatures.Annotations;
+﻿using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -16,10 +15,10 @@ internal class CheckboxFormField : ButtonOptionsFormField
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor,
+        IPdfContext pdfContext,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor, kids)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfContext, kids)
     {
     }
 
@@ -47,7 +46,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
                 widgetDictionary.SetAppearanceState(Constants.ButtonStates.Off);
             }
 
-            _pdfEditor.Update(annot);
+            _pdfContext.Objects.Update(annot);
         }
     }
 
@@ -63,7 +62,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _pdfEditor.Update(option.AssociatedDictionary);
+        _pdfContext.Objects.Update(option.AssociatedDictionary);
 
         return Task.CompletedTask;
     }
