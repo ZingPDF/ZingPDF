@@ -22,7 +22,10 @@ public class TrailerParserTests
             "18799\r\n" +
             "%%EOF\r\n";
 
-        var trailer = await new TrailerParser().ParseAsync(input.ToStream());
+        var stream = input.ToStream();
+        var pdfContext = new PdfContext(stream);
+
+        var trailer = await pdfContext.Parser.Trailers.ParseAsync(input.ToStream(), ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         trailer.Dictionary.Size.Value.Should().Be(22);
 

@@ -39,11 +39,11 @@ public class DictionaryIdentifierTests
     public async Task IdentifyByType(string typeName, Type expectedType)
     {
         (await DictionaryIdentifier.IdentifyAsync(
-            new Dictionary<Name, IPdfObject>
+            new Dictionary<string, IPdfObject>
             {
                 [Constants.DictionaryKeys.Type] = (Name)typeName
             },
-            EmptyPdfEditor.Instance
+            A.Dummy<IPdfContext>()
         ))
         .Should().Be(expectedType);
     }
@@ -59,12 +59,12 @@ public class DictionaryIdentifierTests
     public async Task IdentifyBySubtype(string typeName, string subtypeName, Type expectedType)
     {
         (await DictionaryIdentifier.IdentifyAsync(
-            new Dictionary<Name, IPdfObject>
+            new Dictionary<string, IPdfObject>
             {
                 [Constants.DictionaryKeys.Type] = (Name)typeName,
                 [Constants.DictionaryKeys.Subtype] = (Name)subtypeName, 
             },
-            EmptyPdfEditor.Instance
+            A.Dummy<IPdfContext>()
             ))
             .Should().Be(expectedType);
     }
@@ -76,13 +76,13 @@ public class DictionaryIdentifierTests
     [InlineData("Sig")]
     public async Task IdentifyFieldDictionary(string fieldType)
     {
-        var dictionary = new Dictionary<Name, IPdfObject>
+        var dictionary = new Dictionary<string, IPdfObject>
         {
             [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Annot,
             [Constants.DictionaryKeys.Subtype] = (Name)AnnotationDictionary.Subtypes.Widget,
             [Constants.DictionaryKeys.Field.FT] = (Name)fieldType,
         };
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, A.Dummy<IPdfContext>()))
             .Should().Be(typeof(FieldDictionary));
     }
 
@@ -92,65 +92,75 @@ public class DictionaryIdentifierTests
         const int parentIndex = 572;
         const int parentGenerationNumber = 0;
 
-        var pdfEditor = A.Fake<IPdfEditor>();
-        A.CallTo(() => pdfEditor.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
-            .Returns(new Dictionary(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Field.FT] = new Name("Btn") }, pdfEditor));
+        var pdfContext = A.Fake<IPdfContext>();
 
-        var dictionary = new Dictionary<Name, IPdfObject>
+        A.CallTo(() => pdfContext.Objects.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
+            .Returns(new Dictionary(
+                new Dictionary<string, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.Field.FT] = (Name)"Btn"
+                },
+                pdfContext,
+                ObjectOrigin.None
+                ));
+
+        var dictionary = new Dictionary<string, IPdfObject>
         {
             [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Annot,
             [Constants.DictionaryKeys.Subtype] = (Name)AnnotationDictionary.Subtypes.Widget,
             [Constants.DictionaryKeys.Parent] = new IndirectObjectReference(parentIndex, 0),
         };
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, pdfEditor))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, pdfContext))
             .Should().Be(typeof(FieldDictionary));
     }
 
     [Fact]
     public async Task IdentifyStreamDictionary()
     {
-        var dictionary = new Dictionary<Name, IPdfObject>
+        var dictionary = new Dictionary<string, IPdfObject>
         {
             [Constants.DictionaryKeys.Stream.Length] = (Number)1,
         };
 
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, A.Dummy<IPdfContext>()))
             .Should().Be(typeof(StreamDictionary));
     }
 
     [Fact]
     public async Task IdentifyLinearizationDictionary()
     {
-        var dictionary = new Dictionary<Name, IPdfObject>
+        var dictionary = new Dictionary<string, IPdfObject>
         {
             [Constants.DictionaryKeys.LinearizationParameter.Linearized] = (Number)1,
         };
 
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, A.Dummy<IPdfContext>()))
             .Should().Be(typeof(LinearizationParameterDictionary));
     }
 
     [Fact]
     public async Task IdentifyInteractiveDictionary()
     {
-        var dictionary = new Dictionary<Name, IPdfObject>
+        var dictionary = new Dictionary<string, IPdfObject>
         {
             [Constants.DictionaryKeys.InteractiveForm.Fields] = (ArrayObject)[],
         };
 
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, A.Dummy<IPdfContext>()))
             .Should().Be(typeof(InteractiveFormDictionary));
     }
 
     [Fact]
     public async Task IdentifyAppearanceDictionary()
     {
-        var dictionary = new Dictionary<Name, IPdfObject>
+        var pdfContext = A.Dummy<IPdfContext>();
+
+        var dictionary = new Dictionary<string, IPdfObject>
         {
-            [Constants.DictionaryKeys.Appearance.N] = new Dictionary([], EmptyPdfEditor.Instance),
+            [Constants.DictionaryKeys.Appearance.N] = new Dictionary([], pdfContext, ObjectOrigin.None),
         };
 
-        (await DictionaryIdentifier.IdentifyAsync(dictionary, EmptyPdfEditor.Instance))
+        (await DictionaryIdentifier.IdentifyAsync(dictionary, pdfContext))
             .Should().Be(typeof(AppearanceDictionary));
     }
 }

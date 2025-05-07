@@ -1,9 +1,10 @@
 ﻿using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.FileStructure.Trailer
 {
-    public interface ITrailerDictionary : IPdfObject
+    public interface ITrailerDictionary : IPdfDictionary
     {
         /// <summary>
         /// <para>

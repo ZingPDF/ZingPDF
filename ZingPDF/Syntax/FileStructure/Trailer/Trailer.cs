@@ -10,8 +10,10 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
     {
         public Trailer(
             TrailerDictionary trailerDictionary,
-            long xrefTableByteOffset
+            long xrefTableByteOffset,
+            ObjectOrigin objectOrigin
             )
+            : base(objectOrigin)
         {
             Dictionary = trailerDictionary ?? throw new ArgumentNullException(nameof(trailerDictionary));
             XrefTableByteOffset = xrefTableByteOffset;
@@ -41,19 +43,28 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
             // 18799
             // %%EOF
 
-            await new Keyword(Constants.Trailer).WriteAsync(stream);
+            await new Keyword(Constants.Trailer, Origin).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
             await Dictionary.WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
-            await new Keyword(Constants.StartXref).WriteAsync(stream);
+            await new Keyword(Constants.StartXref, Origin).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
-            await new Number(XrefTableByteOffset).WriteAsync(stream);
+            await ((Number)XrefTableByteOffset).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
-            await new Keyword(Constants.Eof).WriteAsync(stream);
+            await new Keyword(Constants.Eof, Origin).WriteAsync(stream);
+        }
+
+        public override object Clone()
+        {
+            return new Trailer(
+                (TrailerDictionary)Dictionary.Clone(),
+                XrefTableByteOffset,
+                Origin
+            );
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
@@ -10,8 +9,8 @@ public class EncryptionDictionary : Dictionary
     public EncryptionDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    protected EncryptionDictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor) { }
+    protected EncryptionDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin) { }
 
     /// <summary>
     /// <para>

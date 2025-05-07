@@ -4,16 +4,24 @@ using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
-using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
-internal static class DocumentVersionParser
+internal class DocumentVersionParser
 {
+    private readonly IPdfContext _pdfContext;
+
+    private static readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.DocumentVersionParser);
+    
+    public DocumentVersionParser(IPdfContext pdfContext)
+    {
+        _pdfContext = pdfContext;
+    }
+
     // Parse all xref tables and streams to get all versions of the file
-    public static async Task<List<VersionInformation>> ParseDocumentVersionsAsync(Stream pdfInputStream)
+    public async Task<List<VersionInformation>> ParseDocumentVersionsAsync(Stream pdfInputStream)
     {
         List<VersionInformation> versions = [];
 
@@ -34,7 +42,7 @@ internal static class DocumentVersionParser
     // TODO: move to testable class
 
     // Given the byte offset of an xref table or stream, parse and produce a DocumentVersion instance
-    private static async Task<VersionInformation> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
+    private async Task<VersionInformation> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
     {
         VersionInformation version;
 
@@ -44,12 +52,12 @@ internal static class DocumentVersionParser
 
         if (type == typeof(Keyword))
         {
-            var xrefTable = await Parser.XrefTables.ParseAsync(pdfInputStream);
+            var xrefTable = await _pdfContext.Parser.CrossReferenceTables.ParseAsync(pdfInputStream, _parseContext);
 
             version = new VersionInformation
             {
                 CrossReferenceTable = xrefTable,
-                Trailer = await Parser.Trailers.ParseAsync(pdfInputStream),
+                Trailer = await _pdfContext.Parser.Trailers.ParseAsync(pdfInputStream, _parseContext),
                 IndirectObjects = ProcessXrefTable(xrefTable)
             };
         }
@@ -58,12 +66,12 @@ internal static class DocumentVersionParser
             // Parse object number then move stream back to start of object
             // The xref stream parser will record the byte offset which should be at the start of the indirect object
             // We only parse the object number here so that we can repair the xrefs (within ProcessXrefStreamAsync) if the stream isn't referenced.
-            var id = await Parser.Numbers.ParseAsync(pdfInputStream);
-            var genNumber = await Parser.Numbers.ParseAsync(pdfInputStream);
+            var id = await _pdfContext.Parser.Numbers.ParseAsync(pdfInputStream, _parseContext);
+            var genNumber = await _pdfContext.Parser.Numbers.ParseAsync(pdfInputStream, _parseContext);
 
             pdfInputStream.Position = xrefOffset;
 
-            var xrefStream = await new CrossReferenceStreamParser().ParseAsync(pdfInputStream);
+            var xrefStream = await new CrossReferenceStreamParser(_pdfContext).ParseAsync(pdfInputStream, _parseContext);
 
             version = new VersionInformation
             {
@@ -82,7 +90,7 @@ internal static class DocumentVersionParser
     /// <summary>
     /// Searches from the end of the file for the startxref keyword, parses the value and returns it.
     /// </summary>
-    private static async Task<int> GetMainXrefOffsetAsync(Stream pdfStream)
+    private async Task<int> GetMainXrefOffsetAsync(Stream pdfStream)
     {
         // startxref
         // Byte_offset_of_last_cross-reference_section
@@ -96,9 +104,9 @@ internal static class DocumentVersionParser
 
         pdfStream.Position = offset;
 
-        _ = await Parser.Keywords.ParseAsync(pdfStream);
+        _ = await _pdfContext.Parser.Keywords.ParseAsync(pdfStream, _parseContext);
 
-        return await Parser.Numbers.ParseAsync(pdfStream);
+        return await _pdfContext.Parser.Numbers.ParseAsync(pdfStream, _parseContext);
     }
 
     private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
@@ -122,7 +130,7 @@ internal static class DocumentVersionParser
         return xrefs;
     }
 
-    private static async Task<Dictionary<IndirectObjectId, CrossReferenceEntry>> ProcessXrefStreamAsync(
+    private async Task<Dictionary<IndirectObjectId, CrossReferenceEntry>> ProcessXrefStreamAsync(
         StreamObject<CrossReferenceStreamDictionary> xrefStream,
         IndirectObjectId xrefStreamObjectId,
         long xrefStreamByteOffset
@@ -135,7 +143,7 @@ internal static class DocumentVersionParser
         if (xrefStream.Dictionary.Index is null)
         {
             // Index defaults to a start index of zero, and the size for the count.
-            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStream.Dictionary.Size));
+            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStream.Dictionary.Size, ObjectOrigin.ParsedDocumentObject));
         }
         else
         {
@@ -146,7 +154,8 @@ internal static class DocumentVersionParser
                 xrefIndices.Add(
                     new CrossReferenceSectionIndex(
                         xrefStream.Dictionary.Index.Get<Number>(i)!,
-                        xrefStream.Dictionary.Index.Get<Number>(i + 1)!
+                        xrefStream.Dictionary.Index.Get<Number>(i + 1)!,
+                        ObjectOrigin.ParsedDocumentObject
                         )
                     );
             }
@@ -187,7 +196,13 @@ internal static class DocumentVersionParser
 
                 var key = new IndirectObjectId(index.StartIndex + j, generationNumber);
 
-                xrefs.TryAdd(key, new CrossReferenceEntry(field2, (ushort)field3, inUse: entryType != 0, compressed: isCompressed));
+                xrefs.TryAdd(key, new CrossReferenceEntry(
+                    field2,
+                    (ushort)field3,
+                    inUse: entryType != 0,
+                    compressed: isCompressed,
+                    ObjectOrigin.ParsedDocumentObject
+                    ));
             }
         }
 
@@ -197,7 +212,13 @@ internal static class DocumentVersionParser
         {
             xrefs.Add(
                 xrefStreamObjectId,
-                new CrossReferenceEntry(xrefStreamByteOffset, xrefStreamObjectId.GenerationNumber, inUse: true, compressed: false)
+                new CrossReferenceEntry(
+                    xrefStreamByteOffset,
+                    xrefStreamObjectId.GenerationNumber,
+                    inUse: true,
+                    compressed: false,
+                    ObjectOrigin.ParsedDocumentObject
+                    )
                 );
 
             if (xrefStream.Dictionary.Size != xrefs.Count)

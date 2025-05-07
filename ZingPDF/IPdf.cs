@@ -1,7 +1,6 @@
 ﻿using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -13,7 +12,7 @@ public interface IPdf
     Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();
 
-    Form? GetForm();
+    Task<Form?> GetFormAsync();
 
     Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null);
     Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null);
@@ -43,6 +42,5 @@ public interface IPdf
 
     Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions);
 
-    IPdfEditor IndirectObjects { get; }
-    PageTree PageTree { get; }
+    IPdfContext Context { get; }
 }

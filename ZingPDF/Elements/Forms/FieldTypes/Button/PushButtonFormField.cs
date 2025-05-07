@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
@@ -15,9 +14,9 @@ internal class PushButtonFormField : FormField<IPdfObject>
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor
+        IPdfContext pdfContext
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
     {
     }
 }

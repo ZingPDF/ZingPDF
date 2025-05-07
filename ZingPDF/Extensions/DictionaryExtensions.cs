@@ -1,6 +1,5 @@
 ﻿using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -28,7 +27,7 @@ namespace ZingPDF.Extensions
             return targetDict;
         }
 
-        public static async Task<IEnumerable<IFontMetricsProvider>> GetFontMetricsProvidersAsync(this ResourceDictionary resources, IPdfEditor pdfEditor)
+        public static async Task<IEnumerable<IFontMetricsProvider>> GetFontMetricsProvidersAsync(this ResourceDictionary resources, IPdfContext pdfContext)
         {
             var fontResourceMap = await resources.Font.GetAsync();
             if (fontResourceMap == null)
@@ -43,7 +42,7 @@ namespace ZingPDF.Extensions
             Dictionary<string, Stream> fontStreams = [];
             foreach (var kvp in fontResourceMap)
             {
-                var fontDict = await pdfEditor.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
+                var fontDict = await pdfContext.Objects.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
                 var fontDescriptor = await fontDict.FontDescriptor.GetAsync();
 
                 if (fontDescriptor != null)

@@ -11,6 +11,7 @@ using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 using ZingPDF.Text.CompositeFonts;
 using ZingPDF.Text.Encoding;
+using ZingPDF.Extensions;
 
 namespace ZingPDF.Elements.Drawing.Text.Extraction
 {
@@ -36,7 +37,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         public Matrix3x2 TextMatrix { get; private set; } = Matrix3x2.Identity;
         public Matrix3x2 TextLineMatrix { get; private set; } = Matrix3x2.Identity;
-        public string? FontResourceName { get; private set; }
+        public Name? FontResourceName { get; private set; }
         public float FontSize { get; private set; }
         public FontDictionary? FontDictionary { get; private set; }
         public float CharSpacing { get; private set; } = 0f;
@@ -81,7 +82,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextState.Tf:
-                    FontResourceName = ((Name)op.Operands[0]).Value;
+                    FontResourceName = (Name)op.Operands[0];
                     FontSize = (Number)op.Operands[1];
                     FontDictionary = await _fontResourceMap.GetRequiredProperty<FontDictionary>(FontResourceName).GetAsync();
                     ToUnicodeCMap = await ResolveCMapAsync(FontResourceName);
@@ -209,7 +210,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(LiteralString text, int pageNumber)
         {
-            var unicode = MapCharacterCode(text.RawBytes);
+            var unicode = MapCharacterCode(text.RawBytes.ToArray());
 
             var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
 
@@ -226,7 +227,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     Y = y,
                     Width = adv,
                     Height = EffectiveFontSizeVertical,
-                    FontName = await fontDescriptor.FontFamily.GetAsync(),
+                    FontName = (await fontDescriptor.FontFamily.GetAsync()).Decode(this),
                     FontSize = FontSize
                 });
                 prev = ch;
@@ -248,7 +249,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             {
                 if (elem is LiteralString so)
                 {
-                    string unicode = MapCharacterCode(so.RawBytes);
+                    string unicode = MapCharacterCode(so.RawBytes.ToArray());
 
                     foreach (var ch in unicode)
                     {
@@ -261,7 +262,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                             Y = y,
                             Width = adv,
                             Height = FontSize,
-                            FontName = await fontDescriptor.FontFamily.GetAsync(),
+                            FontName = (await fontDescriptor.FontFamily.GetAsync()).Decode(this),
                             FontSize = FontSize
                         });
                         prev = ch;

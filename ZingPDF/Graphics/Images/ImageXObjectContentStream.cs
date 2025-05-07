@@ -10,7 +10,8 @@ namespace ZingPDF.Graphics.Images
         private readonly Name _name;
         private readonly Rectangle _maxBounds;
 
-        public ImageXObjectContentStream(Name name, Rectangle maxBounds)
+        public ImageXObjectContentStream(Name name, Rectangle maxBounds, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _maxBounds = maxBounds ?? throw new ArgumentNullException(nameof(maxBounds));
@@ -21,13 +22,13 @@ namespace ZingPDF.Graphics.Images
             this.SaveGraphicsState();
 
             // Translate CTM
-            await stream.WriteTextAsync($"1 0 0 1 {_maxBounds.LowerLeft.X.Value} {_maxBounds.LowerLeft.Y.Value} cm ");
+            await stream.WriteTextAsync($"1 0 0 1 {_maxBounds.LowerLeft.X} {_maxBounds.LowerLeft.Y} cm ");
 
             // Rotate
             // TODO
 
             // Scale
-            await stream.WriteTextAsync($"{_maxBounds.UpperRight.X.Value} 0 0 {_maxBounds.UpperRight.Y.Value} 0 0 cm ");
+            await stream.WriteTextAsync($"{_maxBounds.UpperRight.X} 0 0 {_maxBounds.UpperRight.Y} 0 0 cm ");
 
             // Paint image
             await _name.WriteAsync(stream);

@@ -4,7 +4,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
 {
     public class CrossReferenceEntry : PdfObject
     {
-        private static readonly CrossReferenceEntry _rootFreeEntry = new(0, 65535, inUse: false, compressed: false);
+        private static readonly CrossReferenceEntry _rootFreeEntry = new(0, 65535, inUse: false, compressed: false, ObjectOrigin.None);
 
         /// <summary>
         /// Creates a <see cref="CrossReferenceEntry"/> instance.
@@ -19,12 +19,18 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
         /// For 'compressed' objects, this is the index of the object within the containing object stream.
         /// </param>
         /// <param name="inUse">Indicates whether the entry is in use, or free to be reused</param>
-        public CrossReferenceEntry(long value1, ushort value2, bool inUse, bool compressed)
+        public CrossReferenceEntry(long value1, ushort value2, bool inUse, bool compressed, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             Value1 = value1;
             Value2 = value2;
             InUse = inUse;
             Compressed = compressed;
+        }
+
+        public CrossReferenceEntry(long value1, ushort value2, bool inUse, bool compressed)
+            : this(value1, value2, inUse, compressed, ObjectOrigin.UserCreated)
+        {
         }
 
         /// <summary>
@@ -77,5 +83,10 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
         }
 
         public static CrossReferenceEntry RootFreeEntry => _rootFreeEntry;
+
+        public override object Clone()
+        {
+            return new CrossReferenceEntry(Value1, Value2, InUse, Compressed, Origin);
+        }
     }
 }
