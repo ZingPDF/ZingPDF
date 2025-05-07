@@ -7,7 +7,14 @@ namespace ZingPDF.Parsing.Parsers.DataStructures
 {
     internal class DateParser : IObjectParser<Date>
     {
-        public async ITask<Date> ParseAsync(Stream stream)
+        private IPdfContext _pdfContext;
+
+        public DateParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<Date> ParseAsync(Stream stream, ParseContext context)
         {
             await stream.AdvanceBeyondNextAsync("(D:");
 
@@ -19,7 +26,7 @@ namespace ZingPDF.Parsing.Parsers.DataStructures
 
             await stream.AdvanceBeyondNextAsync(')');
 
-            return new Date(date);
+            return new Date(date, context.Origin);
         }
 
         private static DateTimeOffset ParseCustomDateTime(string input)

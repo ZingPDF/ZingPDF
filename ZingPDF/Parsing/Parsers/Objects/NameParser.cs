@@ -8,9 +8,16 @@ namespace ZingPDF.Parsing.Parsers.Objects;
 
 internal class NameParser : IObjectParser<Name>
 {
-    readonly char[] _nameDelimiters = [.. Constants.Delimiters, .. Constants.WhitespaceCharacters];
+    private readonly IPdfContext _pdfContext;
 
-    public async ITask<Name> ParseAsync(Stream stream)
+    readonly char[] _nameDelimiters = [.. Constants.Delimiters, .. Constants.WhitespaceCharacters];
+    
+    public NameParser(IPdfContext pdfContext)
+    {
+        _pdfContext = pdfContext;
+    }
+
+    public async ITask<Name> ParseAsync(Stream stream, ParseContext context)
     {
         //Logger.Log(LogLevel.Trace, $"Parsing Name from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -43,7 +50,7 @@ internal class NameParser : IObjectParser<Name>
 
                     stream.Position = nameStart + i;
 
-                    return content.ToString().ReplaceHexCodes();
+                    return new Name(content.ToString().ReplaceHexCodes(), context.Origin);
                 }
             }
 
@@ -55,6 +62,6 @@ internal class NameParser : IObjectParser<Name>
 
         Logger.Log(LogLevel.Trace, $"Parsed Name: {{{value}}}. {stream.GetType().Name} now at: {stream.Position}.");
 
-        return value;
+        return new Name(value, context.Origin);
     }
 }

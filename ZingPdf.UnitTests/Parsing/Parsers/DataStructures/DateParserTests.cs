@@ -33,6 +33,9 @@ public class DateParserTests
     [InlineData("(D:2023)")]
     public async Task ParseAsyncBasic(string dateString)
     {
-        await new DateParser().ParseAsync(dateString.ToStream());
+        var stream = dateString.ToStream();
+        var pdfContext = new PdfContext(stream);
+
+        await pdfContext.Parser.Dates.ParseAsync(dateString.ToStream(), ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
     }
 }

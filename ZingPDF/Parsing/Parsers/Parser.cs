@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing.Parsers.DataStructures;
+﻿using ZingPDF.Parsing.Parsers.DataStructures;
 using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Parsing.Parsers.Objects;
@@ -17,68 +16,78 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers
 {
-    internal static class Parser
+    public class Parser
     {
-        private static readonly HeaderParser _headerParser = new();
-        private static readonly KeywordParser _keywordParser = new();
-        private static readonly CommentParser _commentParser = new();
-        private static readonly NameParser _nameParser = new();
-        private static readonly BooleanObjectParser _booleanObjectParser = new();
-        private static readonly NumberParser _numberParser = new();
-        private static readonly IndirectObjectReferenceParser _indirectObjectReferenceParser = new();
-        private static readonly LiteralStringParser _literalStringParser = new();
-        private static readonly HexadecimalStringParser _hexadecimalStringParser = new();
-        private static readonly CrossReferenceTableParser _xrefTableParser = new();
-        private static readonly CrossReferenceSectionParser _xrefSectionParser = new();
-        private static readonly CrossReferenceSectionIndexParser _xrefSectionIndexParser = new();
-        private static readonly CrossReferenceEntryParser _xrefEntryParser = new();
-        private static readonly DateParser _dateParser = new();
-        private static readonly TrailerParser _trailerParser = new();
+        public Parser(IPdfContext pdfContext)
+        {
+            DocumentVersions = new DocumentVersionParser(pdfContext);
+            IndirectObjects = new IndirectObjectParser(pdfContext);
+            Dictionaries = new ComplexDictionaryParser(pdfContext);
+            Arrays = new ArrayParser(pdfContext);
+            Headers = new HeaderParser(pdfContext);
+            Keywords = new KeywordParser(pdfContext);
+            Comments = new CommentParser(pdfContext);
+            Names = new NameParser(pdfContext);
+            Booleans = new BooleanObjectParser(pdfContext);
+            Numbers = new NumberParser(pdfContext);
+            IndirectObjectReferences = new IndirectObjectReferenceParser(pdfContext);
+            LiteralStrings = new LiteralStringParser(pdfContext);
+            HexadecimalStrings = new HexadecimalStringParser(pdfContext);
+            CrossReferenceTables = new CrossReferenceTableParser(pdfContext);
+            CrossReferenceSections = new CrossReferenceSectionParser(pdfContext);
+            CrossReferenceSectionIndexes = new CrossReferenceSectionIndexParser(pdfContext);
+            CrossReferenceEntries = new CrossReferenceEntryParser(pdfContext);
+            Dates = new DateParser(pdfContext);
+            Trailers = new TrailerParser(pdfContext);
+            ContentStreamParser = new ContentStreamParser(pdfContext);
+        }
 
-        internal static HeaderParser Headers => _headerParser;
-        internal static KeywordParser Keywords => _keywordParser;
-        internal static CommentParser Comments => _commentParser;
-        internal static NameParser Names => _nameParser;
-        internal static BooleanObjectParser Booleans => _booleanObjectParser;
-        internal static NumberParser Numbers => _numberParser;
-        internal static IndirectObjectReferenceParser IndirectObjectReferences => _indirectObjectReferenceParser;
-        internal static LiteralStringParser LiteralStrings => _literalStringParser;
-        internal static HexadecimalStringParser HexadecimalStrings => _hexadecimalStringParser;
-        internal static CrossReferenceTableParser XrefTables => _xrefTableParser;
-        internal static CrossReferenceSectionParser XrefSections => _xrefSectionParser;
-        internal static CrossReferenceSectionIndexParser XrefSectionIndexes => _xrefSectionIndexParser;
-        internal static CrossReferenceEntryParser XrefEntries => _xrefEntryParser;
-        internal static DateParser Dates => _dateParser;
-        internal static TrailerParser Trailers => _trailerParser;
+        internal DocumentVersionParser DocumentVersions { get; }
+        internal IndirectObjectParser IndirectObjects { get; }
+        internal ComplexDictionaryParser Dictionaries { get; }
+        internal ArrayParser Arrays { get; }
+        internal HeaderParser Headers { get; }
+        internal KeywordParser Keywords { get; }
+        internal CommentParser Comments { get; }
+        internal NameParser Names { get; }
+        internal BooleanObjectParser Booleans { get; }
+        internal NumberParser Numbers { get; }
+        internal IndirectObjectReferenceParser IndirectObjectReferences { get; }
+        internal LiteralStringParser LiteralStrings { get; }
+        internal HexadecimalStringParser HexadecimalStrings { get; }
+        internal CrossReferenceTableParser CrossReferenceTables { get; }
+        internal CrossReferenceSectionParser CrossReferenceSections { get; }
+        internal CrossReferenceSectionIndexParser CrossReferenceSectionIndexes { get; }
+        internal CrossReferenceEntryParser CrossReferenceEntries { get; }
+        internal DateParser Dates { get; }
+        internal TrailerParser Trailers { get; }
+        internal ContentStreamParser ContentStreamParser { get; }
 
-        public static IObjectParser<IPdfObject> For(Type pdfObjectType, IPdfEditor? pdfEditor = null)
-            => GetParserForType(pdfObjectType, pdfEditor);
+        public IObjectParser<IPdfObject> For(Type pdfObjectType)
+            => GetParserForType(pdfObjectType);
 
-        public static IObjectParser<T> For<T>(IPdfEditor? pdfEditor = null) where T : IPdfObject
-            => (IObjectParser<T>)GetParserForType(typeof(T), pdfEditor);
-
-        private static IObjectParser<IPdfObject> GetParserForType(Type type, IPdfEditor? pdfEditor)
+        private IObjectParser<IPdfObject> GetParserForType(Type type)
         {
             return type switch
             {
-                Type t when t == typeof(IndirectObject) => new IndirectObjectParser(pdfEditor),
-                Type t when t == typeof(Header) => _headerParser,
-                Type t when t == typeof(Keyword) => _keywordParser,
-                Type t when t == typeof(Comment) => _commentParser,
-                Type t when t == typeof(Name) => _nameParser,
-                Type t when t == typeof(Dictionary) => new ComplexDictionaryParser(pdfEditor),
-                Type t when t == typeof(ArrayObject) => new ArrayParser(pdfEditor),
-                Type t when t == typeof(BooleanObject) => _booleanObjectParser,
-                Type t when t == typeof(Number) => _numberParser,
-                Type t when t == typeof(IndirectObjectReference) => _indirectObjectReferenceParser,
-                Type t when t == typeof(LiteralString) => _literalStringParser,
-                Type t when t == typeof(HexadecimalString) => _hexadecimalStringParser,
-                Type t when t == typeof(CrossReferenceTable) => _xrefTableParser,
-                Type t when t == typeof(CrossReferenceSection) => _xrefSectionParser,
-                Type t when t == typeof(CrossReferenceSectionIndex) => _xrefSectionIndexParser,
-                Type t when t == typeof(CrossReferenceEntry) => _xrefEntryParser,
-                Type t when t == typeof(Date) => _dateParser,
-                Type t when t == typeof(Trailer) => _trailerParser,
+                Type t when t == typeof(IndirectObject) => IndirectObjects,
+                Type t when t == typeof(Dictionary) => Dictionaries,
+                Type t when t == typeof(ArrayObject) => Arrays,
+                Type t when t == typeof(Header) => Headers,
+                Type t when t == typeof(Keyword) => Keywords,
+                Type t when t == typeof(Comment) => Comments,
+                Type t when t == typeof(Name) => Names,
+                Type t when t == typeof(BooleanObject) => Booleans,
+                Type t when t == typeof(Number) => Numbers,
+                Type t when t == typeof(IndirectObjectReference) => IndirectObjectReferences,
+                Type t when t == typeof(LiteralString) => LiteralStrings,
+                Type t when t == typeof(HexadecimalString) => HexadecimalStrings,
+                Type t when t == typeof(CrossReferenceTable) => CrossReferenceTables,
+                Type t when t == typeof(CrossReferenceSection) => CrossReferenceSections,
+                Type t when t == typeof(CrossReferenceSectionIndex) => CrossReferenceSectionIndexes,
+                Type t when t == typeof(CrossReferenceEntry) => CrossReferenceEntries,
+                Type t when t == typeof(Date) => Dates,
+                Type t when t == typeof(Trailer) => Trailers,
                 _ => throw new ParserException()
             };
         }

@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -12,13 +11,13 @@ public class Type3FontDictionary : FontDictionary
     private Type3FontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private Type3FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    private Type3FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
-    public Type3FontDictionary(IPdfEditor pdfEditor)
-        : base(Subtypes.Simple.Type3, pdfEditor)
+    public Type3FontDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(Subtypes.Simple.Type3, pdfContext, objectOrigin)
     {
     }
 
@@ -61,9 +60,9 @@ public class Type3FontDictionary : FontDictionary
     /// </summary>
     public OptionalProperty<Dictionary> Resources => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Font.Type3.Resources);
 
-    public static Type3FontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static Type3FontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new Type3FontDictionary(dictionary, pdfEditor);
+        return new Type3FontDictionary(dictionary, pdfContext, objectOrigin);
     }
 
     public static Type3FontDictionary FromDictionary(Dictionary dictionary)

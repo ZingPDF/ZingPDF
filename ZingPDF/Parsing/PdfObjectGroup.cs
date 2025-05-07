@@ -1,11 +1,11 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing
 {
-    internal class PdfObjectGroup : PdfObject
+    internal class PdfObjectGroup(IEnumerable<IPdfObject> objects, ObjectOrigin origin)
+        : PdfObject(origin)
     {
-        public List<IPdfObject> Objects { get; private set; } = new();
+        public List<IPdfObject> Objects { get; } = [.. objects];
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -18,20 +18,11 @@ namespace ZingPDF.Parsing
         public T Get<T>(int index) where T : IPdfObject
             => (T)Objects[index];
 
-        public static implicit operator PdfObjectGroup(List<IPdfObject> items) => new() { Objects = items };
-        public static implicit operator PdfObjectGroup(IPdfObject[] items) => new() { Objects = [..items] };
-
-        protected void InsertNewLine() => Objects.Add(new NewLineObject());
-
-        /// <summary>
-        /// Convenience class for separating objects within a <see cref="PdfObject"/> with a new line.
-        /// </summary>
-        private class NewLineObject : PdfObject
+        public override object Clone()
         {
-            protected override async Task WriteOutputAsync(Stream stream)
-            {
-                await stream.WriteNewLineAsync();
-            }
+            var clone = new PdfObjectGroup(Objects.Select(x => (IPdfObject)x.Clone()), Origin);
+
+            return clone;
         }
     }
 }

@@ -7,7 +7,8 @@ namespace ZingPDF.Syntax.FileStructure
     /// </summary>
     internal class Header : PdfObject
     {
-        public Header(double pdfVersion = 2.0)
+        public Header(double pdfVersion, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             if (!Constants.PdfVersion.All.Contains(pdfVersion)) throw new ArgumentOutOfRangeException(nameof(pdfVersion), $"Invalid PDF version specified: {pdfVersion}");
 
@@ -27,6 +28,11 @@ namespace ZingPDF.Syntax.FileStructure
             await stream.WriteAsync(Constants.BinaryCharacters);
 
             await stream.WriteNewLineAsync();
+        }
+
+        public override object Clone()
+        {
+            return new Header(PdfVersion, Origin);
         }
     }
 }

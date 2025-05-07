@@ -9,12 +9,8 @@ namespace ZingPDF.Syntax.CommonDataStructures
     /// </summary>
     public class Rectangle : PdfObject
     {
-        public Rectangle(Number lowerLeftX, Number lowerLeftY, Number upperRightX, Number upperRightY)
-            : this(new Coordinate(lowerLeftX, lowerLeftY), new Coordinate(upperRightX, upperRightY))
-        {
-        }
-
-        public Rectangle(Coordinate lowerLeft, Coordinate upperRight)
+        private Rectangle(Coordinate lowerLeft, Coordinate upperRight, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(lowerLeft, nameof(lowerLeft));
             ArgumentNullException.ThrowIfNull(upperRight, nameof(upperRight));
@@ -30,6 +26,8 @@ namespace ZingPDF.Syntax.CommonDataStructures
         public Number Height => UpperRight.Y - LowerLeft.Y;
 
         public Size Size => new(Width, Height);
+
+        public static implicit operator Rectangle(Size size) => FromSize(size);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -49,7 +47,24 @@ namespace ZingPDF.Syntax.CommonDataStructures
             await stream.WriteCharsAsync(Constants.Characters.RightSquareBracket);
         }
 
-        public static Rectangle FromDimensions(Number width, Number height) => new(new(0, 0), new(width, height));
-        public static Rectangle FromSize(Size size) => new(new(0, 0), new(size.Width, size.Height));
+        public static Rectangle FromDimensions(double width, double height)
+            => new(new(0, 0), new(width, height), ObjectOrigin.UserCreated);
+
+        public static Rectangle FromDimensions(double width, double height, ObjectOrigin objectOrigin)
+            => new(new(0, 0), new(width, height), objectOrigin);
+
+        public static Rectangle FromSize(Size size)
+            => new(new(0, 0), new(size.Width, size.Height), ObjectOrigin.UserCreated);
+
+        public static Rectangle FromSize(Size size, ObjectOrigin objectOrigin)
+            => new(new(0, 0), new(size.Width, size.Height), objectOrigin);
+
+        public static Rectangle FromCoordinates(Coordinate lowerLeft, Coordinate upperRight)
+            => new(lowerLeft, upperRight, ObjectOrigin.UserCreated);
+
+        public static Rectangle FromCoordinates(Coordinate lowerLeft, Coordinate upperRight, ObjectOrigin objectOrigin)
+            => new(lowerLeft, upperRight, objectOrigin);
+
+        public override object Clone() => FromSize(Size, Origin);
     }
 }

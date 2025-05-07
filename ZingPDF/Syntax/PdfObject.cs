@@ -1,23 +1,30 @@
-﻿namespace ZingPDF.Syntax
+﻿namespace ZingPDF.Syntax;
+
+/// <summary>
+/// Represents a PDF object as described in ISO 32000-2:2020 7.1. This is an abstract class.
+/// </summary>
+public abstract class PdfObject : IPdfObject
 {
-    /// <summary>
-    /// Represents a PDF object as described in ISO 32000-2:2020 7.1. This is an abstract class.
-    /// </summary>
-    public abstract class PdfObject : IPdfObject
+    protected PdfObject(ObjectOrigin origin = ObjectOrigin.UserCreated)
     {
-        public bool Written { get; private set; }
-
-        public long? ByteOffset { get; internal set; }
-
-        public async Task WriteAsync(Stream stream)
-        {
-            ByteOffset = stream.Position;
-
-            await WriteOutputAsync(stream);
-
-            Written = true;
-        }
-
-        protected abstract Task WriteOutputAsync(Stream stream);
+        Origin = origin;
     }
+
+    public ObjectOrigin Origin { get; }
+
+    public bool Written { get; private set; }
+    public long? ByteOffset { get; internal set; }
+
+    public async Task WriteAsync(Stream stream)
+    {
+        ByteOffset = stream.Position;
+
+        await WriteOutputAsync(stream);
+
+        Written = true;
+    }
+
+    protected abstract Task WriteOutputAsync(Stream stream);
+
+    public abstract object Clone();
 }

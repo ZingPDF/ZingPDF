@@ -10,24 +10,33 @@ namespace ZingPDF.Syntax.Objects.Strings
     /// </remarks>
     public class HexadecimalString : PdfObject
     {
-        private HexadecimalString()
+        private HexadecimalString(IEnumerable<byte> value, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
-            Value = string.Empty;
+            RawBytes = value;
         }
 
-        public string Value { get; private set; }
+        public IEnumerable<byte> RawBytes { get; }
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteCharsAsync(Constants.Characters.LessThan);
-            await stream.WriteTextAsync(Value);
+            await stream.WriteTextAsync(Convert.ToHexString([.. RawBytes]));
             await stream.WriteCharsAsync(Constants.Characters.GreaterThan);
         }
 
-        public static HexadecimalString FromBytes(byte[] value) => new() { Value = Convert.ToHexString(value) };
-        public static HexadecimalString FromHexStringValue(string value) => new() { Value = value };
+        public static HexadecimalString FromBytes(byte[] value, ObjectOrigin objectOrigin)
+            => new(value, objectOrigin);
 
-        public static implicit operator HexadecimalString(string value) => FromHexStringValue(value);
-        public static implicit operator string(HexadecimalString value) => value.Value;
+        public static HexadecimalString FromHexString(string value, ObjectOrigin objectOrigin)
+            => new(Convert.FromHexString(value), objectOrigin);
+
+        public override object Clone()
+        {
+            return new HexadecimalString(RawBytes, Origin);
+        }
+
+        public static implicit operator string(HexadecimalString value) => Convert.ToHexString([.. value.RawBytes]);
+        public static implicit operator HexadecimalString(string value) => FromHexString(value, ObjectOrigin.ImplicitOperatorConversion);
     }
 }

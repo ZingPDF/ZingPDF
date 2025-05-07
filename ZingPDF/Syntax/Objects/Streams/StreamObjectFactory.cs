@@ -17,7 +17,7 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
     protected abstract Task<Stream> GetDataAsync();
     protected virtual IEnumerable<FilterConfig> GetFilters() => [];
 
-    public async Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary)
+    public async Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary, ObjectOrigin objectOrigin)
         where TDictionary : class, IStreamDictionary
     {
         var rawData = await GetDataAsync()
@@ -26,7 +26,7 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
         var filters = GetFilters();
 
         var data = CompressDataIfRequired(rawData, filters);
-        SetStreamDictionaryProperties(data.Length, rawData.Length, filters, dictionary);
+        SetStreamDictionaryProperties(data.Length, rawData.Length, filters, dictionary, objectOrigin);
 
         return new StreamObject<TDictionary>(data, dictionary);
     }
@@ -56,23 +56,27 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
         long compressedLength,
         long uncompressedLength,
         IEnumerable<FilterConfig> filters,
-        TDictionary dictionary
+        TDictionary dictionary,
+        ObjectOrigin objectOrigin
         )
         where TDictionary : class, IStreamDictionary
     {
-        dictionary.Set(DictionaryKeys.Stream.Length, (Number)compressedLength);
-        dictionary.Set(DictionaryKeys.Stream.DL, (Number)uncompressedLength);
+        dictionary.Set<Number>(DictionaryKeys.Stream.Length, compressedLength);
+        dictionary.Set<Number>(DictionaryKeys.Stream.DL, uncompressedLength);
         
         if (!filters.Any())
         {
             return dictionary;
         }
 
-        dictionary.Set(DictionaryKeys.Stream.Filter, new ShorthandArrayObject(filters.Select(f => f.FilterName)));
+        dictionary.Set(DictionaryKeys.Stream.Filter, new ShorthandArrayObject(filters.Select(f => f.FilterName), objectOrigin));
 
         if (filters.Any(f => f.DecodeParms != null))
         {
-            dictionary.Set(DictionaryKeys.Stream.DecodeParms, new ShorthandArrayObject(filters.Select(f => (IPdfObject)f.DecodeParms ?? new Null())));
+            dictionary.Set(
+                DictionaryKeys.Stream.DecodeParms,
+                new ShorthandArrayObject(filters.Select(f => (IPdfObject)f.DecodeParms ?? new Null(objectOrigin)), objectOrigin)
+                );
         }
 
         return dictionary;

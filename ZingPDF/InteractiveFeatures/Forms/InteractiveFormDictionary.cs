@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -16,8 +15,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public InteractiveFormDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        private InteractiveFormDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-            : base(dictionary, pdfEditor) { }
+        private InteractiveFormDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// (Required) An array of references to the document’s root fields (those with no ancestors in the field hierarchy).
@@ -82,8 +81,6 @@ namespace ZingPDF.InteractiveFeatures.Forms
 
         public void SetNeedAppearances(BooleanObject needAppearances)
         {
-            ArgumentNullException.ThrowIfNull(needAppearances);
-
             Set(Constants.DictionaryKeys.InteractiveForm.NeedAppearances, needAppearances);
         }
 
@@ -94,9 +91,9 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set(Constants.DictionaryKeys.InteractiveForm.DR, resources);
         }
 
-        public static InteractiveFormDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+        public static InteractiveFormDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
-            return new(dict, pdfEditor);
+            return new(dict, pdfContext, objectOrigin);
         }
     }
 }
