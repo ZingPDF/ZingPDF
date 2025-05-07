@@ -1,8 +1,6 @@
 ﻿using MorseCode.ITask;
-using System.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects.Strings;
-using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
 {
@@ -12,7 +10,14 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
     /// </summary>
     internal class LiteralStringParser : IObjectParser<LiteralString>
     {
-        public async ITask<LiteralString> ParseAsync(Stream stream)
+        private IPdfContext _pdfContext;
+
+        public LiteralStringParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<LiteralString> ParseAsync(Stream stream, ParseContext context)
         {
             await stream.AdvanceToNextAsync(Constants.Characters.LeftParenthesis);
 
@@ -22,27 +27,10 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
             // 2) Unescape octal sequences and backslash escapes to get actual bytes
             byte[] unescaped = PdfStringUnescaper.Unescape(raw);
 
-            // 3) Detect encoding and BOM length from unescaped bytes
-            var detection = PdfStringEncodingDetector.Detect(unescaped);
-            Encoding encoding = detection.Encoding;
-            int preambleLen = detection.PreambleLength;
-
-            // 4) Strip BOM/preamble bytes
-            byte[] contentBytes = [.. unescaped.Skip(preambleLen)];
-
-            // 5) Return
-            var result = new LiteralString(contentBytes, MapToLiteralStringEncoding(encoding));
+            // 3) Return
+            var result = LiteralString.FromBytes(unescaped, context.Origin);
 
             return result;
-        }
-
-        private static LiteralStringEncoding MapToLiteralStringEncoding(Encoding enc)
-        {
-            if (enc is UTF8Encoding) return LiteralStringEncoding.UTF8;
-            if (enc is UnicodeEncoding u && u.CodePage == 1201) return LiteralStringEncoding.UTF16BE;
-            if (enc is PDFDocEncoding) return LiteralStringEncoding.PDFDocEncoding;
-            // default/fallback: treat as PDFDocEncoding
-            return LiteralStringEncoding.PDFDocEncoding;
         }
     }
 }

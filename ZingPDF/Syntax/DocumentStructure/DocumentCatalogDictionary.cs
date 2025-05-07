@@ -1,5 +1,4 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -18,8 +17,8 @@ namespace ZingPDF.Syntax.DocumentStructure
         public DocumentCatalogDictionary(Dictionary documentCatalogDictionary)
             : base(documentCatalogDictionary) { }
 
-        private DocumentCatalogDictionary(Dictionary<Name, IPdfObject> documentCatalogDictionary, IPdfEditor pdfEditor)
-            : base(documentCatalogDictionary, pdfEditor) { }
+        private DocumentCatalogDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(documentCatalogDictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// <para>
@@ -249,11 +248,11 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// </summary>
         public OptionalProperty<Dictionary> DPartRoot => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.DPartRoot);
 
-        public static DocumentCatalogDictionary FromDictionary(Dictionary<Name, IPdfObject> documentCatalogDictionary, IPdfEditor pdfEditor) 
+        public static DocumentCatalogDictionary FromDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin) 
         {
             return documentCatalogDictionary is null
                 ? throw new ArgumentNullException(nameof(documentCatalogDictionary))
-                : new(documentCatalogDictionary, pdfEditor);
+                : new(documentCatalogDictionary, pdfContext, objectOrigin);
         }
     }
 }

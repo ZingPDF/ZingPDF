@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.Streams;
@@ -8,8 +7,8 @@ namespace ZingPDF.Syntax.Functions
 {
     internal abstract class StreamFunctionDictionary : FunctionDictionary, IStreamDictionary
     {
-        protected StreamFunctionDictionary(Number functionType, IPdfEditor pdfEditor)
-            : base(functionType, pdfEditor) { }
+        protected StreamFunctionDictionary(Number functionType, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(functionType, pdfContext, objectOrigin) { }
 
         protected StreamFunctionDictionary(Dictionary dict) : base(dict) { }
 

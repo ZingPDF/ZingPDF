@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -10,19 +9,19 @@ public class TrueTypeFontDictionary : FontDictionary
     private TrueTypeFontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private TrueTypeFontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    private TrueTypeFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
-    public TrueTypeFontDictionary(IPdfEditor pdfEditor)
-        : base(Subtypes.Simple.TrueType, pdfEditor)
+    public TrueTypeFontDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(Subtypes.Simple.TrueType, pdfContext, objectOrigin)
     {
     }
 
-    public static TrueTypeFontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static TrueTypeFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new TrueTypeFontDictionary(dictionary, pdfEditor);
+        return new TrueTypeFontDictionary(dictionary, pdfContext, objectOrigin);
     }
 
     public static TrueTypeFontDictionary FromDictionary(Dictionary dictionary)

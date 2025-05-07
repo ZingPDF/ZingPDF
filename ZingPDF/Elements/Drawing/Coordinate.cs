@@ -1,11 +1,9 @@
-﻿using ZingPDF.Syntax.Objects;
-
-namespace ZingPDF.Elements.Drawing
+﻿namespace ZingPDF.Elements.Drawing
 {
-    public class Coordinate(Number x, Number y)
+    public class Coordinate(double x, double y)
     {
-        public Number X { get; set; } = x ?? throw new ArgumentNullException(nameof(x));
-        public Number Y { get; set; } = y ?? throw new ArgumentNullException(nameof(y));
+        public double X { get; set; } = x;
+        public double Y { get; set; } = y;
 
         public static Coordinate Zero => new(0, 0);
     }

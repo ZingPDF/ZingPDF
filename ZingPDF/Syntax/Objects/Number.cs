@@ -6,8 +6,13 @@ namespace ZingPDF.Syntax.Objects
     /// <summary>
     /// ISO 32000-2:2020 7.3.3 - Numeric objects
     /// </summary>
-    public class Number(double value) : PdfObject
+    public class Number(double value, ObjectOrigin objectOrigin) : PdfObject(objectOrigin)
     {
+        public Number(double value)
+            : this(value, ObjectOrigin.UserCreated)
+        {
+        }
+
         public double Value { get; } = value;
 
         protected override async Task WriteOutputAsync(Stream stream)
@@ -17,9 +22,11 @@ namespace ZingPDF.Syntax.Objects
 
         public override string ToString() => $"{nameof(Number)}: {Value.ToString("0.######", CultureInfo.InvariantCulture)}";
 
-        public static implicit operator Number(int value) => new(value);
-        public static implicit operator Number(long value) => new(value);
-        public static implicit operator Number(double value) => new(value);
+        public override object Clone() => new Number(Value, Origin);
+
+        public static implicit operator Number(int value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
+        public static implicit operator Number(long value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
+        public static implicit operator Number(double value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
 
         public static implicit operator ushort(Number value) => (ushort)value.Value;
         public static implicit operator int?(Number? value) => (int?)value?.Value;

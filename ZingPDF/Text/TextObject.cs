@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.CommonDataStructures;
+﻿using ZingPDF.Extensions;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects.Strings;
 
@@ -8,19 +9,20 @@ public class TextObject : ContentStream
 {
     // TODO: should the position of the text box be controlled outside this object?
     //  text object should be text, font, size, box size
-    public TextObject(LiteralString text, Rectangle boundingBox, FontOptions fontOptions)
+    public TextObject(string text, Rectangle boundingBox, FontOptions fontOptions)
+        : base(ObjectOrigin.UserCreated)
     {
         ArgumentNullException.ThrowIfNull(text, nameof(text));
         ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));
 
         // Replace EOL characters with T* operators
         // TODO: test this
-        text = text.Value.Replace(new string(Constants.EndOfLineCharacters), $") {Operators.TextPositioning.TStar} (");
+        text = text.Replace(new string(Constants.EndOfLineCharacters), $") {Operators.TextPositioning.TStar} (");
 
         // TODO: test text box size and text position etc
         this
             .SaveGraphicsState()
-            .SetClippingPath(Rectangle.FromSize(boundingBox.Size))
+            .SetClippingPath(boundingBox.Size)
             .SetTextState(fontOptions.ResourceName, fontOptions.Size)
             .SetColour(fontOptions.Colour)
             .BeginTextObject()

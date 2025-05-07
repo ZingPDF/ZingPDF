@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
@@ -16,7 +15,8 @@ public class MetadataStreamDictionary : StreamDictionary
         ShorthandArrayObject? fFilter,
         ShorthandArrayObject? fDecodeParms,
         Number? dL,
-        IPdfEditor pdfEditor
+        IPdfContext pdfContext,
+        ObjectOrigin objectOrigin
         )
         : base(
             Constants.DictionaryTypes.Metadata,
@@ -27,16 +27,17 @@ public class MetadataStreamDictionary : StreamDictionary
             fFilter,
             fDecodeParms,
             dL,
-            pdfEditor
+            pdfContext,
+            objectOrigin
             )
     {
         Set<Name>(Constants.DictionaryKeys.Subtype, "XML");
     }
 
-    protected MetadataStreamDictionary(Dictionary<Name, IPdfObject> streamDictionary, IPdfEditor pdfEditor)
-            : base(streamDictionary, pdfEditor) { }
+    protected MetadataStreamDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(streamDictionary, pdfContext, objectOrigin) { }
 
-    new public static MetadataStreamDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    new public static MetadataStreamDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
         if (!dictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
         {
@@ -45,6 +46,6 @@ public class MetadataStreamDictionary : StreamDictionary
 
         return dictionary is null
             ? throw new ArgumentNullException(nameof(dictionary))
-            : new(dictionary, pdfEditor);
+            : new(dictionary, pdfContext, objectOrigin);
     }
 }

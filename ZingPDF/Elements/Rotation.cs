@@ -4,14 +4,14 @@ namespace ZingPDF.Elements
 {
     public class Rotation
     {
-        private readonly int _amount;
-
-        private Rotation(int amount)
+        private Rotation(int value)
         {
-            if (amount % 90 != 0) throw new ArgumentOutOfRangeException(nameof(amount), "Rotation value must be a multiple of 90");
+            if (value % 90 != 0) throw new ArgumentOutOfRangeException(nameof(value), "Rotation value must be a multiple of 90");
 
-            _amount = amount;
+            Value = value;
         }
+
+        public int Value { get; }
 
         public static readonly Rotation None = new(0);
         public static readonly Rotation Degrees90 = new(90);
@@ -20,9 +20,9 @@ namespace ZingPDF.Elements
 
         public static Rotation FromValue(int value) => new(value);
 
-        public static implicit operator Number(Rotation rotation) => new(rotation._amount);
         public static implicit operator Rotation(Number rotation) => new(rotation);
 
-        public static Rotation operator +(Number a, Rotation b) => new((int)a.Value + b._amount);
+        public static Rotation operator +(Number a, Rotation b) => new((int)a.Value + b.Value);
+        public static Rotation operator +(Rotation a, Rotation b) => new(a.Value + b.Value);
     }
 }

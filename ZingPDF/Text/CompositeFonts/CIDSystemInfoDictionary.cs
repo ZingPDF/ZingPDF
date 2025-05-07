@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -9,8 +8,8 @@ namespace ZingPDF.Text.CompositeFonts;
 
 public class CIDSystemInfoDictionary : Dictionary
 {
-    public CIDSystemInfoDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    public CIDSystemInfoDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
@@ -34,8 +33,8 @@ public class CIDSystemInfoDictionary : Dictionary
     /// </summary>
     public RequiredProperty<Number> Supplement => GetRequiredProperty<Number>(Constants.DictionaryKeys.Font.CIDSystemInfo.Supplement);
 
-    public static CIDSystemInfoDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static CIDSystemInfoDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new CIDSystemInfoDictionary(dictionary, pdfEditor);
+        return new CIDSystemInfoDictionary(dictionary, pdfContext, objectOrigin);
     }
 }

@@ -46,7 +46,7 @@ namespace ZingPDF.Elements.Drawing
 
             var origin = FlipCoordinates([boundingBox.UpperRight], Convert.ToInt32(newHeight - boundingBox.Height)).First();
 
-            return new Rectangle(origin, new Coordinate(boundingBox.Width, boundingBox.Height));
+            return Rectangle.FromCoordinates(origin, new Coordinate(boundingBox.Width, boundingBox.Height), boundingBox.Origin);
         }
 
         public IEnumerable<Coordinate> RotateCoordinates(int angle, double pageWidth, double pageHeight, params Coordinate[] coordinates)

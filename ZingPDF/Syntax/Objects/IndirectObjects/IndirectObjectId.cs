@@ -11,8 +11,6 @@
         public int Index { get; }
         public ushort GenerationNumber { get; internal set; }
 
-        public IndirectObjectReference Reference { get => new(this); }
-
         public override bool Equals(object? obj)
         {
             return obj is IndirectObjectId id &&
