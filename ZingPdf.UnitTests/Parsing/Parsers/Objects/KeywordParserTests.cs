@@ -19,7 +19,8 @@ public class KeywordParserTests
 
         Keyword expectedKeyword = expected;
 
-        var output = await new KeywordParser().ParseAsync(input);
+        var output = await new KeywordParser(A.Dummy<IPdfContext>())
+            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedKeyword);
 

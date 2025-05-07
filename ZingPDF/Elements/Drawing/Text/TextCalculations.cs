@@ -35,7 +35,10 @@ internal class TextCalculations : ITextCalculations
         FontMetrics fontMetrics = fontProvider.GetFontMetrics(fontName);
 
         // Calculate a bounding box which is 2 pixels smaller on all sides to account for padding
-        var paddedBoundingBox = Rectangle.FromDimensions(boundingBox.Width - 4, boundingBox.Height - 4);
+        var paddedBoundingBox = Rectangle.FromDimensions(
+            boundingBox.Width - 4,
+            boundingBox.Height - 4
+            );
 
         int totalFontHeight = fontMetrics.Ascent - fontMetrics.Descent;
 

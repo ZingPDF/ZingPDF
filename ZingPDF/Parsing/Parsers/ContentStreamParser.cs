@@ -1,5 +1,4 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -9,18 +8,18 @@ namespace ZingPDF.Parsing.Parsers;
 internal class ContentStreamParser : IObjectParser<ContentStream>
 {
     private static readonly HashSet<string> _operatorSet = [.. ContentStream.Operators.All];
-    private readonly IPdfEditor _pdfEditor;
+    private readonly IPdfContext _pdfContext;
 
-    public ContentStreamParser(IPdfEditor pdfEditor)
+    public ContentStreamParser(IPdfContext pdfContext)
     {
-        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
+        ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
 
-        _pdfEditor = pdfEditor;
+        _pdfContext = pdfContext;
     }
 
-    public async ITask<ContentStream> ParseAsync(Stream stream)
+    public async ITask<ContentStream> ParseAsync(Stream stream, ParseContext context)
     {
-        var group = await new PdfObjectGroupParser(_pdfEditor).ParseAsync(stream);
+        var group = await new PdfObjectGroupParser(_pdfContext).ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream));
 
         List<ContentStreamOperation> instructions = [];
         List<IPdfObject> operands = [];
@@ -40,6 +39,6 @@ internal class ContentStreamParser : IObjectParser<ContentStream>
             }
         }
 
-        return new ContentStream(instructions);
+        return new ContentStream(instructions, context.Origin);
     }
 }

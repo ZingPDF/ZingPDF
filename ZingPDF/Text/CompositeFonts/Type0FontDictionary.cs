@@ -1,6 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
 namespace ZingPDF.Text.CompositeFonts;
@@ -10,19 +8,19 @@ public class Type0FontDictionary : FontDictionary
     private Type0FontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private Type0FontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    private Type0FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
-    public Type0FontDictionary(IPdfEditor pdfEditor)
-        : base(Subtypes.Composite.Type0, pdfEditor)
+    public Type0FontDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(Subtypes.Composite.Type0, pdfContext, objectOrigin)
     {
     }
 
-    public static Type0FontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static Type0FontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new Type0FontDictionary(dictionary, pdfEditor);
+        return new Type0FontDictionary(dictionary, pdfContext, objectOrigin);
     }
 
     public static Type0FontDictionary FromDictionary(Dictionary dictionary)

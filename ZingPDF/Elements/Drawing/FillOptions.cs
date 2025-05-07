@@ -2,16 +2,11 @@
 
 namespace ZingPDF.Elements.Drawing
 {
-    public class FillOptions
+    public class FillOptions(RGBColour colour)
     {
-        public FillOptions(RGBColour colour)
-        {
-            Colour = colour ?? throw new ArgumentNullException(nameof(colour));
-        }
-
         /// <summary>
         /// Fill colour.
         /// </summary>
-        public RGBColour Colour { get; } = RGBColour.Black;
+        public RGBColour Colour { get; } = colour ?? throw new ArgumentNullException(nameof(colour));
     }
 }

@@ -2,18 +2,36 @@
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
 
-public class ContentStream : PdfObject
+public class ContentStream(ObjectOrigin objectOrigin)
+    : PdfObject(objectOrigin)
 {
-    public ContentStream() { }
-
-    public ContentStream(IEnumerable<ContentStreamOperation> operations)
+    public ContentStream(IEnumerable<ContentStreamOperation> operations, ObjectOrigin objectOrigin)
+        : this(objectOrigin)
     {
         ArgumentNullException.ThrowIfNull(nameof(operations));
 
-        Operations = operations.ToList();
+        Operations = [.. operations];
+    }
+
+    public ContentStream(IEnumerable<ContentStreamOperation> operations)
+        : this(operations, ObjectOrigin.UserCreated)
+    {
+    }
+
+    public ContentStream()
+        : this(ObjectOrigin.UserCreated)
+    {
     }
 
     public List<ContentStreamOperation> Operations { get; } = [];
+
+    public override object Clone()
+    {
+        return new ContentStream(
+            [.. Operations.Select(x => (ContentStreamOperation)x.Clone())],
+            Origin
+            );
+    }
 
     protected override async Task WriteOutputAsync(Stream stream)
     {
