@@ -1,6 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-
-namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
+﻿namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 /// <summary>
 /// Wrapper for an optional value.
@@ -10,8 +8,8 @@ namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 /// When they are a reference, the property value is represented as an indirect object elsewhere in the PDF.
 /// This class exposes a <see cref="GetAsync"/> method which resolves the value in either case.
 /// </remarks>
-public class OptionalProperty<T>(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-    : BaseProperty(key, dictionary, pdfEditor) where T : class, IPdfObject
+public class OptionalProperty<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
+    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
 {
     /// <summary>
     /// Retrieve the property value.

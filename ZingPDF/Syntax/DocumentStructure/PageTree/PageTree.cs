@@ -1,36 +1,34 @@
 ﻿using Nito.AsyncEx;
 using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree;
 
 public class PageTree
 {
-    private readonly IPdfEditor _pdfEditor;
+    private readonly IPdfObjectCollection _objects;
 
     private readonly AsyncLazy<IndirectObject> _rootPageTreeNode;
     private readonly ResettableAsyncLazy<IList<IndirectObject>> _nodes;
 
-    public PageTree(IPdfEditor pdfEditor, RequiredProperty<PageTreeNodeDictionary> rootPageTreeNode)
+    public PageTree(IPdfObjectCollection objects)
     {
-        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
-        ArgumentNullException.ThrowIfNull(rootPageTreeNode, nameof(rootPageTreeNode));
+        ArgumentNullException.ThrowIfNull(objects, nameof(objects));
 
-        _pdfEditor = pdfEditor;
+        _objects = objects;
 
         _rootPageTreeNode = new AsyncLazy<IndirectObject>(async () =>
         {
-            return await rootPageTreeNode.GetIndirectObjectAsync()
-                ?? throw new InvalidPdfException("Unable to find root page tree node");
+            var documentCatalog = await _objects.GetDocumentCatalogAsync();
+
+            return await documentCatalog.Pages.GetIndirectObjectAsync();
         });
 
         _nodes = new ResettableAsyncLazy<IList<IndirectObject>>(async () =>
         {
             var rootPageTreeNode = await _rootPageTreeNode;
 
-            var subNodes = await ((PageTreeNodeDictionary)rootPageTreeNode.Object).GetSubNodesAsync(_pdfEditor);
+            var subNodes = await ((PageTreeNodeDictionary)rootPageTreeNode.Object).GetSubNodesAsync(_objects);
 
             return new List<IndirectObject>([rootPageTreeNode, ..subNodes]);
         });

@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries
@@ -8,103 +7,114 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary : PdfObject, IPdfDictionary
+    public class Dictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : PdfObject(objectOrigin), IPdfDictionary
     {
-        private readonly Dictionary<Name, IPdfObject> _dictionary;
-        private readonly IPdfEditor _pdfEditor;
-
-        public Dictionary(IPdfEditor pdfEditor)
+        public Dictionary(Name type, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : this(pdfContext, objectOrigin)
         {
-            _dictionary = [];
-
-            _pdfEditor = pdfEditor;
-        }
-
-        public Dictionary(Name type, IPdfEditor pdfEditor)
-        {
-            _dictionary = [];
+            InnerDictionary = [];
 
             if (type is not null)
             {
-                _dictionary[Constants.DictionaryKeys.Type] = type;
+                InnerDictionary[Constants.DictionaryKeys.Type] = type;
             }
-
-            _pdfEditor = pdfEditor;
         }
 
-        public Dictionary(IEnumerable<KeyValuePair<Name, IPdfObject>> dictionary, IPdfEditor pdfEditor)
+        public Dictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : this(pdfContext, objectOrigin)
         {
-            _dictionary = dictionary?.ToDictionary() ?? throw new ArgumentNullException(nameof(dictionary));
-            _pdfEditor = pdfEditor;
+            ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
+
+            InnerDictionary = dictionary.ToDictionary();
         }
 
-        public Dictionary(Dictionary dictionary)
+        public Dictionary(IPdfDictionary dictionary)
+            : this(dictionary.InnerDictionary, dictionary.PdfContext, dictionary.Origin)
         {
-            _dictionary = dictionary._dictionary;
-            _pdfEditor = dictionary._pdfEditor;
         }
+
+        public IPdfContext PdfContext { get; } = pdfContext;
+        public Dictionary<string, IPdfObject> InnerDictionary { get; } = [];
 
         public Name? Type => GetAs<Name>(Constants.DictionaryKeys.Type);
         public Name Subtype => GetAs<Name>(Constants.DictionaryKeys.Subtype);
 
-        public T GetAs<T>(Name key) where T : class?, IPdfObject?
-            => (_dictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;
+        public T GetAs<T>(string key) where T : class?, IPdfObject?
+            => (InnerDictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;
 
-        public RequiredProperty<T> GetRequiredProperty<T>(Name key) where T : class, IPdfObject
-            => new(key, this, _pdfEditor);
+        public RequiredProperty<T> GetRequiredProperty<T>(string key) where T : class, IPdfObject
+            => new(key, this, PdfContext);
 
-        public OptionalProperty<T> GetOptionalProperty<T>(Name key) where T : class, IPdfObject
-            => new(key, this, _pdfEditor);
+        public OptionalProperty<T> GetOptionalProperty<T>(string key) where T : class, IPdfObject
+            => new(key, this, PdfContext);
 
-        public RequiredMultiProperty<T1, T2> GetRequiredMultiProperty<T1, T2>(Name key)
+        public RequiredMultiProperty<T1, T2> GetRequiredMultiProperty<T1, T2>(string key)
             where T1 : class, IPdfObject
             where T2 : class, IPdfObject
-            => new(key, this, _pdfEditor);
+            => new(key, this, PdfContext);
 
-        public OptionalMultiProperty<T1, T2> GetOptionalMultiProperty<T1, T2>(Name key)
+        public OptionalMultiProperty<T1, T2> GetOptionalMultiProperty<T1, T2>(string key)
             where T1 : class, IPdfObject
             where T2 : class, IPdfObject
-            => new(key, this, _pdfEditor);
+            => new(key, this, PdfContext);
 
-        public RequiredArrayOrSingle<T> GetArrayOrSingle<T>(Name key) where T : class, IPdfObject
-            => new(key, this, _pdfEditor);
+        public RequiredArrayOrSingle<T> GetArrayOrSingle<T>(string key) where T : class, IPdfObject
+            => new(key, this, PdfContext);
 
-        public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(Name key) where T : class, IPdfObject
-            => new(key, this, _pdfEditor);
+        public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(string key) where T : class, IPdfObject
+            => new(key, this, PdfContext);
 
-        public void Set<T>(Name key, T? value) where T : class, IPdfObject
+        public void Set<T>(string key, T? value) where T : class, IPdfObject
         {
             if (value is null)
             {
-                _dictionary.Remove(key);
+                InnerDictionary.Remove(key);
                 return;
             }
 
-            _dictionary[key] = value;
+            InnerDictionary[key] = value;
         }
 
-        public ICollection<Name> Keys => _dictionary.Keys;
-        public bool ContainsKey(Name key) => _dictionary.ContainsKey(key);
-        public IEnumerator<KeyValuePair<Name, IPdfObject>> GetEnumerator() => _dictionary.GetEnumerator();
+        public void Unset(string key)
+        {
+            InnerDictionary.Remove(key);
+        }
+
+        public ICollection<string> Keys => InnerDictionary.Keys;
+
+        public bool ContainsKey(string key) => InnerDictionary.ContainsKey(key);
+
+        public IEnumerator<KeyValuePair<string, IPdfObject>> GetEnumerator() => InnerDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteTextAsync(Constants.DictionaryStart);
 
-            foreach (var kvp in _dictionary)
+            foreach (var kvp in InnerDictionary)
             {
                 if (kvp.Value is null)
                 {
                     continue;
                 }
 
-                await kvp.Key.WriteAsync(stream);
+                await ((Name)kvp.Key).WriteAsync(stream);
                 await stream.WriteWhitespaceAsync();
                 await kvp.Value.WriteAsync(stream);
             }
 
             await stream.WriteTextAsync(Constants.DictionaryEnd);
+        }
+
+        public override object Clone()
+        {
+            var copy = this.ToDictionary(
+                entry => entry.Key,
+                entry => (IPdfObject)entry.Value.Clone()
+            );
+
+            return new Dictionary(copy, PdfContext, Origin);
         }
     }
 }

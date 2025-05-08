@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -13,8 +12,8 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         public AppearanceDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        private AppearanceDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-            : base(dictionary, pdfEditor) { }
+        private AppearanceDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// (Required) The annotation’s normal appearance.
@@ -35,13 +34,14 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
             => GetOptionalMultiProperty<StreamObject<IStreamDictionary>, Dictionary>(Constants.DictionaryKeys.Appearance.D);
 
         public static AppearanceDictionary Create(
-            IPdfEditor pdfEditor,
+            IPdfContext pdfContext,
+            ObjectOrigin objectOrigin,
             IndirectObjectReference normalAppearanceStream,
             IndirectObjectReference? rolloverAppearanceStream = null,
             IndirectObjectReference? downAppearanceStream = null
             )
         {
-            var dict = new Dictionary<Name, IPdfObject> {{ Constants.DictionaryKeys.Appearance.N, normalAppearanceStream }};
+            var dict = new Dictionary<string, IPdfObject> {{ Constants.DictionaryKeys.Appearance.N, normalAppearanceStream }};
 
             if (rolloverAppearanceStream is not null)
             {
@@ -53,12 +53,12 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
                 dict.Add(Constants.DictionaryKeys.Appearance.D, downAppearanceStream);
             }
 
-            return new AppearanceDictionary(dict, pdfEditor);
+            return new AppearanceDictionary(dict, pdfContext, objectOrigin);
         }
 
-        public static AppearanceDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+        public static AppearanceDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
-            return new AppearanceDictionary(dictionary, pdfEditor);
+            return new AppearanceDictionary(dictionary, pdfContext, objectOrigin);
         }
     }
 }

@@ -1,10 +1,9 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public class OptionalArrayOrSingle<T>(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-    : BaseProperty(key, dictionary, pdfEditor) where T : class, IPdfObject
+public class OptionalArrayOrSingle<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
+    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
 {
     public async Task<ArrayObject?> GetAsync()
     {
@@ -17,7 +16,7 @@ public class OptionalArrayOrSingle<T>(Name key, Dictionary dictionary, IPdfEdito
 
         if (rawValue is T typed)
         {
-            return [typed];
+            return new ArrayObject([typed], typed.Origin);
         }
         else if (rawValue is ArrayObject ary)
         {
@@ -26,7 +25,7 @@ public class OptionalArrayOrSingle<T>(Name key, Dictionary dictionary, IPdfEdito
                 var value = ary[i] as IndirectObjectReference;
                 if (value is not null)
                 {
-                    ary[i] = (await _pdfEditor.GetAsync(value)).Object;
+                    ary[i] = (await PdfContext.Objects.GetAsync(value)).Object;
                 }
             }
 

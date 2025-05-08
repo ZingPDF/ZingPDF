@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -14,8 +13,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary)
             : base(pageTreeNodeDictionary) { }
 
-        private PageTreeNodeDictionary(Dictionary<Name, IPdfObject> pageTreeNodeDictionary, IPdfEditor pdfEditor)
-            : base(pageTreeNodeDictionary, pdfEditor) { }
+        private PageTreeNodeDictionary(Dictionary<string, IPdfObject> pageTreeNodeDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(pageTreeNodeDictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// (Required) An array of indirect references to the immediate children of this node. The children shall only be page objects or other page tree nodes.
@@ -49,7 +48,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + 1);
         }
 
         public async Task RemoveChildAsync(IndirectObjectReference key)
@@ -58,11 +57,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             ArrayObject kids = await Kids.GetAsync();
 
-            kids.Remove<IndirectObjectReference>(x => x.Id.Reference == key);
+            kids.Remove<IndirectObjectReference>(x => x.Id.Index == key.Id.Index);
 
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count - 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - 1);
         }
 
         public async Task ReplaceAllChildrenAsync(IEnumerable<IndirectObjectReference> newKids)
@@ -80,27 +79,27 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         {
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count + 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + 1);
         }
 
         public async Task DecrementCountAsync()
         {
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(count - 1));
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - 1);
         }
 
-        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdfEditor pdfEditor)
+        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdfContext pdfContext)
         {
-            return new(new Dictionary<Name, IPdfObject>
+            return new(new Dictionary<string, IPdfObject>
             {
-                { Constants.DictionaryKeys.Type, new Name(Constants.DictionaryTypes.Pages) },
+                { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Pages },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
-                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, new Number(pageReferences.Count()) },
-            }, pdfEditor);
+                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number) pageReferences.Count() },
+            }, pdfContext, ObjectOrigin.UserCreated);
         }
 
-        public static PageTreeNodeDictionary FromDictionary(Dictionary<Name, IPdfObject> pagesCatalog, IPdfEditor pdfEditor)
-            => new(pagesCatalog, pdfEditor);
+        public static PageTreeNodeDictionary FromDictionary(Dictionary<string, IPdfObject> pagesCatalog, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            => new(pagesCatalog, pdfContext, objectOrigin);
     }
 }

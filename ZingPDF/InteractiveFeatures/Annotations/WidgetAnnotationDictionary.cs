@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
@@ -11,10 +10,11 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         public WidgetAnnotationDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        public WidgetAnnotationDictionary(IPdfEditor pdfEditor) : base(Subtypes.Widget, pdfEditor) { }
+        public WidgetAnnotationDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(Subtypes.Widget, pdfContext, objectOrigin) { }
 
-        protected WidgetAnnotationDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-            : base(dictionary, pdfEditor) { }
+        protected WidgetAnnotationDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dictionary, pdfContext, objectOrigin) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -70,7 +70,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// </summary>
         public OptionalProperty<Dictionary> Parent => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Parent);
 
-        new public static WidgetAnnotationDictionary FromDictionary(Dictionary<Name, IPdfObject> annotationDictionary, IPdfEditor pdfEditor)
+        new public static WidgetAnnotationDictionary FromDictionary(Dictionary<string, IPdfObject> annotationDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(annotationDictionary);
 
@@ -84,7 +84,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
                 throw new ArgumentException("Supplied argument is not a widget annotation dictionary.", nameof(annotationDictionary));
             }
 
-            return new(annotationDictionary, pdfEditor);
+            return new(annotationDictionary, pdfContext, objectOrigin);
         }
     }
 }

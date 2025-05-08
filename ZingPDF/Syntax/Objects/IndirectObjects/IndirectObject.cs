@@ -11,6 +11,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     public class IndirectObject : PdfObject, IEquatable<IndirectObject?>
     {
         public IndirectObject(IndirectObjectId id, IPdfObject obj)
+            : base(obj.Origin)
         {
             ArgumentNullException.ThrowIfNull(id, nameof(id));
             ArgumentNullException.ThrowIfNull(obj, nameof(obj));
@@ -21,6 +22,8 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
 
         public IndirectObjectId Id { get; }
         public IPdfObject Object { get; internal set; }
+
+        public IndirectObjectReference Reference => new(Id, Origin);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
@@ -62,6 +65,8 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
             return other is not null &&
                    EqualityComparer<IndirectObjectId>.Default.Equals(Id, other.Id);
         }
+
+        public override object Clone() => new IndirectObject(Id, (IPdfObject)Object.Clone());
 
         public static bool operator ==(IndirectObject? left, IndirectObject? right)
         {

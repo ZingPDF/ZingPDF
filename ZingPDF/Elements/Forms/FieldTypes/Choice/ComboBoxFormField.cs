@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice;
 
@@ -11,9 +10,9 @@ internal class ComboBoxFormField : ChoiceFormField
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor
+        IPdfContext pdfContext
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
     {
     }
 

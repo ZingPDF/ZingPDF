@@ -12,7 +12,6 @@ namespace ZingPDF.IncrementalUpdates
 {
     public class IncrementalUpdate : PdfObject
     {
-        private readonly IPdfEditor _pdfEditor;
         private readonly IEnumerable<IndirectObject> _newObjects;
         private readonly IEnumerable<IndirectObject> _updatedObjects;
         private readonly IEnumerable<IndirectObjectId> _deletedObjects;
@@ -22,7 +21,6 @@ namespace ZingPDF.IncrementalUpdates
         private readonly IncrementalUpdateOptions _options;
 
         public IncrementalUpdate(
-            IPdfEditor pdfEditor,
             IEnumerable<IndirectObject> newObjects,
             IEnumerable<IndirectObject> updatedObjects,
             IEnumerable<IndirectObjectId> deletedObjects,
@@ -30,13 +28,12 @@ namespace ZingPDF.IncrementalUpdates
             StreamObject<CrossReferenceStreamDictionary>? existingXrefStream,
             IncrementalUpdateOptions? options = null
             )
+            : base(ObjectOrigin.UserCreated)
         {
-            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
             ArgumentNullException.ThrowIfNull(newObjects, nameof(newObjects));
             ArgumentNullException.ThrowIfNull(updatedObjects, nameof(updatedObjects));
             ArgumentNullException.ThrowIfNull(deletedObjects, nameof(deletedObjects));
 
-            _pdfEditor = pdfEditor;
             _newObjects = newObjects;
             _updatedObjects = updatedObjects;
             _deletedObjects = deletedObjects;
@@ -60,6 +57,18 @@ namespace ZingPDF.IncrementalUpdates
             }
         }
 
+        public override object Clone()
+        {
+            return new IncrementalUpdate(
+                _newObjects,
+                _updatedObjects,
+                _deletedObjects,
+                _existingTrailer,
+                _existingXrefStream,
+                _options
+                );
+        }
+
         protected override async Task WriteOutputAsync(Stream stream)
         {
             await stream.WriteNewLineAsync();
@@ -70,8 +79,8 @@ namespace ZingPDF.IncrementalUpdates
                 await entry.WriteAsync(stream);
             }
 
-            var crossReferenceSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects);
-            var xrefTable = new CrossReferenceTable(crossReferenceSections);
+            var crossReferenceSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects, ObjectOrigin.UserCreated);
+            var xrefTable = new CrossReferenceTable(crossReferenceSections, Origin);
 
             // For now, the IndirectObjectDictionary generates a delta with xref table and trailer.
             // TODO: add support for rendering xrefs as stream (left legacy version commented out below)
@@ -85,9 +94,9 @@ namespace ZingPDF.IncrementalUpdates
             var existingTrailerDictionary = _existingTrailer?.Dictionary ?? (ITrailerDictionary)_existingXrefStream!.Dictionary;
 
             // Build file identifier
-            var originalId = existingTrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
-            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray());
-            var fileIdentifier = new ArrayObject([originalId, updateId]);
+            var originalId = existingTrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Origin);
+            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Origin);
+            var fileIdentifier = new ArrayObject([originalId, updateId], Origin);
 
             var trailer = new Trailer(
                 TrailerDictionary.CreateNew(
@@ -97,9 +106,11 @@ namespace ZingPDF.IncrementalUpdates
                     existingTrailerDictionary.Encrypt,
                     existingTrailerDictionary.Info,
                     fileIdentifier,
-                    _pdfEditor
+                    existingTrailerDictionary.PdfContext,
+                    ObjectOrigin.UserCreated
                     ),
-                xrefTable.ByteOffset!.Value
+                xrefTable.ByteOffset!.Value,
+                Origin
                 );
 
             await trailer.WriteAsync(stream);

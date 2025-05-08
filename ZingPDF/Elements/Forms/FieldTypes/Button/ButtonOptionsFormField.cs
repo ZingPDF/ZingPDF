@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.InteractiveFeatures.Annotations;
+﻿using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
@@ -65,10 +64,10 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfEditor pdfEditor,
+        IPdfContext pdfContext,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfEditor)
+        : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
     {
         _kids = kids;
     }
@@ -83,7 +82,7 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         foreach(var annot in WidgetAnnotationObjects)
         {
             var widgetDict = (WidgetAnnotationDictionary)annot.Object;
-            Name exportValue = await GetExportValueAsync(widgetDict);
+            string exportValue = await GetExportValueAsync(widgetDict);
 
             var @checked = false;
 
@@ -99,16 +98,15 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         return options.AsReadOnly();
     }
 
-    protected async Task<Name> GetExportValueAsync(WidgetAnnotationDictionary widgetDict)
+    protected async Task<string> GetExportValueAsync(WidgetAnnotationDictionary widgetDict)
     {
         // TODO: consider supporting Opt, which may take precedence for the definition of export values.
 
-        if (widgetDict.AP == null)
+        var ap = await widgetDict.AP.GetAsync();
+        if (ap == null)
         {
             return Constants.ButtonStates.On;
         }
-
-        var ap = await widgetDict.AP.GetAsync();
 
         // TODO: handle the case where N is a stream
 

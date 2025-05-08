@@ -27,12 +27,6 @@ internal class CrossReferenceStreamFactory : StreamObjectFactory
         var field2Size = GetFieldSize(allEntries, entry => entry.Value1);
         var field3Size = GetFieldSize(allEntries, entry => entry.Value2);
 
-        var index = (ArrayObject)_xrefSections.SelectMany(s => new Number[] { s.Index.StartIndex, s.Index.Count }).ToArray();
-
-        var w = (ArrayObject)new Number[] { field1Size, field2Size, field3Size };
-
-        //var dictionary = CrossReferenceStreamDictionary.CreateNew(index, w, _size, _prev, _root, _encrypt, _info, _id);
-
         return Task.FromResult(CreateStreamData(_xrefSections, field1Size, field2Size, field3Size));
     }
 

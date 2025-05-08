@@ -2,6 +2,7 @@
 
 internal interface IStreamObjectFactory
 {
-    Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary) where TDictionary : class, IStreamDictionary;
+    Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary, ObjectOrigin objectOrigin)
+        where TDictionary : class, IStreamDictionary;
 }
 

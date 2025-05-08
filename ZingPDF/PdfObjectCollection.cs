@@ -1,17 +1,20 @@
 ﻿using Nito.AsyncEx;
 using System.Text;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
-namespace ZingPDF.IncrementalUpdates;
+namespace ZingPDF;
 
 /// <summary>
 /// Master class for retrieving and mutating objects in a PDF.
@@ -19,43 +22,51 @@ namespace ZingPDF.IncrementalUpdates;
 /// <remarks>
 /// This class maintains a collection of PDF versions, with each version containing the index for objects created or modified in that version.
 /// </remarks>
-public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
+public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<IndirectObject>
 {
+    private readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject);
+
     private readonly Dictionary<IndirectObjectId, IndirectObject> _parsedObjectCache = [];
     private readonly Stream _pdfInputStream;
-
-    private readonly IEnumerable<VersionInformation> _versions;
-
+    private readonly IPdfContext _pdfContext;
     private readonly List<IndirectObject> _newObjects = [];
     private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = [];
     private readonly List<IndirectObjectId> _deletedObjects = [];
 
+    private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
     //private readonly Queue<IndirectObjectId> _freeIds;
 
-    public PdfObjectManager(Stream pdfInputStream, IEnumerable<VersionInformation> versions)
+    public PdfObjectCollection(Stream pdfInputStream, IPdfContext pdfContext)
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
-        ArgumentNullException.ThrowIfNull(versions, nameof(versions));
 
         _pdfInputStream = pdfInputStream;
-        _versions = versions;
+        _pdfContext = pdfContext;
+
+        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await new DocumentVersionParser(_pdfContext).ParseDocumentVersionsAsync(_pdfInputStream));
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
         _root = new AsyncLazy<DocumentCatalogDictionary>(async () =>
         {
+            IEnumerable<VersionInformation> versions = await _versions;
+
             // The root property is copied from trailer to trailer during updates.
             // Find the first non-null property.
             // TODO: can the root reference change during an update? How do we ensure this is the latest?
-            var catalogRef = _versions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
+            var catalogRef = versions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
                 ?? throw new InvalidPdfException("Missing Root entry");
 
             return (await GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
                 ?? throw new InvalidPdfException("Unable to dereference document catalog");
         });
+
+        PageTree = new PageTree(this);
     }
+
+    public PageTree PageTree { get; }
 
     public HashSet<IndirectObject> NewOrUpdatedObjects
     {
@@ -72,14 +83,14 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         }
     }
 
-    public int Count => _versions.Sum(v => v.IndirectObjects.Count) + _newObjects.Count - _deletedObjects.Count;
+    public async Task<int> GetCountAsync() => (await _versions).Sum(v => v.IndirectObjects.Count) + _newObjects.Count - _deletedObjects.Count;
 
-    public IEnumerable<IndirectObjectId> Keys
-        => _versions
+    public async Task<IEnumerable<IndirectObjectId>> GetKeysAsync()
+        => (await _versions)
             .SelectMany(v => v.IndirectObjects.Keys)
             .Concat(_newObjects.Select(x => x.Id));
 
-    public bool ContainsKey(IndirectObjectReference key) => _versions.Any(v => v.IndirectObjects.ContainsKey(key.Id));
+    public async Task<bool> ContainsKeyAsync(IndirectObjectReference key) => (await _versions).Any(v => v.IndirectObjects.ContainsKey(key.Id));
 
     public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
     {
@@ -106,9 +117,11 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
             return cachedObj;
         }
 
+        IEnumerable<VersionInformation> versions = await _versions;
+
         // Finally, parse and cache the value.
         // Search through versions, which are ordered most recent first.
-        foreach (var version in _versions)
+        foreach (var version in versions)
         {
             if (version.IndirectObjects.TryGetValue(key.Id, out var entry))
             {
@@ -130,11 +143,11 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         return io == null ? default : (T)io.Object;
     }
 
-    public IndirectObject Add(IPdfObject pdfObject)
+    public async Task<IndirectObject> AddAsync(IPdfObject pdfObject)
     {
         ArgumentNullException.ThrowIfNull(pdfObject);
 
-        IndirectObjectId newObjectId = GetNextFreeId();
+        IndirectObjectId newObjectId = await GetNextFreeIdAsync();
 
         var indirectObject = new IndirectObject(newObjectId, pdfObject);
 
@@ -143,13 +156,13 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         return indirectObject;
     }
 
-    public void AddRange(IEnumerable<IPdfObject> pdfObjects)
+    public async Task AddRangeAsync(IEnumerable<IPdfObject> pdfObjects)
     {
         ArgumentNullException.ThrowIfNull(pdfObjects);
 
         foreach (var pdfObject in pdfObjects)
         {
-            _ = Add(pdfObject);
+            _ = await AddAsync(pdfObject);
         }
     }
 
@@ -169,17 +182,18 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         _updatedObjects[indirectObject.Id] = indirectObject;
     }
 
-    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync()
+    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync(IPdfContext pdfContext)
     {
         if (NewOrUpdatedObjects.Count == 0 && _deletedObjects.Count == 0)
         {
             return null;
         }
 
-        var latestVersion = _versions.First();
+        IEnumerable<VersionInformation> versions = await _versions;
+
+        var latestVersion = versions.First();
 
         return new IncrementalUpdate(
-            this,
             _newObjects,
             _updatedObjects.Values,
             _deletedObjects,
@@ -190,13 +204,15 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
     public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;
 
-    public ITrailerDictionary GetTrailerDictionary() => _versions.First().TrailerDictionary;
+    //public async Task<ITrailerDictionary> GetTrailerDictionaryAsync() => (await _versions).First().TrailerDictionary;
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        foreach (var key in Keys.Where(k => k.Index > 0))
+        IEnumerable<IndirectObjectId> keys = await GetKeysAsync();
+
+        foreach (var key in keys.Where(k => k.Index > 0))
         {
-            yield return await GetAsync(key.Reference);
+            yield return await GetAsync(new IndirectObjectReference(key));
         }
     }
 
@@ -209,7 +225,7 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
     //        .ToList();
     //}
 
-    private IndirectObjectId GetNextFreeId()
+    private async Task<IndirectObjectId> GetNextFreeIdAsync()
     {
         //if (_freeIds.TryDequeue(out var id))
         //{
@@ -218,7 +234,9 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
         // TODO: efficiently grab a free ID from deleted objects if present
 
-        var highestIndex = Keys.Max(k => k.Index);
+        var keys = await GetKeysAsync();
+
+        var highestIndex = keys.Max(k => k.Index);
 
         return new IndirectObjectId(highestIndex + 1, 0);
     }
@@ -229,13 +247,13 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
         {
             _pdfInputStream.Position = xref.Value1;
 
-            return await Parser.For<IndirectObject>(this).ParseAsync(_pdfInputStream);
+            return await _pdfContext.Parser.IndirectObjects.ParseAsync(_pdfInputStream, _parseContext);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
 
         // Resolve the correct object stream that contains the object.
-        var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0), xref.Value2);
+        var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0, _parseContext.Origin), xref.Value2);
 
         var objectStream = (StreamObject<ObjectStreamDictionary>)objStreamIndirectObject.Object;
 
@@ -259,7 +277,7 @@ public record PdfObjectManager : IPdfEditor, IAsyncEnumerable<IndirectObject>
 
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-        return new IndirectObject(key.Id, await Parser.For(type, this).ParseAsync(decompressedObjectStream));
+        return new IndirectObject(key.Id, await _pdfContext.Parser.For(type).ParseAsync(decompressedObjectStream, _parseContext));
     }
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)

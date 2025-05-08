@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Streams;
@@ -17,7 +16,7 @@ namespace ZingPDF.Graphics
         public XObjectDictionary(Dictionary dict)
             : base(dict) { }
 
-        public XObjectDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
-            : base(dict, pdfEditor) { }
+        public XObjectDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dict, pdfContext, objectOrigin) { }
     }
 }

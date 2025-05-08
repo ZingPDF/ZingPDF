@@ -5,9 +5,9 @@ using ZingPDF.Elements.Drawing.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Graphics.FormXObjects;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -28,7 +28,7 @@ internal class VariableTextAppearanceStreamManager
 {
     private readonly InteractiveFormDictionary _formDict;
     private readonly FieldDictionary _fieldDict;
-    private readonly IPdfEditor _pdfEditor;
+    private readonly IPdfContext _pdfContext;
     private readonly IEnumerable<IFontMetricsProvider> _fontProviders;
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
@@ -40,21 +40,23 @@ internal class VariableTextAppearanceStreamManager
     private readonly AsyncLazy<StreamObject<IStreamDictionary>?> _fieldAppearanceStreamObject;
     private readonly AsyncLazy<ContentStream?> _fieldAppearanceStream;
 
+    private readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream);
+
     public VariableTextAppearanceStreamManager(
         InteractiveFormDictionary formDict,
         FieldDictionary fieldDict,
-        IPdfEditor pdfEditor,
+        IPdfContext pdfContext,
         IEnumerable<IFontMetricsProvider> fontProviders
         )
     {
         ArgumentNullException.ThrowIfNull(formDict, nameof(formDict));
         ArgumentNullException.ThrowIfNull(fieldDict, nameof(fieldDict));
-        ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
+        ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
         ArgumentNullException.ThrowIfNull(fontProviders, nameof(fontProviders));
 
         _formDict = formDict;
         _fieldDict = fieldDict;
-        _pdfEditor = pdfEditor;
+        _pdfContext = pdfContext;
         _fontProviders = fontProviders;
 
         _formDA = new AsyncLazy<LiteralString?>(async () =>
@@ -82,9 +84,11 @@ internal class VariableTextAppearanceStreamManager
             LiteralString? formDa = await _formDA;
             LiteralString? fieldDa = await _fieldDA;
 
-            var daStream = new MemoryStream(Encoding.ASCII.GetBytes((fieldDa ?? formDa)!));
+            LiteralString defaultAppearance = (fieldDa ?? formDa)!;
 
-            return await new ContentStreamParser(_pdfEditor).ParseAsync(daStream);
+            var daStream = new MemoryStream(defaultAppearance.RawBytes);
+
+            return await _pdfContext.Parser.ContentStreamParser.ParseAsync(daStream, _parseContext);
         });
 
         _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
@@ -117,7 +121,7 @@ internal class VariableTextAppearanceStreamManager
 
             var apData = await normalApStreamObject.GetDecompressedDataAsync();
 
-            return await new ContentStreamParser(_pdfEditor).ParseAsync(apData);
+            return await _pdfContext.Parser.ContentStreamParser.ParseAsync(apData, _parseContext);
         });
 
         _formDefaultResources = new AsyncLazy<ResourceDictionary?>(async () =>
@@ -144,7 +148,9 @@ internal class VariableTextAppearanceStreamManager
         _fieldDict.SetValue(null);
 
         // set zero so we can test how acrobat sizes text when we save from reader
-        await _fieldDict.SetDefaultAppearanceAsync(new ContentStream().SetTextState("Helv", 0));
+        await _fieldDict.SetDefaultAppearanceAsync(
+            new ContentStream().SetTextState("Helv", 0)
+            );
     }
 
     public async Task WriteTextAsync(LiteralString value)
@@ -158,7 +164,7 @@ internal class VariableTextAppearanceStreamManager
             var newAppearanceStream = await new ContentStream()
                 .WriteTextContentRegionAsync(async stream => await WriteNewAppearanceStreamAsync(stream, value));
 
-            await SetAppearanceStreamAsync(newAppearanceStream, formDefaultResources, _pdfEditor);
+            await SetAppearanceStreamAsync(newAppearanceStream, formDefaultResources);
 
             return;
         }
@@ -180,9 +186,9 @@ internal class VariableTextAppearanceStreamManager
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
         StreamObject<IStreamDictionary>? fieldApStreamObject = (await _fieldAppearanceStreamObject)!;
-        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdfEditor));
+        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdfContext, ObjectOrigin.UserCreated));
 
-        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdfEditor), _pdfEditor);
+        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdfContext, ObjectOrigin.UserCreated));
     }
 
     /// <summary>
@@ -266,7 +272,7 @@ internal class VariableTextAppearanceStreamManager
 
         Coordinate textOrigin;
 
-        TextFit fontFit = new TextCalculations(_fontProviders).CalculateTextFit(fontName, fieldDimensions, newText);
+        TextFit fontFit = new TextCalculations(_fontProviders).CalculateTextFit(fontName, fieldDimensions, newText.Decode());
 
         // This is left aligned. TODO: account for other quadding values, maybe return a TextOrigin object
         textOrigin = fontFit.TextOrigin;
@@ -274,7 +280,7 @@ internal class VariableTextAppearanceStreamManager
         if (fontSize == 0)
         {
             // Set DA to match calculated font size
-            fontOperation.Operands[1] = new Number(fontFit.FontSize);
+            fontOperation.Operands[1] = (Number)fontFit.FontSize;
             await _fieldDict.SetDefaultAppearanceAsync(defaultAppearanceStream);
 
         }
@@ -324,7 +330,7 @@ internal class VariableTextAppearanceStreamManager
             var onStateApRef = normalApDict.FirstOrDefault(k => k.Key != Constants.ButtonStates.Off).Value as IndirectObjectReference
                 ?? throw new InvalidPdfException("Malformed text field encountered");
 
-            normalApStream = await _pdfEditor.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
+            normalApStream = await _pdfContext.Objects.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
                 ?? throw new InvalidPdfException("Malformed text field encountered");
         }
         else
@@ -335,7 +341,7 @@ internal class VariableTextAppearanceStreamManager
         return normalApStream;
     }
 
-    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary resourceDictionary, IPdfEditor pdfEditor)
+    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary resourceDictionary)
     {
         var fieldRect = await _fieldDict.Rect.GetAsync();
 
@@ -344,15 +350,23 @@ internal class VariableTextAppearanceStreamManager
         await appearanceStream.WriteAsync(ms);
 
         var contentStreamDictionary = new Type1FormDictionary(
-            bBox: Rectangle.FromSize(fieldRect.Size),
+            pdfContext: _pdfContext,
+            objectOrigin: ObjectOrigin.UserCreated,
+            bBox: fieldRect.Size,
             resources: resourceDictionary
             );
 
         // TODO: when reliably complete, add flatedecode filter (will need to implement GetFilters method in ContentStreamFactory)
-        var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary);
+        var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary, ObjectOrigin.UserCreated);
 
-        var apIndirectObject = _pdfEditor.Add(apFormXObject);
+        var apIndirectObject = await _pdfContext.Objects.AddAsync(apFormXObject);
 
-        _fieldDict.SetAppearanceDictionary(AppearanceDictionary.Create(_pdfEditor, apIndirectObject.Id.Reference));
+        _fieldDict.SetAppearanceDictionary(
+            AppearanceDictionary.Create(
+                _pdfContext,
+                ObjectOrigin.UserCreated,
+                apIndirectObject.Reference
+                )
+            );
     }
 }

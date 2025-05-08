@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax;
+﻿using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
@@ -7,8 +6,8 @@ namespace ZingPDF.Text.CompositeFonts;
 
 public class CIDFontDictionary : FontDictionary
 {
-    public CIDFontDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-        : base(dictionary, pdfEditor)
+    public CIDFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(dictionary, pdfContext, objectOrigin)
     {
     }
 
@@ -23,8 +22,8 @@ public class CIDFontDictionary : FontDictionary
     /// </summary>
     public OptionalProperty<Number> DW => GetOptionalProperty<Number>(Constants.DictionaryKeys.Font.CID.DW);
 
-    public static CIDFontDictionary FromDictionary(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static CIDFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
     {
-        return new CIDFontDictionary(dictionary, pdfEditor);
+        return new CIDFontDictionary(dictionary, pdfContext, objectOrigin);
     }
 }

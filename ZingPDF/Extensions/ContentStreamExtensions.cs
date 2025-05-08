@@ -3,11 +3,12 @@ using ZingPDF.Elements.Drawing.Text;
 using ZingPDF.Graphics;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Strings;
 using static ZingPDF.Syntax.ContentStreamsAndResources.ContentStream.Operators;
 
-namespace ZingPDF.Syntax.ContentStreamsAndResources;
+namespace ZingPDF.Extensions;
 
 public static class ContentStreamExtensions
 {
@@ -46,10 +47,10 @@ public static class ContentStreamExtensions
         {
             Operator = PathConstruction.re,
             Operands = [
-                    boundingBox.LowerLeft.X,
-                    boundingBox.LowerLeft.Y,
-                    boundingBox.UpperRight.X,
-                    boundingBox.UpperRight.Y
+                    (Number)boundingBox.LowerLeft.X,
+                    (Number)boundingBox.LowerLeft.Y,
+                    (Number)boundingBox.UpperRight.X,
+                    (Number)boundingBox.UpperRight.Y
                     ]
         });
 
@@ -66,7 +67,7 @@ public static class ContentStreamExtensions
     {
         stream.Operations.Add(new ContentStreamOperation
         {
-            Operator = Colour.rg,
+            Operator = ContentStream.Operators.Colour.rg,
             Operands = [.. colour.Values]
         });
 
@@ -107,7 +108,11 @@ public static class ContentStreamExtensions
 
     public static ContentStream SetTextPosition(this ContentStream stream, Coordinate position)
     {
-        stream.Operations.Add(new ContentStreamOperation { Operator = TextPositioning.Td, Operands = [position.X, position.Y] });
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = TextPositioning.Td,
+            Operands = [(Number)position.X, (Number)position.Y]
+        });
 
         return stream;
     }
@@ -149,7 +154,7 @@ public static class ContentStreamExtensions
             throw new InvalidOperationException();
         }
 
-        var newContentStream = new ContentStream();
+        var newContentStream = new ContentStream(stream.Origin);
 
         newContentStream.AddOperations(stream.Operations.Take(index1 + 1));
 

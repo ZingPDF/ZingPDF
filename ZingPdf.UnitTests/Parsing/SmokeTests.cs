@@ -18,7 +18,7 @@ public class SmokeTests
     [InlineData(Files.Encrypted)]
     public async Task Parse(string filePath)
     {
-        var pdf = await Pdf.LoadAsync(new MemoryStream(Files.ConcurrentRead(filePath)));
+        var pdf = Pdf.Load(new MemoryStream(Files.ConcurrentRead(filePath)));
 
         await pdf.GetPageCountAsync();
     }

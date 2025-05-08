@@ -3,14 +3,15 @@ using ZingPDF.Extensions;
 
 namespace ZingPDF.Syntax.CommonDataStructures;
 
-public class Date : PdfObject
+public class Date(DateTimeOffset dateTimeOffset, ObjectOrigin objectOrigin)
+    : PdfObject(objectOrigin)
 {
     public Date(DateTimeOffset dateTimeOffset)
+        : this(dateTimeOffset, ObjectOrigin.UserCreated)
     {
-        DateTimeOffset = dateTimeOffset;
     }
 
-    public DateTimeOffset DateTimeOffset { get; }
+    public DateTimeOffset DateTimeOffset { get; } = dateTimeOffset;
 
     protected override async Task WriteOutputAsync(Stream stream)
     {
@@ -19,4 +20,6 @@ public class Date : PdfObject
 
         await stream.WriteTextAsync($"(D:{formattedDateTime}{offsetString})");
     }
+
+    public override object Clone() => new Date(DateTimeOffset, Origin);
 }

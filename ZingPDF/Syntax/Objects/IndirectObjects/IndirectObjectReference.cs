@@ -7,16 +7,27 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     /// </summary>
     public class IndirectObjectReference : PdfObject
     {
-        public IndirectObjectReference(int index, ushort generationNumber)
-        {
-            Id = new(index, generationNumber);
-        }
-
-        public IndirectObjectReference(IndirectObjectId id)
+        public IndirectObjectReference(IndirectObjectId id, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             Id = id;
+        }
+
+        public IndirectObjectReference(IndirectObjectId id)
+            : this(id, ObjectOrigin.UserCreated)
+        {
+        }
+
+        public IndirectObjectReference(int index, ushort generationNumber)
+            : this(new IndirectObjectId(index, generationNumber), ObjectOrigin.UserCreated)
+        {
+        }
+
+        public IndirectObjectReference(int index, ushort generationNumber, ObjectOrigin objectOrigin)
+            : this(new IndirectObjectId(index, generationNumber), objectOrigin)
+        {
         }
 
         public IndirectObjectId Id { get; }
@@ -44,6 +55,8 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
         public override int GetHashCode() => Id.GetHashCode();
 
         public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
+
+        public override object Clone() => new IndirectObjectReference(Id, Origin);
 
         public static bool operator ==(IndirectObjectReference? left, IndirectObjectReference? right)
         {

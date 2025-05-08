@@ -1,6 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-
-namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
+﻿namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
 /// <summary>
 /// Wrapper for a value.
@@ -10,8 +8,8 @@ namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 /// When they are a reference, the property value is represented as an indirect object elsewhere in the PDF.
 /// This class exposes a <see cref="GetAsync"/> method which resolves the value in either case.
 /// </remarks>
-public class RequiredProperty<T>(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-    : BaseProperty(key, dictionary, pdfEditor) where T : class, IPdfObject
+public class RequiredProperty<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
+    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
 {
     /// <summary>
     /// Retrieve the property value.
@@ -24,7 +22,7 @@ public class RequiredProperty<T>(Name key, Dictionary dictionary, IPdfEditor pdf
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<T> GetAsync()
     {
-        var value = await ResolveAsync() ?? throw new InvalidPdfException($"Missing value for required property: {key}");
+        var value = await ResolveAsync() ?? throw new InvalidPdfException($"Missing value for required property: {Key}");
 
         return value as T
             ?? throw new InvalidOperationException($"Requested type {typeof(T)} cannot contain type: {value.GetType()}");

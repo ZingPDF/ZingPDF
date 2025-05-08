@@ -24,7 +24,7 @@ public class TextCalculationsTests
         var textFit = new TextCalculations([fontProvider])
             .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue);
 
-        textFit.FontSize.Value.Should().BeApproximately(expectedFontSize, 0.02);
+        textFit.FontSize.Should().BeApproximately(expectedFontSize, 0.02);
     }
 
     [Theory]
@@ -41,8 +41,8 @@ public class TextCalculationsTests
         var textFit = new TextCalculations([fontProvider])
             .CalculateTextFit(fontName, Rectangle.FromDimensions(width, height), textValue);
 
-        textFit.TextOrigin.X.Value.Should().Be(2); // TODO: incorporate quadding
-        textFit.TextOrigin.Y.Value.Should().BeApproximately(expectedBaselineOffset, 0.02);
+        textFit.TextOrigin.X.Should().Be(2); // TODO: incorporate quadding
+        textFit.TextOrigin.Y.Should().BeApproximately(expectedBaselineOffset, 0.02);
     }
 
     //    [Theory]

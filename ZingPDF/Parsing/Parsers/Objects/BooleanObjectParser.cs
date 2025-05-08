@@ -7,7 +7,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class BooleanObjectParser : IObjectParser<BooleanObject>
     {
-        public async ITask<BooleanObject> ParseAsync(Stream stream)
+        private IPdfContext _pdfContext;
+
+        public BooleanObjectParser(IPdfContext pdfContext)
+        {
+            _pdfContext = pdfContext;
+        }
+
+        public async ITask<BooleanObject> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace();
 
@@ -17,7 +24,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             
             Logger.Log(LogLevel.Trace, $"Parsed Boolean: {{{parsed}}}. {stream.GetType().Name} now at {stream.Position}.");
 
-            return parsed;
+            return BooleanObject.FromBool(parsed, context.Origin);
         }
     }
 }

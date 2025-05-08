@@ -9,15 +9,17 @@ namespace ZingPDF.Parsing.Parsers.Objects
         where TDictionary : class, IStreamDictionary
     {
         private readonly TDictionary _dict;
+        private readonly IPdfContext _pdfContext;
 
-        public StreamObjectParser(TDictionary dict)
+        public StreamObjectParser(TDictionary dict, IPdfContext pdfContext)
         {
             ArgumentNullException.ThrowIfNull(nameof(dict));
 
             _dict = dict;
+            _pdfContext = pdfContext;
         }
 
-        public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream)
+        public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ParseContext context)
         {
             var initialStreamPosition = stream.Position;
 
@@ -41,7 +43,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     streamDataOffset + streamLength,
                     setToStart: false
                     ),
-                _dict
+                _dict,
+                context.Origin
                 )
             {
                 ByteOffset = initialStreamPosition

@@ -1,5 +1,4 @@
 ﻿using ZingPDF.DocumentInterchange.Metadata;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -18,23 +17,41 @@ namespace ZingPDF.Graphics.Images
         public ImageDictionary(Dictionary dict)
             : base(dict) { }
 
-        private ImageDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
-            : base(dict, pdfEditor) { }
+        private ImageDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dict, pdfContext, objectOrigin) { }
 
         public ImageDictionary(
-            Number width,
-            Number height,
-            IPdfObject? ColorSpace,
-            Number? bitsPerComponent,
+            IPdfContext pdfContext,
+            ObjectOrigin objectOrigin,
+            int width,
+            int height,
+            string? ColorSpace,
+            int? bitsPerComponent,
             ShorthandArrayObject? filters,
             ShorthandArrayObject? decodeParms
             )
-            : this(new Dictionary<Name, IPdfObject> { [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Image }, EmptyPdfEditor.Instance)
+            : this(
+                new Dictionary<string, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Image
+                },
+                pdfContext,
+                objectOrigin
+              )
         {
-            Set(Constants.DictionaryKeys.Image.Width, width);
-            Set(Constants.DictionaryKeys.Image.Height, height);
-            Set(Constants.DictionaryKeys.Image.ColorSpace, ColorSpace);
-            Set(Constants.DictionaryKeys.Image.BitsPerComponent, bitsPerComponent);
+
+            Set<Number>(Constants.DictionaryKeys.Image.Width, width);
+            Set<Number>(Constants.DictionaryKeys.Image.Height, height);
+
+            if (!string.IsNullOrWhiteSpace(ColorSpace))
+            {
+                Set<Name>(Constants.DictionaryKeys.Image.ColorSpace, ColorSpace);
+            }
+
+            if (bitsPerComponent.HasValue)
+            {
+                Set<Number>(Constants.DictionaryKeys.Image.BitsPerComponent, bitsPerComponent.Value);
+            }
 
             if (filters?.Any() ?? false)
             {
@@ -227,7 +244,7 @@ namespace ZingPDF.Graphics.Images
         /// </summary>
         public OptionalProperty<Dictionary> PtData => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Image.PtData);
 
-        new public static ImageDictionary FromDictionary(Dictionary<Name, IPdfObject> dict, IPdfEditor pdfEditor)
+        new public static ImageDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
         {
             if (
                 !dict.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
@@ -239,7 +256,7 @@ namespace ZingPDF.Graphics.Images
                 throw new ArgumentException("Supplied argument is not a type 1 form dictionary.", nameof(dict));
             }
 
-            return new(dict, pdfEditor);
+            return new(dict, pdfContext, objectOrigin);
         }
     }
 }

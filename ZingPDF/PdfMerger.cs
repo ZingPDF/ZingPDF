@@ -32,25 +32,28 @@ namespace ZingPDF
             // - For an indirect object reference, dereference, copy the source, and recurse again.
             // - For dictionaries and arrays, loop through properties/items and recurse.
 
-            var rootPageTreeNodeToAppend = await _pdfToAppend.PageTree.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeToAppend = await _pdfToAppend.Context.Objects.PageTree.GetRootPageTreeNodeAsync();
 
-            var newObj = _mainPdf.IndirectObjects.Add(rootPageTreeNodeToAppend.Object);
+            var newObj = await _mainPdf.Context.Objects.AddAsync(rootPageTreeNodeToAppend.Object);
 
-            _oldToNewMap.Add(rootPageTreeNodeToAppend.Id.Reference, newObj.Id.Reference);
+            _oldToNewMap.Add(
+                rootPageTreeNodeToAppend.Reference,
+                newObj.Reference
+                );
 
             newObj.Object = await CopyReferencesAsync(rootPageTreeNodeToAppend.Object);
 
-            var rootPageTreeNodeIndirectObject = await _mainPdf.PageTree.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeIndirectObject = await _mainPdf.Context.Objects.PageTree.GetRootPageTreeNodeAsync();
             var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
             // The old root page tree node won't have had a parent, set it to the new root.
             // N.B. This part is vital for correct display in Acrobat Reader.
-            ((PageTreeNodeDictionary)newObj.Object).SetParent(rootPageTreeNodeIndirectObject.Id.Reference);
+            ((PageTreeNodeDictionary)newObj.Object).SetParent(rootPageTreeNodeIndirectObject.Reference);
 
             // Add incoming root page tree node as a child of this PDF's root page tree node.
-            await rootPageTreeNode.AddChildAsync(_oldToNewMap[rootPageTreeNodeToAppend.Id.Reference]);
+            await rootPageTreeNode.AddChildAsync(_oldToNewMap[rootPageTreeNodeToAppend.Reference]);
 
-            _mainPdf.IndirectObjects.Update(rootPageTreeNodeIndirectObject);
+            _mainPdf.Context.Objects.Update(rootPageTreeNodeIndirectObject);
         }
 
         // For a given object, loop through its items and recursively process.
@@ -102,7 +105,7 @@ namespace ZingPDF
 
         private async Task<ArrayObject> CopyArrayReferencesAsync(ArrayObject ary)
         {
-            var newArray = new ArrayObject();
+            ArrayObject newArray = [];
 
             foreach (var item in ary)
             {
@@ -119,14 +122,14 @@ namespace ZingPDF
                 return value;
             }
 
-            var obj = await _pdfToAppend.IndirectObjects.GetAsync(reference)
+            var obj = await _pdfToAppend.Context.Objects.GetAsync(reference)
                 ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
 
             IPdfObject target = obj.Object;
 
-            var newObj = _mainPdf.IndirectObjects.Add(target);
+            var newObj = await _mainPdf.Context.Objects.AddAsync(target);
 
-            _oldToNewMap.Add(reference, newObj.Id.Reference);
+            _oldToNewMap.Add(reference, newObj.Reference);
 
             // If the object is a stream, copy the stream contents. For performance reasons, the content is not
             // contained within the parsed stream object itself, but has a reference to its location in the file. This 
@@ -143,7 +146,7 @@ namespace ZingPDF
 
             newObj.Object = await CopyReferencesAsync(target);
 
-            return newObj.Id.Reference;
+            return newObj.Reference;
         }
     }
 }

@@ -10,10 +10,10 @@ namespace ZingPDF.Parsing.Parsers;
 /// This class is responsible for finding the start and end of the object,
 /// and returning the parsed type.
 /// </remarks>
-internal interface IObjectParser<out T> where T : IPdfObject
+public interface IObjectParser<out T> where T : IPdfObject
 {
     /// <summary>
     /// Parses a stream into an object.
     /// </summary>
-    ITask<T> ParseAsync(Stream stream);
+    ITask<T> ParseAsync(Stream stream, ParseContext context);
 }
