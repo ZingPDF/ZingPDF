@@ -1,23 +1,13 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public abstract class BaseProperty
+public abstract class BaseProperty(string key, Dictionary dictionary, IPdfContext pdfContext)
 {
-    private readonly Dictionary _dictionary;
-    private readonly Name _key;
+    public string Key => key;
 
-    protected readonly IPdfEditor _pdfEditor;
-
-    public BaseProperty(Name key, Dictionary dictionary, IPdfEditor pdfEditor)
-    {
-        _key = key;
-        _pdfEditor = pdfEditor ?? throw new ArgumentNullException(nameof(pdfEditor));
-        _dictionary = dictionary;
-    }
-
-    public Name Key => _key;
+    protected Dictionary Dictionary => dictionary;
+    protected IPdfContext PdfContext => pdfContext;
 
     /// <summary>
     /// Gets the related indirect object for the property. The property value must be an indirect object reference.
@@ -30,7 +20,7 @@ public abstract class BaseProperty
 
         if (value is IndirectObjectReference ior)
         {
-            return await _pdfEditor.GetAsync(ior);
+            return await PdfContext.Objects.GetAsync(ior);
         }
 
         throw new InvalidOperationException($"Internal error - Attempt to call GetIndirectObjectAsync. Value is {value?.GetType().Name}");
@@ -46,33 +36,33 @@ public abstract class BaseProperty
     /// </remarks>
     public async Task<IPdfObject?> GetRawValueAsync()
     {
-        var value = _dictionary.GetAs<IPdfObject>(_key);
+        var value = dictionary.GetAs<IPdfObject>(key);
         if (value != null)
         {
             return value;
         }
 
-        var parentRef = _dictionary.GetAs<IndirectObjectReference?>(Constants.DictionaryKeys.Parent);
+        var parentRef = dictionary.GetAs<IndirectObjectReference?>(Constants.DictionaryKeys.Parent);
         if (parentRef == null)
         {
             return null;
         }
 
-        if (!GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(_dictionary.GetType(), out var inheritableProperties))
+        if (!GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(dictionary.GetType(), out var inheritableProperties))
         {
             return null;
         }
 
-        if (!inheritableProperties.Contains(_key))
+        if (!inheritableProperties.Contains(key))
         {
             return null;
         }
 
-        var parentDictionary = await _pdfEditor.GetAsync<Dictionary>(parentRef) 
+        var parentDictionary = await PdfContext.Objects.GetAsync<Dictionary>(parentRef) 
             ?? throw new InvalidPdfException($"Invalid parent reference: {parentRef}");
 
         return await parentDictionary
-            .GetRequiredProperty<IPdfObject>(_key)
+            .GetRequiredProperty<IPdfObject>(key)
             .GetRawValueAsync(); // Recurse
     }
 
@@ -87,7 +77,7 @@ public abstract class BaseProperty
 
         if (rawValue is IndirectObjectReference ior)
         {
-            var dereferenced = await _pdfEditor.GetAsync(ior)
+            var dereferenced = await PdfContext.Objects.GetAsync(ior)
                 ?? throw new InvalidPdfException($"Unable to resolve indirect object reference: {ior}");
 
             return dereferenced.Object;

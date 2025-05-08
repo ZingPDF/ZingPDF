@@ -8,14 +8,12 @@ namespace ZingPDF.Syntax.Objects
     /// </summary>
     public class ArrayObject : PdfObject, IEnumerable<IPdfObject>
     {
-        private static readonly ArrayObject _empty = new([]);
-
         private readonly List<IPdfObject> _values = [];
 
-        // For collection initialisation
-        internal ArrayObject() { }
+        public ArrayObject() { }
 
-        public ArrayObject(IEnumerable<IPdfObject> values)
+        public ArrayObject(IEnumerable<IPdfObject> values, ObjectOrigin objectOrigin)
+            : base(objectOrigin)
         {
             _values = values?.ToList() ?? throw new ArgumentNullException(nameof(values));
         }
@@ -65,14 +63,12 @@ namespace ZingPDF.Syntax.Objects
         public IEnumerator<IPdfObject> GetEnumerator() => ((IEnumerable<IPdfObject>)_values).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
-        public static ArrayObject Empty { get => _empty; }
-
-        public static implicit operator ArrayObject(IPdfObject[] items) => new(items);
-
         public IPdfObject this[int index]
         {
             get => Get<IPdfObject>(index) ?? throw new ArgumentOutOfRangeException(nameof(index));
             set => _values[index] = value;
         }
+
+        public override object Clone() => new ArrayObject(_values.Select(x => (IPdfObject)x.Clone()), Origin);
     }
 }

@@ -2,7 +2,6 @@
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
@@ -23,7 +22,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
 public static class DictionaryIdentifier
 {
-    private static readonly Dictionary<Name, Type> _dictionaryTypeMap = new()
+    private static readonly Dictionary<string, Type> _dictionaryTypeMap = new()
     {
         [Constants.DictionaryTypes.Catalog] = typeof(DocumentCatalogDictionary),
         [Constants.DictionaryTypes.Page] = typeof(PageDictionary),
@@ -38,7 +37,7 @@ public static class DictionaryIdentifier
         [Constants.DictionaryTypes.Encoding] = typeof(EncodingDictionary),
     };
 
-    private static readonly Dictionary<Name, Type> _dictionarySubtypeMap = new()
+    private static readonly Dictionary<string, Type> _dictionarySubtypeMap = new()
     {
         [XObjectDictionary.Subtypes.Form] = typeof(Type1FormDictionary),
         [XObjectDictionary.Subtypes.Image] = typeof(ImageDictionary),
@@ -52,7 +51,7 @@ public static class DictionaryIdentifier
         [FontDictionary.Subtypes.CID.CIDFontType2] = typeof(CIDFontDictionary),
     };
 
-    public static async Task<Type?> IdentifyAsync(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
+    public static async Task<Type?> IdentifyAsync(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext)
     {
         _ = dictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type);
         _ = dictionary.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subtype);
@@ -75,7 +74,7 @@ public static class DictionaryIdentifier
                     {
                         // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
                         // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
-                        var fieldDict = FieldDictionary.FromDictionary(dictionary, pdfEditor);
+                        var fieldDict = FieldDictionary.FromDictionary(dictionary, pdfContext, ObjectOrigin.UserCreated);
                         if (await fieldDict.FT.GetAsync() is not null)
                         {
                             return typeof(FieldDictionary);

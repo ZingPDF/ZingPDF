@@ -1,6 +1,5 @@
 ﻿using MorseCode.ITask;
 using System.Text;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
@@ -9,14 +8,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
 {
     internal class ArrayParser : IObjectParser<ArrayObject>
     {
-        private readonly IPdfEditor _pdfEditor;
+        private readonly IPdfContext _pdfContext;
 
-        public ArrayParser(IPdfEditor pdfEditor)
+        public ArrayParser(IPdfContext pdfContext)
         {
-            _pdfEditor = pdfEditor;
+            _pdfContext = pdfContext;
         }
 
-        public async ITask<ArrayObject> ParseAsync(Stream stream)
+        public async ITask<ArrayObject> ParseAsync(Stream stream, ParseContext context)
         {
             //Logger.Log(LogLevel.Trace, $"Parsing ArrayObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
@@ -81,7 +80,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             // Determine array content
             if (arrayEnd - arrayStart <= 1)
             {
-                output = Array.Empty<PdfObject>();
+                output = [];
             }
             else
             {
@@ -89,9 +88,9 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
                 // Parse objects inside the array
-                var objectGroup = await new PdfObjectGroupParser(_pdfEditor).ParseAsync(arrayStream);
+                var objectGroup = await new PdfObjectGroupParser(_pdfContext).ParseAsync(arrayStream, context);
 
-                output = objectGroup.Objects.ToArray();
+                output = new ArrayObject(objectGroup.Objects, ObjectOrigin.ParsedDocumentObject);
             }
 
             // Move the stream position past the array

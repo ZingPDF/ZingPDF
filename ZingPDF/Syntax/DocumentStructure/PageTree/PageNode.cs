@@ -1,5 +1,4 @@
 ﻿using ZingPDF.Elements;
-using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
@@ -15,8 +14,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageNode(Dictionary dictionary)
         : base(dictionary) { }
 
-        public PageNode(Dictionary<Name, IPdfObject> dictionary, IPdfEditor pdfEditor)
-            : base(dictionary, pdfEditor) { } 
+        public PageNode(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+            : base(dictionary, pdfContext, objectOrigin) { } 
 
         /// <summary>
         /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
@@ -75,7 +74,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         {
             ArgumentNullException.ThrowIfNull(rotation, nameof(rotation));
 
-            Set<Number>(Constants.DictionaryKeys.PageTree.Rotate, rotation);
+            Set<Number>(Constants.DictionaryKeys.PageTree.Rotate, rotation.Value);
         }
 
         public void SetResources(ResourceDictionary resourceDictionary)
@@ -86,27 +85,27 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         }
 
         public async Task AddXObjectResourceAsync(
-            Name name,
+            string name,
             IndirectObjectReference reference,
-            IPdfEditor pdfEditor
+            IPdfContext pdfContext
             )
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
-            ArgumentNullException.ThrowIfNull(pdfEditor, nameof(pdfEditor));
+            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
 
             var resources = await Resources.GetAsync();
             if (resources == null)
             {
                 Set(
                     Constants.DictionaryKeys.PageTree.Resources,
-                    new ResourceDictionary(pdfEditor, xObject: new Dictionary<Name, IPdfObject>() { { name, reference } })
+                    new ResourceDictionary(pdfContext, ObjectOrigin.UserCreated, xObject: new Dictionary<string, IPdfObject>() { { name, reference } })
                     );
 
                 return;
             }
 
-            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdfEditor);
+            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdfContext);
         }
     }
 }

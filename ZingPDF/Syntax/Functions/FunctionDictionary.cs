@@ -1,5 +1,4 @@
-﻿using ZingPDF.IncrementalUpdates;
-using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
@@ -7,8 +6,8 @@ namespace ZingPDF.Syntax.Functions;
 
 internal abstract class FunctionDictionary : Dictionary
 {
-    protected FunctionDictionary(Number functionType, IPdfEditor pdfEditor)
-        : base(pdfEditor)
+    protected FunctionDictionary(Number functionType, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        : base(pdfContext, objectOrigin)
     {
         ArgumentNullException.ThrowIfNull(functionType);
 

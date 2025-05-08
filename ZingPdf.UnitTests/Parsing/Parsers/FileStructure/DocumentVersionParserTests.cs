@@ -19,8 +19,9 @@ public class DocumentVersionParserTests
     public async Task ParseDocumentVersions_CorrectCount(string filePath, int expectedVersionCount)
     {
         var stream = new MemoryStream(Files.ConcurrentRead(filePath));
+        var pdfContext = new PdfContext(stream);
 
-        var versions = await DocumentVersionParser.ParseDocumentVersionsAsync(stream);
+        var versions = await pdfContext.Parser.DocumentVersions.ParseDocumentVersionsAsync(stream);
 
         versions.Count.Should().Be(expectedVersionCount);
     }

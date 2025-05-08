@@ -12,6 +12,11 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     internal class InlineImage : ContentStream
     {
+        public InlineImage(ObjectOrigin objectOrigin)
+            : base(objectOrigin)
+        {
+        }
+
         protected override Task WriteOutputAsync(Stream stream)
         {
             throw new NotImplementedException();

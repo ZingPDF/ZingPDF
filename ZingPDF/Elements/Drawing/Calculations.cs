@@ -1,4 +1,6 @@
-﻿namespace ZingPDF.Elements.Drawing
+﻿using ZingPDF.Syntax.Objects;
+
+namespace ZingPDF.Elements.Drawing
 {
     public class Calculations : ICalculations
     {
