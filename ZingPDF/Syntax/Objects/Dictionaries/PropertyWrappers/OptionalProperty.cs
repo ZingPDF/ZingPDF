@@ -8,8 +8,8 @@
 /// When they are a reference, the property value is represented as an indirect object elsewhere in the PDF.
 /// This class exposes a <see cref="GetAsync"/> method which resolves the value in either case.
 /// </remarks>
-public class OptionalProperty<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
-    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
+public class OptionalProperty<T>(string key, Dictionary dictionary, IPdf pdf)
+    : BaseProperty(key, dictionary, pdf) where T : class, IPdfObject
 {
     /// <summary>
     /// Retrieve the property value.

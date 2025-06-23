@@ -69,5 +69,5 @@ public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
     /// <remarks>
     /// Returns null if there have been no updates to the PDF.
     /// </remarks>
-    Task<IncrementalUpdate?> GenerateUpdateDeltaAsync(IPdfContext pdfContext);
+    Task<IncrementalUpdate?> GenerateUpdateDeltaAsync();
 }
