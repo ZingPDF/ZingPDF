@@ -10,7 +10,7 @@ namespace ZingPDF.Elements.Forms
         protected readonly IndirectObject _fieldIndirectObject;
         protected readonly FieldDictionary _fieldDictionary;
         protected readonly Form _parent;
-        protected readonly IPdfContext _pdfContext;
+        protected readonly IPdf _pdf;
 
         protected FormField(
             IndirectObject fieldIndirectObject,
@@ -18,13 +18,13 @@ namespace ZingPDF.Elements.Forms
             string? description,
             FieldProperties properties,
             Form parent,
-            IPdfContext pdfContext
+            IPdf pdf
             )
         {
             ArgumentNullException.ThrowIfNull(fieldIndirectObject, nameof(fieldIndirectObject));
             ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
             ArgumentNullException.ThrowIfNull(parent, nameof(parent));
-            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
+            ArgumentNullException.ThrowIfNull(pdf, nameof(pdf));
 
             _fieldIndirectObject = fieldIndirectObject;
             _fieldDictionary = (FieldDictionary)fieldIndirectObject.Object;
@@ -34,7 +34,7 @@ namespace ZingPDF.Elements.Forms
             Properties = properties;
 
             _parent = parent;
-            _pdfContext = pdfContext;
+            _pdf = pdf;
         }
 
         public string Name { get; }
@@ -50,7 +50,7 @@ namespace ZingPDF.Elements.Forms
                 _fieldDictionary.SetValue(value);
             }
 
-            _pdfContext.Objects.Update(_fieldIndirectObject);
+            _pdf.Objects.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }

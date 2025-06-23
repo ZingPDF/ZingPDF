@@ -5,13 +5,13 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class CommentParser : IObjectParser<Comment>
+    internal class CommentParser : IParser<Comment>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IPdfObjectCollection _pdfObjects;
 
-        public CommentParser(IPdfContext pdfContext)
+        public CommentParser(IPdfObjectCollection pdfObjects)
         {
-            _pdfContext = pdfContext;
+            _pdfObjects = pdfObjects;
         }
 
         public async ITask<Comment> ParseAsync(Stream stream, ParseContext context)

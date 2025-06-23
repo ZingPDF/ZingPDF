@@ -11,13 +11,13 @@ public class Type3FontDictionary : FontDictionary
     private Type3FontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private Type3FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-        : base(dictionary, pdfContext, objectOrigin)
+    private Type3FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        : base(dictionary, pdf, objectOrigin)
     {
     }
 
-    public Type3FontDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
-        : base(Subtypes.Simple.Type3, pdfContext, objectOrigin)
+    public Type3FontDictionary(IPdf pdf, ObjectOrigin objectOrigin)
+        : base(Subtypes.Simple.Type3, pdf, objectOrigin)
     {
     }
 
@@ -60,9 +60,9 @@ public class Type3FontDictionary : FontDictionary
     /// </summary>
     public OptionalProperty<Dictionary> Resources => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Font.Type3.Resources);
 
-    public static Type3FontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+    public static Type3FontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
     {
-        return new Type3FontDictionary(dictionary, pdfContext, objectOrigin);
+        return new Type3FontDictionary(dictionary, pdf, objectOrigin);
     }
 
     public static Type3FontDictionary FromDictionary(Dictionary dictionary)

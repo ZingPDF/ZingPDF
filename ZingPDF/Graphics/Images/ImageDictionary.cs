@@ -17,11 +17,11 @@ namespace ZingPDF.Graphics.Images
         public ImageDictionary(Dictionary dict)
             : base(dict) { }
 
-        private ImageDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(dict, pdfContext, objectOrigin) { }
+        private ImageDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(dict, pdf, objectOrigin) { }
 
         public ImageDictionary(
-            IPdfContext pdfContext,
+            IPdf pdf,
             ObjectOrigin objectOrigin,
             int width,
             int height,
@@ -35,7 +35,7 @@ namespace ZingPDF.Graphics.Images
                 {
                     [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Image
                 },
-                pdfContext,
+                pdf,
                 objectOrigin
               )
         {
@@ -244,7 +244,7 @@ namespace ZingPDF.Graphics.Images
         /// </summary>
         public OptionalProperty<Dictionary> PtData => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Image.PtData);
 
-        new public static ImageDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        new public static ImageDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
         {
             if (
                 !dict.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type)
@@ -256,7 +256,7 @@ namespace ZingPDF.Graphics.Images
                 throw new ArgumentException("Supplied argument is not a type 1 form dictionary.", nameof(dict));
             }
 
-            return new(dict, pdfContext, objectOrigin);
+            return new(dict, pdf, objectOrigin);
         }
     }
 }

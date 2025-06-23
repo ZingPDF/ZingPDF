@@ -12,15 +12,13 @@ using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class IndirectObjectParser : IObjectParser<IndirectObject>
+    internal class IndirectObjectParser : IParser<IndirectObject>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IParserResolver _parserResolver;
 
-        public IndirectObjectParser(IPdfContext pdfContext)
+        public IndirectObjectParser(IParserResolver parserResolver)
         {
-            ArgumentNullException.ThrowIfNull(nameof(pdfContext));
-
-            _pdfContext = pdfContext;
+            _parserResolver = parserResolver;
         }
 
         public async ITask<IndirectObject> ParseAsync(Stream stream, ParseContext context)
@@ -31,11 +29,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var initialStreamPosition = stream.Position;
 
-            var id = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
-            var genNumber = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
+            var id = await _parserResolver.GetParser<Number>().ParseAsync(stream, context);
+            var genNumber = await _parserResolver.GetParser<Number>().ParseAsync(stream, context);
 
             // obj keyword
-            _ = await _pdfContext.Parser.Keywords.ParseAsync(stream, context);
+            _ = await _parserResolver.GetParser<Keyword>().ParseAsync(stream, context);
 
             var items = new List<IPdfObject>();
 
@@ -59,7 +57,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     break;
                 }
 
-                IPdfObject item = await _pdfContext.Parser.For(type).ParseAsync(stream, context);
+                IPdfObject item = await _parserResolver.GetParserFor(type).ParseAsync(stream, context);
 
                 if (item is Keyword keyword && keyword == Constants.ObjEnd)
                 {
@@ -76,24 +74,24 @@ namespace ZingPDF.Parsing.Parsers.Objects
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
 
-        private async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream, ParseContext context)
+        private static async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream, ParseContext context)
         {
             return dict switch
             {
                 CrossReferenceStreamDictionary xrefStreamDict
-                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict, _pdfContext).ParseAsync(stream, context),
+                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict).ParseAsync(stream, context),
 
                 ObjectStreamDictionary objectStreamDict
-                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict, _pdfContext).ParseAsync(stream, context),
+                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict).ParseAsync(stream, context),
 
                 Type1FormDictionary type1FormDict
-                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict, _pdfContext).ParseAsync(stream, context),
+                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict).ParseAsync(stream, context),
 
                 ImageDictionary imageDict
-                    => await new StreamObjectParser<ImageDictionary>(imageDict, _pdfContext).ParseAsync(stream, context),
+                    => await new StreamObjectParser<ImageDictionary>(imageDict).ParseAsync(stream, context),
 
                 StreamDictionary streamDict
-                    => await new StreamObjectParser<StreamDictionary>(streamDict, _pdfContext).ParseAsync(stream, context),
+                    => await new StreamObjectParser<StreamDictionary>(streamDict).ParseAsync(stream, context),
 
                 _ => throw new InvalidOperationException($"Unsupported dictionary type: {dict.GetType().Name}"),
             };

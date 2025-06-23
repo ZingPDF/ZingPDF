@@ -8,13 +8,13 @@ namespace ZingPDF.Parsing.Parsers.Objects.LiteralStrings
     /// Parses a PDF literal string from a content stream, handling nested parentheses,
     /// escape sequences, octal codes, line continuations, and various text encodings.
     /// </summary>
-    internal class LiteralStringParser : IObjectParser<LiteralString>
+    internal class LiteralStringParser : IParser<LiteralString>
     {
-        private IPdfContext _pdfContext;
+        private IPdfObjectCollection _pdfObjects;
 
-        public LiteralStringParser(IPdfContext pdfContext)
+        public LiteralStringParser(IPdfObjectCollection pdfObjects)
         {
-            _pdfContext = pdfContext;
+            _pdfObjects = pdfObjects;
         }
 
         public async ITask<LiteralString> ParseAsync(Stream stream, ParseContext context)

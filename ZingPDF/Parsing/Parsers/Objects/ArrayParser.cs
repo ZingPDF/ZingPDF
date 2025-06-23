@@ -6,13 +6,13 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class ArrayParser : IObjectParser<ArrayObject>
+    internal class ArrayParser : IParser<ArrayObject>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IParserResolver _parserRegistry;
 
-        public ArrayParser(IPdfContext pdfContext)
+        public ArrayParser(IParserResolver parserRegistry)
         {
-            _pdfContext = pdfContext;
+            _parserRegistry = parserRegistry;
         }
 
         public async ITask<ArrayObject> ParseAsync(Stream stream, ParseContext context)
@@ -88,7 +88,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                 var arrayStream = new SubStream(stream, arrayStart, arrayEnd);
 
                 // Parse objects inside the array
-                var objectGroup = await new PdfObjectGroupParser(_pdfContext).ParseAsync(arrayStream, context);
+                var objectGroup = await new PdfObjectGroupParser(_parserRegistry).ParseAsync(arrayStream, context);
 
                 output = new ArrayObject(objectGroup.Objects, ObjectOrigin.ParsedDocumentObject);
             }

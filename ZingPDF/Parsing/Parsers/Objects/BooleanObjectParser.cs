@@ -5,13 +5,13 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class BooleanObjectParser : IObjectParser<BooleanObject>
+    internal class BooleanObjectParser : IParser<BooleanObject>
     {
-        private IPdfContext _pdfContext;
+        private IPdfObjectCollection _pdfObjects;
 
-        public BooleanObjectParser(IPdfContext pdfContext)
+        public BooleanObjectParser(IPdfObjectCollection pdfObjects)
         {
-            _pdfContext = pdfContext;
+            _pdfObjects = pdfObjects;
         }
 
         public async ITask<BooleanObject> ParseAsync(Stream stream, ParseContext context)

@@ -1,16 +1,17 @@
-﻿using Nito.AsyncEx;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Nito.AsyncEx;
 using System.Text;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Parsing.Parsers.FileStructure;
+using ZingPDF.Parsing.Parsers.Objects;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
-using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -27,8 +28,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject);
 
     private readonly Dictionary<IndirectObjectId, IndirectObject> _parsedObjectCache = [];
-    private readonly Stream _pdfInputStream;
-    private readonly IPdfContext _pdfContext;
+    
     private readonly List<IndirectObject> _newObjects = [];
     private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = [];
     private readonly List<IndirectObjectId> _deletedObjects = [];
@@ -36,16 +36,23 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
+    private readonly IDocumentVersionParser _documentVersionParser;
+    private readonly IParserResolver _parserResolver;
+    private readonly IPdf _pdf;
+
     //private readonly Queue<IndirectObjectId> _freeIds;
 
-    public PdfObjectCollection(Stream pdfInputStream, IPdfContext pdfContext)
+    public PdfObjectCollection(
+        [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+        IDocumentVersionParser documentVersionParser,
+        IParserResolver parserResolver
+        )
     {
-        ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
+        _pdf = pdf;
+        _documentVersionParser = documentVersionParser;
+        _parserResolver = parserResolver;
 
-        _pdfInputStream = pdfInputStream;
-        _pdfContext = pdfContext;
-
-        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await new DocumentVersionParser(_pdfContext).ParseDocumentVersionsAsync(_pdfInputStream));
+        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
@@ -182,7 +189,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         _updatedObjects[indirectObject.Id] = indirectObject;
     }
 
-    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync(IPdfContext pdfContext)
+    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync()
     {
         if (NewOrUpdatedObjects.Count == 0 && _deletedObjects.Count == 0)
         {
@@ -245,9 +252,9 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     {
         if (!xref.Compressed)
         {
-            _pdfInputStream.Position = xref.Value1;
+            _pdf.Data.Position = xref.Value1;
 
-            return await _pdfContext.Parser.IndirectObjects.ParseAsync(_pdfInputStream, _parseContext);
+            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(_pdf.Data, _parseContext);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
@@ -277,7 +284,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
         var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-        return new IndirectObject(key.Id, await _pdfContext.Parser.For(type).ParseAsync(decompressedObjectStream, _parseContext));
+        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, _parseContext));
     }
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)

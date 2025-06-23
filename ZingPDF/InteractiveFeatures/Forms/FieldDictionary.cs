@@ -19,8 +19,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public FieldDictionary(Dictionary dict)
             : base(dict) { }
 
-        private FieldDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(dictionary, pdfContext, objectOrigin) { }
+        private FieldDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(dictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Required for terminal fields; inheritable)<para></para>
@@ -165,9 +165,9 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA, await ms.GetAsync());
         }
 
-        new public static FieldDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        new public static FieldDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
         {
-            return new(dictionary, pdfContext, objectOrigin);
+            return new(dictionary, pdf, objectOrigin);
         }
     }
 }

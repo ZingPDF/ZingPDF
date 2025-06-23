@@ -12,9 +12,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfContext pdfContext
+        IPdf pdf
         )
-        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdfContext)
+        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdf)
     {
         public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {

@@ -3,25 +3,26 @@ using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
-internal class DocumentVersionParser
+internal class DocumentVersionParser : IDocumentVersionParser
 {
-    private readonly IPdfContext _pdfContext;
-
     private static readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.DocumentVersionParser);
-    
-    public DocumentVersionParser(IPdfContext pdfContext)
+
+    private readonly IParserResolver _parserResolver;
+
+    public DocumentVersionParser(IParserResolver parserResolver)
     {
-        _pdfContext = pdfContext;
+        _parserResolver = parserResolver ?? throw new ArgumentNullException(nameof(parserResolver));
     }
 
     // Parse all xref tables and streams to get all versions of the file
-    public async Task<List<VersionInformation>> ParseDocumentVersionsAsync(Stream pdfInputStream)
+    public async Task<List<VersionInformation>> ParseAsync(Stream pdfInputStream)
     {
         List<VersionInformation> versions = [];
 
@@ -30,7 +31,7 @@ internal class DocumentVersionParser
         while (xrefOffset != null)
         {
             var version = await ParseDocumentVersionAsync(pdfInputStream, xrefOffset.Value);
-            
+
             xrefOffset = version.TrailerDictionary.Prev;
 
             versions.Add(version);
@@ -52,12 +53,12 @@ internal class DocumentVersionParser
 
         if (type == typeof(Keyword))
         {
-            var xrefTable = await _pdfContext.Parser.CrossReferenceTables.ParseAsync(pdfInputStream, _parseContext);
+            var xrefTable = await _parserResolver.GetParser<CrossReferenceTable>().ParseAsync(pdfInputStream, _parseContext);
 
             version = new VersionInformation
             {
                 CrossReferenceTable = xrefTable,
-                Trailer = await _pdfContext.Parser.Trailers.ParseAsync(pdfInputStream, _parseContext),
+                Trailer = await _parserResolver.GetParser<Trailer>().ParseAsync(pdfInputStream, _parseContext),
                 IndirectObjects = ProcessXrefTable(xrefTable)
             };
         }
@@ -66,12 +67,12 @@ internal class DocumentVersionParser
             // Parse object number then move stream back to start of object
             // The xref stream parser will record the byte offset which should be at the start of the indirect object
             // We only parse the object number here so that we can repair the xrefs (within ProcessXrefStreamAsync) if the stream isn't referenced.
-            var id = await _pdfContext.Parser.Numbers.ParseAsync(pdfInputStream, _parseContext);
-            var genNumber = await _pdfContext.Parser.Numbers.ParseAsync(pdfInputStream, _parseContext);
+            var id = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _parseContext);
+            var genNumber = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _parseContext);
 
             pdfInputStream.Position = xrefOffset;
 
-            var xrefStream = await new CrossReferenceStreamParser(_pdfContext).ParseAsync(pdfInputStream, _parseContext);
+            var xrefStream = await _parserResolver.GetParser<StreamObject<CrossReferenceStreamDictionary>>().ParseAsync(pdfInputStream, _parseContext);
 
             version = new VersionInformation
             {
@@ -104,9 +105,9 @@ internal class DocumentVersionParser
 
         pdfStream.Position = offset;
 
-        _ = await _pdfContext.Parser.Keywords.ParseAsync(pdfStream, _parseContext);
+        _ = await _parserResolver.GetParser<Keyword>().ParseAsync(pdfStream, _parseContext);
 
-        return await _pdfContext.Parser.Numbers.ParseAsync(pdfStream, _parseContext);
+        return await _parserResolver.GetParser<Number>().ParseAsync(pdfStream, _parseContext);
     }
 
     private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)

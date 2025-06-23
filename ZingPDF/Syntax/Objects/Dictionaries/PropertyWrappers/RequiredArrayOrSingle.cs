@@ -1,7 +1,7 @@
 ﻿namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public class RequiredArrayOrSingle<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
-    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
+public class RequiredArrayOrSingle<T>(string key, Dictionary dictionary, IPdf pdf)
+    : BaseProperty(key, dictionary, pdf) where T : class, IPdfObject
 {
     public async Task<ArrayObject> GetAsync()
     {

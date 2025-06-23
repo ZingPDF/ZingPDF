@@ -106,7 +106,7 @@ namespace ZingPDF.IncrementalUpdates
                     existingTrailerDictionary.Encrypt,
                     existingTrailerDictionary.Info,
                     fileIdentifier,
-                    existingTrailerDictionary.PdfContext,
+                    existingTrailerDictionary.Pdf,
                     ObjectOrigin.UserCreated
                     ),
                 xrefTable.ByteOffset!.Value,

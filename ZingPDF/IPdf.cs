@@ -8,6 +8,9 @@ namespace ZingPDF;
 
 public interface IPdf
 {
+    Stream Data { get; }
+    IPdfObjectCollection Objects { get; }
+
     Task<IList<IndirectObject>> GetAllPagesAsync();
     Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();
@@ -41,6 +44,4 @@ public interface IPdf
     Task AppendPdfAsync(Stream stream);
 
     Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions);
-
-    IPdfContext Context { get; }
 }

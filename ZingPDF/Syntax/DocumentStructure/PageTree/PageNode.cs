@@ -14,8 +14,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageNode(Dictionary dictionary)
         : base(dictionary) { }
 
-        public PageNode(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(dictionary, pdfContext, objectOrigin) { } 
+        public PageNode(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(dictionary, pdf, objectOrigin) { } 
 
         /// <summary>
         /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
@@ -87,25 +87,25 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public async Task AddXObjectResourceAsync(
             string name,
             IndirectObjectReference reference,
-            IPdfContext pdfContext
+            IPdf pdf
             )
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(reference, nameof(reference));
-            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
+            ArgumentNullException.ThrowIfNull(pdf, nameof(pdf));
 
             var resources = await Resources.GetAsync();
             if (resources == null)
             {
                 Set(
                     Constants.DictionaryKeys.PageTree.Resources,
-                    new ResourceDictionary(pdfContext, ObjectOrigin.UserCreated, xObject: new Dictionary<string, IPdfObject>() { { name, reference } })
+                    new ResourceDictionary(pdf, ObjectOrigin.UserCreated, xObject: new Dictionary<string, IPdfObject>() { { name, reference } })
                     );
 
                 return;
             }
 
-            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdfContext);
+            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdf);
         }
     }
 }

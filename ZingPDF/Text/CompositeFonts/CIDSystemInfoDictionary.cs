@@ -8,8 +8,8 @@ namespace ZingPDF.Text.CompositeFonts;
 
 public class CIDSystemInfoDictionary : Dictionary
 {
-    public CIDSystemInfoDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-        : base(dictionary, pdfContext, objectOrigin)
+    public CIDSystemInfoDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        : base(dictionary, pdf, objectOrigin)
     {
     }
 
@@ -33,8 +33,8 @@ public class CIDSystemInfoDictionary : Dictionary
     /// </summary>
     public RequiredProperty<Number> Supplement => GetRequiredProperty<Number>(Constants.DictionaryKeys.Font.CIDSystemInfo.Supplement);
 
-    public static CIDSystemInfoDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+    public static CIDSystemInfoDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
     {
-        return new CIDSystemInfoDictionary(dictionary, pdfContext, objectOrigin);
+        return new CIDSystemInfoDictionary(dictionary, pdf, objectOrigin);
     }
 }

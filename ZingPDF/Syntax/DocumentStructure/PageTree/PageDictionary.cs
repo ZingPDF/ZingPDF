@@ -18,8 +18,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageDictionary(Dictionary pageDictionary)
             : base(pageDictionary) { }
 
-        private PageDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(pageDictionary, pdfContext, objectOrigin) { }
+        private PageDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(pageDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
@@ -244,7 +244,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
         /// <returns>A <see cref="PageDictionary"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdfContext pdfContext, PageCreationOptions? options = null)
+        internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdf pdf, PageCreationOptions? options = null)
         {
             ArgumentNullException.ThrowIfNull(parent);
 
@@ -254,7 +254,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Page },
                 { Constants.DictionaryKeys.Parent, parent },
-                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdfContext, ObjectOrigin.UserCreated) },
+                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdf, ObjectOrigin.UserCreated) },
             };
 
             if (options.MediaBox is not null)
@@ -262,7 +262,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 dict[Constants.DictionaryKeys.PageTree.MediaBox] = options.MediaBox;
             }
 
-            return new(dict, pdfContext, ObjectOrigin.UserCreated);
+            return new(dict, pdf, ObjectOrigin.UserCreated);
         }
 
         /// <summary>
@@ -270,11 +270,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         /// <param name="pageDictionary"></param>
         /// <returns></returns>
-        internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
 
-            return new PageDictionary(pageDictionary, pdfContext, objectOrigin);
+            return new PageDictionary(pageDictionary, pdf, objectOrigin);
         }
 
         public class PageCreationOptions

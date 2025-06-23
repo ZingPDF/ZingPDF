@@ -5,13 +5,15 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
-    internal class CrossReferenceTableParser : IObjectParser<CrossReferenceTable>
+    internal class CrossReferenceTableParser : IParser<CrossReferenceTable>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IParser<Keyword> _keywordParser;
+        private readonly IParser<CrossReferenceSection> _xrefSectionParser;
 
-        public CrossReferenceTableParser(IPdfContext pdfContext)
+        public CrossReferenceTableParser(IParser<Keyword> keywordParser, IParser<CrossReferenceSection> xrefSectionParser)
         {
-            _pdfContext = pdfContext;
+            _keywordParser = keywordParser;
+            _xrefSectionParser = xrefSectionParser;
         }
 
         public async ITask<CrossReferenceTable> ParseAsync(Stream stream, ParseContext context)
@@ -30,7 +32,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000025777 00000 n
 
             // Ignore the xref keyword
-            _ = _pdfContext.Parser.Keywords.ParseAsync(stream, context);
+            _ = _keywordParser.ParseAsync(stream, context);
 
             List<CrossReferenceSection> sections = [];
 
@@ -38,7 +40,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             while (currentType != null && currentType != typeof(CrossReferenceEntry) && currentType != typeof(Keyword) && currentType != typeof(Trailer))
             {
-                sections.Add(await _pdfContext.Parser.CrossReferenceSections.ParseAsync(stream, context));
+                sections.Add(await _xrefSectionParser.ParseAsync(stream, context));
 
                 currentType = await TokenTypeIdentifier.TryIdentifyAsync(stream);
             }

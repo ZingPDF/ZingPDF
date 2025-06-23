@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csproj", "{DA631959-457C-4040-A764-EACBA77E56AC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF.UnitTests", "ZingPDF.UnitTests\ZingPDF.UnitTests.csproj", "{E4FA0A42-D460-4758-8CE9-7ADE49A39372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF.Tests.Unit", "Tests\ZingPDF.Tests.Unit\ZingPDF.Tests.Unit.csproj", "{E4FA0A42-D460-4758-8CE9-7ADE49A39372}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF", "ZingPDF\ZingPDF.csproj", "{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}"
 EndProject
@@ -20,6 +20,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Fonts", "ZingPDF.Fonts\ZingPDF.Fonts.csproj", "{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.InheritableSourceGenerator", "ZingPDF.InheritableSourceGenerator\ZingPDF.InheritableSourceGenerator.csproj", "{F12B618D-149D-4428-9728-D636DA52EB94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Tests.Integration", "Tests\ZingPDF.Tests.Integration\ZingPDF.Tests.Integration.csproj", "{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Tests.Smoke", "Tests\ZingPDF.Tests.Smoke\ZingPDF.Tests.Smoke.csproj", "{C9BDF906-F3D7-43AE-B75F-6B09896411F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Tests.Common", "Tests\ZingPDF.Tests.Common\ZingPDF.Tests.Common.csproj", "{FFBCB549-4619-412E-B585-5982C1587F53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,13 +67,29 @@ Global
 		{F12B618D-149D-4428-9728-D636DA52EB94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F12B618D-149D-4428-9728-D636DA52EB94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F12B618D-149D-4428-9728-D636DA52EB94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9BDF906-F3D7-43AE-B75F-6B09896411F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9BDF906-F3D7-43AE-B75F-6B09896411F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9BDF906-F3D7-43AE-B75F-6B09896411F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9BDF906-F3D7-43AE-B75F-6B09896411F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFBCB549-4619-412E-B585-5982C1587F53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFBCB549-4619-412E-B585-5982C1587F53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFBCB549-4619-412E-B585-5982C1587F53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFBCB549-4619-412E-B585-5982C1587F53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{E4FA0A42-D460-4758-8CE9-7ADE49A39372} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{EC799191-DB8F-436B-AFCD-5FDFCE27A329} = {8168D312-4EC2-424F-8694-73DFD3554208}
 		{ED9D8AD3-6CA7-4683-B70A-8D563C8F9971} = {8168D312-4EC2-424F-8694-73DFD3554208}
+		{8C3FF4EF-5A1C-4EA0-ADF6-C6256D7E9CFE} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C9BDF906-F3D7-43AE-B75F-6B09896411F4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{FFBCB549-4619-412E-B585-5982C1587F53} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC41F4C3-D07E-4BA0-A2DD-F9713CE78F73}
