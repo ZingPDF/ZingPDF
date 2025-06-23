@@ -6,15 +6,15 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
-internal class NameParser : IObjectParser<Name>
+internal class NameParser : IParser<Name>
 {
-    private readonly IPdfContext _pdfContext;
+    private readonly IPdfObjectCollection _pdfObjects;
 
     readonly char[] _nameDelimiters = [.. Constants.Delimiters, .. Constants.WhitespaceCharacters];
     
-    public NameParser(IPdfContext pdfContext)
+    public NameParser(IPdfObjectCollection pdfObjects)
     {
-        _pdfContext = pdfContext;
+        _pdfObjects = pdfObjects;
     }
 
     public async ITask<Name> ParseAsync(Stream stream, ParseContext context)

@@ -4,15 +4,13 @@ using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing.Parsers
 {
-    internal class PdfObjectGroupParser : IObjectParser<PdfObjectGroup>
+    internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IParserResolver _parserRegistry;
 
-        public PdfObjectGroupParser(IPdfContext pdfContext)
+        public PdfObjectGroupParser(IParserResolver parserRegistry)
         {
-            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
-
-            _pdfContext = pdfContext;
+            _parserRegistry = parserRegistry;
         }
 
         public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
@@ -29,7 +27,7 @@ namespace ZingPDF.Parsing.Parsers
                 {
                     try
                     {
-                        items.Add(await _pdfContext.Parser.For(type).ParseAsync(stream, context));
+                        items.Add(await _parserRegistry.GetParserFor(type).ParseAsync(stream, context));
                     }
                     catch
                     {

@@ -5,13 +5,13 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class HexadecimalStringParser : IObjectParser<HexadecimalString>
+    internal class HexadecimalStringParser : IParser<HexadecimalString>
     {
-        private IPdfContext _pdfContext;
+        private IPdfObjectCollection _pdfObjects;
 
-        public HexadecimalStringParser(IPdfContext pdfContext)
+        public HexadecimalStringParser(IPdfObjectCollection pdfObjects)
         {
-            _pdfContext = pdfContext;
+            _pdfObjects = pdfObjects;
         }
 
         public async ITask<HexadecimalString> ParseAsync(Stream stream, ParseContext context)
