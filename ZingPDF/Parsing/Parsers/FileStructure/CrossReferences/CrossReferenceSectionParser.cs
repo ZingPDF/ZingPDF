@@ -3,13 +3,18 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
-    internal class CrossReferenceSectionParser : IObjectParser<CrossReferenceSection>
+    internal class CrossReferenceSectionParser : IParser<CrossReferenceSection>
     {
-        private IPdfContext _pdfContext;
+        private readonly IParser<CrossReferenceSectionIndex> _xrefSectionIndexParser;
+        private readonly IParser<CrossReferenceEntry> _xrefEntryParser;
 
-        public CrossReferenceSectionParser(IPdfContext pdfContext)
+        public CrossReferenceSectionParser(
+            IParser<CrossReferenceSectionIndex> xrefSectionIndexParser,
+            IParser<CrossReferenceEntry> xrefEntryParser
+            )
         {
-            _pdfContext = pdfContext;
+            _xrefSectionIndexParser = xrefSectionIndexParser;
+            _xrefEntryParser = xrefEntryParser;
         }
 
         public async ITask<CrossReferenceSection> ParseAsync(Stream stream, ParseContext context)
@@ -22,7 +27,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000000331 00000 n
             // 0000000409 00000 n
 
-            var index = await _pdfContext.Parser.CrossReferenceSectionIndexes.ParseAsync(stream, context);
+            var index = await _xrefSectionIndexParser.ParseAsync(stream, context);
 
             Type? type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
             List<CrossReferenceEntry> entries = [];
@@ -30,7 +35,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             while (type == typeof(CrossReferenceEntry))
             {
-                entries.Add(await _pdfContext.Parser.CrossReferenceEntries.ParseAsync(stream, context));
+                entries.Add(await _xrefEntryParser.ParseAsync(stream, context));
 
                 position = stream.Position;
                 type = await TokenTypeIdentifier.TryIdentifyAsync(stream);

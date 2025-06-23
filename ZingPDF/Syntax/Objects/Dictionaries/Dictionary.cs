@@ -7,11 +7,11 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
+    public class Dictionary(IPdf pdf, ObjectOrigin objectOrigin)
         : PdfObject(objectOrigin), IPdfDictionary
     {
-        public Dictionary(Name type, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : this(pdfContext, objectOrigin)
+        public Dictionary(Name type, IPdf pdf, ObjectOrigin objectOrigin)
+            : this(pdf, objectOrigin)
         {
             InnerDictionary = [];
 
@@ -21,8 +21,8 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             }
         }
 
-        public Dictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : this(pdfContext, objectOrigin)
+        public Dictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : this(pdf, objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
 
@@ -30,11 +30,11 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         }
 
         public Dictionary(IPdfDictionary dictionary)
-            : this(dictionary.InnerDictionary, dictionary.PdfContext, dictionary.Origin)
+            : this(dictionary.InnerDictionary, dictionary.Pdf, dictionary.Origin)
         {
         }
 
-        public IPdfContext PdfContext { get; } = pdfContext;
+        public IPdf Pdf { get; } = pdf;
         public Dictionary<string, IPdfObject> InnerDictionary { get; } = [];
 
         public Name? Type => GetAs<Name>(Constants.DictionaryKeys.Type);
@@ -44,26 +44,26 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             => (InnerDictionary.TryGetValue(key, out IPdfObject? value) ? value as T : null)!;
 
         public RequiredProperty<T> GetRequiredProperty<T>(string key) where T : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public OptionalProperty<T> GetOptionalProperty<T>(string key) where T : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public RequiredMultiProperty<T1, T2> GetRequiredMultiProperty<T1, T2>(string key)
             where T1 : class, IPdfObject
             where T2 : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public OptionalMultiProperty<T1, T2> GetOptionalMultiProperty<T1, T2>(string key)
             where T1 : class, IPdfObject
             where T2 : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public RequiredArrayOrSingle<T> GetArrayOrSingle<T>(string key) where T : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public OptionalArrayOrSingle<T> GetOptionalArrayOrSingle<T>(string key) where T : class, IPdfObject
-            => new(key, this, PdfContext);
+            => new(key, this, Pdf);
 
         public void Set<T>(string key, T? value) where T : class, IPdfObject
         {
@@ -114,7 +114,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
                 entry => (IPdfObject)entry.Value.Clone()
             );
 
-            return new Dictionary(copy, PdfContext, Origin);
+            return new Dictionary(copy, Pdf, Origin);
         }
     }
 }

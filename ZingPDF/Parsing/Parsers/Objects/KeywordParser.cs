@@ -5,15 +5,8 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class KeywordParser : IObjectParser<Keyword>
+    internal class KeywordParser : IParser<Keyword>
     {
-        private readonly IPdfContext _pdfContext;
-
-        public KeywordParser(IPdfContext pdfContext)
-        {
-            _pdfContext = pdfContext;
-        }
-
         public async ITask<Keyword> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace();

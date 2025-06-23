@@ -5,21 +5,20 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers;
 
-internal class ContentStreamParser : IObjectParser<ContentStream>
+internal class ContentStreamParser : IParser<ContentStream>
 {
     private static readonly HashSet<string> _operatorSet = [.. ContentStream.Operators.All];
-    private readonly IPdfContext _pdfContext;
 
-    public ContentStreamParser(IPdfContext pdfContext)
+    private readonly IParser<PdfObjectGroup> _objectGroupParser;
+
+    public ContentStreamParser(IParser<PdfObjectGroup> objectGroupParser)
     {
-        ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
-
-        _pdfContext = pdfContext;
+        _objectGroupParser = objectGroupParser;
     }
 
     public async ITask<ContentStream> ParseAsync(Stream stream, ParseContext context)
     {
-        var group = await new PdfObjectGroupParser(_pdfContext).ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream));
+        var group = await _objectGroupParser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream));
 
         List<ContentStreamOperation> instructions = [];
         List<IPdfObject> operands = [];

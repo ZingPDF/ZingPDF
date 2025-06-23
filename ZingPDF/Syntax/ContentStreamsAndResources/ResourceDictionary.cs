@@ -14,7 +14,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             : base(resourceDictionary) { }
 
         public ResourceDictionary(
-            IPdfContext pdfContext,
+            IPdf pdf,
             ObjectOrigin objectOrigin,
             Dictionary<string, IPdfObject>? extGState = null,
             Dictionary<string, IPdfObject>? colorSpace = null,
@@ -25,20 +25,20 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             Dictionary<string, IPdfObject>? procSet = null,
             Dictionary<string, IPdfObject>? properties = null
             )
-            : base(pdfContext, objectOrigin)
+            : base(pdf, objectOrigin)
         {
-            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, new Dictionary(extGState, pdfContext, objectOrigin));
-            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, new Dictionary(colorSpace, pdfContext, objectOrigin));
-            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, new Dictionary(pattern, pdfContext, objectOrigin));
-            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, new Dictionary(shading, pdfContext, objectOrigin));
-            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, new Dictionary(xObject, pdfContext, objectOrigin));
-            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, new Dictionary(font, pdfContext, objectOrigin));
-            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, new Dictionary(procSet, pdfContext, objectOrigin));
-            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, new Dictionary(properties, pdfContext, objectOrigin));
+            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, new Dictionary(extGState, pdf, objectOrigin));
+            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, new Dictionary(colorSpace, pdf, objectOrigin));
+            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, new Dictionary(pattern, pdf, objectOrigin));
+            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, new Dictionary(shading, pdf, objectOrigin));
+            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, new Dictionary(xObject, pdf, objectOrigin));
+            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, new Dictionary(font, pdf, objectOrigin));
+            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, new Dictionary(procSet, pdf, objectOrigin));
+            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, new Dictionary(properties, pdf, objectOrigin));
         }
 
-        public ResourceDictionary(Dictionary<string, IPdfObject> dict, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(dict, pdfContext, objectOrigin) { }
+        public ResourceDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(dict, pdf, objectOrigin) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -91,35 +91,39 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         /// </summary>
         public OptionalProperty<Dictionary> Properties => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Resource.Properties);
 
-        public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IPdfContext pdfContext)
+        public async Task AddXObjectAsync(Name name, IndirectObjectReference xObjectReference, IPdf pdf)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(xObjectReference, nameof(xObjectReference));
-            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
+            ArgumentNullException.ThrowIfNull(pdf, nameof(pdf));
 
             Set(
                 Constants.DictionaryKeys.Resource.XObject,
-                await AddRefToSubDictionaryAsync(XObject, name, xObjectReference, pdfContext)
+                await AddRefToSubDictionaryAsync(XObject, name, xObjectReference, pdf)
                 );
         }
 
-        public async Task AddFontAsync(Name name, IndirectObjectReference fontReference, IPdfContext pdfContext)
+        public async Task AddFontAsync(Name name, IndirectObjectReference fontReference, IPdf pdf)
         {
             ArgumentNullException.ThrowIfNull(name, nameof(name));
             ArgumentNullException.ThrowIfNull(fontReference, nameof(fontReference));
-            ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
+            ArgumentNullException.ThrowIfNull(pdf, nameof(pdf));
 
             Set(
                 Constants.DictionaryKeys.Resource.Font,
-                await AddRefToSubDictionaryAsync(Font, name, fontReference, pdfContext)
+                await AddRefToSubDictionaryAsync(Font, name, fontReference, pdf)
                 );
         }
 
-        public static ResourceDictionary FromDictionary(Dictionary<string, IPdfObject> resourceDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        public static ResourceDictionary FromDictionary(
+            Dictionary<string, IPdfObject> resourceDictionary,
+            IPdf pdf,
+            ObjectOrigin objectOrigin
+            )
         {
             return resourceDictionary is null
                 ? throw new ArgumentNullException(nameof(resourceDictionary))
-                : new(resourceDictionary, pdfContext, objectOrigin);
+                : new(resourceDictionary, pdf, objectOrigin);
         }
 
         public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
@@ -133,11 +137,11 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             OptionalProperty<Dictionary> dictionaryProperty,
             Name name,
             IndirectObjectReference reference,
-            IPdfContext pdfContext
+            IPdf pdf
             )
         {
             var dict = await dictionaryProperty.GetAsync()
-                ?? new Dictionary(pdfContext, ObjectOrigin.UserCreated);
+                ?? new Dictionary(pdf, ObjectOrigin.UserCreated);
 
             dict.Set(name, reference);
 

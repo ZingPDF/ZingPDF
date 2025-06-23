@@ -1,7 +1,7 @@
 ﻿namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public class RequiredMultiProperty<T1, T2>(string key, Dictionary dictionary, IPdfContext pdfContext)
-    : BaseProperty(key, dictionary, pdfContext)
+public class RequiredMultiProperty<T1, T2>(string key, Dictionary dictionary, IPdf pdf)
+    : BaseProperty(key, dictionary, pdf)
     where T1 : class, IPdfObject
     where T2 : class, IPdfObject
 {

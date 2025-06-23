@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.InteractiveFeatures;
+using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
@@ -8,16 +9,20 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
 {
     public class TextFormField : FormField<LiteralString>
     {
+        private readonly IParser<ContentStream> _contentStreamParser;
+
         public TextFormField(
             IndirectObject fieldIndirectObject,
             string name,
             string? description,
             FieldProperties properties,
             Form parent,
-            IPdfContext pdfContext
+            IPdf pdf,
+            IParser<ContentStream> contentStreamParser
             )
-            : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
+            : base(fieldIndirectObject, name, description, properties, parent, pdf)
         {
+            _contentStreamParser = contentStreamParser;
         }
 
         public async Task<string?> GetValueAsync()
@@ -41,7 +46,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             }
             else
             {
-                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdfContext, fontProviders)
+                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdf, _contentStreamParser, fontProviders)
                     .WriteTextAsync(value);
             }
 
@@ -51,18 +56,18 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         // temp methods for testing
         public async Task<ContentStream?> GetAPAsync()
         {
-            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfContext, []);
+            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);
 
             return await test.GetAPAsync();
         }
         
         public async Task ClearAsync()
         {
-            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdfContext, []);
+            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);
 
             await manager.WipeFieldAsync();
 
-            _pdfContext.Objects.Update(_fieldIndirectObject);
+            _pdf.Objects.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }
