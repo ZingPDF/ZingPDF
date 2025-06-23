@@ -1,4 +1,6 @@
-﻿using MorseCode.ITask;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MorseCode.ITask;
+using System.Net.Http;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
@@ -24,8 +26,6 @@ namespace ZingPDF.Parsing.Parsers.Objects
         public async ITask<IndirectObject> ParseAsync(Stream stream, ParseContext context)
         {
             stream.AdvancePastWhitepace();
-
-            //Logger.Log(LogLevel.Trace, $"Parsing IndirectObject from {stream.GetType().Name} at offset: {stream.Position}.");
 
             var initialStreamPosition = stream.Position;
 
@@ -68,8 +68,6 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             }
             while (stream.Position < stream.Length);
-
-            Logger.Log(LogLevel.Trace, $"Parsed IndirectObject {{{id.Value} {genNumber.Value} obj}} between offsets: {initialStreamPosition} - {stream.Position}.");
 
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
