@@ -23,7 +23,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         private readonly IParser<Number> _numberParser;
 
         public CrossReferenceStreamParser(
-            [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+            IPdf pdf,
             IParserResolver parserRegistry,
             IParser<Number> numberParser
             )
@@ -37,7 +37,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         {
             var initialStreamPosition = stream.Position;
 
-            var dict = await new CrossReferenceStreamDictionaryParser(_pdf, _parserRegistry).ParseAsync(stream, context) as CrossReferenceStreamDictionary
+            var dict = await new CrossReferenceStreamDictionaryParser(_pdf, _parserRegistry).ParseAsync(stream, context)
                 ?? throw new ParserException("Failed to parse xref stream");
 
             long streamLength = 0;
@@ -72,8 +72,6 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             var streamDataOffset = stream.Position;
 
             stream.Position += streamLength;
-
-            Logger.Log(LogLevel.Trace, $"Parsed StreamObject. Creating SubStream within {stream.GetType().Name} between: {streamDataOffset} and {streamDataOffset + streamLength}.");
 
             return new StreamObject<CrossReferenceStreamDictionary>(
                 new SubStream(
