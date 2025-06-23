@@ -7,7 +7,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     /// </summary>
     public interface IPdfDictionary : IPdfObject, IEnumerable<KeyValuePair<string, IPdfObject>>
     {
-        IPdfContext PdfContext { get; }
+        IPdf Pdf { get; }
         Dictionary<string, IPdfObject> InnerDictionary { get; }
 
         Name? Type { get; }

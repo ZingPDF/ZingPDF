@@ -8,8 +8,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
     public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(xrefStreamDictionary, pdfContext, objectOrigin) { }
+        private CrossReferenceStreamDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(xrefStreamDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// <para>
@@ -68,7 +68,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         public Number Field3Size => W.Get<Number>(2)!;
 
         public static CrossReferenceStreamDictionary CreateNew(
-            IPdfContext pdfContext,
+            IPdf pdf,
             ArrayObject index,
             ArrayObject w,
             Number size,
@@ -113,17 +113,17 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
                 dict[Constants.DictionaryKeys.Trailer.ID] = id;
             }
 
-            return new(dict, pdfContext, ObjectOrigin.UserCreated);
+            return new(dict, pdf, ObjectOrigin.UserCreated);
         }
 
-        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
         {
             if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
             }
 
-            return new(xrefStreamDictionary, pdfContext, objectOrigin);
+            return new(xrefStreamDictionary, pdf, objectOrigin);
         }
 
         internal void SetSize(Number size)

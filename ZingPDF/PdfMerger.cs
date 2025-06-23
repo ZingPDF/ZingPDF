@@ -32,9 +32,9 @@ namespace ZingPDF
             // - For an indirect object reference, dereference, copy the source, and recurse again.
             // - For dictionaries and arrays, loop through properties/items and recurse.
 
-            var rootPageTreeNodeToAppend = await _pdfToAppend.Context.Objects.PageTree.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeToAppend = await _pdfToAppend.Objects.PageTree.GetRootPageTreeNodeAsync();
 
-            var newObj = await _mainPdf.Context.Objects.AddAsync(rootPageTreeNodeToAppend.Object);
+            var newObj = await _mainPdf.Objects.AddAsync(rootPageTreeNodeToAppend.Object);
 
             _oldToNewMap.Add(
                 rootPageTreeNodeToAppend.Reference,
@@ -43,7 +43,7 @@ namespace ZingPDF
 
             newObj.Object = await CopyReferencesAsync(rootPageTreeNodeToAppend.Object);
 
-            var rootPageTreeNodeIndirectObject = await _mainPdf.Context.Objects.PageTree.GetRootPageTreeNodeAsync();
+            var rootPageTreeNodeIndirectObject = await _mainPdf.Objects.PageTree.GetRootPageTreeNodeAsync();
             var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
 
             // The old root page tree node won't have had a parent, set it to the new root.
@@ -53,7 +53,7 @@ namespace ZingPDF
             // Add incoming root page tree node as a child of this PDF's root page tree node.
             await rootPageTreeNode.AddChildAsync(_oldToNewMap[rootPageTreeNodeToAppend.Reference]);
 
-            _mainPdf.Context.Objects.Update(rootPageTreeNodeIndirectObject);
+            _mainPdf.Objects.Update(rootPageTreeNodeIndirectObject);
         }
 
         // For a given object, loop through its items and recursively process.
@@ -122,12 +122,12 @@ namespace ZingPDF
                 return value;
             }
 
-            var obj = await _pdfToAppend.Context.Objects.GetAsync(reference)
+            var obj = await _pdfToAppend.Objects.GetAsync(reference)
                 ?? throw new InvalidPdfException("Unable to dereference page resource from source PDF");
 
             IPdfObject target = obj.Object;
 
-            var newObj = await _mainPdf.Context.Objects.AddAsync(target);
+            var newObj = await _mainPdf.Objects.AddAsync(target);
 
             _oldToNewMap.Add(reference, newObj.Reference);
 

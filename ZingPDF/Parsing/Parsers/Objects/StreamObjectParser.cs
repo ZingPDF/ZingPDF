@@ -9,14 +9,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
         where TDictionary : class, IStreamDictionary
     {
         private readonly TDictionary _dict;
-        private readonly IPdfContext _pdfContext;
 
-        public StreamObjectParser(TDictionary dict, IPdfContext pdfContext)
+        public StreamObjectParser(TDictionary dict)
         {
             ArgumentNullException.ThrowIfNull(nameof(dict));
 
             _dict = dict;
-            _pdfContext = pdfContext;
         }
 
         public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ParseContext context)

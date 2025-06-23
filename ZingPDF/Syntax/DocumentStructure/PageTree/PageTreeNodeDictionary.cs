@@ -13,8 +13,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary)
             : base(pageTreeNodeDictionary) { }
 
-        private PageTreeNodeDictionary(Dictionary<string, IPdfObject> pageTreeNodeDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(pageTreeNodeDictionary, pdfContext, objectOrigin) { }
+        private PageTreeNodeDictionary(Dictionary<string, IPdfObject> pageTreeNodeDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(pageTreeNodeDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Required) An array of indirect references to the immediate children of this node. The children shall only be page objects or other page tree nodes.
@@ -89,17 +89,17 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - 1);
         }
 
-        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdfContext pdfContext)
+        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdf pdf)
         {
             return new(new Dictionary<string, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Pages },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number) pageReferences.Count() },
-            }, pdfContext, ObjectOrigin.UserCreated);
+            }, pdf, ObjectOrigin.UserCreated);
         }
 
-        public static PageTreeNodeDictionary FromDictionary(Dictionary<string, IPdfObject> pagesCatalog, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            => new(pagesCatalog, pdfContext, objectOrigin);
+        public static PageTreeNodeDictionary FromDictionary(Dictionary<string, IPdfObject> pagesCatalog, IPdf pdf, ObjectOrigin objectOrigin)
+            => new(pagesCatalog, pdf, objectOrigin);
     }
 }

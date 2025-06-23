@@ -1,4 +1,5 @@
-﻿using MorseCode.ITask;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -15,20 +16,28 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IPdfObjectCollection"/> to find any indirect objects if required.
     /// Some xref streams use an indirect object for the Length property, which we need to create a SubStream.
     /// </remarks>
-    internal class CrossReferenceStreamParser : IObjectParser<StreamObject<CrossReferenceStreamDictionary>>
+    internal class CrossReferenceStreamParser : IParser<StreamObject<CrossReferenceStreamDictionary>>
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IPdf _pdf;
+        private readonly IParserResolver _parserRegistry;
+        private readonly IParser<Number> _numberParser;
 
-        public CrossReferenceStreamParser(IPdfContext pdfContext)
+        public CrossReferenceStreamParser(
+            [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+            IParserResolver parserRegistry,
+            IParser<Number> numberParser
+            )
         {
-            _pdfContext = pdfContext;
+            _pdf = pdf;
+            _parserRegistry = parserRegistry;
+            _numberParser = numberParser;
         }
 
         public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream, ParseContext context)
         {
             var initialStreamPosition = stream.Position;
 
-            var dict = await new CrossReferenceStreamDictionaryParser(_pdfContext).ParseAsync(stream, context) as CrossReferenceStreamDictionary
+            var dict = await new CrossReferenceStreamDictionaryParser(_pdf, _parserRegistry).ParseAsync(stream, context) as CrossReferenceStreamDictionary
                 ?? throw new ParserException("Failed to parse xref stream");
 
             long streamLength = 0;
@@ -52,7 +61,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
                 stream.Position = location;
 
-                streamLength = await _pdfContext.Parser.Numbers.ParseAsync(stream, context);
+                streamLength = await _numberParser.ParseAsync(stream, context);
 
                 stream.Position = position;
             }

@@ -9,8 +9,8 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     public TrailerDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private TrailerDictionary(Dictionary<string, IPdfObject> trailerDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-        : base(trailerDictionary, pdfContext, objectOrigin) { }
+    private TrailerDictionary(Dictionary<string, IPdfObject> trailerDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        : base(trailerDictionary, pdf, objectOrigin) { }
 
     public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
     public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
@@ -39,7 +39,7 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
         IPdfObject? encrypt,
         IndirectObjectReference? info,
         ArrayObject? id,
-        IPdfContext pdfContext,
+        IPdf pdf,
         ObjectOrigin objectOrigin
         )
     {
@@ -72,6 +72,6 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
             dict.Add(Constants.DictionaryKeys.Trailer.ID, id);
         }
 
-        return new(dict, pdfContext, objectOrigin);
+        return new(dict, pdf, objectOrigin);
     }
 }
