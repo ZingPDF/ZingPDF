@@ -1,4 +1,5 @@
-﻿using MorseCode.ITask;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MorseCode.ITask;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.Objects;
 
@@ -9,8 +10,11 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         private readonly IParser<Number> _numberParser;
         private readonly IParser<Keyword> _keywordParser;
         
-        public CrossReferenceEntryParser(IParser<Number> numberParser, IParser<Keyword> keywordParser)
-        {   
+        public CrossReferenceEntryParser(
+            IParser<Number> numberParser,
+            IParser<Keyword> keywordParser
+            )
+        {
             _numberParser = numberParser;
             _keywordParser = keywordParser;
         }
