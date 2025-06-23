@@ -11,9 +11,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Signature
             string? description,
             FieldProperties properties,
             Form parent,
-            IPdfContext pdfContext
+            IPdf pdf
             )
-            : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
+            : base(fieldIndirectObject, name, description, properties, parent, pdf)
         {
         }
     }

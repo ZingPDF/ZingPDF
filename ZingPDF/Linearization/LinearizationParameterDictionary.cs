@@ -12,8 +12,8 @@ namespace ZingPDF.Linearization
         public LinearizationParameterDictionary(Dictionary linearizationDictionary)
             : base(linearizationDictionary) { }
 
-        private LinearizationParameterDictionary(Dictionary<string, IPdfObject> linearizationDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(linearizationDictionary, pdfContext, objectOrigin) { }
+        private LinearizationParameterDictionary(Dictionary<string, IPdfObject> linearizationDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(linearizationDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Required) A version identification for the linearized format.
@@ -81,11 +81,11 @@ namespace ZingPDF.Linearization
         /// </summary>
         public Number? P => GetAs<Number>(Constants.DictionaryKeys.LinearizationParameter.P);
 
-        public static LinearizationParameterDictionary FromDictionary(Dictionary<string, IPdfObject> linearizationDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        public static LinearizationParameterDictionary FromDictionary(Dictionary<string, IPdfObject> linearizationDictionary, IPdf pdf, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(linearizationDictionary);
 
-            return new(linearizationDictionary, pdfContext, objectOrigin);
+            return new(linearizationDictionary, pdf, objectOrigin);
         }
     }
 }

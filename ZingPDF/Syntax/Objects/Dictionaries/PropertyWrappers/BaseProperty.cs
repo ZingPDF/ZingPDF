@@ -2,12 +2,12 @@
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public abstract class BaseProperty(string key, Dictionary dictionary, IPdfContext pdfContext)
+public abstract class BaseProperty(string key, Dictionary dictionary, IPdf pdf)
 {
     public string Key => key;
 
     protected Dictionary Dictionary => dictionary;
-    protected IPdfContext PdfContext => pdfContext;
+    protected IPdfObjectCollection PdfObjects => pdf.Objects;
 
     /// <summary>
     /// Gets the related indirect object for the property. The property value must be an indirect object reference.
@@ -20,7 +20,7 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdfContex
 
         if (value is IndirectObjectReference ior)
         {
-            return await PdfContext.Objects.GetAsync(ior);
+            return await PdfObjects.GetAsync(ior);
         }
 
         throw new InvalidOperationException($"Internal error - Attempt to call GetIndirectObjectAsync. Value is {value?.GetType().Name}");
@@ -58,7 +58,7 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdfContex
             return null;
         }
 
-        var parentDictionary = await PdfContext.Objects.GetAsync<Dictionary>(parentRef) 
+        var parentDictionary = await PdfObjects.GetAsync<Dictionary>(parentRef) 
             ?? throw new InvalidPdfException($"Invalid parent reference: {parentRef}");
 
         return await parentDictionary
@@ -77,7 +77,7 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdfContex
 
         if (rawValue is IndirectObjectReference ior)
         {
-            var dereferenced = await PdfContext.Objects.GetAsync(ior)
+            var dereferenced = await PdfObjects.GetAsync(ior)
                 ?? throw new InvalidPdfException($"Unable to resolve indirect object reference: {ior}");
 
             return dereferenced.Object;
