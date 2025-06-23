@@ -1,37 +1,24 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
-using ZingPDF.Logging;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
-namespace ZingPDF.Parsing.Parsers.Objects
+namespace ZingPDF.Parsing.Parsers.Objects;
+
+internal class IndirectObjectReferenceParser : IParser<IndirectObjectReference>
 {
-    internal class IndirectObjectReferenceParser : IParser<IndirectObjectReference>
+    public async ITask<IndirectObjectReference> ParseAsync(Stream stream, ParseContext context)
     {
-        private IPdfObjectCollection _pdfObjects;
+        var content = await stream.ReadUpToIncludingAsync(Constants.Characters.IndirectReference);
 
-        public IndirectObjectReferenceParser(IPdfObjectCollection pdfObjects)
-        {
-            _pdfObjects = pdfObjects;
-        }
+        content = content.TrimStart();
 
-        public async ITask<IndirectObjectReference> ParseAsync(Stream stream, ParseContext context)
-        {
-            //Logger.Log(LogLevel.Trace, $"Parsing IndirectObjectReference from {stream.GetType().Name} at offset: {stream.Position}.");
+        var parts = content.Split(Constants.Characters.Whitespace);
 
-            var content = await stream.ReadUpToIncludingAsync(Constants.Characters.IndirectReference);
+        var id = int.Parse(parts[0]);
+        var generation = ushort.Parse(parts[1]);
 
-            content = content.TrimStart();
+        var ior = new IndirectObjectReference(new(id, generation), context.Origin);
 
-            var parts = content.Split(Constants.Characters.Whitespace);
-
-            var id = int.Parse(parts[0]);
-            var generation = ushort.Parse(parts[1]);
-
-            var ior = new IndirectObjectReference(new(id, generation), context.Origin);
-
-            Logger.Log(LogLevel.Trace, $"Parsed IndirectObjectReference: {{{ior}}}. {stream.GetType().Name} now at: {stream.Position}.");
-
-            return ior;
-        }
+        return ior;
     }
 }

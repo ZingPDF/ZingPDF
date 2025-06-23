@@ -24,7 +24,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         private readonly IEnumerable<IFontMetricsProvider> _baseProviders;
 
         public TextExtractor(
-            [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+            IPdf pdf,
             IParser<ContentStream> contentStreamParser,
             IEnumerable<IFontMetricsProvider>? baseProviders = null)
         {
