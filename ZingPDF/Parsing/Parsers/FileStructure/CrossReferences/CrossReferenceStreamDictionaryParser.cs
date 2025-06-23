@@ -25,16 +25,21 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 ///     </item>
 /// </list>
 /// </remarks>
-internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectParser<Dictionary>
+internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<CrossReferenceStreamDictionary>
 {
-    private readonly IPdfContext _pdfContext;
+    private readonly IPdf _pdf;
+    private readonly IParserResolver _parserRegistry;
 
-    public CrossReferenceStreamDictionaryParser(IPdfContext pdfContext)
+    public CrossReferenceStreamDictionaryParser(
+        IPdf pdf,
+        IParserResolver parserRegistry
+        )
     {
-        _pdfContext = pdfContext;
+        _pdf = pdf;
+        _parserRegistry = parserRegistry;
     }
 
-    public async ITask<Dictionary> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<CrossReferenceStreamDictionary> ParseAsync(Stream stream, ParseContext context)
     {
         var initialStreamPosition = stream.Position; // Reference starting point for output
 
@@ -42,10 +47,10 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         if (dictStream == null)
         {
-            return new Dictionary(_pdfContext, context.Origin);
+            return CrossReferenceStreamDictionary.FromDictionary([], _pdf, context.Origin);
         }
 
-        var objectGroup = await new PdfObjectGroupParser(_pdfContext).ParseAsync(dictStream, context);
+        var objectGroup = await new PdfObjectGroupParser(_parserRegistry).ParseAsync(dictStream, context);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {
@@ -64,7 +69,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IObjectP
 
         stream.Position = dictStream.To + 2;
 
-        var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdfContext, context.Origin);
+        var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdf, context.Origin);
 
         output!.ByteOffset = initialStreamPosition;
 

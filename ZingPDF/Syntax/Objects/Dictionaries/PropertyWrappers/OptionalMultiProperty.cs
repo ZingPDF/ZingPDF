@@ -4,8 +4,8 @@ public class OptionalMultiProperty<T1, T2> : BaseProperty
     where T1 : class, IPdfObject
     where T2 : class, IPdfObject
 {
-    public OptionalMultiProperty(string key, Dictionary dictionary, IPdfContext pdfContext)
-        : base(key, dictionary, pdfContext)
+    public OptionalMultiProperty(string key, Dictionary dictionary, IPdf pdf)
+        : base(key, dictionary, pdf)
     {
     }
 

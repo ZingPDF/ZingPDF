@@ -28,7 +28,8 @@ internal class VariableTextAppearanceStreamManager
 {
     private readonly InteractiveFormDictionary _formDict;
     private readonly FieldDictionary _fieldDict;
-    private readonly IPdfContext _pdfContext;
+    private readonly IPdf _pdf;
+    private readonly IParser<ContentStream> _contentStreamParser;
     private readonly IEnumerable<IFontMetricsProvider> _fontProviders;
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
@@ -45,18 +46,21 @@ internal class VariableTextAppearanceStreamManager
     public VariableTextAppearanceStreamManager(
         InteractiveFormDictionary formDict,
         FieldDictionary fieldDict,
-        IPdfContext pdfContext,
+        IPdf pdf,
+        IParser<ContentStream> contentStreamParser,
         IEnumerable<IFontMetricsProvider> fontProviders
         )
     {
         ArgumentNullException.ThrowIfNull(formDict, nameof(formDict));
         ArgumentNullException.ThrowIfNull(fieldDict, nameof(fieldDict));
-        ArgumentNullException.ThrowIfNull(pdfContext, nameof(pdfContext));
+        ArgumentNullException.ThrowIfNull(pdf, nameof(pdf));
+        ArgumentNullException.ThrowIfNull(contentStreamParser, nameof(contentStreamParser));
         ArgumentNullException.ThrowIfNull(fontProviders, nameof(fontProviders));
 
         _formDict = formDict;
         _fieldDict = fieldDict;
-        _pdfContext = pdfContext;
+        _pdf = pdf;
+        _contentStreamParser = contentStreamParser;
         _fontProviders = fontProviders;
 
         _formDA = new AsyncLazy<LiteralString?>(async () =>
@@ -88,7 +92,7 @@ internal class VariableTextAppearanceStreamManager
 
             var daStream = new MemoryStream(defaultAppearance.RawBytes);
 
-            return await _pdfContext.Parser.ContentStreamParser.ParseAsync(daStream, _parseContext);
+            return await _contentStreamParser.ParseAsync(daStream, _parseContext);
         });
 
         _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
@@ -121,7 +125,7 @@ internal class VariableTextAppearanceStreamManager
 
             var apData = await normalApStreamObject.GetDecompressedDataAsync();
 
-            return await _pdfContext.Parser.ContentStreamParser.ParseAsync(apData, _parseContext);
+            return await _contentStreamParser.ParseAsync(apData, _parseContext);
         });
 
         _formDefaultResources = new AsyncLazy<ResourceDictionary?>(async () =>
@@ -186,9 +190,9 @@ internal class VariableTextAppearanceStreamManager
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
         StreamObject<IStreamDictionary>? fieldApStreamObject = (await _fieldAppearanceStreamObject)!;
-        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdfContext, ObjectOrigin.UserCreated));
+        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdf, ObjectOrigin.UserCreated));
 
-        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdfContext, ObjectOrigin.UserCreated));
+        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdf, ObjectOrigin.UserCreated));
     }
 
     /// <summary>
@@ -330,7 +334,7 @@ internal class VariableTextAppearanceStreamManager
             var onStateApRef = normalApDict.FirstOrDefault(k => k.Key != Constants.ButtonStates.Off).Value as IndirectObjectReference
                 ?? throw new InvalidPdfException("Malformed text field encountered");
 
-            normalApStream = await _pdfContext.Objects.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
+            normalApStream = await _pdf.Objects.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
                 ?? throw new InvalidPdfException("Malformed text field encountered");
         }
         else
@@ -350,7 +354,7 @@ internal class VariableTextAppearanceStreamManager
         await appearanceStream.WriteAsync(ms);
 
         var contentStreamDictionary = new Type1FormDictionary(
-            pdfContext: _pdfContext,
+            pdf: _pdf,
             objectOrigin: ObjectOrigin.UserCreated,
             bBox: fieldRect.Size,
             resources: resourceDictionary
@@ -359,11 +363,11 @@ internal class VariableTextAppearanceStreamManager
         // TODO: when reliably complete, add flatedecode filter (will need to implement GetFilters method in ContentStreamFactory)
         var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary, ObjectOrigin.UserCreated);
 
-        var apIndirectObject = await _pdfContext.Objects.AddAsync(apFormXObject);
+        var apIndirectObject = await _pdf.Objects.AddAsync(apFormXObject);
 
         _fieldDict.SetAppearanceDictionary(
             AppearanceDictionary.Create(
-                _pdfContext,
+                _pdf,
                 ObjectOrigin.UserCreated,
                 apIndirectObject.Reference
                 )

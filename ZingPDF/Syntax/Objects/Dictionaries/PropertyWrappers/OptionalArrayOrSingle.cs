@@ -2,8 +2,8 @@
 
 namespace ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 
-public class OptionalArrayOrSingle<T>(string key, Dictionary dictionary, IPdfContext pdfContext)
-    : BaseProperty(key, dictionary, pdfContext) where T : class, IPdfObject
+public class OptionalArrayOrSingle<T>(string key, Dictionary dictionary, IPdf pdf)
+    : BaseProperty(key, dictionary, pdf) where T : class, IPdfObject
 {
     public async Task<ArrayObject?> GetAsync()
     {
@@ -25,7 +25,7 @@ public class OptionalArrayOrSingle<T>(string key, Dictionary dictionary, IPdfCon
                 var value = ary[i] as IndirectObjectReference;
                 if (value is not null)
                 {
-                    ary[i] = (await PdfContext.Objects.GetAsync(value)).Object;
+                    ary[i] = (await PdfObjects.GetAsync(value)).Object;
                 }
             }
 

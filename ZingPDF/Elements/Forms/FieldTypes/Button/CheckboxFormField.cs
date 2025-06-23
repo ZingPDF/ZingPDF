@@ -15,10 +15,10 @@ internal class CheckboxFormField : ButtonOptionsFormField
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfContext pdfContext,
+        IPdf pdf,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfContext, kids)
+        : base(fieldIndirectObject, name, description, properties, parent, pdf, kids)
     {
     }
 
@@ -46,7 +46,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
                 widgetDictionary.SetAppearanceState(Constants.ButtonStates.Off);
             }
 
-            _pdfContext.Objects.Update(annot);
+            _pdf.Objects.Update(annot);
         }
     }
 
@@ -62,7 +62,7 @@ internal class CheckboxFormField : ButtonOptionsFormField
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
 
-        _pdfContext.Objects.Update(option.AssociatedDictionary);
+        _pdf.Objects.Update(option.AssociatedDictionary);
 
         return Task.CompletedTask;
     }

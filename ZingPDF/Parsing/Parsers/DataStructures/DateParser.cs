@@ -5,15 +5,8 @@ using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Parsing.Parsers.DataStructures
 {
-    internal class DateParser : IObjectParser<Date>
+    internal class DateParser : IParser<Date>
     {
-        private IPdfContext _pdfContext;
-
-        public DateParser(IPdfContext pdfContext)
-        {
-            _pdfContext = pdfContext;
-        }
-
         public async ITask<Date> ParseAsync(Stream stream, ParseContext context)
         {
             await stream.AdvanceBeyondNextAsync("(D:");

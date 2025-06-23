@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FakeItEasy" Version="8.0.0" />
+		<PackageReference Include="FluentAssertions" Version="6.12.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+		<PackageReference Include="xunit" Version="2.5.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="TestFiles\html\" />
+	  <Folder Include="TestFiles\image\" />
+	  <Folder Include="TestFiles\pdf\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\testfiles\html\form-test.html" Link="TestFiles\html\form-test.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\image\cat.jpg" Link="TestFiles\image\cat.jpg">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\combobox-form.pdf" Link="TestFiles\pdf\combobox-form.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\complex-form.pdf" Link="TestFiles\pdf\complex-form.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\encrypted.pdf" Link="TestFiles\pdf\encrypted.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\form.pdf" Link="TestFiles\pdf\form.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\Ghostscript.pdf" Link="TestFiles\pdf\Ghostscript.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="TestFiles\pdf\MikeyFlemingFreelance_Folio.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\minimal.pdf" Link="TestFiles\pdf\minimal.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\minimal2.pdf" Link="TestFiles\pdf\minimal2.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\minimal3.pdf" Link="TestFiles\pdf\minimal3.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\..\testfiles\pdf\test.pdf" Link="TestFiles\pdf\test.pdf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ZingPDF.Tests.Common\ZingPDF.Tests.Common.csproj" />
+	</ItemGroup>
+
+</Project>

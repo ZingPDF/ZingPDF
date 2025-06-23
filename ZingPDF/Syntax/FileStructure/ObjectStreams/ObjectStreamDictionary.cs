@@ -10,8 +10,8 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
         public ObjectStreamDictionary(Dictionary objectStreamDictionary)
             : base(objectStreamDictionary) { }
 
-        private ObjectStreamDictionary(Dictionary<string, IPdfObject> objectStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(objectStreamDictionary, pdfContext, objectOrigin) { }
+        private ObjectStreamDictionary(Dictionary<string, IPdfObject> objectStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(objectStreamDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Required) The number of indirect objects stored in the stream.
@@ -30,7 +30,7 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
         /// </summary>
         public IndirectObjectReference? Extends => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.ObjectStream.Extends);
 
-        new public static ObjectStreamDictionary FromDictionary(Dictionary<string, IPdfObject> objectStreamDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+        new public static ObjectStreamDictionary FromDictionary(Dictionary<string, IPdfObject> objectStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
         {
             ArgumentNullException.ThrowIfNull(objectStreamDictionary);
 
@@ -39,7 +39,7 @@ namespace ZingPDF.Syntax.FileStructure.ObjectStreams
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(objectStreamDictionary));
             }
 
-            return new(objectStreamDictionary, pdfContext, objectOrigin);
+            return new(objectStreamDictionary, pdf, objectOrigin);
         }
     }
 }

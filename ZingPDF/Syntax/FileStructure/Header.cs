@@ -5,7 +5,7 @@ namespace ZingPDF.Syntax.FileStructure
     /// <summary>
     /// ISO 32000-2:2020 7.5.2
     /// </summary>
-    internal class Header : PdfObject
+    public class Header : PdfObject
     {
         public Header(double pdfVersion, ObjectOrigin objectOrigin)
             : base(objectOrigin)
