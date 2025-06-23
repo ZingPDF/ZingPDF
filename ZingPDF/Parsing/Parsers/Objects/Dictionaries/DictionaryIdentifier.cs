@@ -54,7 +54,7 @@ public class DictionaryIdentifier : IDictionaryIdentifier
 
     private readonly IPdf _pdf;
 
-    public DictionaryIdentifier([FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf)
+    public DictionaryIdentifier(IPdf pdf)
     {
         _pdf = pdf;
     }
