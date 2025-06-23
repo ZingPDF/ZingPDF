@@ -5,13 +5,13 @@ using ZingPDF.Syntax.FileStructure;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
-internal class HeaderParser : IObjectParser<Header>
+internal class HeaderParser : IParser<Header>
 {
-    private readonly IPdfContext _pdfContext;
+    private readonly IPdfObjectCollection _pdfObjects;
 
-    public HeaderParser(IPdfContext pdfContext)
+    public HeaderParser(IPdfObjectCollection pdfObjects)
     {
-        _pdfContext = pdfContext;
+        _pdfObjects = pdfObjects;
     }
 
     public async ITask<Header> ParseAsync(Stream stream, ParseContext context)

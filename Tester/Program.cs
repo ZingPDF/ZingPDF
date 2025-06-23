@@ -88,10 +88,10 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 //await Decompress("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", "decompressed-MikeyFlemingFreelance_Folio.pdf");
 //await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-//await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
-var test = new CrossReferenceEntry(0, 0, true, true);
+//var test = new CrossReferenceEntry(0, 0, true, true);
 
 static async Task ExtractText(string input)
 {

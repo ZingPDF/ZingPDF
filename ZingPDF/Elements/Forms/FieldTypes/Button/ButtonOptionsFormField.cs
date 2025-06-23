@@ -64,10 +64,10 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdfContext pdfContext,
+        IPdf pdf,
         IEnumerable<IndirectObject> kids
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdfContext)
+        : base(fieldIndirectObject, name, description, properties, parent, pdf)
     {
         _kids = kids;
     }
