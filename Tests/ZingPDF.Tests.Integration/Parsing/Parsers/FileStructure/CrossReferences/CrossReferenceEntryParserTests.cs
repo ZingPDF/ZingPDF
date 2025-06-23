@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using FakeItEasy;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZingPDF.Extensions;
@@ -13,11 +14,14 @@ public class CrossReferenceEntryParserTests
     [InlineData("0000000017 00000 n\n", 17, 0, true)]
     public async Task ParseAsyncBasic(string input, long expectedOffset, ushort expectedGenNumber, bool expectedInUse)
     {
+        var pdf = A.Fake<IPdf>();
         var stream = input.ToStream();
 
+        A.CallTo(() => pdf.Data).Returns(stream);
+
         var services = new ServiceCollection()
-            .AddContext(stream)
-            .AddParsers()
+            .AddContext(pdf)
+            //.AddParsers()
             .BuildServiceProvider();
 
         using var scope = services.CreateScope();
@@ -26,7 +30,7 @@ public class CrossReferenceEntryParserTests
         var keywordParser = scope.ServiceProvider.GetRequiredService<IParser<Keyword>>();
 
         var output = await new CrossReferenceEntryParser(numberParser, keywordParser)
-            .ParseAsync(input.ToStream(), ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Value1.Should().Be(expectedOffset);
         output.Value2.Should().Be(expectedGenNumber);

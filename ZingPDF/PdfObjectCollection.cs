@@ -43,7 +43,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     //private readonly Queue<IndirectObjectId> _freeIds;
 
     public PdfObjectCollection(
-        [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+        IPdf pdf,
         IDocumentVersionParser documentVersionParser,
         IParserResolver parserResolver
         )

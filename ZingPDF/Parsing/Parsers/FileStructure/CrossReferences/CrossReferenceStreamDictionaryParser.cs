@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using System.Net.Http;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
@@ -28,15 +29,15 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<CrossReferenceStreamDictionary>
 {
     private readonly IPdf _pdf;
-    private readonly IParserResolver _parserRegistry;
+    private readonly IParserResolver _parserResolver;
 
     public CrossReferenceStreamDictionaryParser(
         IPdf pdf,
-        IParserResolver parserRegistry
+        IParserResolver parserResolver
         )
     {
         _pdf = pdf;
-        _parserRegistry = parserRegistry;
+        _parserResolver = parserResolver;
     }
 
     public async ITask<CrossReferenceStreamDictionary> ParseAsync(Stream stream, ParseContext context)
@@ -50,7 +51,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
             return CrossReferenceStreamDictionary.FromDictionary([], _pdf, context.Origin);
         }
 
-        var objectGroup = await new PdfObjectGroupParser(_parserRegistry).ParseAsync(dictStream, context);
+        var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(stream, context);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {
@@ -72,8 +73,6 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
         var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdf, context.Origin);
 
         output!.ByteOffset = initialStreamPosition;
-
-        Logger.Log(LogLevel.Trace, $"Parsed Dictionary from {stream.GetType().Name} between offsets: {initialStreamPosition} - {stream.Position}");
 
         return output;
     }

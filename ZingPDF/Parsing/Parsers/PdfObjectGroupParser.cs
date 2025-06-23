@@ -1,50 +1,46 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.Logging;
 using ZingPDF.Syntax;
 
-namespace ZingPDF.Parsing.Parsers
+namespace ZingPDF.Parsing.Parsers;
+
+internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
 {
-    internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
+    private readonly IParserResolver _parserRegistry;
+
+    public PdfObjectGroupParser(IParserResolver parserRegistry)
     {
-        private readonly IParserResolver _parserRegistry;
+        _parserRegistry = parserRegistry;
+    }
 
-        public PdfObjectGroupParser(IParserResolver parserRegistry)
+    public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
+    {
+        var items = new List<IPdfObject>();
+
+        while (stream.Position < stream.Length)
         {
-            _parserRegistry = parserRegistry;
-        }
+            var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
 
-        public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
-        {
-            Logger.Log(LogLevel.Trace, $"Parsing PdfObjectGroup from {stream.GetType().Name} at offset: {stream.Position}.");
-
-            var items = new List<IPdfObject>();
-
-            while (stream.Position < stream.Length)
+            if (type != null)
             {
-                var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
-
-                if (type != null)
+                try
                 {
-                    try
-                    {
-                        items.Add(await _parserRegistry.GetParserFor(type).ParseAsync(stream, context));
-                    }
-                    catch
-                    {
-                        // If any exception is thrown, gracefully exit.
-                        // The sub-object could be invalid or not understood by this library.
-                        // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
-                        // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
-                        break;
-                    }
+                    items.Add(await _parserRegistry.GetParserFor(type).ParseAsync(stream, context));
                 }
-                else
+                catch
                 {
-                    stream.Position += 1;
+                    // If any exception is thrown, gracefully exit.
+                    // The sub-object could be invalid or not understood by this library.
+                    // There are also scenarios where we don't have complete data, but want to parse what we can anyway,
+                    // such as reading a fixed size chunk from the beginning of the file to find the linearization dictionary.
+                    break;
                 }
             }
-
-            return new PdfObjectGroup(items, context.Origin);
+            else
+            {
+                stream.Position += 1;
+            }
         }
+
+        return new PdfObjectGroup(items, context.Origin);
     }
 }
