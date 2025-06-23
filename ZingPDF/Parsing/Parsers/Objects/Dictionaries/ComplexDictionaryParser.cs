@@ -45,7 +45,7 @@ internal class ComplexDictionaryParser : DictionaryParser, IParser<Dictionary>
     private readonly IDictionaryIdentifier _dictionaryIdentifier;
 
     public ComplexDictionaryParser(
-        [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+        IPdf pdf,
         IParserResolver parserRegistry,
         IDictionaryIdentifier dictionaryIdentifier
         )

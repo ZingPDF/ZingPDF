@@ -27,7 +27,7 @@ public static class PdfServiceCollectionExtensions
     public static IServiceCollection AddContext(this IServiceCollection services, IPdf pdf)
     {
         services
-            .AddKeyedScoped(Pdf._pdfContextKey, (sp, o) => pdf)
+            .AddScoped((s) => pdf)
             .AddScoped<IPdfObjectCollection, PdfObjectCollection>();
 
         return services;
