@@ -1,4 +1,5 @@
-﻿using ZingPDF.DocumentInterchange.Metadata;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ZingPDF.DocumentInterchange.Metadata;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
@@ -20,7 +21,7 @@ using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
-public static class DictionaryIdentifier
+public class DictionaryIdentifier : IDictionaryIdentifier
 {
     private static readonly Dictionary<string, Type> _dictionaryTypeMap = new()
     {
@@ -51,7 +52,14 @@ public static class DictionaryIdentifier
         [FontDictionary.Subtypes.CID.CIDFontType2] = typeof(CIDFontDictionary),
     };
 
-    public static async Task<Type?> IdentifyAsync(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext)
+    private readonly IPdf _pdf;
+
+    public DictionaryIdentifier([FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf)
+    {
+        _pdf = pdf;
+    }
+
+    public async Task<Type?> IdentifyAsync(Dictionary<string, IPdfObject> dictionary)
     {
         _ = dictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type);
         _ = dictionary.TryGetValue(Constants.DictionaryKeys.Subtype, out IPdfObject? subtype);
@@ -74,7 +82,7 @@ public static class DictionaryIdentifier
                     {
                         // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
                         // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
-                        var fieldDict = FieldDictionary.FromDictionary(dictionary, pdfContext, ObjectOrigin.UserCreated);
+                        var fieldDict = FieldDictionary.FromDictionary(dictionary, _pdf, ObjectOrigin.UserCreated);
                         if (await fieldDict.FT.GetAsync() is not null)
                         {
                             return typeof(FieldDictionary);

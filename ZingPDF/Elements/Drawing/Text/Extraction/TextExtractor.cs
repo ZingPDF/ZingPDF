@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
@@ -16,14 +17,19 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
     /// <summary>
     /// Orchestrates PDF parsing, font/CMap resolution, and emits text lines or glyphs.
     /// </summary>
-    public class TextExtractor
+    public class TextExtractor : ITextExtractor
     {
-        private readonly IPdfContext _pdfContext;
+        private readonly IPdf _pdf;
+        private readonly IParser<ContentStream> _contentStreamParser;
         private readonly IEnumerable<IFontMetricsProvider> _baseProviders;
 
-        public TextExtractor(IPdfContext pdfContext, IEnumerable<IFontMetricsProvider>? baseProviders = null)
+        public TextExtractor(
+            [FromKeyedServices(Pdf._pdfContextKey)] IPdf pdf,
+            IParser<ContentStream> contentStreamParser,
+            IEnumerable<IFontMetricsProvider>? baseProviders = null)
         {
-            _pdfContext = pdfContext;
+            _pdf = pdf;
+            _contentStreamParser = contentStreamParser;
             _baseProviders = baseProviders ?? [new PDFStandardFontMetricsProvider()];
         }
 
@@ -32,7 +38,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         /// </summary>
         public async Task<IEnumerable<GlyphRun>> ExtractGlyphRunsAsync()
         {
-            var pages = await _pdfContext.Objects.PageTree.GetPagesAsync();
+            var pages = await _pdf.Objects.PageTree.GetPagesAsync();
 
             var glyphRuns = new List<GlyphRun>();
 
@@ -52,11 +58,11 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 var providers = new List<IFontMetricsProvider>(_baseProviders);
                 if (resDict != null)
                 {
-                    var dyn = await resDict.GetFontMetricsProvidersAsync(_pdfContext);
+                    var dyn = await resDict.GetFontMetricsProvidersAsync(_pdf.Objects);
                     providers.AddRange(dyn);
                 }
 
-                var fontResources = (await resDict?.Font.GetAsync()) ?? new Dictionary(_pdfContext, ObjectOrigin.None);
+                var fontResources = (await resDict?.Font.GetAsync()) ?? new Dictionary(_pdf, ObjectOrigin.None);
 
                 var state = new TextDrawingState(providers, fontResources);
                 var context = ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream);
@@ -64,7 +70,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                 foreach (var so in contents.Cast<StreamObject<StreamDictionary>>())
                 {
                     var data = await so.GetDecompressedDataAsync();
-                    var ops = (await _pdfContext.Parser.ContentStreamParser.ParseAsync(data, context)).Operations;
+                    var ops = (await _contentStreamParser.ParseAsync(data, context)).Operations;
 
                     foreach (ContentStreamOperation op in ops)
                     {

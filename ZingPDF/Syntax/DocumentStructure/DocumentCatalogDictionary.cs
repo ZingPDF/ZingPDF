@@ -17,8 +17,8 @@ namespace ZingPDF.Syntax.DocumentStructure
         public DocumentCatalogDictionary(Dictionary documentCatalogDictionary)
             : base(documentCatalogDictionary) { }
 
-        private DocumentCatalogDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(documentCatalogDictionary, pdfContext, objectOrigin) { }
+        private DocumentCatalogDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+            : base(documentCatalogDictionary, pdf, objectOrigin) { }
 
         /// <summary>
         /// <para>
@@ -248,11 +248,11 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// </summary>
         public OptionalProperty<Dictionary> DPartRoot => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.DocumentCatalog.DPartRoot);
 
-        public static DocumentCatalogDictionary FromDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin) 
+        public static DocumentCatalogDictionary FromDictionary(Dictionary<string, IPdfObject> documentCatalogDictionary, IPdf pdf, ObjectOrigin objectOrigin) 
         {
             return documentCatalogDictionary is null
                 ? throw new ArgumentNullException(nameof(documentCatalogDictionary))
-                : new(documentCatalogDictionary, pdfContext, objectOrigin);
+                : new(documentCatalogDictionary, pdf, objectOrigin);
         }
     }
 }

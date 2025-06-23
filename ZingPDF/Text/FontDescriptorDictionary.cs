@@ -10,14 +10,14 @@ namespace ZingPDF.Text;
 
 public class FontDescriptorDictionary : Dictionary
 {
-    public FontDescriptorDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
-        : base(Constants.DictionaryTypes.FontDescriptor, pdfContext, objectOrigin) { }
+    public FontDescriptorDictionary(IPdf pdf, ObjectOrigin objectOrigin)
+        : base(Constants.DictionaryTypes.FontDescriptor, pdf, objectOrigin) { }
 
     public FontDescriptorDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private FontDescriptorDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
-    : base(dictionary, pdfContext, objectOrigin) { }
+    private FontDescriptorDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+    : base(dictionary, pdf, objectOrigin) { }
 
     /// <summary>
     /// (Required) The PostScript name of the font. For Type 3 fonts that include a Name entry in the Type 3 
@@ -165,8 +165,8 @@ public class FontDescriptorDictionary : Dictionary
     public OptionalMultiProperty<LiteralString, HexadecimalString> CharSet
         => GetOptionalMultiProperty<LiteralString, HexadecimalString>(Constants.DictionaryKeys.FontDescriptor.CharSet);
 
-    internal static FontDescriptorDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdfContext pdfContext, ObjectOrigin objectOrigin)
+    internal static FontDescriptorDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
     {
-        return new FontDescriptorDictionary(dictionary, pdfContext, objectOrigin);
+        return new FontDescriptorDictionary(dictionary, pdf, objectOrigin);
     }
 }

@@ -7,8 +7,8 @@ namespace ZingPDF.Graphics
 {
     internal class GraphicsStateParameterDictionary : Dictionary
     {
-        public GraphicsStateParameterDictionary(IPdfContext pdfContext, ObjectOrigin objectOrigin)
-            : base(Constants.DictionaryTypes.ExtGState, pdfContext, objectOrigin) { }
+        public GraphicsStateParameterDictionary(IPdf pdf, ObjectOrigin objectOrigin)
+            : base(Constants.DictionaryTypes.ExtGState, pdf, objectOrigin) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) The line width (see 8.4.3.2, "Line width").

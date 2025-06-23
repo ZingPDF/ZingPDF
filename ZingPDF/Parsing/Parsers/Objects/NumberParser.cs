@@ -5,18 +5,11 @@ using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects
 {
-    internal class NumberParser : IObjectParser<Number>
+    internal class NumberParser : IParser<Number>
     {
-        private IPdfContext _pdfContext;
-
-        public NumberParser(IPdfContext pdfContext)
-        {
-            _pdfContext = pdfContext;
-        }
-
         public async ITask<Number> ParseAsync(Stream stream, ParseContext context)
         {
-            stream.AdvancePastWhitepace(); 
+            stream.AdvancePastWhitepace();
 
             //Logger.Log(LogLevel.Trace, $"Parsing Integer from {stream.GetType().Name} at offset: {stream.Position}.");
 
