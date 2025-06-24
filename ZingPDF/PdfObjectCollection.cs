@@ -38,6 +38,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     private readonly IDocumentVersionParser _documentVersionParser;
     private readonly IParserResolver _parserResolver;
+    private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
     private readonly IPdf _pdf;
 
     //private readonly Queue<IndirectObjectId> _freeIds;
@@ -45,13 +46,14 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     public PdfObjectCollection(
         IPdf pdf,
         IDocumentVersionParser documentVersionParser,
-        IParserResolver parserResolver
+        IParserResolver parserResolver,
+        ITokenTypeIdentifier tokenTypeIdentifier
         )
     {
         _pdf = pdf;
         _documentVersionParser = documentVersionParser;
         _parserResolver = parserResolver;
-
+        _tokenTypeIdentifier = tokenTypeIdentifier;
         _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
@@ -282,7 +284,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         // Seek to the object's position and parse it
         decompressedObjectStream.Position = objectStream.Dictionary.First + objectOffset;
 
-        var type = (await TokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
+        var type = (await _tokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
         return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, _parseContext));
     }

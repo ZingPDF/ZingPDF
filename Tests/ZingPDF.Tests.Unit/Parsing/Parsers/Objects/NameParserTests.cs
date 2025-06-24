@@ -31,7 +31,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser(A.Dummy<IPdfContext>())
+        var output = await new NameParser()
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
 
         output.Value.Should().Be(expected);
@@ -61,7 +61,7 @@ public class NameParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new NameParser(A.Dummy<IPdfContext>())
+        var output = await new NameParser()
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(expectedPosition);
