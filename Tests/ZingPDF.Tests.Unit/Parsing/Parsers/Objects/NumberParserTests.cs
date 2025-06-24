@@ -15,7 +15,7 @@ public class NumberParserTests
     [InlineData("841.890000", 841.890000)]
     public async Task ParseAsyncBasic(string input, double expected)
     {
-        var output = await new NumberParser(A.Dummy<IPdfContext>())
+        var output = await new NumberParser()
             .ParseAsync(input.ToStream(), ParseContext.WithOrigin(ObjectOrigin.None));
 
         output.Value.Should().Be(expected);
