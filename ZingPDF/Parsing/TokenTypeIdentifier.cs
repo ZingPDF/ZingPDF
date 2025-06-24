@@ -14,7 +14,7 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing
 {
-    internal static class TokenTypeIdentifier
+    internal class TokenTypeIdentifier : ITokenTypeIdentifier
     {
         private static readonly int _bufferSize = 256;
 
@@ -49,7 +49,7 @@ namespace ZingPDF.Parsing
             { "false", typeof(BooleanObject) },
         };
 
-        public static async Task<Type?> TryIdentifyAsync(Stream stream)
+        public async Task<Type?> TryIdentifyAsync(Stream stream)
         {
             // Save the original position to reset after processing
             long originalPosition = stream.Position;
