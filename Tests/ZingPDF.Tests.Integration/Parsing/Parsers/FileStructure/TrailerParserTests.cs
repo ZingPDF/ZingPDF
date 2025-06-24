@@ -28,7 +28,7 @@ public class TrailerParserTests
         var stream = input.ToStream();
 
         var services = new ServiceCollection()
-            .AddContext(stream)
+            //.AddContext(stream)
             .AddParsers()
             .BuildServiceProvider();
 

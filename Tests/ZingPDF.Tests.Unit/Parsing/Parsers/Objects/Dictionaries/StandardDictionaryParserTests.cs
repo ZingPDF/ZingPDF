@@ -14,10 +14,11 @@ using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Tests.Unit.Parsing.Parsers;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
-public class ComplexDictionaryParserTests
+public class StandardDictionaryParserTests
 {
     [Theory]
     [InlineData("<< >>")]
@@ -26,9 +27,13 @@ public class ComplexDictionaryParserTests
     {
         using var input = inputString.ToStream();
 
-        var output = await new ComplexDictionaryParser(
-            A.Dummy<IPdfObjectCollection>(),
-            A.Dummy<IParser<PdfObjectGroup>>(),
+        var parserResolver = new FakeParserRegistryBuilder()
+            .AddParser(new PdfObjectGroup([], ObjectOrigin.None))
+            .Build();
+
+        var output = await new StandardDictionaryParser(
+            A.Dummy<IPdf>(),
+            parserResolver,
             A.Dummy<IDictionaryIdentifier>()
             )
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
@@ -44,12 +49,16 @@ public class ComplexDictionaryParserTests
         var contentString = "<</Resources <<>>>>";
 
         using var input = contentString.ToStream();
-        var pdfObjects = A.Fake<IPdfContext>();
+        var parserResolver = A.Fake<IParserResolver>();
+        var nameParser = A.Fake<IParser<Name>>();
 
-        A.CallTo((object)(() => pdfObjects.Parsers.Names.ParseAsync(A<Stream>.Ignored, A<ParseContext>.Ignored)))
-            .Returns(Task.FromResult((Name)"Something").AsITask());
+        A.CallTo(() => nameParser.ParseAsync(A<Stream>.Ignored, A<ParseContext>.Ignored))
+            .Returns(Task.FromResult((Name)"Test").AsITask());
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        A.CallTo(() => parserResolver.GetParser<Name>())
+            .Returns(nameParser);
+
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), parserResolver, A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().NotBeNull().And.HaveCount(1);
@@ -66,7 +75,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Should().HavePosition(
@@ -82,7 +91,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().NotBeNull().And.HaveCount(1);
@@ -99,7 +108,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -142,7 +151,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
     }
 
@@ -182,7 +191,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -226,7 +235,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -241,7 +250,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -259,7 +268,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
@@ -289,7 +298,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -305,7 +314,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -324,7 +333,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
@@ -349,7 +358,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -364,18 +373,18 @@ public class ComplexDictionaryParserTests
         const int parentIndex = 572;
         const int parentGenerationNumber = 0;
 
-        var pdfObjects = A.Fake<IPdfContext>();
+        var pdf = A.Fake<IPdf>();
 
         var objects = new Dictionary(
             new Dictionary<string, IPdfObject>
             {
                 [Constants.DictionaryKeys.Field.FT] = (Name)"Tx"
             },
-            pdfObjects,
+            pdf,
             ObjectOrigin.None
         );
 
-        A.CallTo(() => pdfObjects.Objects.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
+        A.CallTo(() => pdf.Objects.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
             .Returns(objects);
 
         var contentString = "<<" +
@@ -396,7 +405,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(pdfObjects)
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -427,7 +436,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(A.Dummy<IPdfContext>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -438,10 +447,11 @@ public class ComplexDictionaryParserTests
     [Fact]
     public async Task DeepNestedInheritance()
     {
-        var pdfObjects = A.Fake<IPdfContext>();
+        var pdf = A.Fake<IPdf>();
+        //var pdfObjects = A.Fake<IPdfObjectCollection>();
 
         // Root page tree node
-        A.CallTo(() => pdfObjects.Objects.GetAsync<Dictionary>(new IndirectObjectReference(new(1, 0))))
+        A.CallTo(() => pdf.Objects.GetAsync<Dictionary>(new IndirectObjectReference(new(1, 0))))
             .Returns(new Dictionary(
                 new Dictionary<string, IPdfObject>
                 {
@@ -449,12 +459,12 @@ public class ComplexDictionaryParserTests
                     [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(2, 0)], ObjectOrigin.None),
                     [Constants.DictionaryKeys.PageTree.MediaBox] = Rectangle.FromDimensions(1, 1)
                 },
-                pdfObjects,
+                pdf,
                 ObjectOrigin.None
             ));
 
         // First level page tree node
-        A.CallTo(() => pdfObjects.Objects.GetAsync<Dictionary>(new IndirectObjectReference(new(2, 0))))
+        A.CallTo(() => pdf.Objects.GetAsync<Dictionary>(new IndirectObjectReference(new(2, 0))))
             .Returns(PageTreeNodeDictionary.FromDictionary(
                 new Dictionary<string, IPdfObject>
                 {
@@ -463,7 +473,7 @@ public class ComplexDictionaryParserTests
                     [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(3, 0)], ObjectOrigin.None),
                     [Constants.DictionaryKeys.PageTree.PageTreeNode.Count] = new Number(1)
                 },
-                pdfObjects,
+                pdf,
                 ObjectOrigin.None
             ));
 
@@ -475,7 +485,7 @@ public class ComplexDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ComplexDictionaryParser(pdfObjects)
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None)) as PageDictionary;
 
         output.Should().NotBeNull();

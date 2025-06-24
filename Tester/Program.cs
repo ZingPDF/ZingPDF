@@ -60,7 +60,7 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //await RotatePage();
 
-//await RotateWholeDocument();
+await RotateWholeDocument();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
@@ -75,7 +75,7 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 //await Decompress("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", "decompressed-MikeyFlemingFreelance_Folio.pdf");
 //await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
@@ -89,7 +89,7 @@ static async Task ExtractText(string input)
 
     extract.ToList().ForEach(x =>
     {
-        Console.WriteLine($"Page: {x.PageNumber}, Font: {x.FontName}, Text: {x.Text}");
+        Console.WriteLine($"Page: {x.PageNumber}, Font: {x.FontName}, Text: {x.Text}, X: {x.X}, Y: {x.Y}");
         Console.WriteLine();
     });
 }
@@ -266,7 +266,7 @@ static async Task AddTextToPage()
 
 static async Task RotateWholeDocument()
 {
-    using var inputFileStream = new FileStream("test.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = Pdf.Load(inputFileStream);

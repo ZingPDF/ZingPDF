@@ -43,12 +43,13 @@ public static class PdfServiceCollectionExtensions
     public static IServiceCollection AddParsers(this IServiceCollection services)
     {
         services.AddScoped<IDictionaryIdentifier, DictionaryIdentifier>();
+        services.AddScoped<ITokenTypeIdentifier, TokenTypeIdentifier>();
 
         services.AddScoped<IDocumentVersionParser, DocumentVersionParser>();
 
         services.AddScoped<IParser<PdfObjectGroup>, PdfObjectGroupParser>();
         services.AddScoped<IParser<IndirectObject>, IndirectObjectParser>();
-        services.AddScoped<IParser<Dictionary>, ComplexDictionaryParser>();
+        services.AddScoped<IParser<Dictionary>, StandardDictionaryParser>();
         services.AddScoped<IParser<ArrayObject>, ArrayParser>();
         services.AddScoped<IParser<Header>, HeaderParser>();
         services.AddScoped<IParser<Keyword>, KeywordParser>();

@@ -6,10 +6,12 @@ namespace ZingPDF.Parsing.Parsers;
 internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
 {
     private readonly IParserResolver _parserRegistry;
+    private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
-    public PdfObjectGroupParser(IParserResolver parserRegistry)
+    public PdfObjectGroupParser(IParserResolver parserRegistry, ITokenTypeIdentifier tokenTypeIdentifier)
     {
         _parserRegistry = parserRegistry;
+        _tokenTypeIdentifier = tokenTypeIdentifier;
     }
 
     public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
@@ -18,7 +20,7 @@ internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
 
         while (stream.Position < stream.Length)
         {
-            var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
+            var type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
 
             if (type != null)
             {

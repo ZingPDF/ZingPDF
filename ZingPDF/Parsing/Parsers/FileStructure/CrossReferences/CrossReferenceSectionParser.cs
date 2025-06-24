@@ -7,14 +7,17 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     {
         private readonly IParser<CrossReferenceSectionIndex> _xrefSectionIndexParser;
         private readonly IParser<CrossReferenceEntry> _xrefEntryParser;
+        private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
         public CrossReferenceSectionParser(
             IParser<CrossReferenceSectionIndex> xrefSectionIndexParser,
-            IParser<CrossReferenceEntry> xrefEntryParser
+            IParser<CrossReferenceEntry> xrefEntryParser,
+            ITokenTypeIdentifier tokenTypeIdentifier
             )
         {
             _xrefSectionIndexParser = xrefSectionIndexParser;
             _xrefEntryParser = xrefEntryParser;
+            _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
         public async ITask<CrossReferenceSection> ParseAsync(Stream stream, ParseContext context)
@@ -29,7 +32,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             var index = await _xrefSectionIndexParser.ParseAsync(stream, context);
 
-            Type? type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
+            Type? type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
             List<CrossReferenceEntry> entries = [];
             long position = stream.Position;
 
@@ -38,7 +41,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
                 entries.Add(await _xrefEntryParser.ParseAsync(stream, context));
 
                 position = stream.Position;
-                type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
+                type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
             }
 
             // Since we've read an axtra token we don't need, reset stream
