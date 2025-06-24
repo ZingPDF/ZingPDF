@@ -17,10 +17,12 @@ namespace ZingPDF.Parsing.Parsers.Objects
     internal class IndirectObjectParser : IParser<IndirectObject>
     {
         private readonly IParserResolver _parserResolver;
+        private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
-        public IndirectObjectParser(IParserResolver parserResolver)
+        public IndirectObjectParser(IParserResolver parserResolver, ITokenTypeIdentifier tokenTypeIdentifier)
         {
             _parserResolver = parserResolver;
+            _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
         public async ITask<IndirectObject> ParseAsync(Stream stream, ParseContext context)
@@ -39,7 +41,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             do
             {
-                var type = await TokenTypeIdentifier.TryIdentifyAsync(stream);
+                var type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
 
                 if (type == null)
                 {

@@ -1,6 +1,5 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.Trailer;
@@ -15,10 +14,12 @@ internal class DocumentVersionParser : IDocumentVersionParser
     private static readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.DocumentVersionParser);
 
     private readonly IParserResolver _parserResolver;
+    private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
-    public DocumentVersionParser(IParserResolver parserResolver)
+    public DocumentVersionParser(IParserResolver parserResolver, ITokenTypeIdentifier tokenTypeIdentifier)
     {
-        _parserResolver = parserResolver ?? throw new ArgumentNullException(nameof(parserResolver));
+        _parserResolver = parserResolver;
+        _tokenTypeIdentifier = tokenTypeIdentifier;
     }
 
     // Parse all xref tables and streams to get all versions of the file
@@ -49,7 +50,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         pdfInputStream.Position = xrefOffset;
 
-        var type = await TokenTypeIdentifier.TryIdentifyAsync(pdfInputStream);
+        var type = await _tokenTypeIdentifier.TryIdentifyAsync(pdfInputStream);
 
         if (type == typeof(Keyword))
         {
