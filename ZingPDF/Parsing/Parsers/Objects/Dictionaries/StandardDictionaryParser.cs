@@ -26,7 +26,7 @@ using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
-internal class ComplexDictionaryParser : DictionaryParser, IParser<Dictionary>
+internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
 {
     // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
     private readonly List<string> _rectKeys =
@@ -41,17 +41,17 @@ internal class ComplexDictionaryParser : DictionaryParser, IParser<Dictionary>
     ];
 
     private readonly IPdf _pdf;
-    private readonly IParserResolver _parserRegistry;
+    private readonly IParserResolver _parserResolver;
     private readonly IDictionaryIdentifier _dictionaryIdentifier;
 
-    public ComplexDictionaryParser(
+    public StandardDictionaryParser(
         IPdf pdf,
-        IParserResolver parserRegistry,
+        IParserResolver parserResolver,
         IDictionaryIdentifier dictionaryIdentifier
         )
     {
         _pdf = pdf;
-        _parserRegistry = parserRegistry;
+        _parserResolver = parserResolver;
         _dictionaryIdentifier = dictionaryIdentifier;
     }
 
@@ -68,7 +68,7 @@ internal class ComplexDictionaryParser : DictionaryParser, IParser<Dictionary>
 
         SubStream dictStream = await ExtractDictionarySegmentAsync(stream);
 
-        var objectGroup = await _parserRegistry.GetParser<PdfObjectGroup>().ParseAsync(dictStream, context);
+        var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(dictStream, context);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {

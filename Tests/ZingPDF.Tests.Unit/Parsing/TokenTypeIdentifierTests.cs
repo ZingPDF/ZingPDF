@@ -31,7 +31,7 @@ public class TokenTypeIdentifierTests
     {
         using var input = token.ToStream();
 
-        var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+        var output = await new TokenTypeIdentifier().TryIdentifyAsync(input);
 
         output.Should().Be(expectedType);
 
@@ -45,7 +45,7 @@ public class TokenTypeIdentifierTests
     {
         using var input = token.ToStream();
 
-        var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+        var output = await new TokenTypeIdentifier().TryIdentifyAsync(input);
 
         output.Should().Be(expectedType);
 
@@ -64,7 +64,7 @@ public class TokenTypeIdentifierTests
     {
         using var input = token.ToStream();
 
-        var output = await TokenTypeIdentifier.TryIdentifyAsync(input);
+        var output = await new TokenTypeIdentifier().TryIdentifyAsync(input);
 
         output.Should().Be(expectedType);
 
