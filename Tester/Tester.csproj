@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\External\PuppeteerSharp\lib\PuppeteerSharp\PuppeteerSharp.csproj" />
     <ProjectReference Include="..\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
