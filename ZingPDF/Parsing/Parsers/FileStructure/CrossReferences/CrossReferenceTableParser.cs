@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
@@ -22,7 +23,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
-        public async ITask<CrossReferenceTable> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<CrossReferenceTable> ParseAsync(Stream stream, ObjectContext context)
         {
             // Example: xref sections
             // 
@@ -56,7 +57,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
                 currentType = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
             }
 
-            return new CrossReferenceTable(sections, context.Origin);
+            return new CrossReferenceTable(sections, context);
         }
     }
 }

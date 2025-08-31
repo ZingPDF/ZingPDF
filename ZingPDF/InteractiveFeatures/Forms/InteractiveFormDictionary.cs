@@ -15,8 +15,8 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public InteractiveFormDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        private InteractiveFormDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dictionary, pdf, objectOrigin) { }
+        private InteractiveFormDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+            : base(dictionary, pdf, context) { }
 
         /// <summary>
         /// (Required) An array of references to the document’s root fields (those with no ancestors in the field hierarchy).
@@ -91,9 +91,9 @@ namespace ZingPDF.InteractiveFeatures.Forms
             Set(Constants.DictionaryKeys.InteractiveForm.DR, resources);
         }
 
-        public static InteractiveFormDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
+        public static InteractiveFormDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectContext context)
         {
-            return new(dict, pdf, objectOrigin);
+            return new(dict, pdf, context);
         }
     }
 }

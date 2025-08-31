@@ -11,8 +11,8 @@ public class RequiredMultiProperty<T1, T2>(string key, Dictionary dictionary, IP
 
         return value switch
         {
-            T1 t1 => new Either<T1, T2>(t1, t1.Origin),
-            T2 t2 => new Either<T1, T2>(t2, t2.Origin),
+            T1 t1 => new Either<T1, T2>(t1, t1.Context),
+            T2 t2 => new Either<T1, T2>(t2, t2.Context),
             _ => throw new InvalidOperationException($"Requested Either<{typeof(T1)},{typeof(T2)}> instance cannot contain type: {value.GetType()}")
         };
     }

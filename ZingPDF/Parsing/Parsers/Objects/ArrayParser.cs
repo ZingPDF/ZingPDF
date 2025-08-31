@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using System.Text;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -13,7 +14,7 @@ internal class ArrayParser : IParser<ArrayObject>
         _parserResolver = parserResolver;
     }
 
-    public async ITask<ArrayObject> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<ArrayObject> ParseAsync(Stream stream, ObjectContext context)
     {
         long initialStreamPosition = stream.Position;
         long arrayStart = 0;
@@ -86,7 +87,7 @@ internal class ArrayParser : IParser<ArrayObject>
             // Parse objects inside the array
             var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(arrayStream, context);
 
-            output = new ArrayObject(objectGroup.Objects, ObjectOrigin.ParsedDocumentObject);
+            output = new ArrayObject(objectGroup.Objects, context);
         }
 
         // Move the stream position past the array

@@ -15,7 +15,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
 
         public ResourceDictionary(
             IPdf pdf,
-            ObjectOrigin objectOrigin,
+            ObjectContext context,
             Dictionary<string, IPdfObject>? extGState = null,
             Dictionary<string, IPdfObject>? colorSpace = null,
             Dictionary<string, IPdfObject>? pattern = null,
@@ -25,20 +25,20 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             Dictionary<string, IPdfObject>? procSet = null,
             Dictionary<string, IPdfObject>? properties = null
             )
-            : base(pdf, objectOrigin)
+            : base(pdf, context)
         {
-            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, new Dictionary(extGState, pdf, objectOrigin));
-            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, new Dictionary(colorSpace, pdf, objectOrigin));
-            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, new Dictionary(pattern, pdf, objectOrigin));
-            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, new Dictionary(shading, pdf, objectOrigin));
-            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, new Dictionary(xObject, pdf, objectOrigin));
-            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, new Dictionary(font, pdf, objectOrigin));
-            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, new Dictionary(procSet, pdf, objectOrigin));
-            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, new Dictionary(properties, pdf, objectOrigin));
+            if (extGState is not null) Set(Constants.DictionaryKeys.Resource.ExtGState, new Dictionary(extGState, pdf, context));
+            if (colorSpace is not null) Set(Constants.DictionaryKeys.Resource.ColorSpace, new Dictionary(colorSpace, pdf, context));
+            if (pattern is not null) Set(Constants.DictionaryKeys.Resource.Pattern, new Dictionary(pattern, pdf, context));
+            if (shading is not null) Set(Constants.DictionaryKeys.Resource.Shading, new Dictionary(shading, pdf, context));
+            if (xObject is not null) Set(Constants.DictionaryKeys.Resource.XObject, new Dictionary(xObject, pdf, context));
+            if (font is not null) Set(Constants.DictionaryKeys.Resource.Font, new Dictionary(font, pdf, context));
+            if (procSet is not null) Set(Constants.DictionaryKeys.Resource.ProcSet, new Dictionary(procSet, pdf, context));
+            if (properties is not null) Set(Constants.DictionaryKeys.Resource.Properties, new Dictionary(properties, pdf, context));
         }
 
-        public ResourceDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dict, pdf, objectOrigin) { }
+        public ResourceDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectContext context)
+            : base(dict, pdf, context) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -118,12 +118,12 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
         public static ResourceDictionary FromDictionary(
             Dictionary<string, IPdfObject> resourceDictionary,
             IPdf pdf,
-            ObjectOrigin objectOrigin
+            ObjectContext context
             )
         {
             return resourceDictionary is null
                 ? throw new ArgumentNullException(nameof(resourceDictionary))
-                : new(resourceDictionary, pdf, objectOrigin);
+                : new(resourceDictionary, pdf, context);
         }
 
         public static ResourceDictionary FromDictionary(Dictionary resourceDictionary)
@@ -141,7 +141,7 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             )
         {
             var dict = await dictionaryProperty.GetAsync()
-                ?? new Dictionary(pdf, ObjectOrigin.UserCreated);
+                ?? new Dictionary(pdf, ObjectContext.UserCreated);
 
             dict.Set(name, reference);
 

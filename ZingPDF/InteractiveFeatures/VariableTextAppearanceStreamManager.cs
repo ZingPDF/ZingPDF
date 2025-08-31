@@ -1,5 +1,4 @@
 ﻿using Nito.AsyncEx;
-using System.Text;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Elements.Drawing.Text;
 using ZingPDF.Extensions;
@@ -10,7 +9,6 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
-using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -41,7 +39,7 @@ internal class VariableTextAppearanceStreamManager
     private readonly AsyncLazy<StreamObject<IStreamDictionary>?> _fieldAppearanceStreamObject;
     private readonly AsyncLazy<ContentStream?> _fieldAppearanceStream;
 
-    private readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream);
+    private readonly ObjectContext _ObjectContext = ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream);
 
     public VariableTextAppearanceStreamManager(
         InteractiveFormDictionary formDict,
@@ -92,7 +90,7 @@ internal class VariableTextAppearanceStreamManager
 
             var daStream = new MemoryStream(defaultAppearance.RawBytes);
 
-            return await _contentStreamParser.ParseAsync(daStream, _parseContext);
+            return await _contentStreamParser.ParseAsync(daStream, _ObjectContext);
         });
 
         _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
@@ -125,7 +123,7 @@ internal class VariableTextAppearanceStreamManager
 
             var apData = await normalApStreamObject.GetDecompressedDataAsync();
 
-            return await _contentStreamParser.ParseAsync(apData, _parseContext);
+            return await _contentStreamParser.ParseAsync(apData, _ObjectContext);
         });
 
         _formDefaultResources = new AsyncLazy<ResourceDictionary?>(async () =>
@@ -190,9 +188,9 @@ internal class VariableTextAppearanceStreamManager
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
         StreamObject<IStreamDictionary>? fieldApStreamObject = (await _fieldAppearanceStreamObject)!;
-        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdf, ObjectOrigin.UserCreated));
+        var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdf, ObjectContext.UserCreated));
 
-        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdf, ObjectOrigin.UserCreated));
+        await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdf, ObjectContext.UserCreated));
     }
 
     /// <summary>
@@ -355,20 +353,20 @@ internal class VariableTextAppearanceStreamManager
 
         var contentStreamDictionary = new Type1FormDictionary(
             pdf: _pdf,
-            objectOrigin: ObjectOrigin.UserCreated,
+            context: ObjectContext.UserCreated,
             bBox: fieldRect.Size,
             resources: resourceDictionary
             );
 
         // TODO: when reliably complete, add flatedecode filter (will need to implement GetFilters method in ContentStreamFactory)
-        var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary, ObjectOrigin.UserCreated);
+        var apFormXObject = await new ContentStreamFactory([appearanceStream]).CreateAsync(contentStreamDictionary, ObjectContext.UserCreated);
 
         var apIndirectObject = await _pdf.Objects.AddAsync(apFormXObject);
 
         _fieldDict.SetAppearanceDictionary(
             AppearanceDictionary.Create(
                 _pdf,
-                ObjectOrigin.UserCreated,
+                ObjectContext.UserCreated,
                 apIndirectObject.Reference
                 )
             );

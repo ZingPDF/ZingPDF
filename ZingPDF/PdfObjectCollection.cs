@@ -12,6 +12,7 @@ using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.ObjectStreams;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -25,7 +26,7 @@ namespace ZingPDF;
 /// </remarks>
 public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<IndirectObject>
 {
-    private readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject);
+    private readonly ObjectContext _ObjectContext = ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject);
 
     private readonly Dictionary<IndirectObjectId, IndirectObject> _parsedObjectCache = [];
     
@@ -213,7 +214,8 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;
 
-    //public async Task<ITrailerDictionary> GetTrailerDictionaryAsync() => (await _versions).First().TrailerDictionary;
+    public async Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync()
+        => (await _versions).First().TrailerDictionary;
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -256,13 +258,13 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         {
             _pdf.Data.Position = xref.Value1;
 
-            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(_pdf.Data, _parseContext);
+            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(_pdf.Data, _ObjectContext);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");
 
         // Resolve the correct object stream that contains the object.
-        var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0, _parseContext.Origin), xref.Value2);
+        var (objStreamIndirectObject, adjustedIndex) = await ResolveObjectStreamAsync(new IndirectObjectReference((int)xref.Value1, 0, _ObjectContext), xref.Value2);
 
         var objectStream = (StreamObject<ObjectStreamDictionary>)objStreamIndirectObject.Object;
 
@@ -286,7 +288,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
         var type = (await _tokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, _parseContext));
+        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, _ObjectContext));
     }
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)
