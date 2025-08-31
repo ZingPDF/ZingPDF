@@ -1,5 +1,7 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Encryption;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.FileStructure.Trailer
@@ -33,7 +35,7 @@ namespace ZingPDF.Syntax.FileStructure.Trailer
         /// <summary>
         /// (Required if document is encrypted; PDF 1.1) The PDF file’s encryption dictionary (see 7.6, "Encryption").
         /// </summary>
-        IndirectObjectReference? Encrypt { get; }
+        OptionalProperty<EncryptionDictionary> Encrypt { get; }
 
         /// <summary>
         /// <para>

@@ -2,8 +2,8 @@
 
 namespace ZingPDF.Parsing
 {
-    public class PdfObjectGroup(IEnumerable<IPdfObject> objects, ObjectOrigin origin)
-        : PdfObject(origin)
+    public class PdfObjectGroup(IEnumerable<IPdfObject> objects, ObjectContext context)
+        : PdfObject(context)
     {
         public List<IPdfObject> Objects { get; } = [.. objects];
 
@@ -20,7 +20,7 @@ namespace ZingPDF.Parsing
 
         public override object Clone()
         {
-            var clone = new PdfObjectGroup(Objects.Select(x => (IPdfObject)x.Clone()), Origin);
+            var clone = new PdfObjectGroup(Objects.Select(x => (IPdfObject)x.Clone()), Context);
 
             return clone;
         }

@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using MorseCode.ITask;
+﻿using MorseCode.ITask;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.Objects;
 
@@ -19,7 +19,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             _keywordParser = keywordParser;
         }
 
-        public async ITask<CrossReferenceEntry> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<CrossReferenceEntry> ParseAsync(Stream stream, ObjectContext context)
         {
             // 0000000000 65535 f
 
@@ -27,7 +27,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             ushort genNumber = await _numberParser.ParseAsync(stream, context);
             string inUse = await _keywordParser.ParseAsync(stream, context);
 
-            return new CrossReferenceEntry(byteOffset, genNumber, inUse == "n", compressed: false, context.Origin);
+            return new CrossReferenceEntry(byteOffset, genNumber, inUse == "n", compressed: false, context);
         }
     }
 }

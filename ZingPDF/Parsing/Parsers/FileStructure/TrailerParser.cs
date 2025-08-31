@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -23,7 +24,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
             _numberParser = numberParser;
         }
 
-        public async ITask<Trailer> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<Trailer> ParseAsync(Stream stream, ObjectContext context)
         {
             await stream.AdvanceBeyondNextAsync(Constants.Trailer);
 
@@ -32,7 +33,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
             _ = await _keywordParser.ParseAsync(stream, context); // startxref
             var xrefTableOffset = await _numberParser.ParseAsync(stream, context);
 
-            return new Trailer(trailerDict, xrefTableOffset, context.Origin);
+            return new Trailer(trailerDict, xrefTableOffset, context);
         }
     }
 }

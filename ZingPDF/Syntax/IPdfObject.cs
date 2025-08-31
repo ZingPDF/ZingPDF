@@ -2,7 +2,7 @@
 {
     public interface IPdfObject : ICloneable
     {
-        ObjectOrigin Origin { get; }
+        ObjectContext Context { get; }
 
         long? ByteOffset { get; }
         bool Written { get; }
