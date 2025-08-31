@@ -52,6 +52,28 @@ public class Pdf : IPdf, IDisposable
     public Stream Data { get; }
     public IPdfObjectCollection Objects { get; }
 
+    public async Task AuthenticateAsync(string password)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+
+        var trailerDict = await Objects.GetLatestTrailerDictionaryAsync();
+
+        Syntax.Encryption.EncryptionDictionary? encryptionDict = await trailerDict.Encrypt.GetAsync();
+
+        if (encryptionDict is not null)
+        {
+            //var handler = new EncryptionHandler(encryptionDict, password);
+
+            //if (!handler.TryAuthenticateUser())
+            //{
+            //    throw new PdfAuthenticationException("Invalid password for encrypted PDF.");
+            //}
+
+            //// If valid, you might want to store the handler internally for later decryption use:
+            //_encryptionHandler = handler;
+        }
+    }
+
     public Task<IList<IndirectObject>> GetAllPagesAsync() => Objects.PageTree.GetPagesAsync();
 
     public async Task<Form?> GetFormAsync()
@@ -322,9 +344,7 @@ public class Pdf : IPdf, IDisposable
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
 
         if (!pdfInputStream.CanSeek)
-        {
             throw new ArgumentException("Provided stream must be seekable");
-        }
 
         return new Pdf(pdfInputStream);
     }

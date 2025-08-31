@@ -7,8 +7,8 @@ namespace ZingPDF.Syntax.Objects
     /// </summary>
     public class BooleanObject : PdfObject
     {
-        private BooleanObject(bool value, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        private BooleanObject(bool value, ObjectContext context)
+            : base(context)
         {
             Value = value;
         }
@@ -20,11 +20,11 @@ namespace ZingPDF.Syntax.Objects
         public override string ToString() => $"Boolean: {Value.ToString().ToLower()}";
 
         public static implicit operator bool(BooleanObject value) => value.Value;
-        public static implicit operator BooleanObject(bool value) => new(value, ObjectOrigin.ImplicitOperatorConversion);
+        public static implicit operator BooleanObject(bool value) => new(value, ObjectContext.FromImplicitOperator);
 
-        public override object Clone() => new BooleanObject(Value, Origin);
+        public override object Clone() => new BooleanObject(Value, Context);
 
-        public static BooleanObject FromBool(bool value, ObjectOrigin objectOrigin)
-            => new(value, objectOrigin);
+        public static BooleanObject FromBool(bool value, ObjectContext context)
+            => new(value, context);
     }
 }

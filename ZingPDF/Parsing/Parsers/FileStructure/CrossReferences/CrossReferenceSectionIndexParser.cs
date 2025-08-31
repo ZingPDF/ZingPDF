@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.Objects;
 
@@ -13,13 +14,13 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             _numberParser = numberParser;
         }
 
-        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, ObjectContext context)
         {
             // Example: 0 28
             return new CrossReferenceSectionIndex(
                 await _numberParser.ParseAsync(stream, context),
                 await _numberParser.ParseAsync(stream, context),
-                context.Origin
+                context
                 );
         }
     }

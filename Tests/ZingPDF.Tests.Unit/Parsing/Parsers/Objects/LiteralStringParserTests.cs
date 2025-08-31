@@ -23,10 +23,10 @@ public class LiteralStringParserTests
         var content = "(This is a string)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = "This is a string";
+        LiteralString expectedLiteralString = LiteralString.FromString("This is a string", ObjectContext.WithOrigin(ObjectOrigin.None));
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -37,10 +37,10 @@ public class LiteralStringParserTests
         var content = "()";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = "";
+        LiteralString expectedLiteralString = LiteralString.FromString(string.Empty, ObjectContext.None);
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -51,10 +51,10 @@ public class LiteralStringParserTests
         var content = "()";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = "";
+        LiteralString expectedLiteralString = LiteralString.FromString(string.Empty, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         _ = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(
             content.Length,
@@ -73,9 +73,9 @@ public class LiteralStringParserTests
         using var input = content.ToStream();
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be(expected);
+        output.Decode().Should().Be(expected);
     }
 
     [Fact]
@@ -84,10 +84,10 @@ public class LiteralStringParserTests
         var content = "(This is a valid \\string)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = "This is a valid string";
+        LiteralString expectedLiteralString = LiteralString.FromString("This is a valid string", ObjectContext.WithOrigin(ObjectOrigin.None));
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -101,10 +101,10 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = expected;
+        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -115,10 +115,10 @@ public class LiteralStringParserTests
         var content = "(These \\\r\ntwo strings \\\r\nare the same.)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = "These two strings are the same.";
+        LiteralString expectedLiteralString = LiteralString.FromString("These two strings are the same.", ObjectContext.WithOrigin(ObjectOrigin.None));
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -128,14 +128,16 @@ public class LiteralStringParserTests
     [InlineData("(\\0053)", "\u00053")]
     [InlineData("(\\053)", "+")]
     [InlineData("(\\53)", "+")]
-    public async Task ParseOctalCharactersAreProperlyParsed(string content, string expected)
+    public async Task OctalCharactersAreProperlyParsed(string content, string expected)
     {
         using var input = content.ToStream();
 
-        var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be(expected);
+        var output = await new LiteralStringParser()
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
+
+        output.Decode().Should().Be(expected);
     }
 
     [Theory]
@@ -149,10 +151,10 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = expected;
+        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         var output = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedLiteralString);
     }
@@ -163,7 +165,7 @@ public class LiteralStringParserTests
         using var input = "(test string \\))".ToStream();
 
         _ = await new LiteralStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(input.Length, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -183,9 +185,9 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be(input);
+        output.Decode().Should().Be(input);
     }
 
     [Fact]
@@ -203,9 +205,9 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be(input);
+        output.Decode().Should().Be(input);
     }
 
     [Fact]
@@ -223,7 +225,7 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream([.. inputBytes]);
         _ = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.None);
 
         ms.Position.Should().Be(96, because: "parsing needs to continue from the end of the literal string");
     }
@@ -240,13 +242,11 @@ public class LiteralStringParserTests
         inputBytes.AddRange(encoding.GetPreamble());
         inputBytes.AddRange(encoding.GetBytes($"{textInput}{Constants.Characters.RightParenthesis}"));
 
-        LiteralString expectedLiteralString = textInput;
-
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.None);
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Decode().Should().Be(textInput);
     }
 
     [Fact]
@@ -264,9 +264,9 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream([.. inputBytes]);
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be(textInput);
+        output.Decode().Should().Be(textInput);
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream([.. inputBytes]);
         _ = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(46, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -297,11 +297,13 @@ public class LiteralStringParserTests
     {
         var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
 
+        string expected = "Artifex";
+
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be("Artifex");
+        output.Decode().Should().Be(expected);
     }
 
     [Fact]
@@ -311,7 +313,7 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
         _ = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
     }
@@ -324,11 +326,13 @@ public class LiteralStringParserTests
             "\\000\\040\\000L\\000i\\000n\\000u\\000x)" +
             "\r\n<< /S /GoTo /D (section.23.5) >>";
 
+        string expected = "Usage on RedHat Linux";
+
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
         var output = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().Be("Usage on RedHat Linux");
+        output.Decode().Should().Be(expected);
     }
 
     [Fact]
@@ -341,7 +345,7 @@ public class LiteralStringParserTests
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
         _ = await new LiteralStringParser()
-            .ParseAsync(ms, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(124, because: "the parser should move the stream past the string-end delimiter");
     }

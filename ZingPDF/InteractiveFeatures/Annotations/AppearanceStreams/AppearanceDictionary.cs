@@ -12,8 +12,8 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         public AppearanceDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        private AppearanceDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dictionary, pdf, objectOrigin) { }
+        private AppearanceDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+            : base(dictionary, pdf, context) { }
 
         /// <summary>
         /// (Required) The annotation’s normal appearance.
@@ -35,7 +35,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
 
         public static AppearanceDictionary Create(
             IPdf pdf,
-            ObjectOrigin objectOrigin,
+            ObjectContext context,
             IndirectObjectReference normalAppearanceStream,
             IndirectObjectReference? rolloverAppearanceStream = null,
             IndirectObjectReference? downAppearanceStream = null
@@ -53,12 +53,12 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
                 dict.Add(Constants.DictionaryKeys.Appearance.D, downAppearanceStream);
             }
 
-            return new AppearanceDictionary(dict, pdf, objectOrigin);
+            return new AppearanceDictionary(dict, pdf, context);
         }
 
-        public static AppearanceDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        public static AppearanceDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
         {
-            return new AppearanceDictionary(dictionary, pdf, objectOrigin);
+            return new AppearanceDictionary(dictionary, pdf, context);
         }
     }
 }

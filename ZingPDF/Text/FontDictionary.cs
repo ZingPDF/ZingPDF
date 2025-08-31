@@ -33,13 +33,13 @@ public abstract class FontDictionary : Dictionary
     protected FontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    protected FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(dictionary, pdf, objectOrigin)
+    protected FontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+        : base(dictionary, pdf, context)
     {
     }
 
-    protected FontDictionary(Name subType, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(Constants.DictionaryTypes.Font, pdf, objectOrigin)
+    protected FontDictionary(Name subType, IPdf pdf, ObjectContext context)
+        : base(Constants.DictionaryTypes.Font, pdf, context)
     {
         ArgumentNullException.ThrowIfNull(subType);
 

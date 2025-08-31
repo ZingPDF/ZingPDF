@@ -15,5 +15,5 @@ public interface IParser<out T> where T : IPdfObject
     /// <summary>
     /// Parses a stream into an object.
     /// </summary>
-    ITask<T> ParseAsync(Stream stream, ParseContext context);
+    ITask<T> ParseAsync(Stream stream, ObjectContext context);
 }

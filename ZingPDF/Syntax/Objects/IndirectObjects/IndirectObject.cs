@@ -11,7 +11,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     public class IndirectObject : PdfObject, IEquatable<IndirectObject?>
     {
         public IndirectObject(IndirectObjectId id, IPdfObject obj)
-            : base(obj.Origin)
+            : base(obj.Context)
         {
             ArgumentNullException.ThrowIfNull(id, nameof(id));
             ArgumentNullException.ThrowIfNull(obj, nameof(obj));
@@ -23,7 +23,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
         public IndirectObjectId Id { get; }
         public IPdfObject Object { get; internal set; }
 
-        public IndirectObjectReference Reference => new(Id, Origin);
+        public IndirectObjectReference Reference => new(Id, Context);
 
         protected override async Task WriteOutputAsync(Stream stream)
         {

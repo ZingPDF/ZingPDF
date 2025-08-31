@@ -19,8 +19,8 @@ public class FakeParserRegistryBuilder
     public FakeParserRegistryBuilder AddParser<T>(T returnValue, int bytesToConsume = 0) where T : class, IPdfObject
     {
         var parser = A.Fake<IParser<T>>();
-        A.CallTo(() => parser.ParseAsync(A<Stream>._, A<ParseContext>._))
-            .Invokes(async (Stream s, ParseContext _) =>
+        A.CallTo(() => parser.ParseAsync(A<Stream>._, A<ObjectContext>._))
+            .Invokes(async (Stream s, ObjectContext _) =>
             {
                 var buffer = new byte[bytesToConsume];
                 await s.ReadAsync(buffer);

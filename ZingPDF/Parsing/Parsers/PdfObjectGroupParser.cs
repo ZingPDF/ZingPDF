@@ -14,7 +14,7 @@ internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
         _tokenTypeIdentifier = tokenTypeIdentifier;
     }
 
-    public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<PdfObjectGroup> ParseAsync(Stream stream, ObjectContext context)
     {
         var items = new List<IPdfObject>();
 
@@ -43,6 +43,6 @@ internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
             }
         }
 
-        return new PdfObjectGroup(items, context.Origin);
+        return new PdfObjectGroup(items, context);
     }
 }
