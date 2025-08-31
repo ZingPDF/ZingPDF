@@ -1,7 +1,7 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
@@ -32,7 +32,7 @@ public class NameParserTests
         using var input = content.ToStream();
 
         var output = await new NameParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Value.Should().Be(expected);
     }
@@ -62,7 +62,7 @@ public class NameParserTests
         using var input = content.ToStream();
 
         var output = await new NameParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(expectedPosition);
     }

@@ -6,8 +6,8 @@ namespace ZingPDF.Syntax.Functions;
 
 internal abstract class FunctionDictionary : Dictionary
 {
-    protected FunctionDictionary(Number functionType, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(pdf, objectOrigin)
+    protected FunctionDictionary(Number functionType, IPdf pdf, ObjectContext context)
+        : base(pdf, context)
     {
         ArgumentNullException.ThrowIfNull(functionType);
 

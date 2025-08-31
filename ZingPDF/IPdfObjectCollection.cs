@@ -2,6 +2,7 @@
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
@@ -12,6 +13,11 @@ public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
     /// Gets the document catalog of the PDF.
     /// </summary>
     Task<DocumentCatalogDictionary> GetDocumentCatalogAsync();
+
+    /// <summary>
+    /// Gets the document's latest trailer dictionary.
+    /// </summary>
+    Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync();
 
     /// <summary>
     /// The document's page tree.

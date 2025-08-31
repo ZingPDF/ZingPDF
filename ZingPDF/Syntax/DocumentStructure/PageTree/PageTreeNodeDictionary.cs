@@ -13,8 +13,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageTreeNodeDictionary(Dictionary pageTreeNodeDictionary)
             : base(pageTreeNodeDictionary) { }
 
-        private PageTreeNodeDictionary(Dictionary<string, IPdfObject> pageTreeNodeDictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(pageTreeNodeDictionary, pdf, objectOrigin) { }
+        private PageTreeNodeDictionary(Dictionary<string, IPdfObject> pageTreeNodeDictionary, IPdf pdf, ObjectContext context)
+            : base(pageTreeNodeDictionary, pdf, context) { }
 
         /// <summary>
         /// (Required) An array of indirect references to the immediate children of this node. The children shall only be page objects or other page tree nodes.
@@ -96,10 +96,10 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Pages },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number) pageReferences.Count() },
-            }, pdf, ObjectOrigin.UserCreated);
+            }, pdf, ObjectContext.UserCreated);
         }
 
-        public static PageTreeNodeDictionary FromDictionary(Dictionary<string, IPdfObject> pagesCatalog, IPdf pdf, ObjectOrigin objectOrigin)
-            => new(pagesCatalog, pdf, objectOrigin);
+        public static PageTreeNodeDictionary FromDictionary(Dictionary<string, IPdfObject> pagesCatalog, IPdf pdf, ObjectContext context)
+            => new(pagesCatalog, pdf, context);
     }
 }

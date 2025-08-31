@@ -6,8 +6,8 @@ namespace ZingPDF.Text.CompositeFonts;
 
 public class CIDFontDictionary : FontDictionary
 {
-    public CIDFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(dictionary, pdf, objectOrigin)
+    public CIDFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+        : base(dictionary, pdf, context)
     {
     }
 
@@ -22,8 +22,8 @@ public class CIDFontDictionary : FontDictionary
     /// </summary>
     public OptionalProperty<Number> DW => GetOptionalProperty<Number>(Constants.DictionaryKeys.Font.CID.DW);
 
-    public static CIDFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+    public static CIDFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
     {
-        return new CIDFontDictionary(dictionary, pdf, objectOrigin);
+        return new CIDFontDictionary(dictionary, pdf, context);
     }
 }

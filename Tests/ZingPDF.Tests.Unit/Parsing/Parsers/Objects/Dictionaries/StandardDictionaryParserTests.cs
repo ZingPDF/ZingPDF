@@ -28,7 +28,7 @@ public class StandardDictionaryParserTests
         using var input = inputString.ToStream();
 
         var parserResolver = new FakeParserRegistryBuilder()
-            .AddParser(new PdfObjectGroup([], ObjectOrigin.None))
+            .AddParser(new PdfObjectGroup([], ObjectContext.None))
             .Build();
 
         var output = await new StandardDictionaryParser(
@@ -36,7 +36,7 @@ public class StandardDictionaryParserTests
             parserResolver,
             A.Dummy<IDictionaryIdentifier>()
             )
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().BeEmpty();
 
@@ -52,14 +52,14 @@ public class StandardDictionaryParserTests
         var parserResolver = A.Fake<IParserResolver>();
         var nameParser = A.Fake<IParser<Name>>();
 
-        A.CallTo(() => nameParser.ParseAsync(A<Stream>.Ignored, A<ParseContext>.Ignored))
+        A.CallTo(() => nameParser.ParseAsync(A<Stream>.Ignored, A<ObjectContext>.Ignored))
             .Returns(Task.FromResult((Name)"Test").AsITask());
 
         A.CallTo(() => parserResolver.GetParser<Name>())
             .Returns(nameParser);
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), parserResolver, A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -76,7 +76,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Should().HavePosition(
             contentString.Length,
@@ -92,7 +92,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().NotBeNull().And.HaveCount(1);
 
@@ -109,7 +109,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
             contentString.Length,
@@ -152,7 +152,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -236,7 +236,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -251,7 +251,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -269,7 +269,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
         var other = output.GetAs<Name>("Other");
@@ -299,7 +299,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
     }
@@ -315,7 +315,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),
@@ -334,7 +334,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
         var other = output.GetAs<Name>("Other");
@@ -359,7 +359,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
             Encoding.UTF8.GetByteCount(contentString),
@@ -381,7 +381,7 @@ public class StandardDictionaryParserTests
                 [Constants.DictionaryKeys.Field.FT] = (Name)"Tx"
             },
             pdf,
-            ObjectOrigin.None
+            ObjectContext.None
         );
 
         A.CallTo(() => pdf.Objects.GetAsync<Dictionary>(new IndirectObjectReference(parentIndex, parentGenerationNumber)))
@@ -406,7 +406,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -437,7 +437,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
 
@@ -456,11 +456,11 @@ public class StandardDictionaryParserTests
                 new Dictionary<string, IPdfObject>
                 {
                     [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Pages,
-                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(2, 0)], ObjectOrigin.None),
+                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(2, 0)], ObjectContext.None),
                     [Constants.DictionaryKeys.PageTree.MediaBox] = Rectangle.FromDimensions(1, 1)
                 },
                 pdf,
-                ObjectOrigin.None
+                ObjectContext.None
             ));
 
         // First level page tree node
@@ -470,11 +470,11 @@ public class StandardDictionaryParserTests
                 {
                     [Constants.DictionaryKeys.Parent] = new IndirectObjectReference(1, 0),
                     [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Pages,
-                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(3, 0)], ObjectOrigin.None),
+                    [Constants.DictionaryKeys.PageTree.PageTreeNode.Kids] = new ArrayObject([new IndirectObjectReference(3, 0)], ObjectContext.None),
                     [Constants.DictionaryKeys.PageTree.PageTreeNode.Count] = new Number(1)
                 },
                 pdf,
-                ObjectOrigin.None
+                ObjectContext.None
             ));
 
         // Page does not specify MediaBox, so it should inherit it from the root page tree node
@@ -486,7 +486,7 @@ public class StandardDictionaryParserTests
         using var input = contentString.ToStream();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None)) as PageDictionary;
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None)) as PageDictionary;
 
         output.Should().NotBeNull();
 

@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -17,7 +18,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             _dict = dict;
         }
 
-        public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ObjectContext context)
         {
             var initialStreamPosition = stream.Position;
 
@@ -42,7 +43,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     setToStart: false
                     ),
                 _dict,
-                context.Origin
+                context
                 )
             {
                 ByteOffset = initialStreamPosition
