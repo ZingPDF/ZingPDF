@@ -9,7 +9,7 @@ public class RequiredArrayOrSingle<T>(string key, Dictionary dictionary, IPdf pd
 
         if (rawValue is T typed)
         {
-            return new ArrayObject([typed], typed.Origin);
+            return new ArrayObject([typed], typed.Context);
         }
         else if (rawValue is ArrayObject ary)
         {

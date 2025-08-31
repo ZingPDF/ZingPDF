@@ -1,6 +1,7 @@
 ﻿using MorseCode.ITask;
 using System.Text;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
@@ -14,7 +15,7 @@ internal class HeaderParser : IParser<Header>
         _pdfObjects = pdfObjects;
     }
 
-    public async ITask<Header> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<Header> ParseAsync(Stream stream, ObjectContext context)
     {
         await stream.AdvanceBeyondNextAsync("%PDF-");
 
@@ -25,6 +26,6 @@ internal class HeaderParser : IParser<Header>
             (byte)stream.ReadByte(),
         ]);
 
-        return new Header(double.Parse(version), context.Origin);
+        return new Header(double.Parse(version), context);
     }
 }

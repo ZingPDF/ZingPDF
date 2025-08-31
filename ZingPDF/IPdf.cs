@@ -11,6 +11,11 @@ public interface IPdf
     Stream Data { get; }
     IPdfObjectCollection Objects { get; }
 
+    /// <summary>
+    /// Unlocks the PDF for reading and/or writing. The password can be a user password or an owner password.
+    /// </summary>
+    Task AuthenticateAsync(string password);
+
     Task<IList<IndirectObject>> GetAllPagesAsync();
     Task<Page> GetPageAsync(int pageNumber);
     Task<int> GetPageCountAsync();

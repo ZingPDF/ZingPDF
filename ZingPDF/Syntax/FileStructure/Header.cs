@@ -7,8 +7,8 @@ namespace ZingPDF.Syntax.FileStructure
     /// </summary>
     public class Header : PdfObject
     {
-        public Header(double pdfVersion, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public Header(double pdfVersion, ObjectContext context)
+            : base(context)
         {
             if (!Constants.PdfVersion.All.Contains(pdfVersion)) throw new ArgumentOutOfRangeException(nameof(pdfVersion), $"Invalid PDF version specified: {pdfVersion}");
 
@@ -32,7 +32,7 @@ namespace ZingPDF.Syntax.FileStructure
 
         public override object Clone()
         {
-            return new Header(PdfVersion, Origin);
+            return new Header(PdfVersion, Context);
         }
     }
 }

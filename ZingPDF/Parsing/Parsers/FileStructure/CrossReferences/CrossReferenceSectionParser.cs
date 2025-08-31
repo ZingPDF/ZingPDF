@@ -1,4 +1,5 @@
 ﻿using MorseCode.ITask;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
@@ -20,7 +21,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
-        public async ITask<CrossReferenceSection> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<CrossReferenceSection> ParseAsync(Stream stream, ObjectContext context)
         {
             // 0 6
             // 0000000003 65535 f
@@ -47,7 +48,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // Since we've read an axtra token we don't need, reset stream
             stream.Position = position;
 
-            return new CrossReferenceSection(index.StartIndex, entries, context.Origin);
+            return new CrossReferenceSection(index.StartIndex, entries, context);
         }
     }
 }

@@ -40,7 +40,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
         _parserResolver = parserResolver;
     }
 
-    public async ITask<CrossReferenceStreamDictionary> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<CrossReferenceStreamDictionary> ParseAsync(Stream stream, ObjectContext context)
     {
         var initialStreamPosition = stream.Position; // Reference starting point for output
 
@@ -48,7 +48,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
 
         if (dictStream == null)
         {
-            return CrossReferenceStreamDictionary.FromDictionary([], _pdf, context.Origin);
+            return CrossReferenceStreamDictionary.FromDictionary([], _pdf, context);
         }
 
         var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(stream, context);
@@ -70,7 +70,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
 
         stream.Position = dictStream.To + 2;
 
-        var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdf, context.Origin);
+        var output = CrossReferenceStreamDictionary.FromDictionary(dict, _pdf, context);
 
         output!.ByteOffset = initialStreamPosition;
 

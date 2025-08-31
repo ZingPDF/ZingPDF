@@ -50,7 +50,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             {
                 selectedOptions.Add(value);
 
-                SetValue(new ArrayObject(selectedOptions, ObjectOrigin.UserCreated));
+                SetValue(new ArrayObject(selectedOptions, ObjectContext.UserCreated));
             }
         }
 
@@ -66,7 +66,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
             else
             {
-                SetValue(new ArrayObject(selectedOptions, ObjectOrigin.UserCreated));
+                SetValue(new ArrayObject(selectedOptions, ObjectContext.UserCreated));
             }
         }
 
