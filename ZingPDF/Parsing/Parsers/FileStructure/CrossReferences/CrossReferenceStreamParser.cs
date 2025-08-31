@@ -2,6 +2,7 @@
 using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -33,7 +34,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             _numberParser = numberParser;
         }
 
-        public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream, ObjectContext context)
         {
             var initialStreamPosition = stream.Position;
 
@@ -81,7 +82,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
                     setToStart: false
                     ),
                 dict,
-                context.Origin
+                context
                 )
             {
                 ByteOffset = initialStreamPosition

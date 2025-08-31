@@ -16,7 +16,7 @@ namespace ZingPDF.Graphics
         public XObjectDictionary(Dictionary dict)
             : base(dict) { }
 
-        public XObjectDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dict, pdf, objectOrigin) { }
+        public XObjectDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectContext context)
+            : base(dict, pdf, context) { }
     }
 }

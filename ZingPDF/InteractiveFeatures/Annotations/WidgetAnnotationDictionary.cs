@@ -10,11 +10,11 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         public WidgetAnnotationDictionary(Dictionary dictionary)
             : base(dictionary) { }
 
-        public WidgetAnnotationDictionary(IPdf pdf, ObjectOrigin objectOrigin)
-            : base(Subtypes.Widget, pdf, objectOrigin) { }
+        public WidgetAnnotationDictionary(IPdf pdf, ObjectContext context)
+            : base(Subtypes.Widget, pdf, context) { }
 
-        protected WidgetAnnotationDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dictionary, pdf, objectOrigin) { }
+        protected WidgetAnnotationDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+            : base(dictionary, pdf, context) { }
 
         /// <summary>
         /// <para>(Optional)</para>
@@ -70,7 +70,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// </summary>
         public OptionalProperty<Dictionary> Parent => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Parent);
 
-        new public static WidgetAnnotationDictionary FromDictionary(Dictionary<string, IPdfObject> annotationDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        new public static WidgetAnnotationDictionary FromDictionary(Dictionary<string, IPdfObject> annotationDictionary, IPdf pdf, ObjectContext context)
         {
             ArgumentNullException.ThrowIfNull(annotationDictionary);
 
@@ -84,7 +84,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
                 throw new ArgumentException("Supplied argument is not a widget annotation dictionary.", nameof(annotationDictionary));
             }
 
-            return new(annotationDictionary, pdf, objectOrigin);
+            return new(annotationDictionary, pdf, context);
         }
     }
 }

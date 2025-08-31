@@ -25,7 +25,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
-        public async ITask<IndirectObject> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<IndirectObject> ParseAsync(Stream stream, ObjectContext context)
         {
             stream.AdvancePastWhitepace();
 
@@ -74,7 +74,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             return new IndirectObject(new IndirectObjectId(id, genNumber), items.First()) { ByteOffset = initialStreamPosition };
         }
 
-        private static async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream, ParseContext context)
+        private static async Task<IPdfObject> ParseTypedStreamObjectAsync(IStreamDictionary dict, Stream stream, ObjectContext context)
         {
             return dict switch
             {

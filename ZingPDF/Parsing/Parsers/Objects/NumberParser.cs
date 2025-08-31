@@ -1,12 +1,13 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
 internal class NumberParser : IParser<Number>
 {
-    public async ITask<Number> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<Number> ParseAsync(Stream stream, ObjectContext context)
     {
         stream.AdvancePastWhitepace();
 
@@ -16,6 +17,6 @@ internal class NumberParser : IParser<Number>
 
         var value = double.Parse(content);
 
-        return new Number(value, context.Origin);
+        return new Number(value, context);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.Trailer;
@@ -11,7 +12,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure;
 
 internal class DocumentVersionParser : IDocumentVersionParser
 {
-    private static readonly ParseContext _parseContext = ParseContext.WithOrigin(ObjectOrigin.DocumentVersionParser);
+    private static readonly ObjectContext _objectContext = ObjectContext.WithOrigin(ObjectOrigin.DocumentVersionParser);
 
     private readonly IParserResolver _parserResolver;
     private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
@@ -54,12 +55,12 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         if (type == typeof(Keyword))
         {
-            var xrefTable = await _parserResolver.GetParser<CrossReferenceTable>().ParseAsync(pdfInputStream, _parseContext);
+            var xrefTable = await _parserResolver.GetParser<CrossReferenceTable>().ParseAsync(pdfInputStream, _objectContext);
 
             version = new VersionInformation
             {
                 CrossReferenceTable = xrefTable,
-                Trailer = await _parserResolver.GetParser<Trailer>().ParseAsync(pdfInputStream, _parseContext),
+                Trailer = await _parserResolver.GetParser<Trailer>().ParseAsync(pdfInputStream, _objectContext),
                 IndirectObjects = ProcessXrefTable(xrefTable)
             };
         }
@@ -68,12 +69,12 @@ internal class DocumentVersionParser : IDocumentVersionParser
             // Parse object number then move stream back to start of object
             // The xref stream parser will record the byte offset which should be at the start of the indirect object
             // We only parse the object number here so that we can repair the xrefs (within ProcessXrefStreamAsync) if the stream isn't referenced.
-            var id = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _parseContext);
-            var genNumber = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _parseContext);
+            var id = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _objectContext);
+            var genNumber = await _parserResolver.GetParser<Number>().ParseAsync(pdfInputStream, _objectContext);
 
             pdfInputStream.Position = xrefOffset;
 
-            var xrefStream = await _parserResolver.GetParser<StreamObject<CrossReferenceStreamDictionary>>().ParseAsync(pdfInputStream, _parseContext);
+            var xrefStream = await _parserResolver.GetParser<StreamObject<CrossReferenceStreamDictionary>>().ParseAsync(pdfInputStream, _objectContext);
 
             version = new VersionInformation
             {
@@ -106,9 +107,9 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         pdfStream.Position = offset;
 
-        _ = await _parserResolver.GetParser<Keyword>().ParseAsync(pdfStream, _parseContext);
+        _ = await _parserResolver.GetParser<Keyword>().ParseAsync(pdfStream, _objectContext);
 
-        return await _parserResolver.GetParser<Number>().ParseAsync(pdfStream, _parseContext);
+        return await _parserResolver.GetParser<Number>().ParseAsync(pdfStream, _objectContext);
     }
 
     private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
@@ -145,7 +146,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
         if (xrefStream.Dictionary.Index is null)
         {
             // Index defaults to a start index of zero, and the size for the count.
-            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStream.Dictionary.Size, ObjectOrigin.ParsedDocumentObject));
+            xrefIndices.Add(new CrossReferenceSectionIndex(0, xrefStream.Dictionary.Size, _objectContext));
         }
         else
         {
@@ -157,7 +158,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
                     new CrossReferenceSectionIndex(
                         xrefStream.Dictionary.Index.Get<Number>(i)!,
                         xrefStream.Dictionary.Index.Get<Number>(i + 1)!,
-                        ObjectOrigin.ParsedDocumentObject
+                        _objectContext
                         )
                     );
             }
@@ -203,7 +204,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
                     (ushort)field3,
                     inUse: entryType != 0,
                     compressed: isCompressed,
-                    ObjectOrigin.ParsedDocumentObject
+                    _objectContext
                     ));
             }
         }
@@ -219,7 +220,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
                     xrefStreamObjectId.GenerationNumber,
                     inUse: true,
                     compressed: false,
-                    ObjectOrigin.ParsedDocumentObject
+                    _objectContext
                     )
                 );
 
