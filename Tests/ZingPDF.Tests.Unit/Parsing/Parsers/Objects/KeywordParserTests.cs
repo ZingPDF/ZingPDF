@@ -1,8 +1,8 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -17,10 +17,10 @@ public class KeywordParserTests
     {
         using var input = content.ToStream();
 
-        Keyword expectedKeyword = expected;
+        Keyword expectedKeyword = new (expected, ObjectContext.None);
 
         var output = await new KeywordParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedKeyword);
 

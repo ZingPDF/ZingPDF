@@ -17,12 +17,12 @@ namespace ZingPDF.Graphics.FormXObjects
     {
         private const int _formType = 1;
 
-        private Type1FormDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dict, pdf, objectOrigin) { }
+        private Type1FormDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectContext context)
+            : base(dict, pdf, context) { }
 
         public Type1FormDictionary(
             IPdf pdf,
-            ObjectOrigin objectOrigin,
+            ObjectContext context,
             Rectangle bBox,
             ResourceDictionary? resources
             )
@@ -31,7 +31,7 @@ namespace ZingPDF.Graphics.FormXObjects
                     [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Form,
                 },
                 pdf,
-                objectOrigin
+                context
             )
         {
             Set<Number>(Constants.DictionaryKeys.Form.FormType, _formType);
@@ -167,7 +167,7 @@ namespace ZingPDF.Graphics.FormXObjects
         /// </summary>
         public OptionalProperty<Dictionary> Measure => GetOptionalProperty<Dictionary>(Constants.DictionaryKeys.Form.Type1.Measure);
 
-        new public static Type1FormDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectOrigin objectOrigin)
+        new public static Type1FormDictionary FromDictionary(Dictionary<string, IPdfObject> dict, IPdf pdf, ObjectContext context)
         {
             ArgumentNullException.ThrowIfNull(dict);
 
@@ -181,7 +181,7 @@ namespace ZingPDF.Graphics.FormXObjects
                 throw new ArgumentException("Supplied argument is not a form dictionary.", nameof(dict));
             }
 
-            return new(dict, pdf, objectOrigin);
+            return new(dict, pdf, context);
         }
     }
 }

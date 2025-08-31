@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Graphics.Images;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -32,7 +33,7 @@ namespace ZingPDF.Elements
             ArgumentNullException.ThrowIfNull(text);
 
             var textContentStreamObject = await new ContentStreamFactory([text])
-                .CreateAsync(new StreamDictionary(_pdf, ObjectOrigin.UserCreated), ObjectOrigin.UserCreated);
+                .CreateAsync(new StreamDictionary(_pdf, ObjectContext.UserCreated), ObjectContext.UserCreated);
 
             var textContentStreamIndirectObject = await _pdf.Objects.AddAsync(textContentStreamObject);
 
@@ -64,7 +65,7 @@ namespace ZingPDF.Elements
                 image.ImageData,
                 new ImageDictionary(
                     _pdf,
-                    ObjectOrigin.UserCreated,
+                    ObjectContext.UserCreated,
                     imageMetadata.Width,
                     imageMetadata.Height,
                     imageMetadata.ColorSpace.ToString(),
@@ -72,7 +73,7 @@ namespace ZingPDF.Elements
                     filters: filter != null ? [(Name)filter] : null,
                     decodeParms: null
                     ),
-                ObjectOrigin.UserCreated
+                ObjectContext.UserCreated
                 );
 
             var imageXObjectIndirectObject = await _pdf.Objects.AddAsync(imageXObject);
@@ -95,8 +96,8 @@ namespace ZingPDF.Elements
                     );
             }
 
-            var imageContentStreamObject = await new ContentStreamFactory([new ImageXObjectContentStream(resourceName, imageRect, ObjectOrigin.UserCreated)])
-                .CreateAsync(new StreamDictionary(_pdf, ObjectOrigin.UserCreated), ObjectOrigin.UserCreated);
+            var imageContentStreamObject = await new ContentStreamFactory([new ImageXObjectContentStream(resourceName, imageRect, ObjectContext.UserCreated)])
+                .CreateAsync(new StreamDictionary(_pdf, ObjectContext.UserCreated), ObjectContext.UserCreated);
 
             var imageContentStreamIndirectObject = await _pdf.Objects.AddAsync(imageContentStreamObject);
 

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ZingPDF.Elements.Drawing.Text.Extraction;
+using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text.Encoding;
 
@@ -11,37 +12,33 @@ public static class LiteralStringExtensions
     {
         ArgumentNullException.ThrowIfNull(literalString);
 
-        return literalString.Origin switch
+        return literalString.Context.Origin switch
         {
-            ObjectOrigin.UserCreated => Encoding.ASCII.GetString([.. literalString.RawBytes]),
+            ObjectOrigin.None or
+            ObjectOrigin.UserCreated or
             ObjectOrigin.ParsedDocumentObject => DecodeDocumentObjectString([.. literalString.RawBytes]),
             ObjectOrigin.ParsedContentStream when textState is not null => DecodeContentStreamString([.. literalString.RawBytes], textState),
             ObjectOrigin.ParsedContentStream => throw new InvalidOperationException("TextDrawingState must be provided to decode a content stream string."),
-            _ => throw new InvalidOperationException($"Unsupported literal string origin: {literalString.Origin}.")
+            _ => throw new InvalidOperationException($"Unsupported literal string origin: {literalString.Context.Origin}.")
         };
     }
 
     private static string DecodeDocumentObjectString(byte[] rawBytes)
     {
-        // Assume document strings follow the standard:
-        // - If starts with BOM (0xFE 0xFF), it's UTF-16BE.
-        // - Else try PDFDocEncoding first, fallback to UTF-8 if needed.
+        if (rawBytes is null || rawBytes.Length == 0)
+            return string.Empty;
 
+        // UTF-16BE BOM
         if (rawBytes.Length >= 2 && rawBytes[0] == 0xFE && rawBytes[1] == 0xFF)
-        {
-            return Encoding.BigEndianUnicode.GetString(rawBytes.Skip(2).ToArray());
-        }
+            return Encoding.BigEndianUnicode.GetString(rawBytes, 2, rawBytes.Length - 2);
 
-        try
-        {
-            var pdfDocEncoding = Encoding.GetEncoding(PDFEncoding.PDFDoc);
-            return pdfDocEncoding.GetString(rawBytes);
-        }
-        catch
-        {
-            // fallback if something fails
-            return Encoding.UTF8.GetString(rawBytes);
-        }
+        // UTF-8 BOM (PDF 2.0)
+        if (rawBytes.Length >= 3 && rawBytes[0] == 0xEF && rawBytes[1] == 0xBB && rawBytes[2] == 0xBF)
+            return Encoding.UTF8.GetString(rawBytes, 3, rawBytes.Length - 3);
+
+        // PDFDocEncoding
+        var pdfDoc = Encoding.GetEncoding(PDFEncoding.PDFDoc);
+        return pdfDoc.GetString(rawBytes);
     }
 
     private static string DecodeContentStreamString(byte[] rawBytes, TextDrawingState fontState)
