@@ -154,7 +154,7 @@ public static class ContentStreamExtensions
             throw new InvalidOperationException();
         }
 
-        var newContentStream = new ContentStream(stream.Origin);
+        var newContentStream = new ContentStream(stream.Context);
 
         newContentStream.AddOperations(stream.Operations.Take(index1 + 1));
 

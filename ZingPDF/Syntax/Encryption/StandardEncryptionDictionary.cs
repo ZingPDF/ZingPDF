@@ -7,8 +7,8 @@ namespace ZingPDF.Syntax.Encryption
 {
     internal class StandardEncryptionDictionary : EncryptionDictionary
     {
-        private StandardEncryptionDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dictionary, pdf, objectOrigin)
+        private StandardEncryptionDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+            : base(dictionary, pdf, context)
         {
         }
 
@@ -94,11 +94,11 @@ namespace ZingPDF.Syntax.Encryption
         /// </summary>
         public OptionalProperty<BooleanObject> EncryptMetadata => GetOptionalProperty<BooleanObject>(Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata);
 
-        internal static StandardEncryptionDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        internal static StandardEncryptionDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
         {
             ArgumentNullException.ThrowIfNull(dictionary);
 
-            return new StandardEncryptionDictionary(dictionary, pdf, objectOrigin);
+            return new StandardEncryptionDictionary(dictionary, pdf, context);
         }
     }
 }

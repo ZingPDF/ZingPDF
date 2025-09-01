@@ -34,7 +34,7 @@
 //            "endobj";
 
 //        var output = await new IndirectObjectParser(A.Dummy<IParserResolver>())
-//            .ParseAsync(contentString.ToStream(), ParseContext.WithOrigin(ObjectOrigin.None));
+//            .ParseAsync(contentString.ToStream(), ObjectContext.WithOrigin(ObjectOrigin.None));
 
 //        output.Id.Index.Should().Be(12);
 //        output.Id.GenerationNumber.Should().Be(0);
@@ -53,7 +53,7 @@
 //        var pdfEditor = A.Fake<IPdfObjectCollection>();
 
 //        var output = await new IndirectObjectParser(A.Dummy<IParserResolver>())
-//            .ParseAsync(contentString.ToStream(), ParseContext.WithOrigin(ObjectOrigin.None));
+//            .ParseAsync(contentString.ToStream(), ObjectContext.WithOrigin(ObjectOrigin.None));
 
 //        output.Id.Index.Should().Be(90824);
 //        output.Id.GenerationNumber.Should().Be(0);

@@ -35,7 +35,13 @@ namespace ZingPDF.Elements.Drawing
             return FlipCoordinates(coordinates, Convert.ToInt32(newHeight));
         }
 
-        public Rectangle FlipTextCoordinatesIfRequired(int pageDisplayRotation, double pageWidth, double pageHeight, CoordinateSystem coordinateSystem, Rectangle boundingBox)
+        public Rectangle FlipTextCoordinatesIfRequired(
+            int pageDisplayRotation,
+            double pageWidth,
+            double pageHeight,
+            CoordinateSystem coordinateSystem,
+            Rectangle boundingBox
+            )
         {
             if (coordinateSystem == CoordinateSystem.BottomUp)
             {
@@ -46,7 +52,7 @@ namespace ZingPDF.Elements.Drawing
 
             var origin = FlipCoordinates([boundingBox.UpperRight], Convert.ToInt32(newHeight - boundingBox.Height)).First();
 
-            return Rectangle.FromCoordinates(origin, new Coordinate(boundingBox.Width, boundingBox.Height), boundingBox.Origin);
+            return Rectangle.FromCoordinates(origin, new Coordinate(boundingBox.Width, boundingBox.Height), boundingBox.Context);
         }
 
         public IEnumerable<Coordinate> RotateCoordinates(int angle, double pageWidth, double pageHeight, params Coordinate[] coordinates)

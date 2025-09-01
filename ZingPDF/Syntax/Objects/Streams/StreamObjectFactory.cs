@@ -17,7 +17,7 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
     protected abstract Task<Stream> GetDataAsync();
     protected virtual IEnumerable<FilterConfig> GetFilters() => [];
 
-    public async Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary, ObjectOrigin objectOrigin)
+    public async Task<StreamObject<TDictionary>> CreateAsync<TDictionary>(TDictionary dictionary, ObjectContext context)
         where TDictionary : class, IStreamDictionary
     {
         var rawData = await GetDataAsync()
@@ -26,7 +26,7 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
         var filters = GetFilters();
 
         var data = CompressDataIfRequired(rawData, filters);
-        SetStreamDictionaryProperties(data.Length, rawData.Length, filters, dictionary, objectOrigin);
+        SetStreamDictionaryProperties(data.Length, rawData.Length, filters, dictionary, context);
 
         return new StreamObject<TDictionary>(data, dictionary);
     }
@@ -57,7 +57,7 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
         long uncompressedLength,
         IEnumerable<FilterConfig> filters,
         TDictionary dictionary,
-        ObjectOrigin objectOrigin
+        ObjectContext context
         )
         where TDictionary : class, IStreamDictionary
     {
@@ -69,13 +69,13 @@ internal abstract class StreamObjectFactory : IStreamObjectFactory
             return dictionary;
         }
 
-        dictionary.Set(DictionaryKeys.Stream.Filter, new ShorthandArrayObject(filters.Select(f => f.FilterName), objectOrigin));
+        dictionary.Set(DictionaryKeys.Stream.Filter, new ShorthandArrayObject(filters.Select(f => f.FilterName), context));
 
         if (filters.Any(f => f.DecodeParms != null))
         {
             dictionary.Set(
                 DictionaryKeys.Stream.DecodeParms,
-                new ShorthandArrayObject(filters.Select(f => (IPdfObject)f.DecodeParms ?? new Null(objectOrigin)), objectOrigin)
+                new ShorthandArrayObject(filters.Select(f => (IPdfObject)f.DecodeParms ?? new Null(context)), context)
                 );
         }
 

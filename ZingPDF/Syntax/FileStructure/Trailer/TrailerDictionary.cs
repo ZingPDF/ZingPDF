@@ -1,5 +1,7 @@
-﻿using ZingPDF.Syntax.Objects;
+﻿using ZingPDF.Syntax.Encryption;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.FileStructure.Trailer;
@@ -9,13 +11,13 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
     public TrailerDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private TrailerDictionary(Dictionary<string, IPdfObject> trailerDictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(trailerDictionary, pdf, objectOrigin) { }
+    private TrailerDictionary(Dictionary<string, IPdfObject> trailerDictionary, IPdf pdf, ObjectContext context)
+        : base(trailerDictionary, pdf, context) { }
 
     public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
     public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
     public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Root);
-    public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+    public OptionalProperty<EncryptionDictionary> Encrypt => GetOptionalProperty<EncryptionDictionary>(Constants.DictionaryKeys.Trailer.Encrypt);
     public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Info);
     public ArrayObject? ID => GetAs<ArrayObject>(Constants.DictionaryKeys.Trailer.ID);
 
@@ -40,7 +42,7 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
         IndirectObjectReference? info,
         ArrayObject? id,
         IPdf pdf,
-        ObjectOrigin objectOrigin
+        ObjectContext context
         )
     {
         ArgumentNullException.ThrowIfNull(size);
@@ -72,6 +74,6 @@ public class TrailerDictionary : Dictionary, ITrailerDictionary
             dict.Add(Constants.DictionaryKeys.Trailer.ID, id);
         }
 
-        return new(dict, pdf, objectOrigin);
+        return new(dict, pdf, context);
     }
 }

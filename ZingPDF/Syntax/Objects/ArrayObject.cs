@@ -10,10 +10,10 @@ namespace ZingPDF.Syntax.Objects
     {
         private readonly List<IPdfObject> _values = [];
 
-        public ArrayObject() { }
+        public ArrayObject() : base(ObjectContext.None) { }
 
-        public ArrayObject(IEnumerable<IPdfObject> values, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public ArrayObject(IEnumerable<IPdfObject> values, ObjectContext context)
+            : base(context)
         {
             _values = values?.ToList() ?? throw new ArgumentNullException(nameof(values));
         }
@@ -69,6 +69,6 @@ namespace ZingPDF.Syntax.Objects
             set => _values[index] = value;
         }
 
-        public override object Clone() => new ArrayObject(_values.Select(x => (IPdfObject)x.Clone()), Origin);
+        public override object Clone() => new ArrayObject(_values.Select(x => (IPdfObject)x.Clone()), Context);
     }
 }

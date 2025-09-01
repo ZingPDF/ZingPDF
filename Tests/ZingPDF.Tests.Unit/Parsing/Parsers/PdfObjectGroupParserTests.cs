@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Tests.Unit.Parsing.Parsers;
@@ -17,7 +18,7 @@ public class PdfObjectGroupParserTests
         var stream = "/Pattern<<>>".ToStream();
 
         Name name = "Pattern";
-        var dict = new Dictionary([], A.Dummy<IPdf>(), ObjectOrigin.None);
+        var dict = new Dictionary([], A.Dummy<IPdf>(), ObjectContext.None);
 
         var parserResolver = new FakeParserRegistryBuilder()
             .AddParser(name, "/Pattern".Length)
@@ -33,7 +34,7 @@ public class PdfObjectGroupParserTests
         var parser = new PdfObjectGroupParser(parserResolver, typeIdentifier);
 
         // Act
-        var result = await parser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.None));
+        var result = await parser.ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         // Assert
         result.Objects.Should().HaveCount(2);
@@ -60,7 +61,7 @@ public class PdfObjectGroupParserTests
         var parser = new PdfObjectGroupParser(parserResolver, typeIdentifier);
 
         // Act
-        var result = await parser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.None));
+        var result = await parser.ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         // Assert
         result.Objects.Should().ContainSingle().Which.Should().Be(name);
@@ -86,7 +87,7 @@ public class PdfObjectGroupParserTests
         var parser = new PdfObjectGroupParser(parserResolver, typeIdentifier);
 
         // Act
-        var result = await parser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.None));
+        var result = await parser.ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         // Assert
         result.Objects.Should().ContainSingle().Which.Should().Be(name);
@@ -104,7 +105,7 @@ public class PdfObjectGroupParserTests
             .Build();
 
         var dictParser = A.Fake<IParser<Dictionary>>();
-        A.CallTo(() => dictParser.ParseAsync(A<Stream>._, A<ParseContext>._))
+        A.CallTo(() => dictParser.ParseAsync(A<Stream>._, A<ObjectContext>._))
             .Throws(new InvalidOperationException("Fake parser failure"));
 
         A.CallTo(() => parserResolver.GetParser<Dictionary>()).Returns(dictParser);
@@ -119,7 +120,7 @@ public class PdfObjectGroupParserTests
         var parser = new PdfObjectGroupParser(parserResolver, typeIdentifier);
 
         // Act
-        var result = await parser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.None));
+        var result = await parser.ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         // Assert
         result.Objects.Should().ContainSingle().Which.Should().Be(name);
@@ -162,7 +163,7 @@ public class PdfObjectGroupParserTests
     //        .Build();
 
     //    var output = await new PdfObjectGroupParser(parserResolver)
-    //        .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+    //        .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
     //    output.Objects.Should().HaveCount(2);
 
@@ -182,7 +183,7 @@ public class PdfObjectGroupParserTests
     //    using var input = contentString.ToStream();
 
     //    var output = await new PdfObjectGroupParser(A.Dummy<IParserResolver>())
-    //        .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+    //        .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
     //    output.Objects.Should().HaveCount(4);
 
@@ -237,6 +238,6 @@ public class PdfObjectGroupParserTests
     //    await input.WriteAsync(Encoding.ASCII.GetBytes(contentString2));
 
     //    var output = await new PdfObjectGroupParser(A.Dummy<IParserResolver>())
-    //        .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+    //        .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
     //}
 }
