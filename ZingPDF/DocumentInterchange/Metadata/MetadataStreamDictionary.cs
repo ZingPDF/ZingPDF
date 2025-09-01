@@ -16,7 +16,7 @@ public class MetadataStreamDictionary : StreamDictionary
         ShorthandArrayObject? fDecodeParms,
         Number? dL,
         IPdf pdf,
-        ObjectOrigin objectOrigin
+        ObjectContext context
         )
         : base(
             Constants.DictionaryTypes.Metadata,
@@ -28,16 +28,16 @@ public class MetadataStreamDictionary : StreamDictionary
             fDecodeParms,
             dL,
             pdf,
-            objectOrigin
+            context
             )
     {
         Set<Name>(Constants.DictionaryKeys.Subtype, "XML");
     }
 
-    protected MetadataStreamDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(streamDictionary, pdf, objectOrigin) { }
+    protected MetadataStreamDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdf pdf, ObjectContext context)
+            : base(streamDictionary, pdf, context) { }
 
-    new public static MetadataStreamDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+    new public static MetadataStreamDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
     {
         if (!dictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
         {
@@ -46,6 +46,6 @@ public class MetadataStreamDictionary : StreamDictionary
 
         return dictionary is null
             ? throw new ArgumentNullException(nameof(dictionary))
-            : new(dictionary, pdf, objectOrigin);
+            : new(dictionary, pdf, context);
     }
 }

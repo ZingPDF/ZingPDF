@@ -8,8 +8,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
     /// </summary>
     public class CrossReferenceTable : PdfObject
     {
-        public CrossReferenceTable(IEnumerable<CrossReferenceSection> xrefSections, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public CrossReferenceTable(IEnumerable<CrossReferenceSection> xrefSections, ObjectContext context)
+            : base(context)
         {
             Sections = xrefSections ?? throw new ArgumentNullException(nameof(xrefSections));
         }
@@ -18,7 +18,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
 
         protected override async Task WriteOutputAsync(Stream stream)
         {
-            await new Keyword(Constants.Xref, Origin).WriteAsync(stream);
+            await new Keyword(Constants.Xref, Context).WriteAsync(stream);
             await stream.WriteNewLineAsync();
 
             foreach (var section in Sections)
@@ -31,7 +31,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
         {
             var clonedSections = Sections.Select(s => (CrossReferenceSection)s.Clone()).ToList();
 
-            return new CrossReferenceTable(clonedSections, Origin);
+            return new CrossReferenceTable(clonedSections, Context);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.FileStructure.CrossReferences;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.IncrementalUpdates;
@@ -8,7 +9,7 @@ internal static class CrossReferenceGenerator
     public static List<CrossReferenceSection> Generate(
         IEnumerable<IndirectObject> newOrUpdatedObjects,
         IEnumerable<IndirectObjectId> deletedObjects,
-        ObjectOrigin objectOrigin
+        ObjectContext context
         )
     {
         ArgumentNullException.ThrowIfNull(newOrUpdatedObjects);
@@ -30,7 +31,7 @@ internal static class CrossReferenceGenerator
             {
                 if (latestXrefSection is null)
                 {
-                    latestXrefSection = new CrossReferenceSection(i, objectOrigin);
+                    latestXrefSection = new CrossReferenceSection(i, context);
                     xrefSections.Add(latestXrefSection);
                 }
 
@@ -42,7 +43,7 @@ internal static class CrossReferenceGenerator
                     entry.Key.GenerationNumber,
                     inUse,
                     false,
-                    objectOrigin
+                    context
                     ));
             }
             else

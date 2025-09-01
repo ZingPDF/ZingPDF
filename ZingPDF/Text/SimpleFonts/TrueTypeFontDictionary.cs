@@ -9,19 +9,19 @@ public class TrueTypeFontDictionary : FontDictionary
     private TrueTypeFontDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    private TrueTypeFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(dictionary, pdf, objectOrigin)
+    private TrueTypeFontDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+        : base(dictionary, pdf, context)
     {
     }
 
-    public TrueTypeFontDictionary(IPdf pdf, ObjectOrigin objectOrigin)
-        : base(Subtypes.Simple.TrueType, pdf, objectOrigin)
+    public TrueTypeFontDictionary(IPdf pdf, ObjectContext context)
+        : base(Subtypes.Simple.TrueType, pdf, context)
     {
     }
 
-    public static TrueTypeFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+    public static TrueTypeFontDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
     {
-        return new TrueTypeFontDictionary(dictionary, pdf, objectOrigin);
+        return new TrueTypeFontDictionary(dictionary, pdf, context);
     }
 
     public static TrueTypeFontDictionary FromDictionary(Dictionary dictionary)

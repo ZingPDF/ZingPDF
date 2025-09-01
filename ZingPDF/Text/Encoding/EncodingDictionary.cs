@@ -7,8 +7,8 @@ namespace ZingPDF.Text.Encoding;
 
 public class EncodingDictionary : Dictionary
 {
-    public EncodingDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(dictionary, pdf, objectOrigin)
+    public EncodingDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectContext context)
+        : base(dictionary, pdf, context)
     {
     }
 
@@ -31,8 +31,8 @@ public class EncodingDictionary : Dictionary
     /// </summary>
     public OptionalProperty<ArrayObject> Differences => GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.Encoding.Differences);
 
-    public static EncodingDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
+    public static EncodingDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
     {
-        return new(dictionary, pdf, objectOrigin);
+        return new(dictionary, pdf, context);
     }
 }

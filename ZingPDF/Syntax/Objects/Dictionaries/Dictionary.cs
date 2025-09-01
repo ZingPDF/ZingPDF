@@ -7,11 +7,11 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     /// <summary>
     /// ISO 32000-2:2020 7.3.7 - Dictionary objects
     /// </summary>
-    public class Dictionary(IPdf pdf, ObjectOrigin objectOrigin)
-        : PdfObject(objectOrigin), IPdfDictionary
+    public class Dictionary(IPdf pdf, ObjectContext context)
+        : PdfObject(context), IPdfDictionary
     {
-        public Dictionary(Name type, IPdf pdf, ObjectOrigin objectOrigin)
-            : this(pdf, objectOrigin)
+        public Dictionary(Name type, IPdf pdf, ObjectContext context)
+            : this(pdf, context)
         {
             InnerDictionary = [];
 
@@ -21,8 +21,8 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
             }
         }
 
-        public Dictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : this(pdf, objectOrigin)
+        public Dictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectContext context)
+            : this(pdf, context)
         {
             ArgumentNullException.ThrowIfNull(dictionary, nameof(dictionary));
 
@@ -30,7 +30,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
         }
 
         public Dictionary(IPdfDictionary dictionary)
-            : this(dictionary.InnerDictionary, dictionary.Pdf, dictionary.Origin)
+            : this(dictionary.InnerDictionary, dictionary.Pdf, dictionary.Context)
         {
         }
 
@@ -114,7 +114,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
                 entry => (IPdfObject)entry.Value.Clone()
             );
 
-            return new Dictionary(copy, Pdf, Origin);
+            return new Dictionary(copy, Pdf, Context);
         }
     }
 }

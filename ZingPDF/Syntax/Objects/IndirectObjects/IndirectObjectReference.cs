@@ -7,8 +7,8 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
     /// </summary>
     public class IndirectObjectReference : PdfObject
     {
-        public IndirectObjectReference(IndirectObjectId id, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public IndirectObjectReference(IndirectObjectId id, ObjectContext context)
+            : base(context)
         {
             ArgumentNullException.ThrowIfNull(id, nameof(id));
 
@@ -16,17 +16,17 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
         }
 
         public IndirectObjectReference(IndirectObjectId id)
-            : this(id, ObjectOrigin.UserCreated)
+            : this(id, ObjectContext.UserCreated)
         {
         }
 
         public IndirectObjectReference(int index, ushort generationNumber)
-            : this(new IndirectObjectId(index, generationNumber), ObjectOrigin.UserCreated)
+            : this(new IndirectObjectId(index, generationNumber), ObjectContext.UserCreated)
         {
         }
 
-        public IndirectObjectReference(int index, ushort generationNumber, ObjectOrigin objectOrigin)
-            : this(new IndirectObjectId(index, generationNumber), objectOrigin)
+        public IndirectObjectReference(int index, ushort generationNumber, ObjectContext context)
+            : this(new IndirectObjectId(index, generationNumber), context)
         {
         }
 
@@ -56,7 +56,7 @@ namespace ZingPDF.Syntax.Objects.IndirectObjects
 
         public override string ToString() => $"{nameof(IndirectObjectReference)}: {Id.Index} {Id.GenerationNumber} R";
 
-        public override object Clone() => new IndirectObjectReference(Id, Origin);
+        public override object Clone() => new IndirectObjectReference(Id, Context);
 
         public static bool operator ==(IndirectObjectReference? left, IndirectObjectReference? right)
         {

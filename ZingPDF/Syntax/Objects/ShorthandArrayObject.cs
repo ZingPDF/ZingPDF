@@ -3,14 +3,14 @@
 /// <summary>
 /// Type of array which will not render square brackets when there is a single child object.
 /// </summary>
-public class ShorthandArrayObject(IEnumerable<IPdfObject> values, ObjectOrigin objectOrigin)
-    : ArrayObject(values, objectOrigin)
+public class ShorthandArrayObject(IEnumerable<IPdfObject> values, ObjectContext context)
+    : ArrayObject(values, context)
 {
-    public ShorthandArrayObject(ObjectOrigin objectOrigin) : this([], objectOrigin)
+    public ShorthandArrayObject(ObjectContext context) : this([], context)
     {
     }
 
-    public ShorthandArrayObject() : this(ObjectOrigin.UserCreated)
+    public ShorthandArrayObject() : this(ObjectContext.UserCreated)
     {
     }
 

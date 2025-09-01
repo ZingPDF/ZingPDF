@@ -2,17 +2,17 @@
 {
     public class CrossReferenceSection : PdfObject
     {
-        public CrossReferenceSection(int startIndex, IEnumerable<CrossReferenceEntry> entries, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public CrossReferenceSection(int startIndex, IEnumerable<CrossReferenceEntry> entries, ObjectContext context)
+            : base(context)
         {
             ArgumentNullException.ThrowIfNull(entries);
 
-            Index = new CrossReferenceSectionIndex(startIndex, entries.Count(), objectOrigin);
+            Index = new CrossReferenceSectionIndex(startIndex, entries.Count(), context);
             Entries = [.. entries];
         }
 
-        public CrossReferenceSection(int startIndex, ObjectOrigin objectOrigin)
-            : this(startIndex, [], objectOrigin) { }
+        public CrossReferenceSection(int startIndex, ObjectContext context)
+            : this(startIndex, [], context) { }
 
         public CrossReferenceSectionIndex Index { get; }
         public List<CrossReferenceEntry> Entries { get; }
@@ -39,7 +39,7 @@
         {
             var clonedEntries = Entries.Select(e => (CrossReferenceEntry)e.Clone()).ToList();
 
-            return new CrossReferenceSection(Index.StartIndex, clonedEntries, Origin);
+            return new CrossReferenceSection(Index.StartIndex, clonedEntries, Context);
         }
     }
 }

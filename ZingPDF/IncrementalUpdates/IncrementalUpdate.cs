@@ -28,7 +28,7 @@ namespace ZingPDF.IncrementalUpdates
             StreamObject<CrossReferenceStreamDictionary>? existingXrefStream,
             IncrementalUpdateOptions? options = null
             )
-            : base(ObjectOrigin.UserCreated)
+            : base(ObjectContext.UserCreated)
         {
             ArgumentNullException.ThrowIfNull(newObjects, nameof(newObjects));
             ArgumentNullException.ThrowIfNull(updatedObjects, nameof(updatedObjects));
@@ -79,8 +79,8 @@ namespace ZingPDF.IncrementalUpdates
                 await entry.WriteAsync(stream);
             }
 
-            var crossReferenceSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects, ObjectOrigin.UserCreated);
-            var xrefTable = new CrossReferenceTable(crossReferenceSections, Origin);
+            var crossReferenceSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects, ObjectContext.UserCreated);
+            var xrefTable = new CrossReferenceTable(crossReferenceSections, Context);
 
             // For now, the IndirectObjectDictionary generates a delta with xref table and trailer.
             // TODO: add support for rendering xrefs as stream (left legacy version commented out below)
@@ -94,23 +94,23 @@ namespace ZingPDF.IncrementalUpdates
             var existingTrailerDictionary = _existingTrailer?.Dictionary ?? (ITrailerDictionary)_existingXrefStream!.Dictionary;
 
             // Build file identifier
-            var originalId = existingTrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Origin);
-            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Origin);
-            var fileIdentifier = new ArrayObject([originalId, updateId], Origin);
+            var originalId = existingTrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Context);
+            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Context);
+            var fileIdentifier = new ArrayObject([originalId, updateId], Context);
 
             var trailer = new Trailer(
                 TrailerDictionary.CreateNew(
                     existingTrailerDictionary.Size + _newObjects.Count(),
                     prev,
                     existingTrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
-                    existingTrailerDictionary.Encrypt,
+                    await existingTrailerDictionary.Encrypt.GetAsync(),
                     existingTrailerDictionary.Info,
                     fileIdentifier,
                     existingTrailerDictionary.Pdf,
-                    ObjectOrigin.UserCreated
+                    ObjectContext.UserCreated
                     ),
                 xrefTable.ByteOffset!.Value,
-                Origin
+                Context
                 );
 
             await trailer.WriteAsync(stream);

@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
@@ -10,8 +11,8 @@ namespace ZingPDF.Graphics.Images
         private readonly Name _name;
         private readonly Rectangle _maxBounds;
 
-        public ImageXObjectContentStream(Name name, Rectangle maxBounds, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public ImageXObjectContentStream(Name name, Rectangle maxBounds, ObjectContext context)
+            : base(context)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _maxBounds = maxBounds ?? throw new ArgumentNullException(nameof(maxBounds));

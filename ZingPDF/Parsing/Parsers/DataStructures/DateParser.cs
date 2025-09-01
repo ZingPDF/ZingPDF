@@ -1,13 +1,14 @@
 ﻿using MorseCode.ITask;
 using System.Globalization;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Parsing.Parsers.DataStructures
 {
     internal class DateParser : IParser<Date>
     {
-        public async ITask<Date> ParseAsync(Stream stream, ParseContext context)
+        public async ITask<Date> ParseAsync(Stream stream, ObjectContext context)
         {
             await stream.AdvanceBeyondNextAsync("(D:");
 
@@ -19,7 +20,7 @@ namespace ZingPDF.Parsing.Parsers.DataStructures
 
             await stream.AdvanceBeyondNextAsync(')');
 
-            return new Date(date, context.Origin);
+            return new Date(date, context);
         }
 
         private static DateTimeOffset ParseCustomDateTime(string input)

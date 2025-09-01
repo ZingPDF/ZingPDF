@@ -9,8 +9,8 @@ public class EncryptionDictionary : Dictionary
     public EncryptionDictionary(Dictionary dictionary)
         : base(dictionary) { }
 
-    protected EncryptionDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-        : base(dictionary, pdf, objectOrigin) { }
+    protected EncryptionDictionary(IEnumerable<KeyValuePair<string, IPdfObject>> dictionary, IPdf pdf, ObjectContext context)
+        : base(dictionary, pdf, context) { }
 
     /// <summary>
     /// <para>

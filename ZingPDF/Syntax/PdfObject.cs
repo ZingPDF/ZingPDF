@@ -5,12 +5,12 @@
 /// </summary>
 public abstract class PdfObject : IPdfObject
 {
-    protected PdfObject(ObjectOrigin origin = ObjectOrigin.UserCreated)
+    protected PdfObject(ObjectContext context)
     {
-        Origin = origin;
+        Context = context;
     }
 
-    public ObjectOrigin Origin { get; }
+    public ObjectContext Context { get; }
 
     public bool Written { get; private set; }
     public long? ByteOffset { get; internal set; }

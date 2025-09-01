@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
@@ -26,7 +27,7 @@ public class CrossReferenceEntryParserTests
         var keywordParser = scope.ServiceProvider.GetRequiredService<IParser<Keyword>>();
 
         var output = await new CrossReferenceEntryParser(numberParser, keywordParser)
-            .ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Value1.Should().Be(expectedOffset);
         output.Value2.Should().Be(expectedGenNumber);

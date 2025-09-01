@@ -99,7 +99,7 @@ public class DictionaryIdentifierTests
                     [Constants.DictionaryKeys.Field.FT] = (Name)"Btn"
                 },
                 pdf,
-                ObjectOrigin.None
+                ObjectContext.None
                 ));
 
         var dictionary = new Dictionary<string, IPdfObject>
@@ -153,7 +153,7 @@ public class DictionaryIdentifierTests
     {
         var dictionary = new Dictionary<string, IPdfObject>
         {
-            [Constants.DictionaryKeys.Appearance.N] = new Dictionary([], A.Dummy<IPdf>(), ObjectOrigin.None),
+            [Constants.DictionaryKeys.Appearance.N] = new Dictionary([], A.Dummy<IPdf>(), ObjectContext.None),
         };
 
         (await new DictionaryIdentifier(A.Dummy<IPdf>()).IdentifyAsync(dictionary))

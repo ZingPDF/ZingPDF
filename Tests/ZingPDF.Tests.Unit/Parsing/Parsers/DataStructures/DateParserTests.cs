@@ -1,6 +1,6 @@
-﻿using FakeItEasy;
-using Xunit;
+﻿using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing.Parsers.DataStructures;
 
@@ -36,7 +36,7 @@ public class DateParserTests
         var stream = dateString.ToStream();
 
         await new DateParser()
-            .ParseAsync(dateString.ToStream(), ParseContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+            .ParseAsync(dateString.ToStream(), ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         // TODO: test value
     }

@@ -16,9 +16,9 @@ internal class ContentStreamParser : IParser<ContentStream>
         _objectGroupParser = objectGroupParser;
     }
 
-    public async ITask<ContentStream> ParseAsync(Stream stream, ParseContext context)
+    public async ITask<ContentStream> ParseAsync(Stream stream, ObjectContext context)
     {
-        var group = await _objectGroupParser.ParseAsync(stream, ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream));
+        var group = await _objectGroupParser.ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream));
 
         List<ContentStreamOperation> instructions = [];
         List<IPdfObject> operands = [];
@@ -38,6 +38,6 @@ internal class ContentStreamParser : IParser<ContentStream>
             }
         }
 
-        return new ContentStream(instructions, context.Origin);
+        return new ContentStream(instructions, context);
     }
 }

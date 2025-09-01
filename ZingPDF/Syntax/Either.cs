@@ -4,14 +4,14 @@ public class Either<T1, T2> : PdfObject
     where T1 : class?, IPdfObject?
     where T2 : class?, IPdfObject?
 {
-    public Either(T1 value, ObjectOrigin objectOrigin)
-        : base(objectOrigin)
+    public Either(T1 value, ObjectContext context)
+        : base(context)
     {
         Value = value;
     }
 
-    public Either(T2 value, ObjectOrigin objectOrigin)
-        : base(objectOrigin)
+    public Either(T2 value, ObjectContext context)
+        : base(context)
     {
         Value = value;
     }
@@ -27,8 +27,8 @@ public class Either<T1, T2> : PdfObject
     {
         return Value switch
         {
-            T1 t1 => new Either<T1, T2>((T1)t1.Clone(), Origin),
-            T2 t2 => new Either<T1, T2>((T2)t2.Clone(), Origin),
+            T1 t1 => new Either<T1, T2>((T1)t1.Clone(), Context),
+            T2 t2 => new Either<T1, T2>((T2)t2.Clone(), Context),
             _ => throw new InvalidOperationException("Attempt to clone an invalid Either object")
         };
     }

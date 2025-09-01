@@ -18,8 +18,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageDictionary(Dictionary pageDictionary)
             : base(pageDictionary) { }
 
-        private PageDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(pageDictionary, pdf, objectOrigin) { }
+        private PageDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectContext context)
+            : base(pageDictionary, pdf, context) { }
 
         /// <summary>
         /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, that shall define 
@@ -254,7 +254,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Page },
                 { Constants.DictionaryKeys.Parent, parent },
-                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdf, ObjectOrigin.UserCreated) },
+                { Constants.DictionaryKeys.PageTree.Resources, new Dictionary(pdf, ObjectContext.UserCreated) },
             };
 
             if (options.MediaBox is not null)
@@ -262,7 +262,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 dict[Constants.DictionaryKeys.PageTree.MediaBox] = options.MediaBox;
             }
 
-            return new(dict, pdf, ObjectOrigin.UserCreated);
+            return new(dict, pdf, ObjectContext.UserCreated);
         }
 
         /// <summary>
@@ -270,11 +270,11 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         /// <param name="pageDictionary"></param>
         /// <returns></returns>
-        internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectContext context)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
 
-            return new PageDictionary(pageDictionary, pdf, objectOrigin);
+            return new PageDictionary(pageDictionary, pdf, context);
         }
 
         public class PageCreationOptions

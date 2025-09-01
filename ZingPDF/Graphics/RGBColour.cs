@@ -6,8 +6,8 @@ namespace ZingPDF.Graphics
 {
     public class RGBColour : PdfObject
     {
-        public RGBColour(Number red, Number green, Number blue, ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public RGBColour(Number red, Number green, Number blue, ObjectContext context)
+            : base(context)
         {
             if (red < 0 || red > 1) throw new ArgumentOutOfRangeException(nameof(red));
             if (green < 0 || green > 1) throw new ArgumentOutOfRangeException(nameof(green));
@@ -19,7 +19,7 @@ namespace ZingPDF.Graphics
         }
 
         public RGBColour(Number red, Number green, Number blue)
-            : this(red, green, blue, ObjectOrigin.UserCreated)
+            : this(red, green, blue, ObjectContext.UserCreated)
         {
         }
 
@@ -58,6 +58,6 @@ namespace ZingPDF.Graphics
             await stream.WriteWhitespaceAsync();
         }
 
-        public override object Clone() => new RGBColour(Red, Green, Blue, Origin);
+        public override object Clone() => new RGBColour(Red, Green, Blue, Context);
     }
 }

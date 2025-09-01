@@ -14,8 +14,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         public PageNode(Dictionary dictionary)
         : base(dictionary) { }
 
-        public PageNode(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(dictionary, pdf, objectOrigin) { } 
+        public PageNode(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
+            : base(dictionary, pdf, context) { } 
 
         /// <summary>
         /// (Required except in root node; not permitted in the root node; shall be an indirect reference) The page tree node that is the immediate parent of this one.
@@ -99,7 +99,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             {
                 Set(
                     Constants.DictionaryKeys.PageTree.Resources,
-                    new ResourceDictionary(pdf, ObjectOrigin.UserCreated, xObject: new Dictionary<string, IPdfObject>() { { name, reference } })
+                    new ResourceDictionary(pdf, ObjectContext.UserCreated, xObject: new Dictionary<string, IPdfObject>() { { name, reference } })
                     );
 
                 return;

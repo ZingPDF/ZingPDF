@@ -1,6 +1,7 @@
-﻿using ZingPDF.IncrementalUpdates;
+﻿using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
@@ -8,8 +9,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
 {
     public class CrossReferenceStreamDictionary : StreamDictionary, ITrailerDictionary
     {
-        private CrossReferenceStreamDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(xrefStreamDictionary, pdf, objectOrigin) { }
+        private CrossReferenceStreamDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectContext context)
+            : base(xrefStreamDictionary, pdf, context) { }
 
         /// <summary>
         /// <para>
@@ -57,7 +58,7 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
         public Number Size => GetAs<Number>(Constants.DictionaryKeys.Trailer.Size)!;
         public Number? Prev => GetAs<Number>(Constants.DictionaryKeys.Trailer.Prev);
         public IndirectObjectReference? Root => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Root);
-        public IndirectObjectReference? Encrypt => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+        public OptionalProperty<EncryptionDictionary> Encrypt => GetOptionalProperty<EncryptionDictionary>(Constants.DictionaryKeys.Trailer.Encrypt);
         public IndirectObjectReference? Info => GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Info);
         public ArrayObject? ID => GetAs<ArrayObject>(Constants.DictionaryKeys.Trailer.ID);
 
@@ -113,17 +114,17 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams
                 dict[Constants.DictionaryKeys.Trailer.ID] = id;
             }
 
-            return new(dict, pdf, ObjectOrigin.UserCreated);
+            return new(dict, pdf, ObjectContext.UserCreated);
         }
 
-        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectOrigin objectOrigin)
+        new public static CrossReferenceStreamDictionary FromDictionary(Dictionary<string, IPdfObject> xrefStreamDictionary, IPdf pdf, ObjectContext context)
         {
             if (!xrefStreamDictionary.TryGetValue(Constants.DictionaryKeys.Type, out IPdfObject? type) || (Name)type != Constants.DictionaryTypes.XRef)
             {
                 throw new ArgumentException("Supplied argument is not a cross reference stream dictionary.", nameof(xrefStreamDictionary));
             }
 
-            return new(xrefStreamDictionary, pdf, objectOrigin);
+            return new(xrefStreamDictionary, pdf, context);
         }
 
         internal void SetSize(Number size)

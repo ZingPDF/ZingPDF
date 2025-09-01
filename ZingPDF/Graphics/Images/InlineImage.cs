@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.ContentStreamsAndResources;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 
 namespace ZingPDF.Graphics.Images
 {
@@ -12,8 +13,8 @@ namespace ZingPDF.Graphics.Images
     /// </summary>
     internal class InlineImage : ContentStream
     {
-        public InlineImage(ObjectOrigin objectOrigin)
-            : base(objectOrigin)
+        public InlineImage(ObjectContext context)
+            : base(context)
         {
         }
 

@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects.Strings;
@@ -10,7 +11,7 @@ public class TextObject : ContentStream
     // TODO: should the position of the text box be controlled outside this object?
     //  text object should be text, font, size, box size
     public TextObject(string text, Rectangle boundingBox, FontOptions fontOptions)
-        : base(ObjectOrigin.UserCreated)
+        : base(ObjectContext.UserCreated)
     {
         ArgumentNullException.ThrowIfNull(text, nameof(text));
         ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));

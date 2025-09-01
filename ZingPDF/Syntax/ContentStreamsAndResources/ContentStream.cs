@@ -2,11 +2,11 @@
 
 namespace ZingPDF.Syntax.ContentStreamsAndResources;
 
-public class ContentStream(ObjectOrigin objectOrigin)
-    : PdfObject(objectOrigin)
+public class ContentStream(ObjectContext context)
+    : PdfObject(context)
 {
-    public ContentStream(IEnumerable<ContentStreamOperation> operations, ObjectOrigin objectOrigin)
-        : this(objectOrigin)
+    public ContentStream(IEnumerable<ContentStreamOperation> operations, ObjectContext context)
+        : this(context)
     {
         ArgumentNullException.ThrowIfNull(nameof(operations));
 
@@ -14,12 +14,12 @@ public class ContentStream(ObjectOrigin objectOrigin)
     }
 
     public ContentStream(IEnumerable<ContentStreamOperation> operations)
-        : this(operations, ObjectOrigin.UserCreated)
+        : this(operations, ObjectContext.UserCreated)
     {
     }
 
     public ContentStream()
-        : this(ObjectOrigin.UserCreated)
+        : this(ObjectContext.UserCreated)
     {
     }
 
@@ -29,7 +29,7 @@ public class ContentStream(ObjectOrigin objectOrigin)
     {
         return new ContentStream(
             [.. Operations.Select(x => (ContentStreamOperation)x.Clone())],
-            Origin
+            Context
             );
     }
 

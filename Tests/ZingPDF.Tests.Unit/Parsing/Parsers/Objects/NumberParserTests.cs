@@ -1,7 +1,7 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
@@ -16,7 +16,7 @@ public class NumberParserTests
     public async Task ParseAsyncBasic(string input, double expected)
     {
         var output = await new NumberParser()
-            .ParseAsync(input.ToStream(), ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input.ToStream(), ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Value.Should().Be(expected);
     }

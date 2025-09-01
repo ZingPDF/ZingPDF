@@ -1,8 +1,8 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -16,10 +16,10 @@ public class HexadecimalStringParserTests
     {
         using var input = content.ToStream();
 
-        HexadecimalString expectedHexString = expected;
+        HexadecimalString expectedHexString = HexadecimalString.FromHexString(expected, ObjectContext.None);
 
         var output = await new HexadecimalStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Should().BeEquivalentTo(expectedHexString);
     }
@@ -32,7 +32,7 @@ public class HexadecimalStringParserTests
         using var input = content.ToStream();
 
         var output = await new HexadecimalStringParser()
-            .ParseAsync(input, ParseContext.WithOrigin(ObjectOrigin.None));
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(content));
     }

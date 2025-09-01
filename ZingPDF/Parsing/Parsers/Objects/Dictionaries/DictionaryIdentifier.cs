@@ -82,7 +82,7 @@ public class DictionaryIdentifier : IDictionaryIdentifier
                     {
                         // FT is inheritable, test if this is a field dictionary by creating one and checking FT.
                         // This will automatically check the parent hierarchy if FT is not found in the current dictionary.
-                        var fieldDict = FieldDictionary.FromDictionary(dictionary, _pdf, ObjectOrigin.UserCreated);
+                        var fieldDict = FieldDictionary.FromDictionary(dictionary, _pdf, ObjectContext.None);
                         if (await fieldDict.FT.GetAsync() is not null)
                         {
                             return typeof(FieldDictionary);

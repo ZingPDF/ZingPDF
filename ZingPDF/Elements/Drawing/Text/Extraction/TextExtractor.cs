@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Text;
+﻿using System.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
-using ZingPDF.IncrementalUpdates;
-using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
@@ -62,10 +60,10 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     providers.AddRange(dyn);
                 }
 
-                var fontResources = (await resDict?.Font.GetAsync()) ?? new Dictionary(_pdf, ObjectOrigin.None);
+                var fontResources = (await resDict?.Font.GetAsync()) ?? new Dictionary(_pdf, ObjectContext.None);
 
                 var state = new TextDrawingState(providers, fontResources);
-                var context = ParseContext.WithOrigin(ObjectOrigin.ParsedContentStream);
+                var context = ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream);
 
                 foreach (var so in contents.Cast<StreamObject<StreamDictionary>>())
                 {

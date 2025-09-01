@@ -7,8 +7,8 @@ namespace ZingPDF.Syntax.Functions
 {
     internal abstract class StreamFunctionDictionary : FunctionDictionary, IStreamDictionary
     {
-        protected StreamFunctionDictionary(Number functionType, IPdf pdf, ObjectOrigin objectOrigin)
-            : base(functionType, pdf, objectOrigin) { }
+        protected StreamFunctionDictionary(Number functionType, IPdf pdf, ObjectContext context)
+            : base(functionType, pdf, context) { }
 
         protected StreamFunctionDictionary(Dictionary dict) : base(dict) { }
 
