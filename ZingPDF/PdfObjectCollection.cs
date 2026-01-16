@@ -288,7 +288,8 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
         var type = (await _tokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
 
-        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, _ObjectContext));
+        var itemContext = _ObjectContext with { NearestParent = new IndirectObjectReference(key.Id, _ObjectContext) };
+        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, itemContext));
     }
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)

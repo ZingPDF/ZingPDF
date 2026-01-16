@@ -10,6 +10,18 @@ namespace ZingPDF;
 public class PdfTests
 {
     [Fact]
+    public async Task EncryptedPdf_RequiresAuthentication()
+    {
+        var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
+
+        var act = async () => await pdf.GetPageCountAsync();
+
+        var exception = await Assert.ThrowsAsync<Exception>(act);
+
+        exception.GetType().Name.Should().Be("PdfAuthenticationException");
+    }
+
+    [Fact]
     public async Task AppendPage_PageCount()
     {
         var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
