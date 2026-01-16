@@ -8,7 +8,7 @@ public class ContentStream(ObjectContext context)
     public ContentStream(IEnumerable<ContentStreamOperation> operations, ObjectContext context)
         : this(context)
     {
-        ArgumentNullException.ThrowIfNull(nameof(operations));
+        ArgumentNullException.ThrowIfNull(operations);
 
         Operations = [.. operations];
     }

@@ -26,7 +26,7 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
     {
     }
 
-    public StreamObject(Stream data, TDictionary dictionary, ObjectContext context, IPdfEncryptionProvider? encryptionProvider)
+    internal StreamObject(Stream data, TDictionary dictionary, ObjectContext context, IPdfEncryptionProvider? encryptionProvider)
         : base(context)
     {
         ArgumentNullException.ThrowIfNull(data, nameof(data));
