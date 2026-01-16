@@ -15,7 +15,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         public StreamObjectParser(TDictionary dict, IPdfEncryptionProvider? encryptionProvider)
         {
-            ArgumentNullException.ThrowIfNull(nameof(dict));
+            ArgumentNullException.ThrowIfNull(dict);
 
             _dict = dict;
             _encryptionProvider = encryptionProvider;

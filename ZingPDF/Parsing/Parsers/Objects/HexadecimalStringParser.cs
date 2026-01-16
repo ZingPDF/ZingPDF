@@ -10,6 +10,11 @@ internal class HexadecimalStringParser : IParser<HexadecimalString>
 {
     private readonly IPdfEncryptionProvider _encryptionProvider;
 
+    public HexadecimalStringParser()
+        : this(NoOpPdfEncryptionProvider.Instance)
+    {
+    }
+
     public HexadecimalStringParser(IPdfEncryptionProvider encryptionProvider)
     {
         _encryptionProvider = encryptionProvider;
