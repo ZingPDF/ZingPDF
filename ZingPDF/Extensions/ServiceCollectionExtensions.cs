@@ -10,6 +10,7 @@ using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -28,7 +29,8 @@ public static class PdfServiceCollectionExtensions
     {
         services
             .AddScoped((s) => pdf)
-            .AddScoped<IPdfObjectCollection, PdfObjectCollection>();
+            .AddScoped<IPdfObjectCollection, PdfObjectCollection>()
+            .AddScoped<IPdfEncryptionProvider, PdfEncryptionProvider>();
 
         return services;
     }
@@ -74,4 +76,3 @@ public static class PdfServiceCollectionExtensions
         return services;
     }
 }
-

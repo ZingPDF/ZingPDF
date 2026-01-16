@@ -8,6 +8,7 @@ using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -104,6 +105,15 @@ public class DictionaryIdentifier : IDictionaryIdentifier
         if (dictionary.ContainsKey(Constants.DictionaryKeys.LinearizationParameter.Linearized))
         {
             return typeof(LinearizationParameterDictionary);
+        }
+
+        if (dictionary.TryGetValue(Constants.DictionaryKeys.Encryption.Filter, out var filterValue)
+            && filterValue is Name filterName
+            && filterName == "Standard"
+            && dictionary.ContainsKey(Constants.DictionaryKeys.Encryption.Standard.O)
+            && dictionary.ContainsKey(Constants.DictionaryKeys.Encryption.Standard.U))
+        {
+            return typeof(StandardEncryptionDictionary);
         }
 
         // TODO: using length to identify a stream dictionary, which seems dodgy, revisit this to make it more reliable.

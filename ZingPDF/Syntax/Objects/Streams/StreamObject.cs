@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Extensions;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.Dictionaries;
 
@@ -13,7 +14,19 @@ namespace ZingPDF.Syntax.Objects.Streams;
 public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
     where TDictionary : class, IStreamDictionary
 {
+    private readonly IPdfEncryptionProvider? _encryptionProvider;
+
     public StreamObject(Stream data, TDictionary dictionary, ObjectContext context)
+        : this(data, dictionary, context, null)
+    {
+    }
+
+    public StreamObject(Stream data, TDictionary dictionary)
+        : this(data, dictionary, ObjectContext.UserCreated)
+    {
+    }
+
+    public StreamObject(Stream data, TDictionary dictionary, ObjectContext context, IPdfEncryptionProvider? encryptionProvider)
         : base(context)
     {
         ArgumentNullException.ThrowIfNull(data, nameof(data));
@@ -21,11 +34,7 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
 
         Data = data;
         Dictionary = dictionary;
-    }
-
-    public StreamObject(Stream data, TDictionary dictionary)
-        : this(data, dictionary, ObjectContext.UserCreated)
-    {
+        _encryptionProvider = encryptionProvider;
     }
 
     IStreamDictionary IStreamObject.Dictionary => Dictionary;
@@ -52,23 +61,27 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
 
     public async Task<Stream> GetDecompressedDataAsync()
     {
-        // TODO: stream contents may be encrypted, decrypt.
-
         Data.Position = 0;
+
+        var ms = new MemoryStream();
+        await Data.CopyToAsync(ms);
+        var dataBytes = ms.ToArray();
+
+        if (_encryptionProvider is not null)
+        {
+            dataBytes = await _encryptionProvider.DecryptObjectBytesAsync(Context, dataBytes, Dictionary);
+        }
+
+        ms = new MemoryStream(dataBytes);
 
         // If there are no filters, return the source data as-is.
         ArrayObject? filterNames = await Dictionary.Filter.GetAsync();
         if (filterNames is null || !filterNames.Any())
         {
-            return Data;
+            return ms;
         }
 
         IEnumerable<Dictionary> allFilterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
-
-        var ms = new MemoryStream();
-        Data.Position = 0;
-        Data.CopyTo(ms);
-        ms.Position = 0;
 
         foreach (var filter in FilterFactory.CreateFilterInstances(filterNames.Cast<Name>(), allFilterParams))
         {
