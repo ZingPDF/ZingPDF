@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Nito.AsyncEx;
 using System.Text;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
@@ -7,6 +6,7 @@ using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -21,6 +21,7 @@ public class Pdf : IPdf, IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly IServiceScope _documentLifetime;
+    private readonly IPdfEncryptionProvider _encryptionProvider;
 
     internal const string _pdfContextKey = "PdfContext";
 
@@ -47,6 +48,7 @@ public class Pdf : IPdf, IDisposable
         _documentLifetime = _services.CreateScope();
 
         Objects = _services.GetRequiredService<IPdfObjectCollection>();
+        _encryptionProvider = _services.GetRequiredService<IPdfEncryptionProvider>();
     }
 
     public Stream Data { get; }
@@ -54,24 +56,7 @@ public class Pdf : IPdf, IDisposable
 
     public async Task AuthenticateAsync(string password)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(password);
-
-        var trailerDict = await Objects.GetLatestTrailerDictionaryAsync();
-
-        Syntax.Encryption.EncryptionDictionary? encryptionDict = await trailerDict.Encrypt.GetAsync();
-
-        if (encryptionDict is not null)
-        {
-            //var handler = new EncryptionHandler(encryptionDict, password);
-
-            //if (!handler.TryAuthenticateUser())
-            //{
-            //    throw new PdfAuthenticationException("Invalid password for encrypted PDF.");
-            //}
-
-            //// If valid, you might want to store the handler internally for later decryption use:
-            //_encryptionHandler = handler;
-        }
+        await _encryptionProvider.AuthenticateAsync(password);
     }
 
     public Task<IList<IndirectObject>> GetAllPagesAsync() => Objects.PageTree.GetPagesAsync();
@@ -406,8 +391,9 @@ public class Pdf : IPdf, IDisposable
             ((IDisposable)Data).Dispose();
 
             _documentLifetime.Dispose();
-        }
     }
+
+}
 
     #endregion
 }
