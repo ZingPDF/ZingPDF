@@ -14,6 +14,11 @@ internal class LiteralStringParser : IParser<LiteralString>
 {
     private readonly IPdfEncryptionProvider _encryptionProvider;
 
+    public LiteralStringParser()
+        : this(NoOpPdfEncryptionProvider.Instance)
+    {
+    }
+
     public LiteralStringParser(IPdfEncryptionProvider encryptionProvider)
     {
         _encryptionProvider = encryptionProvider;
