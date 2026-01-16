@@ -3,6 +3,7 @@ using MorseCode.ITask;
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -22,16 +23,19 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
         private readonly IPdf _pdf;
         private readonly IParserResolver _parserRegistry;
         private readonly IParser<Number> _numberParser;
+        private readonly IPdfEncryptionProvider _encryptionProvider;
 
         public CrossReferenceStreamParser(
             IPdf pdf,
             IParserResolver parserRegistry,
-            IParser<Number> numberParser
+            IParser<Number> numberParser,
+            IPdfEncryptionProvider encryptionProvider
             )
         {
             _pdf = pdf;
             _parserRegistry = parserRegistry;
             _numberParser = numberParser;
+            _encryptionProvider = encryptionProvider;
         }
 
         public async ITask<StreamObject<CrossReferenceStreamDictionary>> ParseAsync(Stream stream, ObjectContext context)
@@ -82,7 +86,8 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
                     setToStart: false
                     ),
                 dict,
-                context
+                context,
+                _encryptionProvider
                 )
             {
                 ByteOffset = initialStreamPosition
