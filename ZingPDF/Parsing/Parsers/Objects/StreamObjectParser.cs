@@ -2,6 +2,7 @@
 using ZingPDF.Extensions;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Parsing.Parsers.Objects
@@ -10,12 +11,14 @@ namespace ZingPDF.Parsing.Parsers.Objects
         where TDictionary : class, IStreamDictionary
     {
         private readonly TDictionary _dict;
+        private readonly IPdfEncryptionProvider? _encryptionProvider;
 
-        public StreamObjectParser(TDictionary dict)
+        public StreamObjectParser(TDictionary dict, IPdfEncryptionProvider? encryptionProvider)
         {
             ArgumentNullException.ThrowIfNull(nameof(dict));
 
             _dict = dict;
+            _encryptionProvider = encryptionProvider;
         }
 
         public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ObjectContext context)
@@ -43,7 +46,8 @@ namespace ZingPDF.Parsing.Parsers.Objects
                     setToStart: false
                     ),
                 _dict,
-                context
+                context,
+                _encryptionProvider
                 )
             {
                 ByteOffset = initialStreamPosition
@@ -51,4 +55,3 @@ namespace ZingPDF.Parsing.Parsers.Objects
         }
     }
 }
-
