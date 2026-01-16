@@ -10,6 +10,7 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Linearization;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -177,6 +178,10 @@ internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
 
             case Type t when t == typeof(LinearizationParameterDictionary):
                 output = LinearizationParameterDictionary.FromDictionary(dict, _pdf, context);
+                goto DictionaryParsed;
+
+            case Type t when t == typeof(StandardEncryptionDictionary):
+                output = StandardEncryptionDictionary.FromDictionary(dict, _pdf, context);
                 goto DictionaryParsed;
 
             case Type t when t == typeof(StreamDictionary):
