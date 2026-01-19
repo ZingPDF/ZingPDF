@@ -29,6 +29,7 @@ public static class PdfServiceCollectionExtensions
     {
         services
             .AddScoped((s) => pdf)
+            .AddScoped<IPdfDataStreamProvider, PdfDataStreamProvider>()
             .AddScoped<IPdfObjectCollection, PdfObjectCollection>()
             .AddScoped<IPdfEncryptionProvider, PdfEncryptionProvider>();
 

@@ -3,6 +3,7 @@ using ZingPDF.Extensions;
 using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
 using ZingPDF.Logging;
+using ZingPDF.Parsing;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
@@ -18,15 +19,18 @@ namespace ZingPDF.Parsing.Parsers.Objects
         private readonly IParserResolver _parserResolver;
         private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
         private readonly IPdfEncryptionProvider _encryptionProvider;
+        private readonly IPdfDataStreamProvider _streamProvider;
 
         public IndirectObjectParser(
             IParserResolver parserResolver,
             ITokenTypeIdentifier tokenTypeIdentifier,
-            IPdfEncryptionProvider encryptionProvider)
+            IPdfEncryptionProvider encryptionProvider,
+            IPdfDataStreamProvider streamProvider)
         {
             _parserResolver = parserResolver;
             _tokenTypeIdentifier = tokenTypeIdentifier;
             _encryptionProvider = encryptionProvider;
+            _streamProvider = streamProvider;
         }
 
         public async ITask<IndirectObject> ParseAsync(Stream stream, ObjectContext context)
@@ -85,19 +89,19 @@ namespace ZingPDF.Parsing.Parsers.Objects
             return dict switch
             {
                 CrossReferenceStreamDictionary xrefStreamDict
-                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict, _encryptionProvider).ParseAsync(stream, context),
+                    => await new StreamObjectParser<CrossReferenceStreamDictionary>(xrefStreamDict, _encryptionProvider, _streamProvider).ParseAsync(stream, context),
 
                 ObjectStreamDictionary objectStreamDict
-                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict, _encryptionProvider).ParseAsync(stream, context),
+                    => await new StreamObjectParser<ObjectStreamDictionary>(objectStreamDict, _encryptionProvider, _streamProvider).ParseAsync(stream, context),
 
                 Type1FormDictionary type1FormDict
-                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict, _encryptionProvider).ParseAsync(stream, context),
+                    => await new StreamObjectParser<Type1FormDictionary>(type1FormDict, _encryptionProvider, _streamProvider).ParseAsync(stream, context),
 
                 ImageDictionary imageDict
-                    => await new StreamObjectParser<ImageDictionary>(imageDict, _encryptionProvider).ParseAsync(stream, context),
+                    => await new StreamObjectParser<ImageDictionary>(imageDict, _encryptionProvider, _streamProvider).ParseAsync(stream, context),
 
                 StreamDictionary streamDict
-                    => await new StreamObjectParser<StreamDictionary>(streamDict, _encryptionProvider).ParseAsync(stream, context),
+                    => await new StreamObjectParser<StreamDictionary>(streamDict, _encryptionProvider, _streamProvider).ParseAsync(stream, context),
 
                 _ => throw new InvalidOperationException($"Unsupported dictionary type: {dict.GetType().Name}"),
             };

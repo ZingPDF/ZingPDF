@@ -40,22 +40,30 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly IDocumentVersionParser _documentVersionParser;
     private readonly IParserResolver _parserResolver;
     private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
+    private readonly IPdfDataStreamProvider _streamProvider;
     private readonly IPdf _pdf;
 
     //private readonly Queue<IndirectObjectId> _freeIds;
 
     public PdfObjectCollection(
         IPdf pdf,
+        IPdfDataStreamProvider streamProvider,
         IDocumentVersionParser documentVersionParser,
         IParserResolver parserResolver,
         ITokenTypeIdentifier tokenTypeIdentifier
         )
     {
         _pdf = pdf;
+        _streamProvider = streamProvider;
         _documentVersionParser = documentVersionParser;
         _parserResolver = parserResolver;
         _tokenTypeIdentifier = tokenTypeIdentifier;
-        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
+        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () =>
+        {
+            using var stream = _streamProvider.OpenRead();
+
+            return await _documentVersionParser.ParseAsync(stream);
+        });
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
@@ -256,9 +264,10 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     {
         if (!xref.Compressed)
         {
-            _pdf.Data.Position = xref.Value1;
+            using var stream = _streamProvider.OpenRead();
+            stream.Position = xref.Value1;
 
-            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(_pdf.Data, _ObjectContext);
+            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(stream, _ObjectContext);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");

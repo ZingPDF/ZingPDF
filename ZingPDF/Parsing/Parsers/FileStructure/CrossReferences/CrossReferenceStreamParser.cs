@@ -21,18 +21,21 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     internal class CrossReferenceStreamParser : IParser<StreamObject<CrossReferenceStreamDictionary>>
     {
         private readonly IPdf _pdf;
+        private readonly IPdfDataStreamProvider _streamProvider;
         private readonly IParserResolver _parserRegistry;
         private readonly IParser<Number> _numberParser;
         private readonly IPdfEncryptionProvider _encryptionProvider;
 
         public CrossReferenceStreamParser(
             IPdf pdf,
+            IPdfDataStreamProvider streamProvider,
             IParserResolver parserRegistry,
             IParser<Number> numberParser,
             IPdfEncryptionProvider encryptionProvider
             )
         {
             _pdf = pdf;
+            _streamProvider = streamProvider;
             _parserRegistry = parserRegistry;
             _numberParser = numberParser;
             _encryptionProvider = encryptionProvider;
@@ -80,10 +83,10 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             return new StreamObject<CrossReferenceStreamDictionary>(
                 new SubStream(
-                    stream,
+                    _streamProvider.OpenRead(),
                     streamDataOffset,
                     streamDataOffset + streamLength,
-                    setToStart: false
+                    setToStart: true
                     ),
                 dict,
                 context,

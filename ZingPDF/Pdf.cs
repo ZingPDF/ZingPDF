@@ -391,9 +391,8 @@ public class Pdf : IPdf, IDisposable
             ((IDisposable)Data).Dispose();
 
             _documentLifetime.Dispose();
+        }
     }
-
-}
 
     #endregion
 }

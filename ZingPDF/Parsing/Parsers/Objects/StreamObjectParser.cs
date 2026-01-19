@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Extensions;
+using ZingPDF.Parsing;
 using ZingPDF.Logging;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Encryption;
@@ -12,13 +13,19 @@ namespace ZingPDF.Parsing.Parsers.Objects
     {
         private readonly TDictionary _dict;
         private readonly IPdfEncryptionProvider? _encryptionProvider;
+        private readonly IPdfDataStreamProvider _streamProvider;
 
-        public StreamObjectParser(TDictionary dict, IPdfEncryptionProvider? encryptionProvider)
+        public StreamObjectParser(
+            TDictionary dict,
+            IPdfEncryptionProvider? encryptionProvider,
+            IPdfDataStreamProvider streamProvider)
         {
             ArgumentNullException.ThrowIfNull(dict);
+            ArgumentNullException.ThrowIfNull(streamProvider);
 
             _dict = dict;
             _encryptionProvider = encryptionProvider;
+            _streamProvider = streamProvider;
         }
 
         public async ITask<StreamObject<TDictionary>> ParseAsync(Stream stream, ObjectContext context)
@@ -40,10 +47,10 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             return new StreamObject<TDictionary>(
                 new SubStream(
-                    stream,
+                    _streamProvider.OpenRead(),
                     streamDataOffset,
                     streamDataOffset + streamLength,
-                    setToStart: false
+                    setToStart: true
                     ),
                 _dict,
                 context,
