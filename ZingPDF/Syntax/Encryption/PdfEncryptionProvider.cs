@@ -44,8 +44,13 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             return data;
         }
 
+        if (context.NearestParent is null)
+        {
+            return data;
+        }
+
         var handler = await _handler;
-        if (handler is null || context.NearestParent is null)
+        if (handler is null)
         {
             return data;
         }
