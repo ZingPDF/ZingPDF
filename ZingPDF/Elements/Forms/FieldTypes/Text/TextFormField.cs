@@ -1,13 +1,14 @@
 ﻿using ZingPDF.Extensions;
 using ZingPDF.InteractiveFeatures;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Text
 {
-    public class TextFormField : FormField<LiteralString>
+    public class TextFormField : FormField<PdfString>
     {
         private readonly IParser<ContentStream> _contentStreamParser;
 
@@ -32,7 +33,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 return null;
             }
 
-            return (await _fieldDictionary.V.GetAsync() as LiteralString)!.Decode();
+            return (await _fieldDictionary.V.GetAsync() as PdfString)!.Decode();
         }
 
         public async Task SetValueAsync(string? value)
@@ -47,7 +48,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             else
             {
                 await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdf, _contentStreamParser, fontProviders)
-                    .WriteTextAsync(value);
+                    .WriteTextAsync(PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator));
             }
 
             SetValue(value);
