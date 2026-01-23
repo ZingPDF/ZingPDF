@@ -1,14 +1,13 @@
-﻿using ZingPDF.Extensions;
-using ZingPDF.Syntax.Objects.Strings;
+﻿using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice;
 
 public class ChoiceItem
 {
-    private readonly Func<LiteralString, Task> _onSelect;
-    private readonly Func<LiteralString, Task> _onDeselect;
+    private readonly Func<PdfString, Task> _onSelect;
+    private readonly Func<PdfString, Task> _onDeselect;
 
-    internal ChoiceItem(LiteralString text, LiteralString value, bool selected, Func<LiteralString, Task> onSelect, Func<LiteralString, Task> onDeselect)
+    internal ChoiceItem(PdfString text, PdfString value, bool selected, Func<PdfString, Task> onSelect, Func<PdfString, Task> onDeselect)
     {
         ArgumentNullException.ThrowIfNull(text, nameof(text));
         ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -23,10 +22,10 @@ public class ChoiceItem
         _onDeselect = onDeselect;
     }
 
-    public LiteralString Text { get; set; }
-    public LiteralString Value { get; set; }
+    public PdfString Text { get; set; }
+    public PdfString Value { get; set; }
     public bool Selected { get; }
 
-    public Task SelectAsync() => _onSelect(Value.Decode());
-    public Task DeselectAsync() => _onDeselect(Value.Decode());
+    public Task SelectAsync() => _onSelect(Value);
+    public Task DeselectAsync() => _onDeselect(Value);
 }
