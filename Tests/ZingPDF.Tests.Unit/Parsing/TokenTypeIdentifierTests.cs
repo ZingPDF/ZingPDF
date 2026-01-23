@@ -25,7 +25,7 @@ public class TokenTypeIdentifierTests
     [InlineData(" 123.456", typeof(Number))]
     [InlineData("0.000000", typeof(Number))]
     [InlineData(" ", null)]
-    [InlineData("<4E6F762073686D6F7A206B6120706F702E>", typeof(HexadecimalString))]
+    [InlineData("<4E6F762073686D6F7A206B6120706F702E>", typeof(PdfString))]
     [InlineData("<</ArtBox[0.0 0.0 841.89 595.276]/BleedBox[0.0 0.0 841.89 595.276]/", typeof(Dictionary))]
     public async Task TryIdentify_Basic(string token, Type expectedType)
     {

@@ -109,8 +109,7 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
 
         return firstId switch
         {
-            LiteralString literal => literal.RawBytes,
-            HexadecimalString hex => hex.RawBytes.ToArray(),
+            PdfString pdfString => pdfString.Bytes,
             _ => throw new InvalidPdfException("Encrypted PDF trailer ID is not a string."),
         };
     }
@@ -145,8 +144,8 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             revision,
             keyLengthBits,
             permissions,
-            ownerString.RawBytes,
-            userString.RawBytes,
+            ownerString.Bytes,
+            userString.Bytes,
             encryptMetadata,
             fileId,
             encryptionDictionaryId);
