@@ -210,7 +210,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(PdfString text, int pageNumber)
         {
-            var unicode = MapCharacterCode(text.RawBytes.ToArray());
+            var unicode = MapCharacterCode(text.Bytes);
 
             var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
 
@@ -249,7 +249,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             {
                 if (elem is PdfString so)
                 {
-                    string unicode = MapCharacterCode(so.RawBytes.ToArray());
+                    string unicode = MapCharacterCode(so.Bytes);
 
                     foreach (var ch in unicode)
                     {

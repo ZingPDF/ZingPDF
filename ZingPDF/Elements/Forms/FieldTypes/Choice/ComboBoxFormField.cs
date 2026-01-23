@@ -1,4 +1,6 @@
-﻿using ZingPDF.Syntax.Objects.IndirectObjects;
+﻿using ZingPDF.Syntax;
+using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice;
 
@@ -16,6 +18,9 @@ internal class ComboBoxFormField : ChoiceFormField
     {
     }
 
-    public Task SelectCustomValueAsync(string value) => SelectOptionAsync(value!);
-    public Task DeselectCustomValueAsync(string value) => DeselectOptionAsync(value!);
+    public Task SelectCustomValueAsync(string value)
+        => SelectOptionAsync(PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator));
+
+    public Task DeselectCustomValueAsync(string value)
+        => DeselectOptionAsync(PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator));
 }
