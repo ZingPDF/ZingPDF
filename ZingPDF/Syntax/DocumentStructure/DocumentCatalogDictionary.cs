@@ -161,7 +161,7 @@ namespace ZingPDF.Syntax.DocumentStructure
         /// specifications for structure elements or marked-content (see 14.9.2, "Natural language specification"). If this entry is absent, the language shall 
         /// be considered unknown.
         /// </summary>
-        public OptionalProperty<LiteralString> Lang => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.DocumentCatalog.Lang);
+        public OptionalProperty<PdfString> Lang => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.DocumentCatalog.Lang);
 
         /// <summary>
         /// (Optional; PDF 1.3) A Web Capture information dictionary that shall contain state information used by any Web Capture extension 
