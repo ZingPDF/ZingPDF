@@ -43,7 +43,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// or for other purposes (see 14.9.3, "Alternate descriptions"). See 12.5.6, "Annotation types" for more details 
         /// on the meaning of this entry for each annotation type.</para>
         /// </summary>
-        public OptionalProperty<LiteralString> Contents => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Annotation.Contents);
+        public OptionalProperty<PdfString> Contents => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Annotation.Contents);
 
         /// <summary>
         /// <para>(Optional except as noted below; PDF 1.3; not used in FDF files)</para>
@@ -57,7 +57,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// <para>(Optional; PDF 1.4)</para>
         /// <para>The annotation name, a text string uniquely identifying it among all the annotations on its page.</para>
         /// </summary>
-        public OptionalProperty<LiteralString> NM => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Annotation.NM);
+        public OptionalProperty<PdfString> NM => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Annotation.NM);
 
         /// <summary>
         /// <para>(Optional; PDF 1.1)</para>
@@ -206,7 +206,7 @@ namespace ZingPDF.InteractiveFeatures.Annotations
         /// for all text in the annotation except where overridden by other explicit language specifications 
         /// (see 14.9.2, "Natural language specification").</para>
         /// </summary>
-        public OptionalProperty<LiteralString> Lang => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Annotation.Lang);
+        public OptionalProperty<PdfString> Lang => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Annotation.Lang);
 
         public void SetAppearanceState(Name? state)
         {
