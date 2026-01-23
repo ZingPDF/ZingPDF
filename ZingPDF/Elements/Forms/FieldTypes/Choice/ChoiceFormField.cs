@@ -38,7 +38,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             return options.AsReadOnly();
         }
 
-        protected async Task SelectOptionAsync(LiteralString value)
+        protected async Task SelectOptionAsync(PdfString value)
         {
             var selectedOptions = await GetSelectedOptionsAsync();
 
@@ -54,7 +54,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
         }
 
-        protected async Task DeselectOptionAsync(LiteralString value)
+        protected async Task DeselectOptionAsync(PdfString value)
         {
             var selectedOptions = await GetSelectedOptionsAsync();
 
@@ -70,9 +70,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
         }
 
-        private async Task<bool> IsSelectedAsync(LiteralString value) => (await GetSelectedOptionsAsync()).Contains(value);
+        private async Task<bool> IsSelectedAsync(PdfString value) => (await GetSelectedOptionsAsync()).Contains(value);
 
-        private async Task<List<LiteralString>> GetSelectedOptionsAsync()
+        private async Task<List<PdfString>> GetSelectedOptionsAsync()
         {
             if (_fieldDictionary.V == null)
             {
@@ -81,28 +81,28 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 
             var val = await _fieldDictionary.V.GetAsync();
 
-            if (val is LiteralString singleOption)
+            if (val is PdfString singleOption)
             {
                 return [singleOption];
             }
 
             if (val is ArrayObject ary)
             {
-                return ary.Cast<LiteralString>().ToList();
+                return ary.Cast<PdfString>().ToList();
             }
 
             throw new InvalidOperationException($"Invalid field value encountered: {val}");
         }
 
         // Each item in the Opt array is either a single text string, or an array of 2 values (export value and display text)
-        private static (LiteralString, LiteralString) GetOptionValues(IPdfObject option)
+        private static (PdfString, PdfString) GetOptionValues(IPdfObject option)
         {
             if (option is ArrayObject ary)
             {
-                return ((ary[0] as LiteralString)!, (ary[1] as LiteralString)!);
+                return ((ary[0] as PdfString)!, (ary[1] as PdfString)!);
             }
             
-            var text = option as LiteralString;
+            var text = option as PdfString;
             
             return (text!, text!);
         }

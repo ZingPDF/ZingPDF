@@ -32,8 +32,8 @@ internal class VariableTextAppearanceStreamManager
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
 
-    private readonly AsyncLazy<LiteralString?> _formDA;
-    private readonly AsyncLazy<LiteralString?> _fieldDA;
+    private readonly AsyncLazy<PdfString?> _formDA;
+    private readonly AsyncLazy<PdfString?> _fieldDA;
     private readonly AsyncLazy<ContentStream> _defaultAppearanceStream;
 
     private readonly AsyncLazy<StreamObject<IStreamDictionary>?> _fieldAppearanceStreamObject;
@@ -61,7 +61,7 @@ internal class VariableTextAppearanceStreamManager
         _contentStreamParser = contentStreamParser;
         _fontProviders = fontProviders;
 
-        _formDA = new AsyncLazy<LiteralString?>(async () =>
+        _formDA = new AsyncLazy<PdfString?>(async () =>
         {
             if (_formDict.DA != null)
             {
@@ -71,7 +71,7 @@ internal class VariableTextAppearanceStreamManager
             return null;
         });
 
-        _fieldDA = new AsyncLazy<LiteralString?>(async () =>
+        _fieldDA = new AsyncLazy<PdfString?>(async () =>
         {
             if (_fieldDict.DA != null)
             {
@@ -83,12 +83,12 @@ internal class VariableTextAppearanceStreamManager
 
         _defaultAppearanceStream = new AsyncLazy<ContentStream>(async () =>
         {
-            LiteralString? formDa = await _formDA;
-            LiteralString? fieldDa = await _fieldDA;
+            PdfString? formDa = await _formDA;
+            PdfString? fieldDa = await _fieldDA;
 
-            LiteralString defaultAppearance = (fieldDa ?? formDa)!;
+            PdfString defaultAppearance = (fieldDa ?? formDa)!;
 
-            var daStream = new MemoryStream(defaultAppearance.RawBytes);
+            var daStream = new MemoryStream(defaultAppearance.Bytes);
 
             return await _contentStreamParser.ParseAsync(daStream, _ObjectContext);
         });
@@ -155,7 +155,7 @@ internal class VariableTextAppearanceStreamManager
             );
     }
 
-    public async Task WriteTextAsync(LiteralString value)
+    public async Task WriteTextAsync(PdfString value)
     {
         ContentStream? fieldAp = await _fieldAppearanceStream;
         ResourceDictionary? formDefaultResources = await _formDefaultResources;
@@ -256,7 +256,7 @@ internal class VariableTextAppearanceStreamManager
         return null;
     }
 
-    public async Task WriteNewAppearanceStreamAsync(ContentStream stream, LiteralString newText)
+    public async Task WriteNewAppearanceStreamAsync(ContentStream stream, PdfString newText)
     {
         var defaultAppearanceStream = await _defaultAppearanceStream;
 

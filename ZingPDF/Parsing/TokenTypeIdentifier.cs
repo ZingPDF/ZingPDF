@@ -40,8 +40,8 @@ namespace ZingPDF.Parsing
             { Constants.ObjEnd, typeof(Keyword) },
             { Constants.StreamEnd, typeof(Keyword) },
             { Constants.DictionaryStart, typeof(Dictionary) },
-            { $"{Constants.Characters.LessThan}", typeof(HexadecimalString) }, // This check must always come after the DictionaryStart check.
-            { $"{Constants.Characters.LeftParenthesis}", typeof(LiteralString) },
+            { $"{Constants.Characters.LessThan}", typeof(PdfString) }, // This check must always come after the DictionaryStart check.
+            { $"{Constants.Characters.LeftParenthesis}", typeof(PdfString) },
             { $"{Constants.Characters.LeftSquareBracket}", typeof(ArrayObject) },
             { Constants.Trailer, typeof(Trailer) },
             { Constants.StreamStart, typeof(StreamObject<>) },

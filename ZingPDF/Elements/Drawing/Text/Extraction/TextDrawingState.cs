@@ -66,20 +66,20 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             switch (op.Operator)
             {
                 case ContentStream.Operators.TextShowing.Tj:
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.TJ:
                     return new GlyphRun(pageNumber, [.. await HandleTJAsync(op, pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Apostrophe:
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Quote:
                     WordSpacing = (Number)op.Operands[0];
                     CharSpacing = (Number)op.Operands[1];
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((LiteralString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
 
                 case ContentStream.Operators.TextState.Tf:
                     FontResourceName = (Name)op.Operands[0];
@@ -208,7 +208,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             return (x, y, deviceAdvance);
         }
 
-        private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(LiteralString text, int pageNumber)
+        private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(PdfString text, int pageNumber)
         {
             var unicode = MapCharacterCode(text.RawBytes.ToArray());
 
@@ -247,7 +247,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
             foreach (var elem in array)
             {
-                if (elem is LiteralString so)
+                if (elem is PdfString so)
                 {
                     string unicode = MapCharacterCode(so.RawBytes.ToArray());
 

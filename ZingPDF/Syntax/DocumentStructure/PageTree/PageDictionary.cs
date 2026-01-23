@@ -139,7 +139,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// (Optional; PDF 1.3; indirect reference preferred) The digital identifier of the page’s parent Web Capture 
         /// content set (see 14.10.6, "Object attributes related to web capture").
         /// </summary>
-        public OptionalProperty<HexadecimalString> ID => GetOptionalProperty<HexadecimalString>(Constants.DictionaryKeys.PageTree.Page.ID);
+        public OptionalProperty<PdfString> ID => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.PageTree.Page.ID);
 
         /// <summary>
         /// (Optional; PDF 1.3) The page’s preferred zoom (magnification) factor: the factor by which it shall be 

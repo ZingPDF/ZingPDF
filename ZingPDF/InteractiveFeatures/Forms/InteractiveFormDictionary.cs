@@ -63,7 +63,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// <summary>
         /// (Optional) A document-wide default value for the DA attribute of variable text fields (see 12.7.4.3, "Variable text").
         /// </summary>
-        public OptionalProperty<LiteralString> DA => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.InteractiveForm.DA);
+        public OptionalProperty<PdfString> DA => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.InteractiveForm.DA);
 
         /// <summary>
         /// (Optional) A document-wide default value for the Q attribute of variable text fields (see 12.7.4.3, "Variable text").

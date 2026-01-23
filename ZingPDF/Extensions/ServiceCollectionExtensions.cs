@@ -7,7 +7,6 @@ using ZingPDF.Parsing.Parsers.FileStructure;
 using ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 using ZingPDF.Parsing.Parsers.Objects;
 using ZingPDF.Parsing.Parsers.Objects.Dictionaries;
-using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Encryption;
@@ -60,8 +59,7 @@ public static class PdfServiceCollectionExtensions
         services.AddScoped<IParser<BooleanObject>, BooleanObjectParser>();
         services.AddScoped<IParser<Number>, NumberParser>();
         services.AddScoped<IParser<IndirectObjectReference>, IndirectObjectReferenceParser>();
-        services.AddScoped<IParser<LiteralString>, LiteralStringParser>();
-        services.AddScoped<IParser<HexadecimalString>, HexadecimalStringParser>();
+        services.AddScoped<IParser<PdfString>, PdfStringParser>();
         services.AddScoped<IParser<CrossReferenceTable>, CrossReferenceTableParser>();
         services.AddScoped<IParser<CrossReferenceSection>, CrossReferenceSectionParser>();
         services.AddScoped<IParser<CrossReferenceSectionIndex>, CrossReferenceSectionIndexParser>();

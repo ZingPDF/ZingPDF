@@ -53,7 +53,7 @@ namespace ZingPDF.Syntax.Encryption
         /// "Password algorithms".
         /// </para>
         /// </summary>
-        public RequiredProperty<LiteralString> O => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.O)!;
+        public RequiredProperty<PdfString> O => GetRequiredProperty<PdfString>(Constants.DictionaryKeys.Encryption.Standard.O)!;
 
         /// <summary>
         /// (Required) A byte string, 32 bytes long if the value of R is 4 or less and 48 bytes long if 
@@ -61,20 +61,20 @@ namespace ZingPDF.Syntax.Encryption
         /// whether to prompt the user for a password and, if so, whether a valid user or owner password 
         /// was entered. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public RequiredProperty<LiteralString> U => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.U)!;
+        public RequiredProperty<PdfString> U => GetRequiredProperty<PdfString>(Constants.DictionaryKeys.Encryption.Standard.U)!;
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 32-byte string, based on the owner and user password, that 
         /// shall be used in computing the file encryption key. For more information, see 7.6.4.4, 
         /// "Password algorithms".
         /// </summary>
-        public OptionalProperty<LiteralString> OE => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.OE);
+        public OptionalProperty<PdfString> OE => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Encryption.Standard.OE);
 
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 32-byte string, based on the user password, that shall be 
         /// used in computing the file encryption key. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public OptionalProperty<LiteralString> UE => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.UE);
+        public OptionalProperty<PdfString> UE => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Encryption.Standard.UE);
 
         /// <summary>
         /// (Required) A set of flags specifying which operations shall be permitted when the document is 
@@ -85,7 +85,7 @@ namespace ZingPDF.Syntax.Encryption
         /// <summary>
         /// (Required if R is 6 (PDF 2.0)) A 16-byte string, encrypted with the file encryption key, that contains an encrypted copy of the permissions flags. For more information, see 7.6.4.4, "Password algorithms".
         /// </summary>
-        public OptionalProperty<LiteralString> Perms => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Encryption.Standard.Perms);
+        public OptionalProperty<PdfString> Perms => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Encryption.Standard.Perms);
 
         /// <summary>
         /// (Optional; meaningful only when the value of V is 4 (PDF 1.5) or 5 (PDF 2.0)) Indicates whether 

@@ -53,7 +53,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// (Optional)<para></para>
         /// The partial field name (see 12.7.4.2, "Field names").
         /// </summary>
-        public OptionalProperty<LiteralString> T => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.T);
+        public OptionalProperty<PdfString> T => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Field.T);
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
@@ -63,13 +63,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// This text is also useful when extracting the document’s contents in support 
         /// of accessibility to users with disabilities or for other purposes (see 14.9.3, "Alternate descriptions").
         /// </summary>
-        public OptionalProperty<LiteralString> TU => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.TU);
+        public OptionalProperty<PdfString> TU => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Field.TU);
 
         /// <summary>
         /// (Optional; PDF 1.3)<para></para>
         /// The mapping name that shall be used when exporting interactive form field data from the document.
         /// </summary>
-        public OptionalProperty<LiteralString> TM => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.TM);
+        public OptionalProperty<PdfString> TM => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Field.TM);
 
         /// <summary>
         /// (Optional; inheritable)<para></para>
@@ -125,7 +125,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// or text state operators that define such properties as the field’s text size and colour.
         /// </summary>
         [Inheritable]
-        public RequiredProperty<LiteralString> DA => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA);
+        public RequiredProperty<PdfString> DA => GetRequiredProperty<PdfString>(Constants.DictionaryKeys.Field.VariableText.DA);
 
         /// <summary>
         /// (Optional; inheritable) A code specifying the form of quadding (justification) that shall be used in displaying the text:
@@ -140,13 +140,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         /// <summary>
         /// (Optional; PDF 1.5) A default style string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
         /// </summary>
-        public OptionalProperty<LiteralString> DS => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DS);
+        public OptionalProperty<PdfString> DS => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Field.VariableText.DS);
 
         /// <summary>
         /// (Optional; PDF 1.5) A rich text string, as described in Adobe XML Architecture, XML Forms Architecture (XFA) Specification, version 3.3.
         /// </summary>
-        public OptionalMultiProperty<LiteralString, StreamObject<IStreamDictionary>> RV
-            => GetOptionalMultiProperty<LiteralString, StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.Field.VariableText.RV);
+        public OptionalMultiProperty<PdfString, StreamObject<IStreamDictionary>> RV
+            => GetOptionalMultiProperty<PdfString, StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.Field.VariableText.RV);
 
         public void SetValue(IPdfObject? value)
         {
@@ -162,7 +162,7 @@ namespace ZingPDF.InteractiveFeatures.Forms
 
             ms.Position = 0;
 
-            Set<LiteralString>(Constants.DictionaryKeys.Field.VariableText.DA, await ms.GetAsync());
+            Set<PdfString>(Constants.DictionaryKeys.Field.VariableText.DA, await ms.GetAsync());
         }
 
         new public static FieldDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)

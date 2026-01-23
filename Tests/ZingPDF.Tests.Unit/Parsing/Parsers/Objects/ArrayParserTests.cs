@@ -153,7 +153,8 @@ public class ArrayParserTests
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Count().Should().Be(2);
-        output.All(x => x is HexadecimalString).Should().BeTrue();
+        output.All(x => x is PdfString).Should().BeTrue();
+        output.Cast<PdfString>().All(x => x.Syntax == PdfStringSyntax.Hex).Should().BeTrue();
 
         input.Position.Should().Be(74, because: "the parser should move the stream past the array-end delimiter");
     }

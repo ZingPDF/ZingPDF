@@ -31,7 +31,7 @@ public class FontDescriptorDictionary : Dictionary
     /// <para>(Optional; PDF 1.5) A byte string specifying the preferred font family name.</para>
     /// <para>EXAMPLE 1 For the font Times Bold Italic, the FontFamily is Times.</para>
     /// </summary>
-    public OptionalProperty<LiteralString> FontFamily => GetOptionalProperty<LiteralString>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
+    public OptionalProperty<PdfString> FontFamily => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.FontDescriptor.FontFamily);
 
     /// <summary>
     /// <para>
@@ -162,8 +162,8 @@ public class FontDescriptorDictionary : Dictionary
     /// The names may appear in any order. The name .notdef shall be omitted; it shall exist in the font subset. If this 
     /// entry is absent, the only indication of a font subset shall be the subset tag in the FontName entry (see 9.9.2, "Font subsets").
     /// </summary>
-    public OptionalMultiProperty<LiteralString, HexadecimalString> CharSet
-        => GetOptionalMultiProperty<LiteralString, HexadecimalString>(Constants.DictionaryKeys.FontDescriptor.CharSet);
+    public OptionalProperty<PdfString> CharSet
+        => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.FontDescriptor.CharSet);
 
     internal static FontDescriptorDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)
     {
