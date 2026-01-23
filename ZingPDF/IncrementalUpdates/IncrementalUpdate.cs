@@ -94,8 +94,8 @@ namespace ZingPDF.IncrementalUpdates
             var existingTrailerDictionary = _existingTrailer?.Dictionary ?? (ITrailerDictionary)_existingXrefStream!.Dictionary;
 
             // Build file identifier
-            var originalId = existingTrailerDictionary.ID?[0] ?? HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Context);
-            var updateId = HexadecimalString.FromBytes(Guid.NewGuid().ToByteArray(), Context);
+            var originalId = existingTrailerDictionary.ID?[0] ?? PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, Context);
+            var updateId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, Context);
             var fileIdentifier = new ArrayObject([originalId, updateId], Context);
 
             var trailer = new Trailer(
