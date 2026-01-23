@@ -28,7 +28,7 @@ public class TextObject : ContentStream
             .SetColour(fontOptions.Colour)
             .BeginTextObject()
             .SetTextPosition(boundingBox.LowerLeft)
-            .ShowText(text)
+            .ShowText(PdfString.FromTextAuto(text, ObjectContext.UserCreated))
             .EndTextObject()
             .RestoreGraphicsState();
     }

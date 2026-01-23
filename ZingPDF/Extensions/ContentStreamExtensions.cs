@@ -88,7 +88,7 @@ public static class ContentStreamExtensions
         return stream;
     }
 
-    public static ContentStream ShowText(this ContentStream stream, LiteralString text)
+    public static ContentStream ShowText(this ContentStream stream, PdfString text)
     {
         stream.Operations.Add(new ContentStreamOperation { Operator = TextShowing.Tj, Operands = [text] });
 
