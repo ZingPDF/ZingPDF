@@ -199,7 +199,7 @@ namespace ZingPDF.Graphics.Images
         /// <para>Additional limitations also apply to this key when used in soft-mask image dictionaries - see clause 
         /// 11.6.5.2 Soft-mask images.</para>
         /// </summary>
-        public OptionalProperty<HexadecimalString> ID => GetOptionalProperty<HexadecimalString>(Constants.DictionaryKeys.Image.ID);
+        public OptionalProperty<PdfString> ID => GetOptionalProperty<PdfString>(Constants.DictionaryKeys.Image.ID);
 
         /// <summary>
         /// (Optional; PDF 1.2; deprecated in PDF 2.0) An OPI version dictionary for the image; see 14.11.7, 

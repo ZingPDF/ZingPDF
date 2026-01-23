@@ -18,12 +18,12 @@ public class CIDSystemInfoDictionary : Dictionary
     /// a registered developer prefix followed by a LOW LINE (5Fh) followed by any other identifying characters chosen by the issuer. 
     /// See Annex E, "Extending PDF", for how to obtain a unique developer prefix.
     /// </summary>
-    public RequiredProperty<LiteralString> Registry => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Font.CIDSystemInfo.Registry);
+    public RequiredProperty<PdfString> Registry => GetRequiredProperty<PdfString>(Constants.DictionaryKeys.Font.CIDSystemInfo.Registry);
 
     /// <summary>
     /// (Required) A string that uniquely names the character collection within the specified registry.
     /// </summary>
-    public RequiredProperty<LiteralString> Ordering => GetRequiredProperty<LiteralString>(Constants.DictionaryKeys.Font.CIDSystemInfo.Ordering);
+    public RequiredProperty<PdfString> Ordering => GetRequiredProperty<PdfString>(Constants.DictionaryKeys.Font.CIDSystemInfo.Ordering);
 
     /// <summary>
     /// (Required) The supplement number of the character collection. An original character collection has a supplement number of 0. 

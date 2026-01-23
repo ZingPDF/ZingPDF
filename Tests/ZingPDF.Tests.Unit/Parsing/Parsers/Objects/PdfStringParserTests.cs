@@ -1,18 +1,16 @@
-﻿using FakeItEasy;
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Extensions;
-using ZingPDF.Parsing.Parsers.Objects.LiteralStrings;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text.Encoding.PDFDocEncoding;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
 
-public class LiteralStringParserTests
+public class PdfStringParserTests
 {
-    static LiteralStringParserTests()
+    static PdfStringParserTests()
     {
         Encoding.RegisterProvider(PDFDocEncodingProvider.Instance);
     }
@@ -23,12 +21,11 @@ public class LiteralStringParserTests
         var content = "(This is a string)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString("This is a string", ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Syntax.Should().Be(PdfStringSyntax.Literal);
+        output.Decode().Should().Be("This is a string");
     }
 
     [Fact]
@@ -37,12 +34,11 @@ public class LiteralStringParserTests
         var content = "()";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString(string.Empty, ObjectContext.None);
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Syntax.Should().Be(PdfStringSyntax.Literal);
+        output.Bytes.Should().BeEmpty();
     }
 
     [Fact]
@@ -51,9 +47,7 @@ public class LiteralStringParserTests
         var content = "()";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString(string.Empty, ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(
@@ -72,7 +66,7 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(expected);
@@ -84,12 +78,10 @@ public class LiteralStringParserTests
         var content = "(This is a valid \\string)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString("This is a valid string", ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Decode().Should().Be("This is a valid string");
     }
 
     [Theory]
@@ -101,12 +93,10 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Decode().Should().Be(expected);
     }
 
     [Fact]
@@ -115,12 +105,10 @@ public class LiteralStringParserTests
         var content = "(These \\\r\ntwo strings \\\r\nare the same.)";
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString("These two strings are the same.", ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Decode().Should().Be("These two strings are the same.");
     }
 
     [Theory]
@@ -132,9 +120,7 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(expected);
@@ -151,12 +137,10 @@ public class LiteralStringParserTests
     {
         using var input = content.ToStream();
 
-        LiteralString expectedLiteralString = LiteralString.FromString(expected, ObjectContext.WithOrigin(ObjectOrigin.None));
-
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
-        output.Should().BeEquivalentTo(expectedLiteralString);
+        output.Decode().Should().Be(expected);
     }
 
     [Fact]
@@ -164,7 +148,7 @@ public class LiteralStringParserTests
     {
         using var input = "(test string \\))".ToStream();
 
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(input.Length, because: "the parser should move the stream past the string-end delimiter");
@@ -184,7 +168,7 @@ public class LiteralStringParserTests
         inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(input);
@@ -204,7 +188,7 @@ public class LiteralStringParserTests
         inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(input);
@@ -224,7 +208,7 @@ public class LiteralStringParserTests
         inputBytes.AddRange(Encoding.ASCII.GetBytes($"{Constants.Characters.RightParenthesis} /P 12 0 R /NM (0001-0001)"));
 
         using var ms = new MemoryStream([.. inputBytes]);
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.None);
 
         ms.Position.Should().Be(96, because: "parsing needs to continue from the end of the literal string");
@@ -243,7 +227,7 @@ public class LiteralStringParserTests
         inputBytes.AddRange(encoding.GetBytes($"{textInput}{Constants.Characters.RightParenthesis}"));
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.None);
 
         output.Decode().Should().Be(textInput);
@@ -263,7 +247,7 @@ public class LiteralStringParserTests
         inputBytes.Add((byte)Constants.Characters.RightParenthesis);
 
         using var ms = new MemoryStream([.. inputBytes]);
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(textInput);
@@ -286,7 +270,7 @@ public class LiteralStringParserTests
         inputBytes.AddRange(Encoding.ASCII.GetBytes("\r\n<< /S /GoTo /D (section.23.5) >>\r\n"));
 
         using var ms = new MemoryStream([.. inputBytes]);
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(46, because: "the parser should move the stream past the string-end delimiter");
@@ -300,7 +284,7 @@ public class LiteralStringParserTests
         string expected = "Artifex";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(expected);
@@ -312,7 +296,7 @@ public class LiteralStringParserTests
         var input = "(\\376\\377\\000A\\000r\\000t\\000i\\000f\\000e\\000x)";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(45, because: "the parser should move the stream past the string-end delimiter");
@@ -329,7 +313,7 @@ public class LiteralStringParserTests
         string expected = "Usage on RedHat Linux";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        var output = await new LiteralStringParser()
+        var output = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         output.Decode().Should().Be(expected);
@@ -344,9 +328,48 @@ public class LiteralStringParserTests
             "\r\n<< /S /GoTo /D (section.23.5) >>";
 
         using var ms = new MemoryStream(Encoding.ASCII.GetBytes(input));
-        _ = await new LiteralStringParser()
+        _ = await new PdfStringParser()
             .ParseAsync(ms, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         ms.Position.Should().Be(124, because: "the parser should move the stream past the string-end delimiter");
+    }
+
+    [Fact]
+    public async Task ParseHexString_IgnoresWhitespaceAndSetsSyntax()
+    {
+        var content = "<4E 6F 76 20>";
+        using var input = content.ToStream();
+
+        var output = await new PdfStringParser()
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
+
+        output.Syntax.Should().Be(PdfStringSyntax.Hex);
+        output.Bytes.Should().Equal(Encoding.ASCII.GetBytes("Nov "));
+    }
+
+    [Fact]
+    public async Task ParseHexString_OddNibblePadsLowNibble()
+    {
+        var content = "<4E6F7>";
+        using var input = content.ToStream();
+
+        var output = await new PdfStringParser()
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
+
+        output.Syntax.Should().Be(PdfStringSyntax.Hex);
+        output.Bytes.Should().Equal([0x4E, 0x6F, 0x70]);
+    }
+
+    [Fact]
+    public async Task ParseHexString_WithUtf16Bom_DecodesAsText()
+    {
+        var content = "<FEFF00410042>";
+        using var input = content.ToStream();
+
+        var output = await new PdfStringParser()
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
+
+        output.Syntax.Should().Be(PdfStringSyntax.Hex);
+        output.Decode().Should().Be("AB");
     }
 }

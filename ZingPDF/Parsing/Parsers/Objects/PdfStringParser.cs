@@ -1,5 +1,6 @@
 ﻿using MorseCode.ITask;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Parsing.Parsers.Objects;
@@ -10,7 +11,19 @@ namespace ZingPDF.Parsing.Parsers.Objects;
 /// </summary>
 internal class PdfStringParser : IParser<PdfString>
 {
-    public ITask<PdfString> ParseAsync(Stream stream, ObjectContext context)
+    private readonly IPdfEncryptionProvider _encryptionProvider;
+
+    public PdfStringParser()
+        : this(NoOpPdfEncryptionProvider.Instance)
+    {
+    }
+
+    public PdfStringParser(IPdfEncryptionProvider encryptionProvider)
+    {
+        _encryptionProvider = encryptionProvider;
+    }
+
+    public async ITask<PdfString> ParseAsync(Stream stream, ObjectContext context)
     {
         // Skip leading whitespace/comments if your infra doesn't already
         int first = ReadNonWs(stream);
@@ -18,19 +31,23 @@ internal class PdfStringParser : IParser<PdfString>
 
         if (first == '(')
         {
-            return Task.FromResult(ParseLiteral(stream, context)).AsITask();
+            var bytes = ParseLiteralBytes(stream);
+            bytes = await _encryptionProvider.DecryptObjectBytesAsync(context, bytes, null);
+            return PdfString.FromBytes(bytes, PdfStringSyntax.Literal, context);
         }
 
         if (first == '<')
         {
-            return Task.FromResult(ParseHex(stream, context)).AsITask();
+            var bytes = ParseHexBytes(stream);
+            bytes = await _encryptionProvider.DecryptObjectBytesAsync(context, bytes, null);
+            return PdfString.FromBytes(bytes, PdfStringSyntax.Hex, context);
         }
 
         throw new ParserException($"Expected string '(' or '<', found '{(char)first}'.");
     }
 
     // ---- literal "( ... )" with escapes, §7.3.4.2
-    private static PdfString ParseLiteral(Stream s, ObjectContext ctx)
+    private static byte[] ParseLiteralBytes(Stream s)
     {
         var buf = new List<byte>(64);
         int depth = 1; // support balanced parentheses with escapes
@@ -114,11 +131,11 @@ internal class PdfStringParser : IParser<PdfString>
         }
 
         // Return as Byte-kind by default; caller promotes based on context
-        return PdfString.FromBytes([.. buf], PdfStringSyntax.Literal, ctx);
+        return [.. buf];
     }
 
     // ---- hex "< ... >", §7.3.4.3
-    private static PdfString ParseHex(Stream s, ObjectContext ctx)
+    private static byte[] ParseHexBytes(Stream s)
     {
         var nibbles = new List<int>(64);
 
@@ -141,7 +158,7 @@ internal class PdfStringParser : IParser<PdfString>
         for (int i = 0, j = 0; i < bytes.Length; i++, j += 2)
             bytes[i] = (byte)(nibbles[j] << 4 | nibbles[j + 1]);
 
-        return PdfString.FromBytes(bytes, PdfStringSyntax.Hex, ctx);
+        return bytes;
     }
 
     // ---- helpers ----
