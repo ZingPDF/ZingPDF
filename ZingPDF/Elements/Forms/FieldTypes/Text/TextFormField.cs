@@ -40,6 +40,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         {
             var formDict = await _parent.GetFormDictionaryAsync();
             var fontProviders = await _parent.GetFontProvidersAsync();
+            PdfString? pdfValue = null;
 
             if (value == null)
             {
@@ -47,11 +48,13 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             }
             else
             {
+                pdfValue = PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator);
+
                 await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdf, _contentStreamParser, fontProviders)
-                    .WriteTextAsync(PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator));
+                    .WriteTextAsync(pdfValue);
             }
 
-            SetValue(value);
+            SetValue(pdfValue);
         }
 
         // temp methods for testing

@@ -88,8 +88,12 @@ public class CoordinateTranslatorTests
         var arbitraryBoxWidth = 100;
         var arbitraryPageWidth = 100;
 
-        var boundingBox = Rectangle.FromCoordinates(new Coordinate(arbitraryXValue, y), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
-        var translatedBoundingBox = Rectangle.FromCoordinates(new Coordinate(arbitraryXValue, expectedYValue), new Coordinate(arbitraryBoxWidth, boundingBoxHeight));
+        var boundingBox = Rectangle.FromCoordinates(
+            new Coordinate(arbitraryXValue, y),
+            new Coordinate(arbitraryBoxWidth, y + boundingBoxHeight));
+        var translatedBoundingBox = Rectangle.FromCoordinates(
+            new Coordinate(arbitraryXValue, expectedYValue),
+            new Coordinate(arbitraryBoxWidth, expectedYValue + boundingBoxHeight));
 
         new CoordinateTranslator(calculations)
             .FlipTextCoordinatesIfRequired(0, arbitraryPageWidth, pageHeight, CoordinateSystem.TopDown, boundingBox)
