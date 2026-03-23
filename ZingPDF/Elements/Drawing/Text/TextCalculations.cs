@@ -15,8 +15,9 @@ internal class TextCalculations : ITextCalculations
     //// This will be used to compute a font size as a pecentage of the usable field height (that is, the height minus padding)
     //private const double _initialFontToBoxHeightRatio = 0.95;
 
-    // This will be used to compute a font size as a pecentage of the field height
-    private const double _initialFontToBoxHeightRatio = 0.89;
+    // Calibrated against Acrobat-generated appearance streams for the field sizes covered by the tests.
+    private const double _initialFontSizeScale = 0.450567727607172;
+    private const double _initialFontSizeExponent = 1.13011210523993;
 
     private const double _opticalBaselineAdjustment = 0.709;
 
@@ -44,7 +45,7 @@ internal class TextCalculations : ITextCalculations
 
         // Step 1: Derive an initial font size based on the height of the bounding box
         //double fontSize = paddedBoundingBox.Height * (1000 / totalFontHeight) * 0.685;
-        double fontSize = 1.294 * Math.Pow(boundingBox.Height, 0.7887);
+        double fontSize = _initialFontSizeScale * Math.Pow(boundingBox.Height, _initialFontSizeExponent);
         //double fontSize = 2.552 * Math.Pow(paddedBoundingBox.Height, 0.609);
 
         // Step 2: Measure the width of the text at the calculated font size
@@ -53,7 +54,7 @@ internal class TextCalculations : ITextCalculations
         // If the text width overflows the padded bounding box, reduce the font size
         while (textWidth > paddedBoundingBox.Width && fontSize > _minFontSize)
         {
-            fontSize -= 0.1d; // Decrease the font size by 0.1 points
+            fontSize -= 0.01d; // Fine-grained adjustment avoids overshooting narrow fields
             textWidth = fontProvider.MeasureText(text, fontName, fontSize);
         }
 
