@@ -105,6 +105,19 @@ internal static class Constants
             public const string ID = "ID";
         }
 
+        public static class DocumentInformation
+        {
+            public const string Title = "Title";
+            public const string Author = "Author";
+            public const string Subject = "Subject";
+            public const string Keywords = "Keywords";
+            public const string Creator = "Creator";
+            public const string Producer = "Producer";
+            public const string CreationDate = "CreationDate";
+            public const string ModDate = "ModDate";
+            public const string Trapped = "Trapped";
+        }
+
         public static class DocumentCatalog
         {
             public const string Version = "Version";

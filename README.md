@@ -130,6 +130,48 @@ using var output = File.Create("decompressed.pdf");
 await pdf.SaveAsync(output);
 ```
 
+## Metadata
+
+Use `GetMetadataAsync()` to inspect or update the document information dictionary.
+
+Editable fields include:
+
+- `Title`
+- `Author`
+- `Subject`
+- `Keywords`
+- `Creator`
+- `CreationDate`
+
+On save, ZingPDF also updates:
+
+- `Producer` to `ZingPDF`
+- `ModifiedDate` to the current time
+
+Example:
+
+```csharp
+using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var metadata = await pdf.GetMetadataAsync();
+metadata.Title = "Quarterly Report";
+metadata.Author = "Taylor Smith";
+metadata.Subject = "Q1 FY2026";
+metadata.Keywords = "finance,quarterly";
+metadata.Creator = "Back Office Importer";
+metadata.CreationDate = new DateTimeOffset(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
+
+using var output = File.Create("metadata-updated.pdf");
+await pdf.SaveAsync(output);
+```
+
+Notes:
+
+- Metadata changes are persisted when you call `SaveAsync(...)`.
+- If the source PDF has no `Info` dictionary, ZingPDF creates one during save.
+- Existing PDFs may store info dates either as PDF date objects or strings; ZingPDF reads both and normalizes written dates on save.
+
 ## Encryption
 
 ### Open an encrypted PDF
@@ -309,14 +351,36 @@ You cannot currently:
 
 ### Button fields
 
-Button fields such as checkboxes, radio buttons, and push buttons are discovered internally, but their concrete implementations are not currently public.
+Button fields are now exposed through the public forms API:
 
-In practice, that means external callers can still:
+- `CheckboxFormField`
+- `RadioButtonFormField`
+- `PushButtonFormField`
 
-- enumerate them through `GetFieldsAsync()`
-- read common `IFormField` metadata such as name, description, dimensions, and field flags
+Checkboxes and radio buttons both inherit from `ButtonOptionsFormField`, which exposes `GetOptionsAsync()`.
 
-But external callers cannot yet use a public strongly typed API to toggle checkbox or radio-button state directly.
+Each returned `SelectableOption` exposes:
+
+- `Text`: the option label
+- `Value`: the export/on-state value
+- `Selected`: whether the option is currently selected
+- `SelectAsync()` and `DeselectAsync()` to change state
+
+Example:
+
+```csharp
+using ZingPDF.Elements.Forms.FieldTypes.Button;
+
+var form = await pdf.GetFormAsync();
+var contactByPhone = (await form!.GetFieldsAsync())
+    .OfType<CheckboxFormField>()
+    .Single(x => x.Name == "Phone1");
+
+var option = (await contactByPhone.GetOptionsAsync()).Single();
+await option.SelectAsync();
+```
+
+Push buttons are discoverable through `PushButtonFormField`, but button actions are not yet exposed through the high-level API.
 
 ### Save semantics for forms
 
@@ -345,7 +409,7 @@ During save, the form update step also forces `NeedAppearances` to `false` so co
 
 - Text fields have the best write support today.
 - Choice fields support option selection through `ChoiceItem`.
-- Button field mutation is not yet exposed publicly.
+- Button fields support option enumeration and state changes, but push-button actions are not yet exposed.
 - Signature field signing is not yet implemented.
 - If a form depends on unusual viewer-specific behavior or unsupported appearance resources, additional low-level work through `IPdf.Objects` may still be required.
 
@@ -371,6 +435,8 @@ await pdf.AddWatermarkAsync("INTERNAL");
 using var output = File.Create("output.pdf");
 await pdf.SaveAsync(output);
 ```
+
+Metadata is also written as part of the save pipeline. Even if you do not edit metadata directly, `SaveAsync(...)` updates the document `Producer` to `ZingPDF` and refreshes `ModifiedDate`.
 
 ## Important implementation notes
 
@@ -399,6 +465,5 @@ The library now has end-to-end coverage for:
 Areas still worth documenting or expanding further in future:
 
 - richer form examples
-- metadata APIs
 - signing
 - a full rewrite save mode for users who need old revisions physically removed
