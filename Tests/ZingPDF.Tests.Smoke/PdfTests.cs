@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Xunit;
+using System.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Parsing;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -139,13 +140,12 @@ public class PdfTests
     }
 
     [Fact]
-    public async Task Decrypt_RemovesEncryptionOnSave()
+    public async Task DecryptAsync_RemovesEncryptionOnSave()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
         using var output = new MemoryStream();
 
-        await pdf.AuthenticateAsync("kanbanery");
-        pdf.Decrypt();
+        await pdf.DecryptAsync("kanbanery");
         await pdf.SaveAsync(output);
 
         output.Position = 0;
@@ -154,6 +154,45 @@ public class PdfTests
         var pageCount = await reloaded.GetPageCountAsync();
 
         pageCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task EncryptAsync_PreservesEncryptionOnSave()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
+        using var output = new MemoryStream();
+
+        await pdf.AuthenticateAsync("kanbanery");
+        await pdf.EncryptAsync("kanbanery");
+        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(100, 100));
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        await reloaded.AuthenticateAsync("kanbanery");
+        var pageCount = await reloaded.GetPageCountAsync();
+        pageCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task EncryptAsync_EncryptsPreviouslyUnencryptedPdf()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.EncryptAsync("secret-password");
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/Encrypt");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        await reloaded.AuthenticateAsync("secret-password");
+        var pageCount = await reloaded.GetPageCountAsync();
+        pageCount.Should().Be(1);
     }
 
     [Fact]
