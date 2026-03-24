@@ -111,9 +111,8 @@ internal static class PdfBootstrapper
         public Task AddWatermarkAsync(string text) => throw new NotSupportedException();
         public void Compress(int dpi, int quality) => throw new NotSupportedException();
         public Task DecompressAsync() => throw new NotSupportedException();
-        public void Encrypt() => throw new NotSupportedException();
-        public void Decrypt() => throw new NotSupportedException();
-        public void Sign() => throw new NotSupportedException();
+        public Task EncryptAsync(string userPassword, string? ownerPassword = null) => throw new NotSupportedException();
+        public Task DecryptAsync(string password) => throw new NotSupportedException();
         public Task AppendPdfAsync(Stream stream) => throw new NotSupportedException();
         public Task SaveAsync(Stream outputStream) => throw new NotSupportedException();
     }

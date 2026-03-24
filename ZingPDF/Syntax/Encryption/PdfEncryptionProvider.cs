@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
@@ -74,8 +75,13 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
         return handler.Decrypt(context.NearestParent.Id, data);
     }
 
-    public async Task<EncryptionWritePlan?> CreateWritePlanAsync()
+    public async Task<EncryptionWritePlan?> CreateWritePlanAsync(PdfEncryptionOptions? encryptionOptions = null)
     {
+        if (encryptionOptions is not null)
+        {
+            return await CreateNewWritePlanAsync(encryptionOptions);
+        }
+
         var handler = await _handler;
         if (handler is null)
         {
@@ -93,7 +99,10 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             throw new PdfAuthenticationException("Invalid password for encrypted PDF.");
         }
 
-        return new EncryptionWritePlan(handler);
+        var trailerDictionary = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
+        var encryptReference = trailerDictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+
+        return new EncryptionWritePlan(handler, encryptReference);
     }
 
     private async Task<StandardSecurityHandler?> CreateHandlerAsync()
@@ -173,5 +182,66 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             encryptionDictionaryId);
 
         return new StandardSecurityHandler(options);
+    }
+
+    private async Task<EncryptionWritePlan> CreateNewWritePlanAsync(PdfEncryptionOptions encryptionOptions)
+    {
+        var trailerDictionary = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
+        var originalFileId = GetOrCreateOriginalFileId(trailerDictionary);
+
+        var draftOptions = StandardSecurityHandler.CreateNewOptions(
+            encryptionOptions.UserPassword,
+            encryptionOptions.OwnerPassword,
+            originalFileId.Bytes,
+            encryptionOptions.Permissions,
+            encryptionOptions.KeyLengthBits,
+            encryptionOptions.EncryptMetadata);
+
+        var encryptionDictionary = CreateStandardEncryptionDictionary(draftOptions);
+        var encryptionIndirectObject = await _pdf.Objects.AddAsync(encryptionDictionary);
+
+        var finalizedOptions = draftOptions with { EncryptionDictionaryId = encryptionIndirectObject.Id };
+        var handler = new StandardSecurityHandler(finalizedOptions);
+        if (!handler.TryAuthenticate(encryptionOptions.UserPassword))
+        {
+            throw new InvalidOperationException("Unable to initialize PDF encryption.");
+        }
+
+        return new EncryptionWritePlan(handler, encryptionIndirectObject.Reference, originalFileId);
+    }
+
+    private PdfString GetOrCreateOriginalFileId(ITrailerDictionary trailerDictionary)
+    {
+        if (trailerDictionary.ID?[0] is PdfString existingFileId)
+        {
+            return PdfString.FromBytes(existingFileId.Bytes, PdfStringSyntax.Hex, ObjectContext.UserCreated);
+        }
+
+        return PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+    }
+
+    private StandardEncryptionDictionary CreateStandardEncryptionDictionary(StandardSecurityHandlerOptions options)
+    {
+        var dictionary = new Dictionary<string, IPdfObject>
+        {
+            [Constants.DictionaryKeys.Encryption.Filter] = (Name)"Standard",
+            [Constants.DictionaryKeys.Encryption.V] = (Number)options.Version,
+            [Constants.DictionaryKeys.Encryption.Standard.R] = (Number)options.Revision,
+            [Constants.DictionaryKeys.Encryption.Standard.O] = PdfString.FromBytes(options.OwnerKey, PdfStringSyntax.Hex, ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Encryption.Standard.U] = PdfString.FromBytes(options.UserKey, PdfStringSyntax.Hex, ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Encryption.Standard.P] = (Number)options.Permissions,
+        };
+
+        if (options.KeyLengthBits != 40)
+        {
+            dictionary[Constants.DictionaryKeys.Encryption.Length] = (Number)options.KeyLengthBits;
+        }
+
+        if (!options.EncryptMetadata)
+        {
+            dictionary[Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata] = BooleanObject.FromBool(false, ObjectContext.UserCreated);
+        }
+
+        return StandardEncryptionDictionary.FromDictionary(dictionary, _pdf, ObjectContext.UserCreated);
     }
 }
