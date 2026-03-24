@@ -38,9 +38,10 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// </summary>
         public RequiredProperty<Number> PageCount => GetRequiredProperty<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count);
 
-        public async Task AddChildAsync(IndirectObjectReference key)
+        public async Task AddChildAsync(IndirectObjectReference key, int pageCount = 1)
         {
             ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageCount, 1, nameof(pageCount));
 
             ArrayObject kids = await Kids.GetAsync();
 
@@ -48,12 +49,28 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + 1);
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + pageCount);
         }
 
-        public async Task RemoveChildAsync(IndirectObjectReference key)
+        public async Task InsertChildAsync(int index, IndirectObjectReference key, int pageCount = 1)
         {
             ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentOutOfRangeException.ThrowIfLessThan(index, 0, nameof(index));
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageCount, 1, nameof(pageCount));
+
+            ArrayObject kids = await Kids.GetAsync();
+
+            kids.Insert(index, key);
+
+            Number count = await PageCount.GetAsync();
+
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + pageCount);
+        }
+
+        public async Task RemoveChildAsync(IndirectObjectReference key, int pageCount = 1)
+        {
+            ArgumentNullException.ThrowIfNull(key, nameof(key));
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageCount, 1, nameof(pageCount));
 
             ArrayObject kids = await Kids.GetAsync();
 
@@ -61,7 +78,7 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
 
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - 1);
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - pageCount);
         }
 
         public async Task ReplaceAllChildrenAsync(IEnumerable<IndirectObjectReference> newKids)
@@ -75,18 +92,22 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
             kids.AddRange(newKids);
         }
 
-        public async Task IncrementCountAsync()
+        public async Task IncrementCountAsync(int delta = 1)
         {
+            ArgumentOutOfRangeException.ThrowIfLessThan(delta, 1, nameof(delta));
+
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + 1);
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count + delta);
         }
 
-        public async Task DecrementCountAsync()
+        public async Task DecrementCountAsync(int delta = 1)
         {
+            ArgumentOutOfRangeException.ThrowIfLessThan(delta, 1, nameof(delta));
+
             Number count = await PageCount.GetAsync();
 
-            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - 1);
+            Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, count - delta);
         }
 
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdf pdf)
