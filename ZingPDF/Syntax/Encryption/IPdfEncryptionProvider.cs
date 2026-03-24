@@ -8,4 +8,6 @@ internal interface IPdfEncryptionProvider
     Task AuthenticateAsync(string password);
 
     Task<byte[]> DecryptObjectBytesAsync(ObjectContext context, byte[] data, IStreamDictionary? streamDictionary);
+
+    Task<EncryptionWritePlan?> CreateWritePlanAsync();
 }

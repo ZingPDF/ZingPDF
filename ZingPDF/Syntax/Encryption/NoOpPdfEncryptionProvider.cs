@@ -16,4 +16,7 @@ internal sealed class NoOpPdfEncryptionProvider : IPdfEncryptionProvider
 
     public Task<byte[]> DecryptObjectBytesAsync(ObjectContext context, byte[] data, IStreamDictionary? streamDictionary)
         => Task.FromResult(data);
+
+    public Task<EncryptionWritePlan?> CreateWritePlanAsync()
+        => Task.FromResult<EncryptionWritePlan?>(null);
 }
