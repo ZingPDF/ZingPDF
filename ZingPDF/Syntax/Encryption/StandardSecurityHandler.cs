@@ -135,17 +135,17 @@ internal sealed class StandardSecurityHandler : ISecurityHandler
     {
         using var md5 = MD5.Create();
 
-        var data = new byte[paddedPassword.Length + _options.FileId.Length];
-        paddedPassword.CopyTo(data, 0);
-        _options.FileId.CopyTo(data, paddedPassword.Length);
-
-        var hash = md5.ComputeHash(data);
-
         if (_options.Revision == 2)
         {
             var result = Rc4(fileKey, _passwordPadding);
             return result.AsSpan().SequenceEqual(_options.UserKey);
         }
+
+        var data = new byte[_passwordPadding.Length + _options.FileId.Length];
+        _passwordPadding.CopyTo(data, 0);
+        _options.FileId.CopyTo(data, _passwordPadding.Length);
+
+        var hash = md5.ComputeHash(data);
 
         var encrypted = Rc4(fileKey, hash);
         for (var i = 1; i <= 19; i++)
@@ -172,7 +172,7 @@ internal sealed class StandardSecurityHandler : ISecurityHandler
         {
             for (var i = 0; i < 50; i++)
             {
-                hash = md5.ComputeHash(hash.AsSpan(0, _keyLengthBytes).ToArray());
+                hash = md5.ComputeHash(hash);
             }
         }
 
