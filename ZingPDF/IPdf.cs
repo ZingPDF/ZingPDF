@@ -29,7 +29,7 @@ public interface IPdf
 
     Task<IEnumerable<ExtractedText>> ExtractTextAsync();
 
-    void AddWatermark();
+    Task AddWatermarkAsync(string text);
 
     void Compress(int dpi, int quality);
 
@@ -45,8 +45,7 @@ public interface IPdf
     void Encrypt();
     void Decrypt();
 
-    void Sign();
     Task AppendPdfAsync(Stream stream);
 
-    Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions);
+    Task SaveAsync(Stream outputStream);
 }

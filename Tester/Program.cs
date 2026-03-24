@@ -60,7 +60,8 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //await RotatePage();
 
-await RotateWholeDocument();
+//await RotateWholeDocument();
+await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
@@ -79,6 +80,18 @@ await RotateWholeDocument();
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
+
+static async Task Watermark(string input, string output, string text)
+{
+    using var inputFileStream = new FileStream(input, FileMode.Open);
+    using var outputFileStream = new FileStream(output, FileMode.Create);
+
+    var pdf = Pdf.Load(inputFileStream);
+
+    await pdf.AddWatermarkAsync(text);
+
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task ExtractText(string input)
 {
