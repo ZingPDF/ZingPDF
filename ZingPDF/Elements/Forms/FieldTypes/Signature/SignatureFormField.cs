@@ -3,6 +3,12 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Signature
 {
+    /// <summary>
+    /// Represents a signature field.
+    /// </summary>
+    /// <remarks>
+    /// This type currently exposes metadata only. Digital signing is not yet implemented through this API.
+    /// </remarks>
     public class SignatureFormField : FormField<IPdfObject>
     {
         public SignatureFormField(
