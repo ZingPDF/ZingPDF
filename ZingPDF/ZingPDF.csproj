@@ -7,6 +7,20 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>ZingPDF</PackageId>
+    <Authors>Tom Bowers</Authors>
+    <Company>ZingPDF</Company>
+    <Description>.NET 8 PDF library for loading, creating, editing, merging, watermarking, compressing, filling forms, and encrypting PDF documents.</Description>
+    <PackageTags>pdf;documents;forms;encryption;compression;watermark</PackageTags>
+    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +43,11 @@
     <None Update="Spec\ISO_32000-2-2020.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="/" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
