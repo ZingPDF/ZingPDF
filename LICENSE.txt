@@ -1,0 +1,7 @@
+Copyright (c) 2026 Tom Bowers. All rights reserved.
+
+This repository and the ZingPDF package are proprietary software.
+
+No permission is granted to use, copy, modify, distribute, sublicense, or sell this software except under a separate written agreement from the copyright holder.
+
+For commercial licensing enquiries, contact the copyright holder.
