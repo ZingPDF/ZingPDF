@@ -22,6 +22,18 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task EncryptedPdf_CanBeDecryptedWithPassword()
+    {
+        var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
+
+        await pdf.AuthenticateAsync("kanbanery");
+
+        var pageCount = await pdf.GetPageCountAsync();
+
+        pageCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task AppendPage_PageCount()
     {
         var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
