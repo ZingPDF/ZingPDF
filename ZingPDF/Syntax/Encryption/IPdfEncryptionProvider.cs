@@ -9,5 +9,5 @@ internal interface IPdfEncryptionProvider
 
     Task<byte[]> DecryptObjectBytesAsync(ObjectContext context, byte[] data, IStreamDictionary? streamDictionary);
 
-    Task<EncryptionWritePlan?> CreateWritePlanAsync();
+    Task<EncryptionWritePlan?> CreateWritePlanAsync(PdfEncryptionOptions? encryptionOptions = null);
 }
