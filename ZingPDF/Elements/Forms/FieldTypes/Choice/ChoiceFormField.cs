@@ -6,6 +6,9 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 {
+    /// <summary>
+    /// Base class for choice fields such as combo boxes and list boxes.
+    /// </summary>
     public abstract class ChoiceFormField(
         IndirectObject fieldIndirectObject,
         string name,
@@ -16,6 +19,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         )
         : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdf)
     {
+        /// <summary>
+        /// Gets the available options for the field.
+        /// </summary>
         public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {
             if (_fieldDictionary.Opt == null)
