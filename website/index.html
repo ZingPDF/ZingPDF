@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZingPDF Commercial Licensing</title>
+  <meta name="description"
+    content="Commercial licenses for ZingPDF, the .NET PDF library for document editing, forms, encryption, metadata, and save workflows.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="#licenses">Licenses</a>
+        <a href="#why">Why ZingPDF</a>
+        <a href="./docs.html">Docs</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Commercial PDF toolkit for .NET</p>
+          <h1>Simple, Fast, PDF Editing.</h1>
+          <p class="lead">
+            ZingPDF gives you a practical .NET API for page editing, forms, encryption,
+            metadata, text extraction, watermarking, and save workflows, with commercial licensing available.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#licenses">Buy a License</a>
+            <a class="button button-secondary" href="./docs.html">Read the Docs</a>
+          </div>
+          <ul class="hero-points">
+            <li>Simple pricing for solo developers and teams</li>
+            <li>Direct path to enterprise support when you need it</li>
+          </ul>
+        </div>
+
+        <div class="hero-panel">
+          <div class="code-card">
+            <div class="code-card-header">
+              <span class="traffic">
+                <span></span><span></span><span></span>
+              </span>
+              <span>Intuitive API</span>
+            </div>
+            <pre><code>using var pdf = Pdf.Load(stream);
+
+var form = await pdf.GetFormAsync();
+var metadata = await pdf.GetMetadataAsync();
+
+metadata.Title = "Invoice Pack";
+await pdf.AddWatermarkAsync("PAID");
+await pdf.EncryptAsync("user-password");
+await pdf.SaveAsync(output);</code></pre>
+          </div>
+          <p class="panel-note">
+            Built for teams who want a PDF library that's easy to use, with a simple licensing model.
+          </p>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="Highlights">
+        <div>Page editing</div>
+        <div>Forms</div>
+        <div>Encryption</div>
+        <div>Metadata</div>
+        <div>Watermarks</div>
+        <div>Commercial licensing</div>
+      </section>
+
+      <section class="licenses" id="licenses">
+        <div class="section-copy">
+          <p class="eyebrow">Licensing</p>
+          <h2>Choose a license that fits your team.</h2>
+          <p>
+            Choose between solo and team licensing. For more seats or custom support requirements, please contact us,
+            and feel free to get started with the team license.
+          </p>
+        </div>
+
+        <div class="pricing-grid" id="pricing-grid"></div>
+      </section>
+
+      <section class="why" id="why">
+        <div class="section-copy">
+          <p class="eyebrow">Why teams buy</p>
+          <h2>Practical capabilities, small integration surface.</h2>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <h3>Useful PDF operations</h3>
+            <p>Create, inspect, edit, merge, watermark, compress, encrypt, decrypt, and update metadata through one
+              library.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Forms support</h3>
+            <p>Work with text, choice, checkbox, radio, push button, and signature field types through the high-level
+              API.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Commercially packaged</h3>
+            <p>Versioned DLLs, packaged NuGet output, XML docs, release workflow, and explicit commercial licensing
+              path.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Developer docs</h3>
+            <p>Quick start guidance, forms, metadata, encryption, save semantics, and implementation notes now live in a
+              dedicated docs page.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq" id="faq">
+        <div class="section-copy">
+          <p class="eyebrow">FAQ</p>
+          <h2>What buyers usually ask first.</h2>
+        </div>
+
+        <div class="faq-list">
+          <details open>
+            <summary>What does the commercial license actually cover?</summary>
+            <p>The commercial license is intended for teams using ZingPDF in paid products, internal business systems,
+              or client-delivered software where a proprietary licensing path is required.</p>
+          </details>
+          <details>
+            <summary>What if my company needs procurement, invoicing, or custom terms?</summary>
+            <p>That is what the Enterprise option is for. It gives you a direct path for larger seat counts,
+              redistribution rights, and support expectations.</p>
+          </details>
+          <details>
+            <summary>How mature is the library today?</summary>
+            <p>ZingPDF already covers practical workflows like page editing, forms, metadata, encryption, watermarking,
+              compression, and incremental save behavior, with ongoing work to keep the product release-ready.</p>
+          </details>
+          <details>
+            <summary>Can I evaluate the library before committing to a larger purchase?</summary>
+            <p>Yes. ZingPDF is fully functional prior to purchase. See the <a class="inline-link"
+                href="./docs.html">developer docs</a> to get started with the API and current capabilities.</p>
+          </details>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="contact-dialog" class="contact-dialog">
+    <form method="dialog" class="contact-dialog-card">
+      <button class="dialog-close" value="close" aria-label="Close">x</button>
+      <p class="eyebrow">Enterprise sales</p>
+      <h2>Close larger deals directly.</h2>
+      <p id="contact-email-text"></p>
+      <a id="contact-email-link" class="button button-primary" href="#">Email sales</a>
+    </form>
+  </dialog>
+
+  <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+
+</html>

@@ -1,9 +1,7 @@
 ﻿using FluentAssertions;
-using Xunit;
 using System.Text;
+using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
-using ZingPDF.Extensions;
-using ZingPDF.Parsing;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
