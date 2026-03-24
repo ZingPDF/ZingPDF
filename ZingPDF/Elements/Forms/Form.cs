@@ -16,6 +16,15 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
 {
+    /// <summary>
+    /// Represents an AcroForm attached to a PDF document.
+    /// </summary>
+    /// <remarks>
+    /// Call <see cref="GetFieldsAsync()"/> to discover fields, then pattern match the returned values to
+    /// the public field types such as <see cref="FieldTypes.Text.TextFormField"/>,
+    /// <see cref="FieldTypes.Choice.ChoiceFormField"/>, or <see cref="FieldTypes.Signature.SignatureFormField"/>.
+    /// Button fields currently expose only the shared <see cref="IFormField"/> metadata publicly.
+    /// </remarks>
     public class Form
     {
         private bool _dirty;
@@ -63,6 +72,12 @@ namespace ZingPDF.Elements.Forms
         internal async Task<InteractiveFormDictionary> GetFormDictionaryAsync() => await _acroFormDictionary;
         internal async Task<IEnumerable<IFontMetricsProvider>> GetFontProvidersAsync() => await _fontProviders;
 
+        /// <summary>
+        /// Enumerates the terminal form fields in the document.
+        /// </summary>
+        /// <remarks>
+        /// Field names are returned as fully qualified names using dot notation for nested fields.
+        /// </remarks>
         public async Task<IEnumerable<IFormField>> GetFieldsAsync()
         {
             var formDict = await _acroFormDictionary;
