@@ -46,8 +46,8 @@ public interface IPdf
     /// Saves the PDF using standard password protection.
     /// </summary>
     /// <remarks>
-    /// The current implementation supports preserving or re-applying encryption for PDFs that are already encrypted.
-    /// Encrypting a previously unencrypted PDF is not yet supported.
+    /// If the source PDF is already encrypted, authenticate it first so the document can be rewritten.
+    /// The current implementation writes Standard security handler encryption using RC4 (V=2, R=3).
     /// </remarks>
     Task EncryptAsync(string userPassword, string? ownerPassword = null);
 
