@@ -2,6 +2,9 @@
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Choice;
 
+/// <summary>
+/// Represents a selectable option in a choice field.
+/// </summary>
 public class ChoiceItem
 {
     private readonly Func<PdfString, Task> _onSelect;
@@ -22,10 +25,28 @@ public class ChoiceItem
         _onDeselect = onDeselect;
     }
 
+    /// <summary>
+    /// Gets or sets the display text for the option.
+    /// </summary>
     public PdfString Text { get; set; }
+
+    /// <summary>
+    /// Gets or sets the stored option value.
+    /// </summary>
     public PdfString Value { get; set; }
+
+    /// <summary>
+    /// Gets whether the option is currently selected.
+    /// </summary>
     public bool Selected { get; }
 
+    /// <summary>
+    /// Selects this option.
+    /// </summary>
     public Task SelectAsync() => _onSelect(Value);
+
+    /// <summary>
+    /// Deselects this option.
+    /// </summary>
     public Task DeselectAsync() => _onDeselect(Value);
 }
