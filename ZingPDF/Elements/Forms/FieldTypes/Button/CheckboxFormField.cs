@@ -7,7 +7,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 /// <summary>
 /// <para>ISO 32000-2:2020 12.7.5.2.3 - Check boxes</para>
 /// </summary>
-internal class CheckboxFormField : ButtonOptionsFormField
+/// <summary>
+/// Represents a checkbox field.
+/// </summary>
+public class CheckboxFormField : ButtonOptionsFormField
 {
     internal CheckboxFormField(
         IndirectObject fieldIndirectObject,
