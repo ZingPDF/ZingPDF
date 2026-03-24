@@ -1,19 +1,26 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Text;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
-using ZingPDF.IncrementalUpdates;
+using ZingPDF.Graphics;
+using ZingPDF.Graphics.Images;
 using ZingPDF.Parsing.Parsers;
-using ZingPDF.Syntax.Encryption;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Syntax.Encryption;
+using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text.Encoding.PDFDocEncoding;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF;
 
@@ -32,6 +39,9 @@ public class Pdf : IPdf, IDisposable
     }
 
     private Form? _form;
+    private bool _rewriteAllObjects;
+    private bool _removeEncryptionOnSave;
+    private bool _encryptOnSaveRequested;
 
     private Pdf(Stream data)
     {
@@ -110,6 +120,7 @@ public class Pdf : IPdf, IDisposable
         await rootPageTreeNode.AddChildAsync(pageIndirectObject.Reference);
 
         Objects.Update(rootPageTreeNodeIndirectObject);
+        Objects.PageTree.Reset();
 
         return new Page(pageIndirectObject, this);
     }
@@ -157,11 +168,12 @@ public class Pdf : IPdf, IDisposable
 
         var newPageIndirectObject = await Objects.AddAsync(page);
 
-        await parentPageTreeNode.AddChildAsync(newPageIndirectObject.Reference);
+        await parentPageTreeNode.InsertChildAsync(kidsIndex, newPageIndirectObject.Reference);
 
         await IncrementPageCountAsync(parentPageTreeNode);
 
         Objects.Update(parentPageTreeNodeIndirectObject);
+        Objects.PageTree.Reset();
 
         return new Page(newPageIndirectObject, this);
     }
@@ -192,6 +204,7 @@ public class Pdf : IPdf, IDisposable
 
         Objects.Delete(page.IndirectObject.Id);
         Objects.Update(new IndirectObject(parentIndirectObject.Id, parent));
+        Objects.PageTree.Reset();
     }
 
     public async Task SetRotationAsync(Rotation rotation)
@@ -214,14 +227,14 @@ public class Pdf : IPdf, IDisposable
         return textExtractor.ExtractTextAsync();
     }
 
-    public void AddWatermark()
+    public async Task AddWatermarkAsync(string text)
     {
-        throw new NotImplementedException();
+        await AddWatermarkInternalAsync(text);
     }
 
     public void Compress(int dpi, int quality)
     {
-        throw new NotImplementedException();
+        CompressAsync(dpi, quality).GetAwaiter().GetResult();
     }
 
     public async Task DecompressAsync()
@@ -279,17 +292,14 @@ public class Pdf : IPdf, IDisposable
 
     public void Encrypt()
     {
-        throw new NotImplementedException();
+        _encryptOnSaveRequested = true;
+        _removeEncryptionOnSave = false;
     }
 
     public void Decrypt()
     {
-        throw new NotImplementedException();
-    }
-
-    public void Sign()
-    {
-        throw new NotImplementedException();
+        _rewriteAllObjects = true;
+        _removeEncryptionOnSave = true;
     }
 
     public async Task AppendPdfAsync(Stream stream)
@@ -297,12 +307,10 @@ public class Pdf : IPdf, IDisposable
         await new PdfMerger(this, Load(stream)).AppendAsync();
     }
 
-    public async Task SaveAsync(Stream outputStream, PdfSaveOptions? saveOptions = null)
+    public async Task SaveAsync(Stream outputStream)
     {
         ArgumentNullException.ThrowIfNull(outputStream);
         if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
-
-        saveOptions ??= PdfSaveOptions.Default;
 
         // Copy original PDf to output if required.
         if (outputStream.Length == 0)
@@ -311,11 +319,22 @@ public class Pdf : IPdf, IDisposable
             await Data.CopyToAsync(outputStream);
         }
 
-        _form?.UpdateAsync();
+        if (_form != null)
+        {
+            await _form.UpdateAsync();
+        }
 
-        var incrementalUpdate = await Objects.GenerateUpdateDeltaAsync();
+        var incrementalUpdate = await Objects.GenerateUpdateDeltaAsync(_rewriteAllObjects);
         if (incrementalUpdate != null)
         {
+            incrementalUpdate.EncryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync();
+            incrementalUpdate.RemoveEncryption = _removeEncryptionOnSave;
+
+            if (_encryptOnSaveRequested && incrementalUpdate.EncryptionWritePlan is null)
+            {
+                throw new NotSupportedException("Encrypting a previously unencrypted PDF is not yet supported by this API.");
+            }
+
             await incrementalUpdate.WriteAsync(outputStream);
         }
 
@@ -334,11 +353,14 @@ public class Pdf : IPdf, IDisposable
         return new Pdf(pdfInputStream);
     }
 
+    public static Pdf Create(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
+        => PdfBootstrapper.Create(configureOptions);
+
     // TODO: move to testable class?
     /// <summary>
     /// Recursively increment the page count of this page tree node and all its ancestors
     /// </summary>
-    private async Task IncrementPageCountAsync(PageTreeNodeDictionary pageTreeNode)
+    private async Task IncrementPageCountAsync(PageTreeNodeDictionary pageTreeNode, int delta = 1)
     {
         PageTreeNodeDictionary? parentPageTreeNode = await pageTreeNode.Parent.GetAsync();
         if (parentPageTreeNode is null)
@@ -348,18 +370,18 @@ public class Pdf : IPdf, IDisposable
 
         var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
 
-        await parentPageTreeNode.IncrementCountAsync();
+        await parentPageTreeNode.IncrementCountAsync(delta);
 
         Objects.Update(parentPageTreeNodeIndirectObject);
 
-        await IncrementPageCountAsync(parentPageTreeNode);
+        await IncrementPageCountAsync(parentPageTreeNode, delta);
     }
 
     // TODO: move to testable class?
     /// <summary>
     /// Recursively decrement the page count of this page tree node and all its ancestors
     /// </summary>
-    private async Task DecrementPageCountAsync(PageTreeNodeDictionary pageTreeNode)
+    private async Task DecrementPageCountAsync(PageTreeNodeDictionary pageTreeNode, int delta = 1)
     {
         if (pageTreeNode.Parent is null)
         {
@@ -369,11 +391,139 @@ public class Pdf : IPdf, IDisposable
         var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
-        await parentPageTreeNode.DecrementCountAsync();
+        await parentPageTreeNode.DecrementCountAsync(delta);
 
         Objects.Update(parentPageTreeNodeIndirectObject);
 
-        await DecrementPageCountAsync(parentPageTreeNode);
+        await DecrementPageCountAsync(parentPageTreeNode, delta);
+    }
+
+    private async Task AddWatermarkInternalAsync(string text)
+    {
+        var watermarkFont = new Type1FontDictionary(this, ObjectContext.UserCreated);
+        watermarkFont.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)"Helvetica");
+        watermarkFont.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
+
+        var fontObject = await Objects.AddAsync(watermarkFont);
+        var fontResourceName = (Name)UniqueStringGenerator.Generate();
+
+        foreach (var pageObject in await Objects.PageTree.GetPagesAsync())
+        {
+            var page = new Page(pageObject, this);
+            var mediaBox = await page.Dictionary.MediaBox.GetAsync();
+            var resources = ResourceDictionary.FromDictionary(await page.Dictionary.Resources.GetAsync());
+            await resources.AddFontAsync(fontResourceName, fontObject.Reference, this);
+            page.Dictionary.SetResources(resources);
+
+            var pageWidth = mediaBox.UpperRight.X - mediaBox.LowerLeft.X;
+            var pageHeight = mediaBox.UpperRight.Y - mediaBox.LowerLeft.Y;
+            var fontSize = 42;
+            var x = mediaBox.LowerLeft.X + (pageWidth * 0.2);
+            var y = mediaBox.LowerLeft.Y + (pageHeight * 0.5);
+
+            var watermarkContent = new ContentStream()
+                .SaveGraphicsState()
+                .SetColour(new RGBColour(0.8, 0.8, 0.8))
+                .BeginTextObject()
+                .SetTextState(fontResourceName, fontSize)
+                .SetTextMatrix(
+                    1,
+                    0,
+                    0,
+                    1,
+                    x,
+                    y)
+                .ShowText(PdfString.FromTextAuto(text, ObjectContext.UserCreated))
+                .EndTextObject()
+                .RestoreGraphicsState();
+
+            var watermarkStream = await new ContentStreamFactory([watermarkContent])
+                .CreateAsync(new StreamDictionary(this, ObjectContext.UserCreated), ObjectContext.UserCreated);
+
+            var watermarkIndirectObject = await Objects.AddAsync(watermarkStream);
+
+            await page.Dictionary.AddContentAsync(watermarkIndirectObject.Reference);
+
+            Objects.Update(pageObject);
+        }
+    }
+
+    private async Task CompressAsync(int dpi, int quality)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(dpi, 1, nameof(dpi));
+        ArgumentOutOfRangeException.ThrowIfLessThan(quality, 1, nameof(quality));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(quality, 100, nameof(quality));
+
+        List<IndirectObject> toBeUpdated = [];
+
+        await foreach (var obj in Objects)
+        {
+            if (obj.Object is StreamObject<ImageDictionary> imageStream
+                && await TryRecompressJpegImageAsync(imageStream, quality) is StreamObject<ImageDictionary> recompressedImage)
+            {
+                toBeUpdated.Add(new IndirectObject(obj.Id, recompressedImage));
+                continue;
+            }
+
+            if (obj.Object is not IStreamObject streamObj)
+            {
+                continue;
+            }
+
+            ArrayObject? filterNames = await streamObj.Dictionary.Filter.GetAsync();
+            if (filterNames is not null && filterNames.Any())
+            {
+                continue;
+            }
+
+            var rawData = await streamObj.GetDecompressedDataAsync();
+            var compressedData = new FlateDecodeFilter(null).Encode(rawData);
+            rawData.Position = 0;
+
+            var newStreamDictionary = StreamDictionary.FromDictionary(streamObj.Dictionary);
+            newStreamDictionary.Set(Constants.DictionaryKeys.Stream.Filter, new ShorthandArrayObject([(Name)Constants.Filters.Flate], ObjectContext.UserCreated));
+            newStreamDictionary.Set(Constants.DictionaryKeys.Stream.Length, (ZingPDF.Syntax.Objects.Number)compressedData.Length);
+            newStreamDictionary.Set(Constants.DictionaryKeys.Stream.DL, (ZingPDF.Syntax.Objects.Number)rawData.Length);
+
+            toBeUpdated.Add(new IndirectObject(obj.Id, new StreamObject<IStreamDictionary>(compressedData, newStreamDictionary)));
+        }
+
+        foreach (var indirectObject in toBeUpdated)
+        {
+            Objects.Update(indirectObject);
+        }
+    }
+
+    private static async Task<StreamObject<ImageDictionary>?> TryRecompressJpegImageAsync(StreamObject<ImageDictionary> imageStream, int quality)
+    {
+        var filters = await imageStream.Dictionary.Filter.GetAsync();
+        if (filters is null || !filters.Cast<Name>().Any(x => x.Value == Constants.Filters.DCT))
+        {
+            return null;
+        }
+
+        try
+        {
+            imageStream.Data.Position = 0;
+            using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(imageStream.Data);
+            var output = new MemoryStream();
+            await image.SaveAsync(output, new JpegEncoder { Quality = quality });
+            output.Position = 0;
+
+            var dictionary = (ImageDictionary)imageStream.Dictionary.Clone();
+            dictionary.Set(Constants.DictionaryKeys.Stream.Length, (ZingPDF.Syntax.Objects.Number)output.Length);
+            dictionary.Set(Constants.DictionaryKeys.Stream.DL, (ZingPDF.Syntax.Objects.Number)output.Length);
+
+            return new StreamObject<ImageDictionary>(output, dictionary);
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            imageStream.Data.Position = 0;
+        }
     }
 
     #region IDisposable

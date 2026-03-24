@@ -192,9 +192,9 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         _updatedObjects[indirectObject.Id] = indirectObject;
     }
 
-    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync()
+    public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync(bool includeAllObjects = false)
     {
-        if (NewOrUpdatedObjects.Count == 0 && _deletedObjects.Count == 0)
+        if (!includeAllObjects && NewOrUpdatedObjects.Count == 0 && _deletedObjects.Count == 0)
         {
             return null;
         }
@@ -203,9 +203,22 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
         var latestVersion = versions.First();
 
+        IEnumerable<IndirectObject> updatedObjects = _updatedObjects.Values;
+
+        if (includeAllObjects)
+        {
+            var allObjects = new List<IndirectObject>();
+            await foreach (var obj in this)
+            {
+                allObjects.Add(obj);
+            }
+
+            updatedObjects = allObjects;
+        }
+
         return new IncrementalUpdate(
             _newObjects,
-            _updatedObjects.Values,
+            updatedObjects,
             _deletedObjects,
             latestVersion.Trailer,
             latestVersion.CrossReferenceStream
