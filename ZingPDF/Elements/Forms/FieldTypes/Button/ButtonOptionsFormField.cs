@@ -54,7 +54,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 /// by setting the RadiosInUnison flag.
 /// </para>
 /// </summary>
-internal abstract class ButtonOptionsFormField : FormField<Name>
+/// <summary>
+/// Base class for checkbox and radio-button fields.
+/// </summary>
+public abstract class ButtonOptionsFormField : FormField<Name>
 {
     protected readonly IEnumerable<IndirectObject> _kids;
 
@@ -75,6 +78,9 @@ internal abstract class ButtonOptionsFormField : FormField<Name>
     protected abstract Task SelectOptionAsync(SelectableOption option);
     protected abstract Task DeselectOptionAsync(SelectableOption option);
 
+    /// <summary>
+    /// Gets the selectable options for the field.
+    /// </summary>
     public async Task<IReadOnlyList<SelectableOption>> GetOptionsAsync()
     {
         List<SelectableOption> options = [];
