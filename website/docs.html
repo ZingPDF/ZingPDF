@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZingPDF Developer Docs</title>
+  <meta name="description"
+    content="Developer documentation for ZingPDF, including quick start, forms, metadata, encryption, save behavior, and implementation notes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./index.html#licenses">Licenses</a>
+        <a href="./docs.html">Docs</a>
+        <a href="#quick-start">Quick Start</a>
+        <a href="#forms">Forms</a>
+        <a href="#encryption">Encryption</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="docs-hero">
+        <div class="docs-hero-copy">
+          <p class="eyebrow">Developer Documentation</p>
+          <h1>ZingPDF docs</h1>
+          <p class="lead">Reference material and integration guidance for the core API surface.</p>
+        </div>
+
+        <aside class="doc-card">
+          <h3>Target</h3>
+          <p><code>.NET 8</code></p>
+          <h3>Core areas</h3>
+          <p>Pages, forms, metadata, encryption, save behavior, and low-level object access.</p>
+        </aside>
+      </section>
+
+      <div class="docs-layout">
+        <aside class="docs-sidebar">
+          <h2>On This Page</h2>
+          <nav>
+            <a href="#quick-start">Quick Start</a>
+            <a href="#metadata">Metadata</a>
+            <a href="#forms">Forms</a>
+            <a href="#encryption">Encryption</a>
+            <a href="#save">Save Behavior</a>
+            <a href="#notes">Implementation Notes</a>
+            <a href="#low-level">Low-Level Access</a>
+          </nav>
+        </aside>
+
+        <div class="docs-main">
+          <section class="doc-section" id="quick-start">
+            <p class="eyebrow">Quick Start</p>
+            <h2>Load, create, edit, and save</h2>
+            <p>The main entry points are <code>Pdf.Load(...)</code> for existing documents and
+              <code>Pdf.Create(...)</code> for new ones.</p>
+
+            <h3>Load an existing PDF</h3>
+            <pre><code class="language-csharp">using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var pageCount = await pdf.GetPageCountAsync();
+var firstPage = await pdf.GetPageAsync(1);</code></pre>
+
+            <h3>Create a blank PDF</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Create(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+using var output = File.Create("blank.pdf");
+await pdf.SaveAsync(output);</code></pre>
+
+            <h3>Append, insert, and delete pages</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.InsertPageAsync(1, options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(300, 300);
+});
+
+await pdf.DeletePageAsync(2);
+await pdf.SaveAsync(File.Create("pages-updated.pdf"));</code></pre>
+
+            <div class="doc-grid">
+              <article class="doc-card">
+                <h3>Text extraction</h3>
+                <pre><code class="language-csharp">var textItems = await pdf.ExtractTextAsync();
+foreach (var item in textItems)
+{
+    Console.WriteLine(item.Text);
+}</code></pre>
+              </article>
+              <article class="doc-card">
+                <h3>Watermarking and compression</h3>
+                <pre><code class="language-csharp">await pdf.AddWatermarkAsync("DRAFT");
+pdf.Compress(dpi: 72, quality: 75);
+await pdf.SaveAsync(output);</code></pre>
+              </article>
+            </div>
+          </section>
+
+          <section class="doc-section" id="metadata">
+            <p class="eyebrow">Metadata</p>
+            <h2>Inspect and update document info safely</h2>
+            <p>Use <code>GetMetadataAsync()</code> to read or update the trailer <code>Info</code> dictionary through a
+              higher-level wrapper.</p>
+
+            <ul>
+              <li>Editable fields: <code>Title</code>, <code>Author</code>, <code>Subject</code>, <code>Keywords</code>,
+                <code>Creator</code>, and <code>CreationDate</code>.</li>
+              <li>Save-managed fields: <code>Producer</code> is stamped to <code>ZingPDF</code> and
+                <code>ModifiedDate</code> is refreshed on save.</li>
+              <li>If no info dictionary exists, ZingPDF creates one during save.</li>
+              <li>Date values may be read from either PDF date objects or strings.</li>
+            </ul>
+
+            <pre><code class="language-csharp">var metadata = await pdf.GetMetadataAsync();
+metadata.Title = "Quarterly Report";
+metadata.Author = "Taylor Smith";
+metadata.Subject = "Q1 FY2026";
+metadata.Keywords = "finance,quarterly";
+metadata.Creator = "Back Office Importer";
+metadata.CreationDate = new DateTimeOffset(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
+
+await pdf.SaveAsync(output);</code></pre>
+          </section>
+
+          <section class="doc-section" id="forms">
+            <p class="eyebrow">Forms</p>
+            <h2>AcroForm access with typed field wrappers</h2>
+            <p>If a document contains an AcroForm, <code>GetFormAsync()</code> returns a <code>Form</code> wrapper that
+              can enumerate terminal fields and expose typed behavior for supported field families.</p>
+
+            <h3>Field discovery</h3>
+            <ul>
+              <li><code>Form.GetFieldsAsync()</code> returns terminal fields as <code>IFormField</code> instances.</li>
+              <li>Nested names are flattened into dot-separated paths like <code>Applicant.Address.Suburb</code>.</li>
+              <li>Shared field metadata includes name, description, field flags, and field dimensions.</li>
+            </ul>
+
+            <h3>Recommended typed pattern</h3>
+            <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+foreach (var field in await form.GetFieldsAsync())
+{
+    switch (field)
+    {
+        case TextFormField textField when textField.Name == "Applicant.Name":
+            await textField.SetValueAsync("Taylor Smith");
+            break;
+
+        case ChoiceFormField choiceField when choiceField.Name == "Applicant.State":
+            var options = await choiceField.GetOptionsAsync();
+            var selected = options.FirstOrDefault(x => x.Text.DecodeText() == "NSW");
+            if (selected is not null)
+            {
+                await selected.SelectAsync();
+            }
+            break;
+    }
+}</code></pre>
+
+            <div class="doc-grid">
+              <article class="doc-card">
+                <h3>Text fields</h3>
+                <p><code>TextFormField</code> currently has the richest editing support.</p>
+                <ul>
+                  <li><code>GetValueAsync()</code></li>
+                  <li><code>SetValueAsync(string?)</code></li>
+                  <li><code>ClearAsync()</code></li>
+                </ul>
+              </article>
+              <article class="doc-card">
+                <h3>Choice and button fields</h3>
+                <p>Choice items and selectable button options can be read and toggled through option wrappers like
+                  <code>ChoiceItem</code> and <code>SelectableOption</code>.</p>
+              </article>
+            </div>
+
+            <h3>Current public limitations</h3>
+            <ul>
+              <li>Push-button actions are not yet exposed through the high-level API.</li>
+              <li>Signature fields are discoverable, but high-level signing is not yet implemented.</li>
+              <li>Unusual viewer-specific appearance behavior may still require lower-level object work.</li>
+            </ul>
+          </section>
+
+          <section class="doc-section" id="encryption">
+            <p class="eyebrow">Encryption</p>
+            <h2>Password-protected workflows</h2>
+            <p>ZingPDF supports authenticating encrypted PDFs, applying password protection to plain PDFs, and saving
+              decrypted output from encrypted input.</p>
+
+            <h3>Open an encrypted PDF</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));
+
+await pdf.AuthenticateAsync("password");
+var pageCount = await pdf.GetPageCountAsync();</code></pre>
+
+            <h3>Encrypt a previously unencrypted PDF</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Create();
+
+await pdf.EncryptAsync("user-password", "owner-password");
+await pdf.SaveAsync(File.Create("protected.pdf"));</code></pre>
+
+            <h3>Decrypt an encrypted PDF</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));
+
+await pdf.DecryptAsync("password");
+await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
+          </section>
+
+          <section class="doc-section" id="save">
+            <p class="eyebrow">Save Behavior</p>
+            <h2>Understand the incremental save model</h2>
+            <p>ZingPDF saves by writing an incremental update. That gives you a predictable editing model, but it comes
+              with a few practical constraints you should understand before shipping at scale.</p>
+
+            <ol>
+              <li>The input stream passed to <code>Pdf.Load(...)</code> must be seekable.</li>
+              <li>The output stream passed to <code>SaveAsync(...)</code> must be writable and seekable.</li>
+              <li>If saving to a different stream, that stream must be empty.</li>
+              <li>If saving back to the original stream, ZingPDF appends a new incremental revision.</li>
+            </ol>
+
+            <p>Form updates and metadata stamping are both applied as part of the save pipeline.</p>
+
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.AddWatermarkAsync("INTERNAL");
+await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
+          </section>
+
+          <section class="doc-section" id="notes">
+            <p class="eyebrow">Implementation Notes</p>
+            <h2>The details most likely to affect production usage</h2>
+            <ul>
+              <li>Encryption currently writes Standard security handler encryption using RC4 with <code>V=2</code> and
+                <code>R=3</code>.</li>
+              <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision, but older encrypted
+                revisions may still exist in the file bytes because saves are incremental.</li>
+              <li><code>Compress(...)</code> currently compresses unfiltered streams and can recompress JPEG image
+                streams.</li>
+              <li><code>DecompressAsync()</code> skips JPEG image streams to avoid forced decompression corruption.</li>
+              <li><code>InsertPageAsync(...)</code> inserts before the requested page number, while
+                <code>AppendPageAsync(...)</code> adds to the end.</li>
+            </ul>
+          </section>
+
+          <section class="doc-section" id="low-level">
+            <p class="eyebrow">Low-Level Access</p>
+            <h2>Drop into the object model when the high-level API is not enough</h2>
+            <p>If you need lower-level control, <code>IPdf.Objects</code> exposes the underlying PDF object collection
+              and page tree. Most application code should prefer the higher-level <code>Pdf</code> and <code>Page</code>
+              APIs first, but the lower-level surface is there for advanced integrations.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
