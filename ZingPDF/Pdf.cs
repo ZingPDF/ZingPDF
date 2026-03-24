@@ -24,6 +24,9 @@ using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF;
 
+/// <summary>
+/// Default implementation of <see cref="IPdf"/>.
+/// </summary>
 public class Pdf : IPdf, IDisposable
 {
     private readonly IServiceProvider _services;
@@ -61,16 +64,22 @@ public class Pdf : IPdf, IDisposable
         _encryptionProvider = _services.GetRequiredService<IPdfEncryptionProvider>();
     }
 
+    /// <inheritdoc />
     public Stream Data { get; }
+
+    /// <inheritdoc />
     public IPdfObjectCollection Objects { get; }
 
+    /// <inheritdoc />
     public async Task AuthenticateAsync(string password)
     {
         await _encryptionProvider.AuthenticateAsync(password);
     }
 
+    /// <inheritdoc />
     public Task<IList<IndirectObject>> GetAllPagesAsync() => Objects.PageTree.GetPagesAsync();
 
+    /// <inheritdoc />
     public async Task<Form?> GetFormAsync()
     {
         var documentCatalog = await Objects.GetDocumentCatalogAsync();
@@ -87,6 +96,7 @@ public class Pdf : IPdf, IDisposable
         return _form;
     }
 
+    /// <inheritdoc />
     public async Task<Page> GetPageAsync(int pageNumber)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
@@ -98,8 +108,10 @@ public class Pdf : IPdf, IDisposable
             : new Page(pageIndirectObject, this);
     }
 
+    /// <inheritdoc />
     public Task<int> GetPageCountAsync() => Objects.PageTree.GetPageCountAsync();
 
+    /// <inheritdoc />
     public async Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
         var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
@@ -125,6 +137,7 @@ public class Pdf : IPdf, IDisposable
         return new Page(pageIndirectObject, this);
     }
 
+    /// <inheritdoc />
     public async Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
         // get page at number
@@ -178,6 +191,7 @@ public class Pdf : IPdf, IDisposable
         return new Page(newPageIndirectObject, this);
     }
 
+    /// <inheritdoc />
     public async Task DeletePageAsync(int pageNumber)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
@@ -207,6 +221,7 @@ public class Pdf : IPdf, IDisposable
         Objects.PageTree.Reset();
     }
 
+    /// <inheritdoc />
     public async Task SetRotationAsync(Rotation rotation)
     {
         ArgumentNullException.ThrowIfNull(rotation);
@@ -220,6 +235,7 @@ public class Pdf : IPdf, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public Task<IEnumerable<ExtractedText>> ExtractTextAsync()
     {
         var textExtractor = _services.GetRequiredService<ITextExtractor>();
@@ -227,16 +243,19 @@ public class Pdf : IPdf, IDisposable
         return textExtractor.ExtractTextAsync();
     }
 
+    /// <inheritdoc />
     public async Task AddWatermarkAsync(string text)
     {
         await AddWatermarkInternalAsync(text);
     }
 
+    /// <inheritdoc />
     public void Compress(int dpi, int quality)
     {
         CompressAsync(dpi, quality).GetAwaiter().GetResult();
     }
 
+    /// <inheritdoc />
     public async Task DecompressAsync()
     {
         List<IndirectObject> toBeUpdated = [];
@@ -290,6 +309,7 @@ public class Pdf : IPdf, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public Task EncryptAsync(string userPassword, string? ownerPassword = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userPassword);
@@ -303,6 +323,7 @@ public class Pdf : IPdf, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public async Task DecryptAsync(string password)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
@@ -313,11 +334,13 @@ public class Pdf : IPdf, IDisposable
         _pendingEncryptionOptions = null;
     }
 
+    /// <inheritdoc />
     public async Task AppendPdfAsync(Stream stream)
     {
         await new PdfMerger(this, Load(stream)).AppendAsync();
     }
 
+    /// <inheritdoc />
     public async Task SaveAsync(Stream outputStream)
     {
         ArgumentNullException.ThrowIfNull(outputStream);
@@ -355,6 +378,9 @@ public class Pdf : IPdf, IDisposable
         Dispose();
     }
 
+    /// <summary>
+    /// Loads a PDF from a seekable input stream.
+    /// </summary>
     public static Pdf Load(Stream pdfInputStream)
     {
         ArgumentNullException.ThrowIfNull(pdfInputStream, nameof(pdfInputStream));
@@ -365,6 +391,9 @@ public class Pdf : IPdf, IDisposable
         return new Pdf(pdfInputStream);
     }
 
+    /// <summary>
+    /// Creates a new blank PDF containing a single page.
+    /// </summary>
     public static Pdf Create(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
         => PdfBootstrapper.Create(configureOptions);
 

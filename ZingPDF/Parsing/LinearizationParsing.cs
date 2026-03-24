@@ -31,7 +31,7 @@
 ////    .FirstOrDefault(x => x is IndirectObject o && o.Object is LinearizationParameterDictionary);
 
 ////linearizationDictionary = linearizationDictionaryObject?.Object as LinearizationParameterDictionary;
-///
+/////
 
 
 //using ZingPDF.IncrementalUpdates;

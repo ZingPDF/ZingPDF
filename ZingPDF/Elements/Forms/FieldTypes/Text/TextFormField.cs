@@ -8,6 +8,9 @@ using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Text
 {
+    /// <summary>
+    /// Represents a text form field.
+    /// </summary>
     public class TextFormField : FormField<PdfString>
     {
         private readonly IParser<ContentStream> _contentStreamParser;
@@ -26,6 +29,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             _contentStreamParser = contentStreamParser;
         }
 
+        /// <summary>
+        /// Gets the current field value as decoded text.
+        /// </summary>
         public async Task<string?> GetValueAsync()
         {
             if (_fieldDictionary.V == null)
@@ -36,6 +42,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             return (await _fieldDictionary.V.GetAsync() as PdfString)!.Decode();
         }
 
+        /// <summary>
+        /// Sets the field value and regenerates the field appearance.
+        /// </summary>
+        /// <param name="value">The new text value, or <see langword="null"/> to clear the field.</param>
         public async Task SetValueAsync(string? value)
         {
             var formDict = await _parent.GetFormDictionaryAsync();
@@ -57,7 +67,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             SetValue(pdfValue);
         }
 
-        // temp methods for testing
+        /// <summary>
+        /// Gets the field appearance stream, primarily for diagnostics and testing.
+        /// </summary>
         public async Task<ContentStream?> GetAPAsync()
         {
             var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);
@@ -65,6 +77,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             return await test.GetAPAsync();
         }
         
+        /// <summary>
+        /// Clears the field value and wipes its appearance stream.
+        /// </summary>
         public async Task ClearAsync()
         {
             var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);

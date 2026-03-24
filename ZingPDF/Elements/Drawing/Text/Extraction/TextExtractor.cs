@@ -85,7 +85,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         }
 
         /// <summary>
-        /// Groups glyph runs by page & line, then concatenates into ExtractedText.
+        /// Groups glyph runs by page and line, then concatenates them into <see cref="ExtractedText"/> values.
         /// </summary>
         public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
         {

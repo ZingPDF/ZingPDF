@@ -168,7 +168,7 @@ await pdf.SaveAsync(output);
 
 ## Forms
 
-If the document contains an AcroForm, `GetFormAsync()` returns a `Form` wrapper that can be used to read or update fields before saving.
+If the document contains an AcroForm, `GetFormAsync()` returns a `Form` wrapper that can be used to discover fields, inspect field metadata, and update supported values before saving.
 
 ```csharp
 using var input = File.OpenRead("form.pdf");
@@ -184,6 +184,170 @@ if (form is not null)
 using var output = File.Create("form-updated.pdf");
 await pdf.SaveAsync(output);
 ```
+
+### Field discovery
+
+`Form.GetFieldsAsync()` returns terminal fields as `IFormField` instances.
+
+Each field exposes:
+
+- `Name`: the fully qualified field name
+- `Description`: the tooltip or user-facing description, when present
+- `Properties`: decoded field flags
+- `GetFieldDimensionsAsync()`: the field rectangle size
+
+Nested fields are flattened into dot-separated names such as `Applicant.Address.Suburb`.
+
+### Working with strongly typed fields
+
+The recommended pattern is to enumerate fields and then pattern-match on the runtime type:
+
+```csharp
+using ZingPDF.Elements.Forms;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Elements.Forms.FieldTypes.Signature;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
+
+using var input = File.OpenRead("form.pdf");
+using var pdf = Pdf.Load(input);
+
+var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+foreach (var field in await form.GetFieldsAsync())
+{
+    switch (field)
+    {
+        case TextFormField textField when textField.Name == "Applicant.Name":
+            await textField.SetValueAsync("Taylor Smith");
+            break;
+
+        case ChoiceFormField choiceField when choiceField.Name == "Applicant.State":
+            var options = await choiceField.GetOptionsAsync();
+            var selected = options.FirstOrDefault(x => x.Text.DecodeText() == "NSW");
+            if (selected is not null)
+            {
+                await selected.SelectAsync();
+            }
+            break;
+
+        case SignatureFormField signatureField:
+            Console.WriteLine($"Signature field found: {signatureField.Name}");
+            break;
+    }
+}
+
+using var output = File.Create("form-updated.pdf");
+await pdf.SaveAsync(output);
+```
+
+### Text fields
+
+`TextFormField` currently provides the richest editing support.
+
+Available operations:
+
+- `GetValueAsync()` to read the current value
+- `SetValueAsync(string?)` to set a value and regenerate the field appearance
+- `ClearAsync()` to remove the value and wipe the field appearance
+
+Example:
+
+```csharp
+var form = await pdf.GetFormAsync();
+var fields = await form!.GetFieldsAsync();
+
+var fullNameField = fields
+    .OfType<TextFormField>()
+    .Single(x => x.Name == "Applicant.FullName");
+
+await fullNameField.SetValueAsync("Jordan Lee");
+```
+
+### Choice fields
+
+Choice fields are exposed as `ChoiceFormField`. This covers combo boxes and list boxes.
+
+Use `GetOptionsAsync()` to retrieve `ChoiceItem` objects. Each option exposes:
+
+- `Text`: the display text
+- `Value`: the stored/export value
+- `Selected`: whether the option is selected
+- `SelectAsync()` and `DeselectAsync()` to change selection
+
+Example:
+
+```csharp
+var form = await pdf.GetFormAsync();
+var stateField = (await form!.GetFieldsAsync())
+    .OfType<ChoiceFormField>()
+    .Single(x => x.Name == "Applicant.State");
+
+var options = await stateField.GetOptionsAsync();
+var option = options.Single(x => x.Value.DecodeText() == "NSW");
+await option.SelectAsync();
+```
+
+Multi-select list boxes are handled through repeated option selection when the field flags allow it.
+
+### Signature fields
+
+Signature fields are exposed as `SignatureFormField`, but they are currently metadata-only through the public API.
+
+That means you can:
+
+- discover them
+- inspect their shared field metadata
+
+You cannot currently:
+
+- apply a digital signature
+- populate signature appearance content through the high-level API
+
+### Button fields
+
+Button fields such as checkboxes, radio buttons, and push buttons are discovered internally, but their concrete implementations are not currently public.
+
+In practice, that means external callers can still:
+
+- enumerate them through `GetFieldsAsync()`
+- read common `IFormField` metadata such as name, description, dimensions, and field flags
+
+But external callers cannot yet use a public strongly typed API to toggle checkbox or radio-button state directly.
+
+### Save semantics for forms
+
+Form edits are not written immediately.
+
+Instead:
+
+- field setters update the in-memory PDF objects
+- the form wrapper marks itself dirty
+- `SaveAsync(...)` calls the form update pipeline before generating the incremental save
+
+In normal usage, this means:
+
+1. Load the PDF
+2. Call `GetFormAsync()`
+3. Read or update fields
+4. Call `SaveAsync(...)`
+
+### Appearance handling
+
+For text fields, ZingPDF generates or updates the field appearance stream when you call `SetValueAsync(...)`.
+
+During save, the form update step also forces `NeedAppearances` to `false` so conforming viewers prefer the generated appearances rather than attempting to re-render the field themselves.
+
+### Current limitations
+
+- Text fields have the best write support today.
+- Choice fields support option selection through `ChoiceItem`.
+- Button field mutation is not yet exposed publicly.
+- Signature field signing is not yet implemented.
+- If a form depends on unusual viewer-specific behavior or unsupported appearance resources, additional low-level work through `IPdf.Objects` may still be required.
 
 ## Save behavior
 

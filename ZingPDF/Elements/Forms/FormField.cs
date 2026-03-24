@@ -5,6 +5,10 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
 {
+    /// <summary>
+    /// Base class for strongly typed form fields.
+    /// </summary>
+    /// <typeparam name="TValue">The PDF object type used to store the field value.</typeparam>
     public abstract class FormField<TValue> : IFormField where TValue : IPdfObject
     {
         protected readonly IndirectObject _fieldIndirectObject;
@@ -37,10 +41,22 @@ namespace ZingPDF.Elements.Forms
             _pdf = pdf;
         }
 
+        /// <summary>
+        /// Gets the fully qualified field name.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Gets the user-facing description or tooltip for the field, when present.
+        /// </summary>
         public string? Description { get; }
+
+        /// <summary>
+        /// Gets the decoded field flags.
+        /// </summary>
         public FieldProperties Properties { get; }
 
+        /// <inheritdoc />
         public async Task<Size> GetFieldDimensionsAsync() => (await _fieldDictionary.Rect.GetAsync()).Size;
 
         protected void SetValue(TValue? value)
