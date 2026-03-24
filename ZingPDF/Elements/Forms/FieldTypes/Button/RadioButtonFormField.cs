@@ -6,7 +6,10 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 /// <summary>
 /// <para>ISO 32000-2:2020 12.7.5.2.4 - Radio buttons</para>
 /// </summary>
-internal class RadioButtonFormField : ButtonOptionsFormField
+/// <summary>
+/// Represents a radio-button field.
+/// </summary>
+public class RadioButtonFormField : ButtonOptionsFormField
 {
     public RadioButtonFormField(
         IndirectObject fieldIndirectObject,

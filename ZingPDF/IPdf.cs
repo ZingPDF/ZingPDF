@@ -47,6 +47,15 @@ public interface IPdf
     Task<Form?> GetFormAsync();
 
     /// <summary>
+    /// Gets the editable document metadata backed by the trailer Info dictionary.
+    /// </summary>
+    /// <remarks>
+    /// Changes are persisted when <see cref="SaveAsync(Stream)"/> is called.
+    /// Saving also stamps the metadata producer as <c>ZingPDF</c> and refreshes the modification date.
+    /// </remarks>
+    Task<PdfMetadata> GetMetadataAsync();
+
+    /// <summary>
     /// Appends a new page to the end of the document.
     /// </summary>
     Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null);

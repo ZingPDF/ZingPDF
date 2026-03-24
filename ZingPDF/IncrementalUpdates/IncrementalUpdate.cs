@@ -22,6 +22,7 @@ namespace ZingPDF.IncrementalUpdates
         private readonly IncrementalUpdateOptions _options;
 
         internal EncryptionWritePlan? EncryptionWritePlan { get; set; }
+        internal IndirectObjectReference? InfoReferenceOverride { get; set; }
         internal bool RemoveEncryption { get; set; }
 
         public IncrementalUpdate(
@@ -130,7 +131,7 @@ namespace ZingPDF.IncrementalUpdates
                     prev,
                     rootReference,
                     encryptReference,
-                    existingTrailerDictionary.Info,
+                    InfoReferenceOverride ?? existingTrailerDictionary.Info,
                     fileIdentifier,
                     existingTrailerDictionary.Pdf,
                     ObjectContext.UserCreated

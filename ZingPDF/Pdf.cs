@@ -42,6 +42,7 @@ public class Pdf : IPdf, IDisposable
     }
 
     private Form? _form;
+    private PdfMetadata? _metadata;
     private bool _rewriteAllObjects;
     private bool _removeEncryptionOnSave;
     private PdfEncryptionOptions? _pendingEncryptionOptions;
@@ -94,6 +95,13 @@ public class Pdf : IPdf, IDisposable
         _form = new Form(documentCatalog.AcroForm, this, contentStreamParser);
 
         return _form;
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfMetadata> GetMetadataAsync()
+    {
+        _metadata ??= await PdfMetadata.LoadAsync(this);
+        return _metadata;
     }
 
     /// <inheritdoc />
@@ -363,11 +371,15 @@ public class Pdf : IPdf, IDisposable
             await _form.UpdateAsync();
         }
 
+        var metadata = _metadata ?? await GetMetadataAsync();
+        await metadata.UpdateAsync();
+
         var encryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync(_pendingEncryptionOptions);
         var incrementalUpdate = await Objects.GenerateUpdateDeltaAsync(_rewriteAllObjects);
         if (incrementalUpdate != null)
         {
             incrementalUpdate.EncryptionWritePlan = encryptionWritePlan;
+            incrementalUpdate.InfoReferenceOverride = metadata.InfoReference;
             incrementalUpdate.RemoveEncryption = _removeEncryptionOnSave;
 
             await incrementalUpdate.WriteAsync(outputStream);
