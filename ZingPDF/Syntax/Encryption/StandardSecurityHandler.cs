@@ -40,6 +40,38 @@ internal sealed class StandardSecurityHandler : ISecurityHandler
         _keyLengthBytes = Math.Clamp(options.KeyLengthBits / 8, 5, 16);
     }
 
+    public static StandardSecurityHandlerOptions CreateNewOptions(
+        string userPassword,
+        string ownerPassword,
+        byte[] fileId,
+        int permissions,
+        int keyLengthBits,
+        bool encryptMetadata,
+        IndirectObjectId? encryptionDictionaryId = null)
+    {
+        ArgumentNullException.ThrowIfNull(fileId);
+        ArgumentOutOfRangeException.ThrowIfLessThan(keyLengthBits, 40, nameof(keyLengthBits));
+
+        const int version = 2;
+        const int revision = 3;
+
+        var sanitizedOwnerPassword = string.IsNullOrEmpty(ownerPassword) ? userPassword : ownerPassword;
+        var ownerKey = ComputeOwnerKey(userPassword, sanitizedOwnerPassword, revision, keyLengthBits);
+        var fileKey = ComputeFileKey(PadPassword(userPassword), ownerKey, permissions, fileId, revision, keyLengthBits, encryptMetadata);
+        var userKey = ComputeUserKey(fileKey, fileId, revision);
+
+        return new StandardSecurityHandlerOptions(
+            version,
+            revision,
+            keyLengthBits,
+            permissions,
+            ownerKey,
+            userKey,
+            encryptMetadata,
+            fileId,
+            encryptionDictionaryId);
+    }
+
     public bool IsAuthenticated => _fileKey is not null;
 
     public bool TryAuthenticate(string password)
@@ -105,30 +137,14 @@ internal sealed class StandardSecurityHandler : ISecurityHandler
 
     private byte[] ComputeFileKey(byte[] paddedPassword)
     {
-        using var md5 = MD5.Create();
-
-        var data = new List<byte>(paddedPassword.Length + _options.OwnerKey.Length + 16);
-        data.AddRange(paddedPassword);
-        data.AddRange(_options.OwnerKey);
-        data.AddRange(BitConverter.GetBytes(_options.Permissions));
-        data.AddRange(_options.FileId);
-
-        if (_options.Revision >= 4 && !_options.EncryptMetadata)
-        {
-            data.AddRange([0xFF, 0xFF, 0xFF, 0xFF]);
-        }
-
-        var hash = md5.ComputeHash(data.ToArray());
-
-        if (_options.Revision >= 3)
-        {
-            for (var i = 0; i < 50; i++)
-            {
-                hash = md5.ComputeHash(hash.AsSpan(0, _keyLengthBytes).ToArray());
-            }
-        }
-
-        return hash.AsSpan(0, _keyLengthBytes).ToArray();
+        return ComputeFileKey(
+            paddedPassword,
+            _options.OwnerKey,
+            _options.Permissions,
+            _options.FileId,
+            _options.Revision,
+            _options.KeyLengthBits,
+            _options.EncryptMetadata);
     }
 
     private bool ValidateUserPassword(byte[] paddedPassword, byte[] fileKey)
@@ -278,5 +294,96 @@ internal sealed class StandardSecurityHandler : ISecurityHandler
         }
 
         return output;
+    }
+
+    private static byte[] ComputeOwnerKey(string userPassword, string ownerPassword, int revision, int keyLengthBits)
+    {
+        using var md5 = MD5.Create();
+
+        var keyLengthBytes = Math.Clamp(keyLengthBits / 8, 5, 16);
+        var paddedOwner = PadPassword(ownerPassword);
+        var hash = md5.ComputeHash(paddedOwner);
+
+        if (revision >= 3)
+        {
+            for (var i = 0; i < 50; i++)
+            {
+                hash = md5.ComputeHash(hash);
+            }
+        }
+
+        var key = hash.AsSpan(0, keyLengthBytes).ToArray();
+        var encrypted = Rc4(key, PadPassword(userPassword));
+        if (revision >= 3)
+        {
+            for (var i = 1; i <= 19; i++)
+            {
+                encrypted = Rc4(XorKey(key, i), encrypted);
+            }
+        }
+
+        return encrypted;
+    }
+
+    private static byte[] ComputeFileKey(
+        byte[] paddedPassword,
+        byte[] ownerKey,
+        int permissions,
+        byte[] fileId,
+        int revision,
+        int keyLengthBits,
+        bool encryptMetadata)
+    {
+        using var md5 = MD5.Create();
+
+        var keyLengthBytes = Math.Clamp(keyLengthBits / 8, 5, 16);
+        var data = new List<byte>(paddedPassword.Length + ownerKey.Length + 16);
+        data.AddRange(paddedPassword);
+        data.AddRange(ownerKey);
+        data.AddRange(BitConverter.GetBytes(permissions));
+        data.AddRange(fileId);
+
+        if (revision >= 4 && !encryptMetadata)
+        {
+            data.AddRange([0xFF, 0xFF, 0xFF, 0xFF]);
+        }
+
+        var hash = md5.ComputeHash(data.ToArray());
+
+        if (revision >= 3)
+        {
+            for (var i = 0; i < 50; i++)
+            {
+                hash = md5.ComputeHash(hash.AsSpan(0, keyLengthBytes).ToArray());
+            }
+        }
+
+        return hash.AsSpan(0, keyLengthBytes).ToArray();
+    }
+
+    private static byte[] ComputeUserKey(byte[] fileKey, byte[] fileId, int revision)
+    {
+        using var md5 = MD5.Create();
+
+        if (revision == 2)
+        {
+            return Rc4(fileKey, _passwordPadding);
+        }
+
+        var data = new byte[_passwordPadding.Length + fileId.Length];
+        _passwordPadding.CopyTo(data, 0);
+        fileId.CopyTo(data, _passwordPadding.Length);
+
+        var hash = md5.ComputeHash(data);
+        var encrypted = Rc4(fileKey, hash);
+        for (var i = 1; i <= 19; i++)
+        {
+            encrypted = Rc4(XorKey(fileKey, i), encrypted);
+        }
+
+        var userKey = new byte[32];
+        encrypted.CopyTo(userKey, 0);
+        Array.Copy(_passwordPadding, 0, userKey, 16, 16);
+        return userKey;
     }
 }
