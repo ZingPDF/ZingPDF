@@ -6,7 +6,13 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 /// <summary>
 /// <para>ISO 32000-2:2020 12.7.5.2.2 - Push-buttons</para>
 /// </summary>
-internal class PushButtonFormField : FormField<IPdfObject>
+/// <summary>
+/// Represents a push-button field.
+/// </summary>
+/// <remarks>
+/// Push-button actions are not currently exposed through the high-level API.
+/// </remarks>
+public class PushButtonFormField : FormField<IPdfObject>
 {
     public PushButtonFormField(
         IndirectObject fieldIndirectObject,

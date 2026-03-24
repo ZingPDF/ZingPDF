@@ -22,8 +22,8 @@ namespace ZingPDF.Elements.Forms
     /// <remarks>
     /// Call <see cref="GetFieldsAsync()"/> to discover fields, then pattern match the returned values to
     /// the public field types such as <see cref="FieldTypes.Text.TextFormField"/>,
-    /// <see cref="FieldTypes.Choice.ChoiceFormField"/>, or <see cref="FieldTypes.Signature.SignatureFormField"/>.
-    /// Button fields currently expose only the shared <see cref="IFormField"/> metadata publicly.
+    /// <see cref="FieldTypes.Choice.ChoiceFormField"/>, <see cref="FieldTypes.Button.ButtonOptionsFormField"/>,
+    /// or <see cref="FieldTypes.Signature.SignatureFormField"/>.
     /// </remarks>
     public class Form
     {
@@ -241,7 +241,7 @@ namespace ZingPDF.Elements.Forms
 
             Name fieldTypeName = (await fieldDictionary.FT.GetAsync())!;
 
-            string? fieldDescription = (await fieldDictionary.TU.GetAsync()).Decode();
+            string? fieldDescription = (await fieldDictionary.TU.GetAsync())?.Decode();
 
             return fieldTypeName.ToFormFieldType() switch
             {

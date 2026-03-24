@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 using System.Text;
+using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Extensions;
 using ZingPDF.Parsing;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -193,6 +194,86 @@ public class PdfTests
         await reloaded.AuthenticateAsync("secret-password");
         var pageCount = await reloaded.GetPageCountAsync();
         pageCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetFormAsync_ExposesPublicButtonFieldTypes()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var fields = await form!.GetFieldsAsync();
+
+        fields.OfType<CheckboxFormField>().Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task CheckboxFormField_SelectOption_PersistsAfterSave()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var checkbox = (await form!.GetFieldsAsync()).OfType<CheckboxFormField>().First(x => x.Name == "Phone1");
+        var option = (await checkbox.GetOptionsAsync()).Single();
+
+        option.Selected.Should().BeFalse();
+
+        await option.SelectAsync();
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedCheckbox = (await reloadedForm!.GetFieldsAsync()).OfType<CheckboxFormField>().First(x => x.Name == "Phone1");
+        var reloadedOption = (await reloadedCheckbox.GetOptionsAsync()).Single();
+
+        reloadedOption.Selected.Should().BeTrue();
+        reloadedOption.Value.Should().Be(option.Value);
+    }
+
+    [Fact]
+    public async Task Metadata_CanBeEdited_AndRoundTrips()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var metadata = await pdf.GetMetadataAsync();
+        metadata.Title = "Quarterly Report";
+        metadata.Author = "Taylor Smith";
+        metadata.Subject = "Financial summary";
+        metadata.Keywords = "finance,quarterly";
+        metadata.Creator = "Integration Test";
+        metadata.CreationDate = new DateTimeOffset(2025, 04, 01, 9, 30, 0, TimeSpan.FromHours(10));
+
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedMetadata = await reloaded.GetMetadataAsync();
+
+        reloadedMetadata.Title.Should().Be("Quarterly Report");
+        reloadedMetadata.Author.Should().Be("Taylor Smith");
+        reloadedMetadata.Subject.Should().Be("Financial summary");
+        reloadedMetadata.Keywords.Should().Be("finance,quarterly");
+        reloadedMetadata.Creator.Should().Be("Integration Test");
+        reloadedMetadata.CreationDate.Should().Be(new DateTimeOffset(2025, 04, 01, 9, 30, 0, TimeSpan.FromHours(10)));
+    }
+
+    [Fact]
+    public async Task SaveAsync_StampsProducerWithZingPdf()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var metadata = await reloaded.GetMetadataAsync();
+
+        metadata.Producer.Should().Be(PdfMetadata.ProducerName);
+        metadata.ModifiedDate.Should().NotBeNull();
     }
 
     [Fact]
