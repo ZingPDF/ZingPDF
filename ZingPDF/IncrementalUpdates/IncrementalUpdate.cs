@@ -83,7 +83,11 @@ namespace ZingPDF.IncrementalUpdates
             foreach (var entry in NewOrUpdatedObjects)
             {
                 IndirectObject objectToWrite = entry;
-                if (EncryptionWritePlan != null)
+                if (EncryptionWritePlan?.EncryptReference?.Id == entry.Id)
+                {
+                    objectToWrite = entry;
+                }
+                else if (EncryptionWritePlan != null)
                 {
                     objectToWrite = RemoveEncryption
                         ? await EncryptionObjectTransformer.DecryptAsync(entry, EncryptionWritePlan.Handler)
@@ -109,16 +113,20 @@ namespace ZingPDF.IncrementalUpdates
             var existingTrailerDictionary = _existingTrailer?.Dictionary ?? (ITrailerDictionary)_existingXrefStream!.Dictionary;
 
             // Build file identifier
-            var originalId = existingTrailerDictionary.ID?[0] ?? PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, Context);
+            var originalId = (IPdfObject?)EncryptionWritePlan?.OriginalFileId ?? existingTrailerDictionary.ID?[0] ?? PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, Context);
             var updateId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, Context);
             var fileIdentifier = new ArrayObject([originalId, updateId], Context);
+            var encryptReference = RemoveEncryption
+                ? null
+                : (IPdfObject?)EncryptionWritePlan?.EncryptReference
+                    ?? existingTrailerDictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
 
             var trailer = new Trailer(
                 TrailerDictionary.CreateNew(
                     existingTrailerDictionary.Size + _newObjects.Count(),
                     prev,
                     existingTrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
-                    RemoveEncryption ? null : await existingTrailerDictionary.Encrypt.GetAsync(),
+                    encryptReference,
                     existingTrailerDictionary.Info,
                     fileIdentifier,
                     existingTrailerDictionary.Pdf,
