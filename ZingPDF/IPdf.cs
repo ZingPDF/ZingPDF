@@ -42,8 +42,19 @@ public interface IPdf
     /// </remarks>
     Task DecompressAsync();
 
-    void Encrypt();
-    void Decrypt();
+    /// <summary>
+    /// Saves the PDF using standard password protection.
+    /// </summary>
+    /// <remarks>
+    /// The current implementation supports preserving or re-applying encryption for PDFs that are already encrypted.
+    /// Encrypting a previously unencrypted PDF is not yet supported.
+    /// </remarks>
+    Task EncryptAsync(string userPassword, string? ownerPassword = null);
+
+    /// <summary>
+    /// Authenticates with the supplied password and saves the PDF without encryption.
+    /// </summary>
+    Task DecryptAsync(string password);
 
     Task AppendPdfAsync(Stream stream);
 
