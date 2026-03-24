@@ -74,6 +74,28 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
         return handler.Decrypt(context.NearestParent.Id, data);
     }
 
+    public async Task<EncryptionWritePlan?> CreateWritePlanAsync()
+    {
+        var handler = await _handler;
+        if (handler is null)
+        {
+            return null;
+        }
+
+        if (!handler.IsAuthenticated && !_authenticationAttempted)
+        {
+            _authenticationAttempted = true;
+            handler.TryAuthenticate(string.Empty);
+        }
+
+        if (!handler.IsAuthenticated)
+        {
+            throw new PdfAuthenticationException("Invalid password for encrypted PDF.");
+        }
+
+        return new EncryptionWritePlan(handler);
+    }
+
     private async Task<StandardSecurityHandler?> CreateHandlerAsync()
     {
         _initializing = true;

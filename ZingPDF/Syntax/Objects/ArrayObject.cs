@@ -24,6 +24,9 @@ namespace ZingPDF.Syntax.Objects
         public void Add<T>(T item) where T : IPdfObject
             => _values.Add(item);
 
+        public void Insert<T>(int index, T item) where T : IPdfObject
+            => _values.Insert(index, item);
+
         public void AddRange(IEnumerable<IPdfObject> items)
             => _values.AddRange(items);
 

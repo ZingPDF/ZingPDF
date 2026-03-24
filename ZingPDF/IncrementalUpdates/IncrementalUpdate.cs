@@ -3,6 +3,7 @@ using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
 using ZingPDF.Syntax.FileStructure.CrossReferences.CrossReferenceStreams;
 using ZingPDF.Syntax.FileStructure.Trailer;
+using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -19,6 +20,9 @@ namespace ZingPDF.IncrementalUpdates
         private readonly StreamObject<CrossReferenceStreamDictionary>? _existingXrefStream;
 
         private readonly IncrementalUpdateOptions _options;
+
+        internal EncryptionWritePlan? EncryptionWritePlan { get; set; }
+        internal bool RemoveEncryption { get; set; }
 
         public IncrementalUpdate(
             IEnumerable<IndirectObject> newObjects,
@@ -73,13 +77,24 @@ namespace ZingPDF.IncrementalUpdates
         {
             await stream.WriteNewLineAsync();
 
+            List<IndirectObject> writtenObjects = [];
+
             // Write all updated and new objects to the output stream
             foreach (var entry in NewOrUpdatedObjects)
             {
-                await entry.WriteAsync(stream);
+                IndirectObject objectToWrite = entry;
+                if (EncryptionWritePlan != null)
+                {
+                    objectToWrite = RemoveEncryption
+                        ? await EncryptionObjectTransformer.DecryptAsync(entry, EncryptionWritePlan.Handler)
+                        : await EncryptionObjectTransformer.EncryptAsync(entry, EncryptionWritePlan.Handler);
+                }
+
+                await objectToWrite.WriteAsync(stream);
+                writtenObjects.Add(objectToWrite);
             }
 
-            var crossReferenceSections = CrossReferenceGenerator.Generate(NewOrUpdatedObjects, _deletedObjects, ObjectContext.UserCreated);
+            var crossReferenceSections = CrossReferenceGenerator.Generate(writtenObjects, _deletedObjects, ObjectContext.UserCreated);
             var xrefTable = new CrossReferenceTable(crossReferenceSections, Context);
 
             // For now, the IndirectObjectDictionary generates a delta with xref table and trailer.
@@ -103,7 +118,7 @@ namespace ZingPDF.IncrementalUpdates
                     existingTrailerDictionary.Size + _newObjects.Count(),
                     prev,
                     existingTrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
-                    await existingTrailerDictionary.Encrypt.GetAsync(),
+                    RemoveEncryption ? null : await existingTrailerDictionary.Encrypt.GetAsync(),
                     existingTrailerDictionary.Info,
                     fileIdentifier,
                     existingTrailerDictionary.Pdf,
