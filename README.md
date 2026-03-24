@@ -2,6 +2,12 @@
 
 ZingPDF is a .NET PDF library for reading, editing, and saving PDF files with an API that works at the document and page level while still exposing lower-level PDF objects when needed.
 
+## Licensing
+
+ZingPDF is proprietary software.
+
+Use, redistribution, and commercial access require a separate written agreement from the copyright holder. See `LICENSE.txt` for the current repository notice.
+
 ## Target framework
 
 `ZingPDF` currently targets `.NET 8`.
