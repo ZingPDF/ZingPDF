@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content 'Directory.Build.props'
+          $versionPrefix = $props.Project.PropertyGroup.VersionPrefix
+
+          if ([string]::IsNullOrWhiteSpace($versionPrefix)) {
+            throw 'VersionPrefix was not found in Directory.Build.props.'
+          }
+
+          $version = "$versionPrefix.${{ github.run_number }}"
+          $assemblyVersion = "$version.0"
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "assembly_version=$assemblyVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Restore
+        run: dotnet restore ZingPDF.sln
+
+      - name: Build
+        run: >
+          dotnet build ZingPDF.sln
+          --configuration Release
+          --no-restore
+          -p:ContinuousIntegrationBuild=true
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+
+      - name: Test
+        run: dotnet test ZingPDF.sln --configuration Release --no-build
+
+      - name: Pack
+        run: >
+          dotnet pack ZingPDF/ZingPDF.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: zingpdf-packages-${{ steps.version.outputs.version }}
+          path: artifacts/packages/*
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ZingPDF v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: artifacts/packages/*
