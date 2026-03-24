@@ -196,6 +196,56 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task EncryptAsync_AllowsOwnerPasswordAuthentication()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.EncryptAsync("user-secret", "owner-secret");
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        await reloaded.AuthenticateAsync("owner-secret");
+        var pageCount = await reloaded.GetPageCountAsync();
+        pageCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task EncryptAsync_ThenDecryptAsync_RoundTripsToPlainPdf()
+    {
+        using var pdf = Pdf.Create();
+        using var encryptedOutput = new MemoryStream();
+
+        await pdf.EncryptAsync("secret-password");
+        await pdf.SaveAsync(encryptedOutput);
+
+        encryptedOutput.Position = 0;
+        using var encryptedPdf = Pdf.Load(encryptedOutput);
+        using var decryptedOutput = new MemoryStream();
+
+        await encryptedPdf.DecryptAsync("secret-password");
+        await encryptedPdf.SaveAsync(decryptedOutput);
+
+        decryptedOutput.Position = 0;
+        using var reloaded = Pdf.Load(decryptedOutput);
+        var pageCount = await reloaded.GetPageCountAsync();
+        pageCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsNonEmptyForeignOutputStream()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream(Encoding.ASCII.GetBytes("not a pdf"));
+
+        var act = async () => await pdf.SaveAsync(output);
+
+        await Assert.ThrowsAsync<ArgumentException>(act);
+    }
+
+    [Fact]
     public async Task AddWatermark_WritesWatermarkContent()
     {
         using var pdf = Pdf.Create();

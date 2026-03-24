@@ -83,7 +83,8 @@ namespace ZingPDF.IncrementalUpdates
             foreach (var entry in NewOrUpdatedObjects)
             {
                 IndirectObject objectToWrite = entry;
-                if (EncryptionWritePlan?.EncryptReference?.Id == entry.Id)
+                var encryptionObjectId = EncryptionWritePlan?.EncryptReference?.Id;
+                if (encryptionObjectId is not null && encryptionObjectId == entry.Id)
                 {
                     objectToWrite = entry;
                 }
@@ -120,12 +121,14 @@ namespace ZingPDF.IncrementalUpdates
                 ? null
                 : (IPdfObject?)EncryptionWritePlan?.EncryptReference
                     ?? existingTrailerDictionary.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+            var rootReference = existingTrailerDictionary.Root
+                ?? throw new InvalidPdfException("Unable to save PDF because the latest trailer is missing the Root entry.");
 
             var trailer = new Trailer(
                 TrailerDictionary.CreateNew(
                     existingTrailerDictionary.Size + _newObjects.Count(),
                     prev,
-                    existingTrailerDictionary.Root, // TODO: figure out how best to handle this if it can be null
+                    rootReference,
                     encryptReference,
                     existingTrailerDictionary.Info,
                     fileIdentifier,

@@ -322,6 +322,11 @@ public class Pdf : IPdf, IDisposable
     {
         ArgumentNullException.ThrowIfNull(outputStream);
         if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
+        if (!outputStream.CanSeek) throw new ArgumentException("Provided output stream must be seekable", nameof(outputStream));
+        if (!ReferenceEquals(outputStream, Data) && outputStream.Length != 0)
+        {
+            throw new ArgumentException("Provided output stream must be empty unless saving back to the source stream.", nameof(outputStream));
+        }
 
         // Copy original PDf to output if required.
         if (outputStream.Length == 0)
