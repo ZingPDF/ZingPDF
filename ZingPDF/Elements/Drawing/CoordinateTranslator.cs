@@ -49,10 +49,15 @@ namespace ZingPDF.Elements.Drawing
             }
 
             var newHeight = _calculations.AngleIsPerpendicular(pageDisplayRotation) ? pageWidth : pageHeight;
+            var flippedLowerLeft = FlipCoordinates(
+                [boundingBox.LowerLeft],
+                (int)Math.Round(newHeight - (double)boundingBox.Height))
+                .First();
+            var flippedUpperRight = new Coordinate(
+                flippedLowerLeft.X + boundingBox.Width,
+                flippedLowerLeft.Y + boundingBox.Height);
 
-            var origin = FlipCoordinates([boundingBox.UpperRight], Convert.ToInt32(newHeight - boundingBox.Height)).First();
-
-            return Rectangle.FromCoordinates(origin, new Coordinate(boundingBox.Width, boundingBox.Height), boundingBox.Context);
+            return Rectangle.FromCoordinates(flippedLowerLeft, flippedUpperRight, boundingBox.Context);
         }
 
         public IEnumerable<Coordinate> RotateCoordinates(int angle, double pageWidth, double pageHeight, params Coordinate[] coordinates)

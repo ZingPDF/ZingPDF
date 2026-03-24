@@ -76,17 +76,17 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
 
     private async Task<StandardSecurityHandler?> CreateHandlerAsync()
     {
-        var trailerDict = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
-        var encryptionDict = await trailerDict.Encrypt.GetAsync();
-
-        if (encryptionDict is null)
-        {
-            return null;
-        }
-
         _initializing = true;
         try
         {
+            var trailerDict = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
+            var encryptionDict = await trailerDict.Encrypt.GetAsync();
+
+            if (encryptionDict is null)
+            {
+                return null;
+            }
+
             StandardEncryptionDictionary standardEncryption = encryptionDict is StandardEncryptionDictionary standard
                 ? standard
                 : StandardEncryptionDictionary.FromDictionary(encryptionDict.InnerDictionary, _pdf, encryptionDict.Context);

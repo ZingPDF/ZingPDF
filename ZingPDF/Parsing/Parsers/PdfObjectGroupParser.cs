@@ -28,6 +28,10 @@ internal class PdfObjectGroupParser : IParser<PdfObjectGroup>
                 {
                     items.Add(await _parserRegistry.GetParserFor(type).ParseAsync(stream, context));
                 }
+                catch (PdfAuthenticationException)
+                {
+                    throw;
+                }
                 catch
                 {
                     // If any exception is thrown, gracefully exit.

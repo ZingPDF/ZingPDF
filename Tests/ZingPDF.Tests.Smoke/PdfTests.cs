@@ -16,7 +16,7 @@ public class PdfTests
 
         var act = async () => await pdf.GetPageCountAsync();
 
-        var exception = await Assert.ThrowsAsync<Exception>(act);
+        var exception = await Assert.ThrowsAnyAsync<Exception>(act);
 
         exception.GetType().Name.Should().Be("PdfAuthenticationException");
     }
