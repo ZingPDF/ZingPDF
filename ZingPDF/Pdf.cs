@@ -41,7 +41,7 @@ public class Pdf : IPdf, IDisposable
     private Form? _form;
     private bool _rewriteAllObjects;
     private bool _removeEncryptionOnSave;
-    private bool _encryptOnSaveRequested;
+    private PdfEncryptionOptions? _pendingEncryptionOptions;
 
     private Pdf(Stream data)
     {
@@ -290,16 +290,27 @@ public class Pdf : IPdf, IDisposable
         }
     }
 
-    public void Encrypt()
+    public Task EncryptAsync(string userPassword, string? ownerPassword = null)
     {
-        _encryptOnSaveRequested = true;
+        ArgumentException.ThrowIfNullOrWhiteSpace(userPassword);
+
+        var resolvedOwnerPassword = string.IsNullOrWhiteSpace(ownerPassword) ? userPassword : ownerPassword;
+
+        _rewriteAllObjects = true;
         _removeEncryptionOnSave = false;
+        _pendingEncryptionOptions = new PdfEncryptionOptions(userPassword, resolvedOwnerPassword);
+
+        return Task.CompletedTask;
     }
 
-    public void Decrypt()
+    public async Task DecryptAsync(string password)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+
+        await AuthenticateAsync(password);
         _rewriteAllObjects = true;
         _removeEncryptionOnSave = true;
+        _pendingEncryptionOptions = null;
     }
 
     public async Task AppendPdfAsync(Stream stream)
@@ -324,16 +335,12 @@ public class Pdf : IPdf, IDisposable
             await _form.UpdateAsync();
         }
 
+        var encryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync(_pendingEncryptionOptions);
         var incrementalUpdate = await Objects.GenerateUpdateDeltaAsync(_rewriteAllObjects);
         if (incrementalUpdate != null)
         {
-            incrementalUpdate.EncryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync();
+            incrementalUpdate.EncryptionWritePlan = encryptionWritePlan;
             incrementalUpdate.RemoveEncryption = _removeEncryptionOnSave;
-
-            if (_encryptOnSaveRequested && incrementalUpdate.EncryptionWritePlan is null)
-            {
-                throw new NotSupportedException("Encrypting a previously unencrypted PDF is not yet supported by this API.");
-            }
 
             await incrementalUpdate.WriteAsync(outputStream);
         }
