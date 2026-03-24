@@ -13,6 +13,7 @@ This document is a working checklist for taking ZingPDF from "technically usable
 - `CHANGELOG.md` for release notes
 - GitHub Actions CI workflow for build, test, and pack validation
 - GitHub Actions release workflow that stamps an auto-incremented main-branch version into DLLs and the NuGet package
+- `DEPENDENCY_REVIEW.md` with commercial dependency recommendations
 
 ## Decisions still required
 
@@ -93,6 +94,16 @@ Useful docs for buyers:
 - upgrade guide
 - supported scenarios / limitations
 - troubleshooting guide
+
+### 8. Act on dependency review findings
+
+See `DEPENDENCY_REVIEW.md` for the current package-by-package recommendations.
+
+Highest-priority follow-up items:
+
+- review `SixLabors.ImageSharp` licensing for commercial distribution
+- replace `MorseCode.ITask` with standard .NET async primitives
+- consider shrinking the runtime dependency surface in the core package
 
 ## Sensible near-term next steps
 

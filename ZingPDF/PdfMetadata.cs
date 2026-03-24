@@ -25,6 +25,14 @@ public sealed class PdfMetadata
     private IndirectObject? _infoIndirectObject;
     private DocumentInformationDictionary? _infoDictionary;
     private bool _loaded;
+    private string? _title;
+    private string? _author;
+    private string? _subject;
+    private string? _keywords;
+    private string? _creator;
+    private DateTimeOffset? _creationDate;
+    private bool _creationDateWasSetByCaller;
+    private bool _hasOriginalCreationDateEntry;
 
     private PdfMetadata(IPdf pdf)
     {
@@ -34,27 +42,47 @@ public sealed class PdfMetadata
     /// <summary>
     /// Gets or sets the document title.
     /// </summary>
-    public string? Title { get; set; }
+    public string? Title
+    {
+        get => _title;
+        set => _title = value;
+    }
 
     /// <summary>
     /// Gets or sets the document author.
     /// </summary>
-    public string? Author { get; set; }
+    public string? Author
+    {
+        get => _author;
+        set => _author = value;
+    }
 
     /// <summary>
     /// Gets or sets the document subject.
     /// </summary>
-    public string? Subject { get; set; }
+    public string? Subject
+    {
+        get => _subject;
+        set => _subject = value;
+    }
 
     /// <summary>
     /// Gets or sets document keywords.
     /// </summary>
-    public string? Keywords { get; set; }
+    public string? Keywords
+    {
+        get => _keywords;
+        set => _keywords = value;
+    }
 
     /// <summary>
     /// Gets or sets the application or person that originally created the document.
     /// </summary>
-    public string? Creator { get; set; }
+    public string? Creator
+    {
+        get => _creator;
+        set => _creator = value;
+    }
 
     /// <summary>
     /// Gets the producer value that will be written by ZingPDF on save.
@@ -70,7 +98,15 @@ public sealed class PdfMetadata
     /// <remarks>
     /// Existing documents may store this as either a PDF date object or a raw string; both are supported when loading.
     /// </remarks>
-    public DateTimeOffset? CreationDate { get; set; }
+    public DateTimeOffset? CreationDate
+    {
+        get => _creationDate;
+        set
+        {
+            _creationDate = value;
+            _creationDateWasSetByCaller = true;
+        }
+    }
 
     /// <summary>
     /// Gets the modification date that will be written on save.
@@ -105,7 +141,11 @@ public sealed class PdfMetadata
         ModifiedDate = DateTimeOffset.Now;
 
         SetText(Constants.DictionaryKeys.DocumentInformation.Producer, Producer);
-        SetDate(Constants.DictionaryKeys.DocumentInformation.CreationDate, CreationDate);
+        if (_creationDateWasSetByCaller || !_hasOriginalCreationDateEntry)
+        {
+            SetDate(Constants.DictionaryKeys.DocumentInformation.CreationDate, _creationDate);
+        }
+
         SetDate(Constants.DictionaryKeys.DocumentInformation.ModDate, ModifiedDate);
 
         if (_infoIndirectObject is null)
@@ -137,13 +177,14 @@ public sealed class PdfMetadata
                 _ => throw new InvalidPdfException("Trailer Info entry did not resolve to a dictionary.")
             };
 
-            Title = await DecodeTextAsync(_infoDictionary.Title);
-            Author = await DecodeTextAsync(_infoDictionary.Author);
-            Subject = await DecodeTextAsync(_infoDictionary.Subject);
-            Keywords = await DecodeTextAsync(_infoDictionary.Keywords);
-            Creator = await DecodeTextAsync(_infoDictionary.Creator);
+            _title = await DecodeTextAsync(_infoDictionary.Title);
+            _author = await DecodeTextAsync(_infoDictionary.Author);
+            _subject = await DecodeTextAsync(_infoDictionary.Subject);
+            _keywords = await DecodeTextAsync(_infoDictionary.Keywords);
+            _creator = await DecodeTextAsync(_infoDictionary.Creator);
             Producer = await DecodeTextAsync(_infoDictionary.Producer);
-            CreationDate = await GetDateAsync(Constants.DictionaryKeys.DocumentInformation.CreationDate);
+            _hasOriginalCreationDateEntry = _infoDictionary.ContainsKey(Constants.DictionaryKeys.DocumentInformation.CreationDate);
+            _creationDate = await GetDateAsync(Constants.DictionaryKeys.DocumentInformation.CreationDate);
             ModifiedDate = await GetDateAsync(Constants.DictionaryKeys.DocumentInformation.ModDate);
         }
 
@@ -182,16 +223,18 @@ public sealed class PdfMetadata
         return value switch
         {
             Date date => date.DateTimeOffset,
-            PdfString pdfString => ParsePdfDate(pdfString.Decode()),
+            PdfString pdfString => TryParsePdfDate(pdfString.Decode(), out var parsedDate) ? parsedDate : null,
             _ => throw new InvalidPdfException($"Document information entry '{key}' must be a date or string.")
         };
     }
 
-    private static DateTimeOffset ParsePdfDate(string? value)
+    private static bool TryParsePdfDate(string? value, out DateTimeOffset parsedDate)
     {
+        parsedDate = default;
+
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new FormatException("Document information date value cannot be empty.");
+            return false;
         }
 
         var normalized = value.Trim();
@@ -201,7 +244,8 @@ public sealed class PdfMetadata
             normalized = normalized[2..];
         }
 
-        normalized = normalized.Replace("'", string.Empty, StringComparison.Ordinal);
+        normalized = normalized.TrimEnd('\'');
+        normalized = NormalizePdfDateOffset(normalized);
 
         string[] formats =
         [
@@ -221,9 +265,47 @@ public sealed class PdfMetadata
 
         if (DateTimeOffset.TryParseExact(normalized, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
         {
-            return parsed;
+            parsedDate = parsed;
+            return true;
         }
 
-        throw new FormatException($"Invalid document information date format: '{value}'.");
+        return false;
+    }
+
+    private static string NormalizePdfDateOffset(string value)
+    {
+        var offsetIndex = value.LastIndexOfAny(['+', '-']);
+
+        if (offsetIndex <= 0)
+        {
+            return string.Equals(value, "Z", StringComparison.OrdinalIgnoreCase)
+                ? "+00:00"
+                : value;
+        }
+
+        var prefix = value[..offsetIndex];
+        var offset = value[offsetIndex..].Replace("'", string.Empty, StringComparison.Ordinal);
+
+        if (offset.Length == 2)
+        {
+            return $"{prefix}{offset}:00";
+        }
+
+        if (offset.Length == 3)
+        {
+            return $"{prefix}{offset[0..2]}:{offset[2]}0";
+        }
+
+        if (offset.Length == 4)
+        {
+            return $"{prefix}{offset[0..2]}:{offset[2..4]}";
+        }
+
+        if (offset.Length == 5 && offset[3] != ':')
+        {
+            return $"{prefix}{offset[0..3]}:{offset[3..5]}";
+        }
+
+        return $"{prefix}{offset}";
     }
 }
