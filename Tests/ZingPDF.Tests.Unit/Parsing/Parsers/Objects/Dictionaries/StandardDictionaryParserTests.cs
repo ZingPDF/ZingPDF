@@ -1,6 +1,7 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using FakeItEasy.Configuration;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using MorseCode.ITask;
 using Nito.AsyncEx;
 using System.Text;
@@ -20,6 +21,15 @@ namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
 public class StandardDictionaryParserTests
 {
+    private static IParserResolver CreateParserResolver(IPdf? pdf = null)
+    {
+        return new ServiceCollection()
+            .AddContext(pdf ?? A.Dummy<IPdf>())
+            .AddParsers()
+            .BuildServiceProvider()
+            .GetRequiredService<IParserResolver>();
+    }
+
     [Theory]
     [InlineData("<< >>")]
     [InlineData("<<>>")]
@@ -49,14 +59,7 @@ public class StandardDictionaryParserTests
         var contentString = "<</Resources <<>>>>";
 
         using var input = contentString.ToStream();
-        var parserResolver = A.Fake<IParserResolver>();
-        var nameParser = A.Fake<IParser<Name>>();
-
-        A.CallTo(() => nameParser.ParseAsync(A<Stream>.Ignored, A<ObjectContext>.Ignored))
-            .Returns(Task.FromResult((Name)"Test").AsITask());
-
-        A.CallTo(() => parserResolver.GetParser<Name>())
-            .Returns(nameParser);
+        var parserResolver = CreateParserResolver();
 
         var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), parserResolver, A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
@@ -75,7 +78,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Should().HavePosition(
@@ -91,7 +94,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().NotBeNull().And.HaveCount(1);
@@ -108,7 +111,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -151,7 +154,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
     }
 
@@ -191,7 +194,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -235,7 +238,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -250,7 +253,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -268,7 +271,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
@@ -298,7 +301,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -314,7 +317,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -333,7 +336,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         var type = output.Type;
@@ -358,7 +361,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -405,7 +408,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(pdf, CreateParserResolver(pdf), new DictionaryIdentifier(pdf))
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -436,7 +439,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), CreateParserResolver(), A.Dummy<IDictionaryIdentifier>())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None));
 
         input.Position.Should().Be(Encoding.UTF8.GetByteCount(contentString));
@@ -485,7 +488,7 @@ public class StandardDictionaryParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new StandardDictionaryParser(A.Dummy<IPdf>(), A.Dummy<IParserResolver>(), A.Dummy<IDictionaryIdentifier>())
+        var output = await new StandardDictionaryParser(pdf, CreateParserResolver(pdf), new DictionaryIdentifier(pdf))
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.None)) as PageDictionary;
 
         output.Should().NotBeNull();
@@ -495,3 +498,4 @@ public class StandardDictionaryParserTests
         output!.MediaBox.Should().NotBeNull("the page inherits the entry from its grandparent");
     }
 }
+

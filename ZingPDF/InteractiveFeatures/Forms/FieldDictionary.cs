@@ -162,7 +162,10 @@ namespace ZingPDF.InteractiveFeatures.Forms
 
             ms.Position = 0;
 
-            Set<PdfString>(Constants.DictionaryKeys.Field.VariableText.DA, await ms.GetAsync());
+            Set(
+                Constants.DictionaryKeys.Field.VariableText.DA,
+                PdfString.FromAscii(await ms.GetAsync(), PdfStringSyntax.Literal, ObjectContext.UserCreated)
+            );
         }
 
         new public static FieldDictionary FromDictionary(Dictionary<string, IPdfObject> dictionary, IPdf pdf, ObjectContext context)

@@ -1,5 +1,6 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax;
@@ -10,12 +11,20 @@ namespace ZingPDF.Parsing.Parsers.Objects;
 
 public class ArrayParserTests
 {
+    private static IParserResolver CreateParserResolver()
+    {
+        return new ServiceCollection()
+            .AddContext(A.Dummy<IPdf>())
+            .AddParsers()
+            .BuildServiceProvider()
+            .GetRequiredService<IParserResolver>();
+    }
     [Fact]
     public async Task ParseEmptyArray_CorrectCount()
     {
         using var input = "[]".ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().BeEmpty();
@@ -26,7 +35,7 @@ public class ArrayParserTests
     {
         using var input = "[]".ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(2);
@@ -37,7 +46,7 @@ public class ArrayParserTests
     {
         using var input = "[ ]".ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().BeEmpty();
@@ -48,7 +57,7 @@ public class ArrayParserTests
     {
         using var input = "[ ]".ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(3);
@@ -76,7 +85,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(inputStream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().HaveCount(expectedCount);
@@ -89,7 +98,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(inputStream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         inputStream.Position.Should().Be(input.Length);
@@ -102,7 +111,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(inputStream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().HaveCount(expectedCount);
@@ -115,7 +124,7 @@ public class ArrayParserTests
     {
         using var inputStream = input.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(inputStream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         inputStream.Position.Should().Be(
@@ -134,7 +143,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.All(x => x is Number).Should().BeTrue();
@@ -149,7 +158,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Count().Should().Be(2);
@@ -166,7 +175,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().HaveCount(1);
@@ -180,7 +189,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(7, because: "the parser should move the stream past the array-end delimiter");
@@ -193,7 +202,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().HaveCount(1);
@@ -207,7 +216,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -223,7 +232,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Should().HaveCount(2);
@@ -237,7 +246,7 @@ public class ArrayParserTests
 
         using var input = contentString.ToStream();
 
-        var output = await new ArrayParser(A.Dummy<IParserResolver>())
+        var output = await new ArrayParser(CreateParserResolver())
             .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         input.Position.Should().Be(
@@ -246,3 +255,4 @@ public class ArrayParserTests
             );
     }
 }
+

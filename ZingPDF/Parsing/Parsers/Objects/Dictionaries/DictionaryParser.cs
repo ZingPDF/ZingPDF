@@ -1,13 +1,7 @@
-﻿using System.Text;
-
 namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 
 internal abstract class DictionaryParser
 {
-    private static readonly List<char> _halfDelimiters = [Constants.Characters.LessThan, Constants.Characters.GreaterThan];
-
-    private static bool IsHalfADelimiter(char c) => _halfDelimiters.Contains(c);
-
     /// <summary>
     /// Analyses the given stream forward from the current position and extracts the portion containing the dictionary.
     /// </summary>
@@ -16,83 +10,144 @@ internal abstract class DictionaryParser
     /// <exception cref="ParserException"></exception>
     protected static async Task<SubStream> ExtractDictionarySegmentAsync(Stream source)
     {
-        var buffer = new byte[1024];
+        await Task.Yield();
 
-        var countStart = 0;                          // Tracks "<<" occurrences
-        var countEnd = 0;                            // Tracks ">>" occurrences
+        var countStart = 0;
+        var countEnd = 0;
 
-        long dictStart = 0;                          // Byte offset for dictionary start
-        long dictEnd = 0;                            // Byte offset for dictionary end
+        long dictStart = -1;
+        long dictEnd = -1;
 
-        var lastEncounteredDelimiterEndsAt = 0;
+        var inComment = false;
+        var inHexString = false;
+        var literalStringDepth = 0;
+        var escapeNext = false;
 
-        do
+        while (source.Position < source.Length)
         {
-            // Read from the stream
-            var read = await source.ReadAsync(buffer.AsMemory());
+            var currentPosition = source.Position;
+            var current = source.ReadByte();
 
-            // Convert the buffer to a string and prepend the carryover
-            string currentContent = Encoding.ASCII.GetString(buffer, 0, read);
-
-            //Logger.Log(LogLevel.Trace, currentContent[..Math.Min(currentContent.Length, 100)]);
-
-            for (var i = 0; i < currentContent.Length - 1; i++)
+            if (current < 0)
             {
-                var processedContent = currentContent[..i];
-                var byteOffsetForDecodedPosition = Encoding.ASCII.GetByteCount(processedContent);
+                break;
+            }
 
-                // Check for dictionary delimiters
-                var c = currentContent[i..(i + 2)]; // Extract two characters starting at i
+            if (inComment)
+            {
+                if (current is '\r' or '\n')
+                {
+                    inComment = false;
+                }
 
-                if (c == Constants.DictionaryStart)
+                continue;
+            }
+
+            if (literalStringDepth > 0)
+            {
+                if (escapeNext)
+                {
+                    escapeNext = false;
+                    continue;
+                }
+
+                if (current == '\\')
+                {
+                    escapeNext = true;
+                    continue;
+                }
+
+                if (current == '(')
+                {
+                    literalStringDepth++;
+                    continue;
+                }
+
+                if (current == ')')
+                {
+                    literalStringDepth--;
+                }
+
+                continue;
+            }
+
+            if (inHexString)
+            {
+                if (current == '>')
+                {
+                    inHexString = false;
+                }
+
+                continue;
+            }
+
+            if (current == '%')
+            {
+                inComment = true;
+                continue;
+            }
+
+            if (current == '(')
+            {
+                literalStringDepth = 1;
+                continue;
+            }
+
+            if (current == '<')
+            {
+                var next = source.ReadByte();
+                if (next < 0)
+                {
+                    break;
+                }
+
+                if (next == '<')
                 {
                     countStart++;
-                    lastEncounteredDelimiterEndsAt = i + 2;
 
                     if (countStart == 1)
                     {
-                        dictStart = source.Position - read + byteOffsetForDecodedPosition + 2;
+                        dictStart = currentPosition + 2;
                     }
 
-                    i++; // Increment past current delimiter
+                    continue;
                 }
-                else if (c == Constants.DictionaryEnd)
+
+                inHexString = true;
+                source.Position--;
+                continue;
+            }
+
+            if (current == '>')
+            {
+                var next = source.ReadByte();
+                if (next < 0)
+                {
+                    break;
+                }
+
+                if (next == '>')
                 {
                     countEnd++;
-                    lastEncounteredDelimiterEndsAt = i + 2;
 
                     if (countEnd == countStart)
                     {
-                        dictEnd = source.Position - read + byteOffsetForDecodedPosition;
-
-                        goto ReadyToParse;
+                        dictEnd = currentPosition;
+                        break;
                     }
 
-                    i++; // Increment past current delimiter
+                    continue;
                 }
-            }
 
-            // If a delimiter straddles the buffer boundary, we must ensure it is counted.
-            // Identifying this is tricky. We can't just check the last 2 characters to see if the 2nd is a '<' or '>',
-            // as nested dictionaries cause sequences like this >>>>>>.
-            if (IsHalfADelimiter(currentContent.Last()) && lastEncounteredDelimiterEndsAt != source.Position)
-            {
                 source.Position--;
             }
         }
-        while (countStart != countEnd && source.Position < source.Length);
 
-        if (countStart != countEnd)
+        if (countStart == 0 || countStart != countEnd || dictStart < 0 || dictEnd < 0)
         {
             throw new ParserException($"Unable to find end of dictionary. Start Count: {countStart}, End Count: {countEnd}, Stream Position: {source.Position}.");
         }
 
-    ReadyToParse:
-        //if (dictEnd - dictStart > 1)
-        //{
         return new SubStream(source, dictStart, dictEnd);
-        //}
-
-        //return null;
     }
 }

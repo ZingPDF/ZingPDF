@@ -51,7 +51,7 @@ internal class CrossReferenceStreamDictionaryParser : DictionaryParser, IParser<
             return CrossReferenceStreamDictionary.FromDictionary([], _pdf, context);
         }
 
-        var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(stream, context);
+        var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(dictStream, context);
 
         if (objectGroup.Objects.Count % 2 != 0)
         {
