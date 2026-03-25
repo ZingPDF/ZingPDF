@@ -4,6 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>ZingPDF.FromHTML</PackageId>
+    <Authors>Tom Bowers</Authors>
+    <Company>ZingPDF</Company>
+    <Description>HTML-to-PDF conversion helpers for ZingPDF using PuppeteerSharp.</Description>
+    <PackageTags>pdf;html;documents;puppeteer</PackageTags>
+    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.FromHTML.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +28,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.FromHTML.md" Pack="true" PackagePath="/" />
+    <None Include="..\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

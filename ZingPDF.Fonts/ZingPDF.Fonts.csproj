@@ -4,6 +4,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>ZingPDF.Fonts</PackageId>
+    <Authors>Tom Bowers</Authors>
+    <Company>ZingPDF</Company>
+    <Description>Font metrics and font provider support package for ZingPDF.</Description>
+    <PackageTags>pdf;fonts;typography;documents</PackageTags>
+    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.Fonts.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,6 +58,12 @@
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="3.116.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.Fonts.md" Pack="true" PackagePath="/" />
+    <None Include="..\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
