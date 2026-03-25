@@ -66,24 +66,24 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             switch (op.Operator)
             {
                 case ContentStream.Operators.TextShowing.Tj:
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.TJ:
                     return new GlyphRun(pageNumber, [.. await HandleTJAsync(op, pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Apostrophe:
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber)]);
 
                 case ContentStream.Operators.TextShowing.Quote:
-                    WordSpacing = (Number)op.Operands[0];
-                    CharSpacing = (Number)op.Operands[1];
+                    WordSpacing = op.GetOperand<Number>(0);
+                    CharSpacing = op.GetOperand<Number>(1);
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync((PdfString)op.Operands[0], pageNumber)]);
+                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(2), pageNumber)]);
 
                 case ContentStream.Operators.TextState.Tf:
-                    FontResourceName = (Name)op.Operands[0];
-                    FontSize = (Number)op.Operands[1];
+                    FontResourceName = op.GetOperand<Name>(0);
+                    FontSize = op.GetOperand<Number>(1);
                     FontDictionary = await _fontResourceMap.GetRequiredProperty<FontDictionary>(FontResourceName).GetAsync();
                     ToUnicodeCMap = await ResolveCMapAsync(FontResourceName);
                     TextMatrix = TextLineMatrix;
@@ -94,29 +94,30 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     break;
 
                 case ContentStream.Operators.TextState.Tc:
-                    CharSpacing = (Number)op.Operands[0];
+                    CharSpacing = op.GetOperand<Number>(0);
                     break;
 
                 case ContentStream.Operators.TextState.Tw:
-                    WordSpacing = (Number)op.Operands[0];
+                    WordSpacing = op.GetOperand<Number>(0);
                     break;
 
                 case ContentStream.Operators.TextState.Tz:
-                    HorizontalScaling = (Number)op.Operands[0];
+                    HorizontalScaling = op.GetOperand<Number>(0);
                     break;
 
                 case ContentStream.Operators.TextState.Ts:
-                    TextRise = (Number)op.Operands[0];
+                    TextRise = op.GetOperand<Number>(0);
                     break;
 
                 case ContentStream.Operators.TextPositioning.Td:
-                    float tx = (Number)op.Operands[0];
-                    float ty = (Number)op.Operands[1];
+                    float tx = op.GetOperand<Number>(0);
+                    float ty = op.GetOperand<Number>(1);
                     MoveTextPosition(tx, ty);
                     break;
 
                 case ContentStream.Operators.TextPositioning.Tm:
-                    var nums = op.Operands.Cast<Number>().ToArray();
+                    var nums = op.Operands?.Cast<Number>().ToArray()
+                        ?? throw new InvalidOperationException("Tm operator is missing operands.");
                     var m = new Matrix3x2(nums[0], nums[1], nums[2], nums[3], nums[4], nums[5]);
                     TextMatrix = m; TextLineMatrix = m;
                     break;
@@ -126,12 +127,12 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     break;
 
                 case ContentStream.Operators.TextState.TL:
-                    TextLeading = (Number)op.Operands[0];
+                    TextLeading = op.GetOperand<Number>(0);
                     break;
 
                 case ContentStream.Operators.TextPositioning.TD:
-                    TextLeading = -(Number)op.Operands[1];
-                    MoveTextPosition((Number)op.Operands[0], (Number)op.Operands[1]);
+                    TextLeading = -op.GetOperand<Number>(1);
+                    MoveTextPosition(op.GetOperand<Number>(0), op.GetOperand<Number>(1));
                     break;
 
                 case ContentStream.Operators.TextObjects.BT:
@@ -155,7 +156,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
             // 2) Font’s single-byte encoding
             //    (Standard, WinAnsi, MacRoman or PdfDocEncoding)
-            return _fontEncoding.GetString(code);
+            return (_fontEncoding ?? Encoding.GetEncoding(PDFEncoding.PDFDoc)).GetString(code);
         }
 
         public async Task<(float x, float y, float deviceAdvance)> CalculateNextCharPositionAsync(char c, char? prev)
@@ -164,7 +165,8 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             float rawWidth = 0f;
             if (FontDictionary != null)
             {
-                var fontName = await FontDictionary.BaseFont.GetAsync();
+                var fontName = await FontDictionary.BaseFont.GetAsync()
+                    ?? throw new InvalidPdfException("The current font is missing a BaseFont name.");
                 var metrics = _fontMetricsProviders
                     .FirstOrDefault(p => p.IsSupported(fontName))
                     ?.GetFontMetrics(fontName);
@@ -211,8 +213,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
         private async Task<IEnumerable<PositionedGlyph>> HandleTjAsync(PdfString text, int pageNumber)
         {
             var unicode = MapCharacterCode(text.Bytes);
-
-            var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
+            var fontName = await ResolveCurrentFontNameAsync();
 
             char? prev = null;
             List<PositionedGlyph> glyphs = [];
@@ -227,7 +228,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     Y = y,
                     Width = adv,
                     Height = EffectiveFontSizeVertical,
-                    FontName = (await fontDescriptor.FontFamily.GetAsync()).Decode(this),
+                    FontName = fontName,
                     FontSize = FontSize
                 });
                 prev = ch;
@@ -238,9 +239,9 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
         private async Task<IEnumerable<PositionedGlyph>> HandleTJAsync(ContentStreamOperation op, int pageNumber)
         {
-            var fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
+            var fontName = await ResolveCurrentFontNameAsync();
 
-            var array = (ArrayObject)op.Operands[0];
+            var array = op.GetOperand<ArrayObject>(0);
             char? prev = null;
 
             List<PositionedGlyph> glyphs = [];
@@ -262,7 +263,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                             Y = y,
                             Width = adv,
                             Height = FontSize,
-                            FontName = (await fontDescriptor.FontFamily.GetAsync()).Decode(this),
+                            FontName = fontName,
                             FontSize = FontSize
                         });
                         prev = ch;
@@ -343,8 +344,9 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     // If BaseEncoding is not present, we take it from the font if embedded.
                     // If not, fallback to StandardEncoding.
                     FontDescriptorDictionary? fontDescriptor = await FontDictionary!.FontDescriptor.GetAsync();
-                    FontProperties fontProperties = new(await fontDescriptor.Flags.GetAsync());
-                    StreamObject<IStreamDictionary>? fontFile = await fontDescriptor.FontFile.GetAsync();
+                    StreamObject<IStreamDictionary>? fontFile = fontDescriptor != null
+                        ? await fontDescriptor.FontFile.GetAsync()
+                        : null;
 
                     bool hasEmbeddedFont = fontFile != null;
 
@@ -362,6 +364,11 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
                 // Build the Differences map
                 var differences = await dict.Differences.GetAsync();
+                if (differences == null)
+                {
+                    return baseEnc;
+                }
+
                 var diffs = new Dictionary<byte, char>();
                 byte currentCode = 0;
                 foreach (var item in differences)
@@ -383,6 +390,25 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
 
             // 4) Fallback
             return Encoding.GetEncoding(PDFEncoding.PDFDoc);
+        }
+
+        private async Task<string> ResolveCurrentFontNameAsync()
+        {
+            var fontDictionary = FontDictionary
+                ?? throw new InvalidOperationException("Cannot resolve font information before a font has been selected.");
+
+            var fontDescriptor = await fontDictionary.FontDescriptor.GetAsync();
+            if (fontDescriptor != null)
+            {
+                var fontFamily = await fontDescriptor.FontFamily.GetAsync();
+                if (fontFamily != null)
+                {
+                    return fontFamily.Decode(this);
+                }
+            }
+
+            return (string)(await fontDictionary.BaseFont.GetAsync()
+                ?? throw new InvalidPdfException("The current font is missing a BaseFont name."));
         }
 
         private void ApplyTJAdjustment(double adjust)

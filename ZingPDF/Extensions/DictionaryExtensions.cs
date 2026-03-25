@@ -43,20 +43,30 @@ namespace ZingPDF.Extensions
             foreach (var kvp in fontResourceMap)
             {
                 var fontDict = await pdfObjects.GetAsync<FontDictionary>((IndirectObjectReference)kvp.Value);
+                if (fontDict == null)
+                {
+                    continue;
+                }
+
                 var fontDescriptor = await fontDict.FontDescriptor.GetAsync();
 
                 if (fontDescriptor != null)
                 {
                     ArrayObject? widthsArray = await fontDict.Widths.GetAsync();
                     Number? firstCharCode = await fontDict.FirstChar.GetAsync();
+                    if (widthsArray == null || firstCharCode == null)
+                    {
+                        continue;
+                    }
 
                     var widths = widthsArray
                         .Cast<Number>()
                         .Select((width, index) => new { width, index })
                         .ToDictionary(x => (char)(firstCharCode + x.index), x => (int)x.width);
 
+                    var fontName = await fontDescriptor.FontName.GetAsync();
                     simpleFontMetricsProvider.FontMetrics.TryAdd(
-                        await fontDescriptor.FontName.GetAsync(),
+                        fontName,
                         await fontDescriptor.ToFontMetricsAsync(widths)
                         );
                 }
@@ -76,11 +86,12 @@ namespace ZingPDF.Extensions
 
             return new FontMetrics
             {
-                Ascent = await fontDescriptor.Ascent.GetAsync(),
-                Descent = await fontDescriptor.Descent.GetAsync(),
+                Name = await fontDescriptor.FontName.GetAsync(),
+                Ascent = await fontDescriptor.Ascent.GetAsync() ?? 0,
+                Descent = await fontDescriptor.Descent.GetAsync() ?? 0,
                 StandardHorizontalWidth = fontDescriptor.StemH != null ? await fontDescriptor.StemH.GetAsync() : null,
                 StandardVerticalWidth = fontDescriptor.StemV != null ? await fontDescriptor.StemV.GetAsync() : null,
-                CapHeight = await fontDescriptor.CapHeight.GetAsync(),
+                CapHeight = await fontDescriptor.CapHeight.GetAsync() ?? 0,
                 ItalicAngle = await fontDescriptor.ItalicAngle.GetAsync(),
                 IsFixedPitch = fontProperties.IsFixedPitch,
                 Widths = widths
