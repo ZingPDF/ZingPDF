@@ -36,6 +36,7 @@ Common commands:
 dotnet build ZingPDF.sln
 dotnet test ZingPDF.sln
 dotnet pack ZingPDF\ZingPDF.csproj -o artifacts\pack-audit
+./scripts/run-performance.ps1
 ```
 
 Generate the website API reference with:
@@ -43,6 +44,8 @@ Generate the website API reference with:
 ```powershell
 pwsh ./website/generate-api-reference.ps1
 ```
+
+Performance snapshots are written to `artifacts/performance/latest-summary.json` and `artifacts/performance/latest-summary.md`. The dedicated GitHub Actions `Performance` workflow benchmarks both the pull request and its base branch on the same Windows runner, then fails if a scenario regresses by more than 10%.
 
 ## Packaging Notes
 
