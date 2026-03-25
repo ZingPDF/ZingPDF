@@ -1,35 +1,37 @@
-﻿namespace ZingPDF;
+namespace ZingPDF;
 
+/// <summary>
+/// Describes how a PDF object entered the current document model.
+/// </summary>
 public enum ObjectOrigin
 {
     /// <summary>
-    /// An object with no origin. How mysterious.
+    /// The object has no recorded origin.
     /// </summary>
     None,
 
     /// <summary>
-    /// The object was parsed by the <see cref="Parsing.Parsers.FileStructure.DocumentVersionParser"/>
+    /// The object was parsed by the document version parser.
     /// </summary>
     DocumentVersionParser,
 
     /// <summary>
-    /// The object was parsed from the PDF file structure (e.g., from a dictionary or array).
+    /// The object was parsed from the main PDF object structure, such as a dictionary or array.
     /// </summary>
     ParsedDocumentObject,
 
     /// <summary>
-    /// The object was parsed from within a content stream (e.g., between operators).
+    /// The object was parsed from within a content stream.
     /// </summary>
     ParsedContentStream,
 
     /// <summary>
-    /// The object was created manually by the user or application, not parsed.
+    /// The object was created explicitly by application or library code.
     /// </summary>
     UserCreated,
 
     /// <summary>
-    /// The object was created by the library as part of a conversion process (e.g., from a .NET string to a Number instance).
+    /// The object was created by an automatic conversion from another .NET value.
     /// </summary>
     ImplicitOperatorConversion,
 }
-

@@ -38,6 +38,9 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IEnumerable<IFontMetricsProvider>> _fontProviders;
 
+        /// <summary>
+        /// Initializes an AcroForm wrapper for a loaded PDF document.
+        /// </summary>
         public Form(OptionalProperty<InteractiveFormDictionary> acroForm, IPdf pdf, IParser<ContentStream> contentStreamParser)
         {
             ArgumentNullException.ThrowIfNull(acroForm, nameof(acroForm));
