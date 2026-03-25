@@ -4,13 +4,13 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 /// <summary>
-/// <para>ISO 32000-2:2020 12.7.5.2.4 - Radio buttons</para>
-/// </summary>
-/// <summary>
-/// Represents a radio-button field.
+/// Represents a radio-button field where selecting one option usually clears the others in the same group.
 /// </summary>
 public class RadioButtonFormField : ButtonOptionsFormField
 {
+    /// <summary>
+    /// Initializes a radio-button field wrapper.
+    /// </summary>
     public RadioButtonFormField(
         IndirectObject fieldIndirectObject,
         string name,
