@@ -19,6 +19,8 @@ namespace ZingPDF.Syntax.FileStructure.CrossReferences
         /// For 'compressed' objects, this is the index of the object within the containing object stream.
         /// </param>
         /// <param name="inUse">Indicates whether the entry is in use, or free to be reused</param>
+        /// <param name="compressed">Indicates whether the entry refers to an object stored in an object stream.</param>
+        /// <param name="context">The origin context for this PDF object.</param>
         public CrossReferenceEntry(long value1, ushort value2, bool inUse, bool compressed, ObjectContext context)
             : base(context)
         {

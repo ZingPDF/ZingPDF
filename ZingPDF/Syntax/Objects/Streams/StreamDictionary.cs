@@ -18,7 +18,7 @@ namespace ZingPDF.Syntax.Objects.Streams
             : base(streamDictionary, pdf, context) { }
 
         protected StreamDictionary(
-            string? type,
+            Name? type,
             Number length,
             ShorthandArrayObject? filter,
             ShorthandArrayObject? decodeParms,
@@ -50,14 +50,14 @@ namespace ZingPDF.Syntax.Objects.Streams
 
         public static StreamDictionary FromDictionary(Dictionary<string, IPdfObject> streamDictionary, IPdf pdf, ObjectContext context)
         {
+            ArgumentNullException.ThrowIfNull(streamDictionary);
+
             if (!streamDictionary.ContainsKey(Constants.DictionaryKeys.Stream.Length))
             {
                 throw new ArgumentException("Missing stream Length property.");
             }
 
-            return streamDictionary is null
-                ? throw new ArgumentNullException(nameof(streamDictionary))
-                : new(streamDictionary, pdf, context);
+            return new(streamDictionary, pdf, context);
         }
 
         public static StreamDictionary FromDictionary(IPdfDictionary streamDictionary)

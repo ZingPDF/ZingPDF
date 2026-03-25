@@ -242,6 +242,8 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// Create a blank page.
         /// </summary>
         /// <param name="parent">An <see cref="IndirectObjectReference"/> pointing to the page's parent. This shall be an <see cref="IndirectObjectReference"/> to a <see cref="PageTreeNodeDictionary"/>.</param>
+        /// <param name="pdf">The owning PDF instance.</param>
+        /// <param name="options">Optional page creation settings.</param>
         /// <returns>A <see cref="PageDictionary"/> instance.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         internal static PageDictionary CreateNew(IndirectObjectReference parent, IPdf pdf, PageCreationOptions? options = null)
@@ -268,8 +270,10 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         /// <summary>
         /// Create a page from an existing page dictionary.
         /// </summary>
-        /// <param name="pageDictionary"></param>
-        /// <returns></returns>
+        /// <param name="pageDictionary">The raw page dictionary values.</param>
+        /// <param name="pdf">The owning PDF instance.</param>
+        /// <param name="context">The object origin for the created page dictionary.</param>
+        /// <returns>A <see cref="PageDictionary"/> wrapping the supplied values.</returns>
         internal static PageDictionary FromDictionary(Dictionary<string, IPdfObject> pageDictionary, IPdf pdf, ObjectContext context)
         {
             ArgumentNullException.ThrowIfNull(pageDictionary);
