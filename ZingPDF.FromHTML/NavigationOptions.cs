@@ -6,7 +6,7 @@ namespace ZingPDF.FromHTML
     {
         /// <summary>
         /// When to consider navigation succeeded, defaults to <see cref="WaitUntilNavigation.Load"/>. 
-        /// This is a bit flag field, navigation is considered to be successful after all events have been fired.</param>
+        /// This is a bit flag field, navigation is considered to be successful after all events have been fired.
         /// </summary>
         public WaitUntil? WaitUntilFlags { get; set; }
 

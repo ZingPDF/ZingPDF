@@ -60,7 +60,9 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                     providers.AddRange(dyn);
                 }
 
-                var fontResources = (await resDict?.Font.GetAsync()) ?? new Dictionary(_pdf, ObjectContext.None);
+                var fontResources = resDict != null
+                    ? await resDict.Font.GetAsync() ?? new Dictionary(_pdf, ObjectContext.None)
+                    : new Dictionary(_pdf, ObjectContext.None);
 
                 var state = new TextDrawingState(providers, fontResources);
                 var context = ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream);
