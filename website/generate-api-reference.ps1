@@ -1,94 +1,109 @@
 param(
-    [string]$ProjectPath = "C:\Users\tom\dev\ZingPDF\ZingPDF\ZingPDF.csproj",
-    [string]$XmlPath = "C:\Users\tom\dev\ZingPDF\ZingPDF\bin\Release\net8.0\ZingPDF.xml",
-    [string]$OutputPath = "C:\Users\tom\dev\ZingPDF\website\api.html"
+    [string]$ProjectPath,
+    [string]$XmlPath,
+    [string]$OutputPath
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptRoot
+
+if ([string]::IsNullOrWhiteSpace($ProjectPath)) {
+    $ProjectPath = Join-Path $repoRoot "ZingPDF\ZingPDF.csproj"
+}
+
+if ([string]::IsNullOrWhiteSpace($XmlPath)) {
+    $XmlPath = Join-Path $repoRoot "ZingPDF\bin\Release\net8.0\ZingPDF.xml"
+}
+
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $OutputPath = Join-Path $scriptRoot "api.html"
+}
+
 $typeConfigs = @(
     @{
         FullName = "ZingPDF.IPdf"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\IPdf.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\IPdf.cs"
         Kind = "Interface"
         Group = "Document"
     },
     @{
         FullName = "ZingPDF.PdfMetadata"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\PdfMetadata.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\PdfMetadata.cs"
         Kind = "Class"
         Group = "Document"
     },
     @{
         FullName = "ZingPDF.Elements.Page"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Page.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Page.cs"
         Kind = "Class"
         Group = "Pages"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.Form"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\Form.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\Form.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.IFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\IFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\IFormField.cs"
         Kind = "Interface"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Text.TextFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Text\TextFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Text\TextFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Choice.ChoiceFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Choice\ChoiceFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Choice\ChoiceFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Choice.ChoiceItem"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Choice\ChoiceItem.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Choice\ChoiceItem.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Button.ButtonOptionsFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Button\ButtonOptionsFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Button\ButtonOptionsFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Button.CheckboxFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Button\CheckboxFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Button\CheckboxFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Button.RadioButtonFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Button\RadioButtonFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Button\RadioButtonFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Button.PushButtonFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Button\PushButtonFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Button\PushButtonFormField.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Button.SelectableOption"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Button\SelectableOption.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Button\SelectableOption.cs"
         Kind = "Class"
         Group = "Forms"
     },
     @{
         FullName = "ZingPDF.Elements.Forms.FieldTypes.Signature.SignatureFormField"
-        FilePath = "C:\Users\tom\dev\ZingPDF\ZingPDF\Elements\Forms\FieldTypes\Signature\SignatureFormField.cs"
+        FilePath = Join-Path $repoRoot "ZingPDF\Elements\Forms\FieldTypes\Signature\SignatureFormField.cs"
         Kind = "Class"
         Group = "Forms"
     }

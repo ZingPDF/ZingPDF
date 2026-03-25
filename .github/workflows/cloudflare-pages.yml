@@ -1,0 +1,41 @@
+name: Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/cloudflare-pages.yml"
+      - "website/**"
+      - "ZingPDF/**"
+      - "Directory.Build.props"
+      - "ZingPDF.sln"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Generate API reference
+        shell: pwsh
+        run: ./website/generate-api-reference.ps1
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy website --project-name=zingpdf
