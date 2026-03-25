@@ -4,10 +4,10 @@ using static ZingPDF.Constants;
 namespace ZingPDF.Syntax.Objects.Streams;
 
 /// <summary>
-/// Factory for creating <see cref="StreamObject{TDictionary}"/> instances from source data."/>
+/// Factory for creating <see cref="StreamObject{TDictionary}"/> instances from source data.
 /// </summary>
 /// <remarks>
-/// <para>This is an abstract class. The intent is for subclasses to implement the <see cref="GetData"/> method, providing the raw uncompressed data.</para> 
+/// <para>This is an abstract class. The intent is for subclasses to implement the <see cref="GetDataAsync"/> method, providing the raw uncompressed data.</para>
 /// <para>To provide filters to be used to compress the stream, subclasses should implement the <see cref="GetFilters"/> method.</para>
 /// <para>See <see cref="BasicStreamObjectFactory"/> for an example implementation.</para>
 /// <para>Note: For creating <see cref="StreamObject{TDictionary}"/> instances from compressed data, use the <see cref="StreamObject{TDictionary}"/> constructor directly.</para>

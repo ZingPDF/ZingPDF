@@ -48,6 +48,9 @@ namespace ZingPDF.Parsing
         /// </remarks>
         /// <param name="stream">The stream from which to detect the encoding.</param>
         /// <param name="defaultEncoding">The encoding to return if a valid encoding cannot be detected.</param>
+        /// <param name="advanceStreamBeyondByteOrderMark">
+        /// When <see langword="true"/>, advances the stream position past the detected byte order mark.
+        /// </param>
         public async Task<EncodingResult> DetectAsync(Stream stream, Encoding? defaultEncoding = null, bool advanceStreamBeyondByteOrderMark = true)
         {
             defaultEncoding ??= _defaultEncoding;
