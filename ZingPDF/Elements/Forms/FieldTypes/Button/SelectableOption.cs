@@ -41,7 +41,7 @@ public class SelectableOption
     public string Text { get; set; }
 
     /// <summary>
-    /// Gets or sets the export value for the option.
+    /// Gets or sets the export value written to the field when this option is selected.
     /// </summary>
     public string Value { get; set; }
 
