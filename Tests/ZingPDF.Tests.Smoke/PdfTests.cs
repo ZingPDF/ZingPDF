@@ -372,6 +372,21 @@ public class PdfTests
         filters!.Cast<ZingPDF.Syntax.Objects.Name>().Select(x => x.Value).Should().Contain("FlateDecode");
     }
 
+    [Fact]
+    public async Task Compress_GhostscriptPdf_DoesNotThrow()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Ghostscript));
+        using var output = new MemoryStream();
+
+        var act = () =>
+        {
+            pdf.Compress(144, 75);
+            return pdf.SaveAsync(output);
+        };
+
+        await act.Should().NotThrowAsync();
+    }
+
 
     //    [Fact]
     //    public async Task SimpleIncrementalUpdate()
