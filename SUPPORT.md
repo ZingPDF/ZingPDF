@@ -58,12 +58,12 @@ These limits should be treated as part of the current product contract unless ex
 - if saving to a different stream, the target stream must be empty
 - if saving back to the original stream, ZingPDF appends the update to the existing PDF
 
-## Support stance before first paid release
+## Commercial support terms
 
-Before the first commercial release is published, the following still need to be finalized outside the codebase:
+Commercial licensing and support terms are defined in:
 
-- commercial EULA or license agreement
-- evaluation/trial terms
-- support response targets
-- maintenance and upgrade entitlement period
-- formal OS/runtime support promise
+- `LICENSE.txt`
+- `EULA.md`
+- `EVALUATION_TERMS.md`
+- `COMMERCIAL_TERMS.md`
+- `SUPPORT_POLICY.md`

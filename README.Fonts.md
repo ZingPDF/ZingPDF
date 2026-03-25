@@ -22,7 +22,7 @@ This package provides:
 
 ## Licensing
 
-ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have the appropriate written agreement before production use or commercial bundling.
+ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an active paid subscription with sufficient seats, or another applicable commercial agreement, before commercial use or commercial bundling.
 
 ## Support and compatibility
 
