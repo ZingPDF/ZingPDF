@@ -15,6 +15,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
     {
         private readonly IParser<ContentStream> _contentStreamParser;
 
+        /// <summary>
+        /// Initializes a text field wrapper.
+        /// </summary>
         public TextFormField(
             IndirectObject fieldIndirectObject,
             string name,

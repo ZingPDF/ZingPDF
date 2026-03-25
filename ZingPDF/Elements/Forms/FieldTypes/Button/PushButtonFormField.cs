@@ -4,16 +4,17 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 /// <summary>
-/// <para>ISO 32000-2:2020 12.7.5.2.2 - Push-buttons</para>
-/// </summary>
-/// <summary>
-/// Represents a push-button field.
+/// Represents a push-button field in an AcroForm.
 /// </summary>
 /// <remarks>
-/// Push-button actions are not currently exposed through the high-level API.
+/// This type is currently useful for discovery and inspection only. Push-button actions are not yet exposed
+/// through the high-level API.
 /// </remarks>
 public class PushButtonFormField : FormField<IPdfObject>
 {
+    /// <summary>
+    /// Initializes a push-button field wrapper.
+    /// </summary>
     public PushButtonFormField(
         IndirectObject fieldIndirectObject,
         string name,

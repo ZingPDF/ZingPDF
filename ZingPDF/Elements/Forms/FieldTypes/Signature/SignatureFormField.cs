@@ -11,6 +11,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Signature
     /// </remarks>
     public class SignatureFormField : FormField<IPdfObject>
     {
+        /// <summary>
+        /// Initializes a signature field wrapper.
+        /// </summary>
         public SignatureFormField(
             IndirectObject fieldIndirectObject,
             string name,

@@ -8,6 +8,7 @@ This directory contains a very small static SPA for selling commercial access to
 - no build step
 - easy static hosting
 - hosted checkout links keep payment maintenance low
+- generated API reference is emitted as static HTML
 
 ## Recommended payment setup
 
@@ -37,6 +38,18 @@ python -m http.server 8080
 ```
 
 Then open `http://localhost:8080`.
+
+## API reference generation
+
+The developer guide in `docs.html` is curated by hand.
+
+The API reference in `api.html` is generated from the library XML docs plus source signatures:
+
+```powershell
+pwsh ./generate-api-reference.ps1
+```
+
+The script builds `ZingPDF` in `Release`, reads `ZingPDF.xml`, and writes a static `api.html` file that is safe to deploy on any static host.
 
 ## How to deploy
 

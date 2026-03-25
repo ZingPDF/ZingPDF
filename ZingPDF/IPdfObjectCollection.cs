@@ -7,6 +7,9 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF;
 
+/// <summary>
+/// Provides low-level access to the PDF object graph for advanced inspection and editing scenarios.
+/// </summary>
 public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
 {
     /// <summary>
@@ -20,7 +23,7 @@ public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
     Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync();
 
     /// <summary>
-    /// The document's page tree.
+    /// Gets the document page tree helper.
     /// </summary>
     PageTree PageTree { get; }
 
@@ -35,10 +38,10 @@ public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
     Task<T> GetAsync<T>(IndirectObjectReference key) where T : class?, IPdfObject?;
 
     /// <summary>
-    /// Add a new object to the PDF.
+    /// Adds a new indirect object to the PDF.
     /// </summary>
     /// <returns>
-    /// An <see cref="IndirectObject"/> which wraps the provided object.
+    /// The newly assigned indirect object wrapper.
     /// </returns>
     Task<IndirectObject> AddAsync(IPdfObject pdfObject);
 

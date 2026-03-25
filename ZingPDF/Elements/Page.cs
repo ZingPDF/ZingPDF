@@ -9,6 +9,9 @@ using ZingPDF.Text;
 
 namespace ZingPDF.Elements
 {
+    /// <summary>
+    /// Represents a single page in a PDF document.
+    /// </summary>
     public class Page
     {
         private readonly IPdf _pdf;
@@ -22,12 +25,22 @@ namespace ZingPDF.Elements
             _pdf = pdf;
         }
 
+        /// <summary>
+        /// Gets the underlying indirect object for the page.
+        /// </summary>
         public IndirectObject IndirectObject { get; }
+
+        /// <summary>
+        /// Gets the page dictionary for the page.
+        /// </summary>
         public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
 
         // TODO: AddImage and AddText use different conventions.
         // This method should accept the text plus options and construct the textobject internally...
         // or the image one should accept an image object like this one.
+        /// <summary>
+        /// Adds a text object to the page contents.
+        /// </summary>
         public async Task AddTextAsync(TextObject text)
         {
             ArgumentNullException.ThrowIfNull(text);
@@ -42,6 +55,9 @@ namespace ZingPDF.Elements
             _pdf.Objects.Update(IndirectObject);
         }
 
+        /// <summary>
+        /// Adds an image to the page contents.
+        /// </summary>
         public async Task AddImageAsync(Image image)
         {
             ArgumentNullException.ThrowIfNull(image);
@@ -116,6 +132,9 @@ namespace ZingPDF.Elements
         //    // TODO: PathObject
         //}
 
+        /// <summary>
+        /// Applies an additional rotation to the page.
+        /// </summary>
         public async Task RotateAsync(Rotation rotation)
         {
             // TODO: Ensure contents don't need some sort of transform to match

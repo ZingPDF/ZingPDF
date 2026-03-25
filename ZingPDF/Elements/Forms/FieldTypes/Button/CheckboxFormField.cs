@@ -5,13 +5,12 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 /// <summary>
-/// <para>ISO 32000-2:2020 12.7.5.2.3 - Check boxes</para>
-/// </summary>
-/// <summary>
-/// Represents a checkbox field.
+/// Represents a checkbox field whose options can be toggled on or off.
 /// </summary>
 public class CheckboxFormField : ButtonOptionsFormField
 {
+    // PDF-spec note: a checkbox field can expose one or more widget annotations, each with its own on/off appearance state.
+
     internal CheckboxFormField(
         IndirectObject fieldIndirectObject,
         string name,
