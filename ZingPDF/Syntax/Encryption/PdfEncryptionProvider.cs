@@ -189,7 +189,7 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
         var trailerDictionary = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
         var originalFileId = GetOrCreateOriginalFileId(trailerDictionary);
 
-        var draftOptions = StandardSecurityHandler.CreateNewOptions(
+        var initialOptions = StandardSecurityHandler.CreateNewOptions(
             encryptionOptions.UserPassword,
             encryptionOptions.OwnerPassword,
             originalFileId.Bytes,
@@ -197,10 +197,10 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             encryptionOptions.KeyLengthBits,
             encryptionOptions.EncryptMetadata);
 
-        var encryptionDictionary = CreateStandardEncryptionDictionary(draftOptions);
+        var encryptionDictionary = CreateStandardEncryptionDictionary(initialOptions);
         var encryptionIndirectObject = await _pdf.Objects.AddAsync(encryptionDictionary);
 
-        var finalizedOptions = draftOptions with { EncryptionDictionaryId = encryptionIndirectObject.Id };
+        var finalizedOptions = initialOptions with { EncryptionDictionaryId = encryptionIndirectObject.Id };
         var handler = new StandardSecurityHandler(finalizedOptions);
         if (!handler.TryAuthenticate(encryptionOptions.UserPassword))
         {

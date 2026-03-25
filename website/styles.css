@@ -44,6 +44,12 @@ a {
   padding-bottom: 64px;
 }
 
+.landing-main {
+  display: grid;
+  gap: 72px;
+  padding-top: 24px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -92,11 +98,9 @@ a {
   display: grid;
   grid-template-columns: 1.2fr 0.95fr;
   gap: 28px;
-  padding: 24px 0 32px;
   align-items: center;
 }
 
-.hero-copy h1,
 .section-copy h2,
 .payment-panel h2,
 .contact-dialog-card h2 {
@@ -108,8 +112,13 @@ a {
 }
 
 .hero-copy h1 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 800;
   font-size: clamp(3.1rem, 7vw, 5.8rem);
-  max-width: 11ch;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  max-width: 10.5ch;
   text-wrap: balance;
 }
 
@@ -302,7 +311,6 @@ code {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
-  margin: 10px 0 56px;
 }
 
 .trust-strip div {
@@ -317,6 +325,57 @@ code {
 .section-copy {
   max-width: 720px;
   margin-bottom: 24px;
+}
+
+.platform-band {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 22px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, rgba(244, 251, 255, 0.96), rgba(255, 255, 255, 0.88));
+  box-shadow: var(--shadow);
+}
+
+.platform-copy {
+  max-width: 36rem;
+}
+
+.platform-copy h2 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.platform-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid rgba(14, 116, 144, 0.16);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.platform-card strong {
+  font-size: 1.3rem;
+}
+
+.platform-label {
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .pricing-grid,
@@ -414,6 +473,20 @@ code {
 .faq-list {
   display: grid;
   gap: 14px;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 28px 0 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+}
+
+.site-footer a:hover {
+  color: var(--accent-strong);
 }
 
 .faq-list details {
@@ -712,6 +785,7 @@ code {
   .hero,
   .pricing-grid,
   .feature-grid,
+  .platform-band,
   .docs-hero,
   .docs-layout,
   .doc-grid {
@@ -736,6 +810,11 @@ code {
     width: min(100% - 20px, 1180px);
   }
 
+  .landing-main {
+    gap: 56px;
+    padding-top: 18px;
+  }
+
   .topbar {
     flex-direction: column;
     align-items: flex-start;
@@ -746,6 +825,10 @@ code {
   }
 
   .trust-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-grid {
     grid-template-columns: 1fr;
   }
 }
