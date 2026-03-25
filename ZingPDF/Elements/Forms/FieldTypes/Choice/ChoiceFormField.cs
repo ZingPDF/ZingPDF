@@ -20,7 +20,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdf)
     {
         /// <summary>
-        /// Gets the available options for the field.
+        /// Gets the available options for the field, including their current selected state.
         /// </summary>
         public async Task<IReadOnlyList<ChoiceItem>> GetOptionsAsync()
         {
