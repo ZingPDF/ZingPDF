@@ -86,7 +86,8 @@ internal class VariableTextAppearanceStreamManager
             PdfString? formDa = await _formDA;
             PdfString? fieldDa = await _fieldDA;
 
-            PdfString defaultAppearance = (fieldDa ?? formDa)!;
+            PdfString defaultAppearance = fieldDa ?? formDa
+                ?? throw new InvalidPdfException("The field does not define a default appearance string.");
 
             var daStream = new MemoryStream(defaultAppearance.Bytes);
 
@@ -106,8 +107,6 @@ internal class VariableTextAppearanceStreamManager
             {
                 return null;
             }
-
-            IndirectObject normalAppearanceIndirectObject = await existingAppearanceDictionary.N.GetIndirectObjectAsync();
 
             return await GetStreamObjectFromNormalAppearanceEntry(normalAppearance);
         });
@@ -187,7 +186,12 @@ internal class VariableTextAppearanceStreamManager
         // form dictionary") into the stream’s Resources dictionary. (If the DR and Resources dictionaries contain
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
-        StreamObject<IStreamDictionary>? fieldApStreamObject = (await _fieldAppearanceStreamObject)!;
+        StreamObject<IStreamDictionary>? fieldApStreamObject = await _fieldAppearanceStreamObject;
+        if (fieldApStreamObject == null)
+        {
+            throw new InvalidPdfException("Expected an appearance stream object for the field.");
+        }
+
         var newResourceDictionary = fieldApStreamObject.Dictionary.MergeInto(formDefaultResources ?? new Dictionary(_pdf, ObjectContext.UserCreated));
 
         await SetAppearanceStreamAsync(fieldAp, ResourceDictionary.FromDictionary(newResourceDictionary, _pdf, ObjectContext.UserCreated));
@@ -263,12 +267,19 @@ internal class VariableTextAppearanceStreamManager
 
         var fieldDimensions = await _fieldDict.Rect.GetAsync();
 
-        var fontOperation = defaultAppearanceStream.Operations.FirstOrDefault(x => x.Operator == TextState.Tf);
+        var fontOperation = defaultAppearanceStream.Operations.FirstOrDefault(x => x.Operator == TextState.Tf)
+            ?? throw new InvalidPdfException("The default appearance stream does not define a font operation.");
         var fontResourceName = fontOperation.GetOperand<Name>(0);
         var fontSize = fontOperation.GetOperand<Number>(1);
 
-        var formDefaultResources = await _formDefaultResources;
+        var formDefaultResources = await _formDefaultResources
+            ?? throw new InvalidPdfException("The form does not define default resources for appearance generation.");
         var fontMapDict = await formDefaultResources.Font.GetAsync();
+        if (fontMapDict == null)
+        {
+            throw new InvalidPdfException("The form default resources do not define a font map.");
+        }
+
         var fontDict = await fontMapDict.GetRequiredProperty<Dictionary>(fontResourceName).GetAsync();
         var fontName = await fontDict.GetRequiredProperty<Name>(Constants.DictionaryKeys.Font.BaseFont).GetAsync();
 
@@ -282,6 +293,11 @@ internal class VariableTextAppearanceStreamManager
         if (fontSize == 0)
         {
             // Set DA to match calculated font size
+            if (fontOperation.Operands == null || fontOperation.Operands.Count < 2)
+            {
+                throw new InvalidPdfException("The default appearance stream does not contain writable font operands.");
+            }
+
             fontOperation.Operands[1] = (Number)fontFit.FontSize;
             await _fieldDict.SetDefaultAppearanceAsync(defaultAppearanceStream);
 
@@ -343,13 +359,15 @@ internal class VariableTextAppearanceStreamManager
         return normalApStream;
     }
 
-    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary resourceDictionary)
+    private async Task SetAppearanceStreamAsync(ContentStream appearanceStream, ResourceDictionary? resourceDictionary)
     {
         var fieldRect = await _fieldDict.Rect.GetAsync();
 
         var ms = new MemoryStream();
 
         await appearanceStream.WriteAsync(ms);
+
+        resourceDictionary ??= new ResourceDictionary(_pdf, ObjectContext.UserCreated);
 
         var contentStreamDictionary = new Type1FormDictionary(
             pdf: _pdf,

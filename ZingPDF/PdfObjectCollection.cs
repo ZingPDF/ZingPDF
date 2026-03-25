@@ -150,7 +150,8 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     {
         var io = await GetAsync(key);
 
-        return io == null ? default : (T)io.Object;
+        return io.Object as T
+            ?? throw new InvalidOperationException($"Indirect object {key} is not of type {typeof(T).Name}.");
     }
 
     public async Task<IndirectObject> AddAsync(IPdfObject pdfObject)

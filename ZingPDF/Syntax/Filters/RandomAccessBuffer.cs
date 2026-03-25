@@ -9,10 +9,12 @@
         private int chunkSize = DefaultChunkSize;
 
         // list containing all chunks
-        private List<byte[]> bufferList;
+        private List<byte[]> bufferList = [];
 
         // current chunk
-        private byte[] currentBuffer;
+        private byte[] currentBuffer = [];
+
+        private bool disposed;
 
         // current pointer to the whole buffer
         private long pointer;
@@ -107,14 +109,7 @@
 
                 copy.bufferList.Add(newBuffer);
             }
-            if (currentBuffer != null)
-            {
-                copy.currentBuffer = copy.bufferList[copy.bufferList.Count - 1];
-            }
-            else
-            {
-                copy.currentBuffer = null;
-            }
+            copy.currentBuffer = copy.bufferList[copy.bufferList.Count - 1];
             copy.pointer = pointer;
             copy.currentBufferPointer = currentBufferPointer;
             copy.size = size;
@@ -130,7 +125,8 @@
 
         public void Dispose()
         {
-            currentBuffer = null;
+            disposed = true;
+            currentBuffer = [];
             bufferList.Clear();
             pointer = 0;
             currentBufferPointer = 0;
@@ -420,7 +416,7 @@
          */
         private void CheckClosed()
         {
-            ObjectDisposedException.ThrowIf(currentBuffer == null, "RandomAccessBuffer already closed");
+            ObjectDisposedException.ThrowIf(disposed, this);
         }
 
         /**
@@ -429,7 +425,7 @@
 
         public bool IsClosed()
         {
-            return currentBuffer == null;
+            return disposed;
         }
 
         /**
