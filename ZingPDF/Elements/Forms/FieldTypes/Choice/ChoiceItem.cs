@@ -31,7 +31,7 @@ public class ChoiceItem
     public PdfString Text { get; set; }
 
     /// <summary>
-    /// Gets or sets the stored option value.
+    /// Gets or sets the stored option value written to the field when this item is selected.
     /// </summary>
     public PdfString Value { get; set; }
 

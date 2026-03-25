@@ -5,61 +5,20 @@ using ZingPDF.Syntax.Objects.IndirectObjects;
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
 /// <summary>
-/// <para>ISO 32000-2:2020 12.7.5.2.3 - Check boxes</para>
-/// <para>ISO 32000-2:2020 12.7.5.2.4 - Radio buttons</para>
-/// 
-/// <para>A checkbox or radio button field may have one or more options. The field itself is a field dictionary. 
-/// Each option is defined as a widget annotation. If there is only one, the annotation may 
-/// be merged with the field dictionary. When there are more than one, each option is an indirect 
-/// object reference in the Kids array property.
-/// </para>
-/// <para>
-/// Each option has 2 states, on and off. The option does not have a simple boolean value 
-/// indicating whether it is on or off. It has a V property, which will be a Name. If the option 
-/// is not selected, V will be /Off. This is simple and consistent when dealing with radio buttons and checkboxes. 
-/// However if it is checked, the Name, by convention, might be /Yes. But it could be any valid 
-/// Name value. This value is specified in the appearance dictionary (the AP property). The AP 
-/// dictionary is a dictionary of dictionaries. The names of the 2 states are the dictionary keys 
-/// of the N (normal) entry of the AP dictionary. This may contain /Off, but this is optional. 
-/// The other key is the on state. So when selecting an option, or one of the group, the 
-/// procedure is to set the V value, and the AS value to the key of the on state. (AS is required, 
-/// and takes precedence over V). All other options will have their AS value set to /Off. The V Name 
-/// is essentially used not to set a boolean state value, but to define the appearance of the option. 
-/// By default, the appearance of /Off is an empty circle or box. 
-/// The appearance dictionary under each key contains an indirect object reference to an appearance 
-/// stream, which is the definition of the visual state of the option. In this way, the V and AS properties have
-/// two purposes: to define which option is selected, and to choose the visual representation of the option. 
-/// By way of illustration, we could define an appearance stream for /Off which shows a tick, and /Yes to show 
-/// an empty box. Obviously this would be confusing, but demonstrates the nature of these field types.
-/// </para>
-/// 
-/// <para>
-/// In more simple terms, each widget annotation defines the value for each box. The user picks one, and
-/// the V value is set to the chosen value. And to keep the AS value in sync, the AS value of each box is 
-/// set to /Off, except for the chosen one.
-/// </para>
-/// 
-/// <para>
-/// The Opt property is also used to define export values in non-latin writing systems, as the usual way of defining them,
-/// i.e. as a key in the AP dictionary, does not support non-latin characters.
-/// </para>
-/// 
-/// <para>
-/// As described, a checkbox field is very similar to a radio button group. Each option within the field does not 
-/// allow independent selection. The way radio buttons and checkboxes differ is in their behaviour when selected.
-/// When a new checkbox is selected, all others are deselected, unless they share an export value, in which case all 
-/// with the same value are selected. (This is true throughout the PDF document for fields which share a name).
-/// This behaviour is different for radio buttons. Even fields which share names or export values cannot be selected 
-/// at the same time. Selecting one deselects the others. This behaviour can be overriden to match that of checkboxes
-/// by setting the RadiosInUnison flag.
-/// </para>
-/// </summary>
-/// <summary>
 /// Base class for checkbox and radio-button fields.
 /// </summary>
+/// <remarks>
+/// Call <see cref="GetOptionsAsync"/> to inspect the available choices and then use
+/// <see cref="SelectableOption.SelectAsync"/> or <see cref="SelectableOption.DeselectAsync"/> to change selection state.
+/// </remarks>
 public abstract class ButtonOptionsFormField : FormField<Name>
 {
     protected readonly IEnumerable<IndirectObject> _kids;
+
+    // PDF-spec notes kept here for library maintenance:
+    // - Button option state is driven by both the field value (/V) and the widget appearance state (/AS).
+    // - The "on" export value is typically derived from the appearance dictionary rather than a simple boolean.
+    // - Checkbox and radio fields share the same structural model, but differ in how group selection is applied.
 
     internal ButtonOptionsFormField(
         IndirectObject fieldIndirectObject,

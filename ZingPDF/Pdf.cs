@@ -581,6 +581,9 @@ public class Pdf : IPdf, IDisposable
 
     #region IDisposable
 
+    /// <summary>
+    /// Disposes the document stream and scoped services used by this PDF instance.
+    /// </summary>
     public void Dispose()
     {
         Dispose(true);

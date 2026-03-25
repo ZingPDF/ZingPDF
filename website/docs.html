@@ -26,6 +26,7 @@
       <nav class="topnav" aria-label="Primary">
         <a href="./index.html#licenses">Licenses</a>
         <a href="./docs.html">Docs</a>
+        <a href="./api.html">API Reference</a>
         <a href="#quick-start">Quick Start</a>
         <a href="#forms">Forms</a>
         <a href="#encryption">Encryption</a>
@@ -39,13 +40,6 @@
           <h1>ZingPDF docs</h1>
           <p class="lead">Reference material and integration guidance for the core API surface.</p>
         </div>
-
-        <aside class="doc-card">
-          <h3>Target</h3>
-          <p><code>.NET 8</code></p>
-          <h3>Core areas</h3>
-          <p>Pages, forms, metadata, encryption, save behavior, and low-level object access.</p>
-        </aside>
       </section>
 
       <div class="docs-layout">
@@ -53,6 +47,8 @@
           <h2>On This Page</h2>
           <nav>
             <a href="#quick-start">Quick Start</a>
+            <a href="#packages">Packages</a>
+            <a href="./api.html">API Reference</a>
             <a href="#metadata">Metadata</a>
             <a href="#forms">Forms</a>
             <a href="#encryption">Encryption</a>
@@ -67,7 +63,8 @@
             <p class="eyebrow">Quick Start</p>
             <h2>Load, create, edit, and save</h2>
             <p>The main entry points are <code>Pdf.Load(...)</code> for existing documents and
-              <code>Pdf.Create(...)</code> for new ones.</p>
+              <code>Pdf.Create(...)</code> for new ones.
+            </p>
 
             <h3>Load an existing PDF</h3>
             <pre><code class="language-csharp">using var input = File.OpenRead("input.pdf");
@@ -119,6 +116,60 @@ await pdf.SaveAsync(output);</code></pre>
             </div>
           </section>
 
+          <section class="doc-section" id="packages">
+            <p class="eyebrow">Packages</p>
+            <h2>NuGet packages and support scope</h2>
+            <p>The ZingPDF solution is split into a small set of packages and support projects with different runtime
+              expectations. If you are choosing what to ship, start here.</p>
+
+            <div class="doc-grid">
+              <article class="doc-card">
+                <h3><code>ZingPDF</code></h3>
+                <p>The main PDF library for loading, creating, editing, merging, watermarking, compression, forms,
+                  metadata, and encryption.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Intended role: primary package for most users</li>
+                  <li>Compatibility goal: cross-platform on Windows, Linux, and macOS</li>
+                  <li>Current notes: depends on <code>SkiaSharp</code> and <code>ImageSharp</code>, so runtime
+                    validation across operating systems matters</li>
+                </ul>
+              </article>
+
+              <article class="doc-card">
+                <h3><code>ZingPDF.FromHTML</code></h3>
+                <p>Optional HTML-to-PDF support layered on top of the main package.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Intended role: optional add-on, not the default package</li>
+                  <li>Compatibility goal: cross-platform in principle, but operationally heavier because it relies on
+                    browser automation</li>
+                  <li>Current notes: keep this separate from the core package when documenting deployment requirements
+                  </li>
+                </ul>
+              </article>
+            </div>
+
+            <h3>Support recommendations</h3>
+            <ul>
+              <li>For application integrations, prefer <code>ZingPDF</code> unless you specifically need HTML
+                conversion.</li>
+              <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own operational
+                requirements.</li>
+              <li>Expect the core library to remain <code>net8.0</code>-first until the dependency surface is slimmed
+                enough to justify broader multi-targeting.</li>
+              <li>Validate your exact deployment platform if your workflow depends on image handling, font metrics, or
+                browser automation.</li>
+            </ul>
+          </section>
+
+          <section class="doc-callout">
+            <h3>API reference</h3>
+            <p>The symbol-by-symbol reference now lives on a dedicated static page generated from the XML docs and
+              source signatures.</p>
+            <p><a class="inline-link" href="./api.html">Open the API reference</a></p>
+          </section>
+
           <section class="doc-section" id="metadata">
             <p class="eyebrow">Metadata</p>
             <h2>Inspect and update document info safely</h2>
@@ -127,9 +178,11 @@ await pdf.SaveAsync(output);</code></pre>
 
             <ul>
               <li>Editable fields: <code>Title</code>, <code>Author</code>, <code>Subject</code>, <code>Keywords</code>,
-                <code>Creator</code>, and <code>CreationDate</code>.</li>
+                <code>Creator</code>, and <code>CreationDate</code>.
+              </li>
               <li>Save-managed fields: <code>Producer</code> is stamped to <code>ZingPDF</code> and
-                <code>ModifiedDate</code> is refreshed on save.</li>
+                <code>ModifiedDate</code> is refreshed on save.
+              </li>
               <li>If no info dictionary exists, ZingPDF creates one during save.</li>
               <li>Date values may be read from either PDF date objects or strings.</li>
             </ul>
@@ -197,7 +250,8 @@ foreach (var field in await form.GetFieldsAsync())
               <article class="doc-card">
                 <h3>Choice and button fields</h3>
                 <p>Choice items and selectable button options can be read and toggled through option wrappers like
-                  <code>ChoiceItem</code> and <code>SelectableOption</code>.</p>
+                  <code>ChoiceItem</code> and <code>SelectableOption</code>.
+                </p>
               </article>
             </div>
 
@@ -260,14 +314,16 @@ await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
             <h2>The details most likely to affect production usage</h2>
             <ul>
               <li>Encryption currently writes Standard security handler encryption using RC4 with <code>V=2</code> and
-                <code>R=3</code>.</li>
+                <code>R=3</code>.
+              </li>
               <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision, but older encrypted
                 revisions may still exist in the file bytes because saves are incremental.</li>
               <li><code>Compress(...)</code> currently compresses unfiltered streams and can recompress JPEG image
                 streams.</li>
               <li><code>DecompressAsync()</code> skips JPEG image streams to avoid forced decompression corruption.</li>
               <li><code>InsertPageAsync(...)</code> inserts before the requested page number, while
-                <code>AppendPageAsync(...)</code> adds to the end.</li>
+                <code>AppendPageAsync(...)</code> adds to the end.
+              </li>
             </ul>
           </section>
 
