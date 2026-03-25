@@ -233,9 +233,14 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        IEnumerable<IndirectObjectId> keys = await GetKeysAsync();
+        var liveKeys = (await _versions)
+            .SelectMany(v => v.IndirectObjects)
+            .Where(kvp => kvp.Key.Index > 0 && kvp.Value.InUse)
+            .Select(kvp => kvp.Key)
+            .Concat(_newObjects.Select(x => x.Id))
+            .Distinct();
 
-        foreach (var key in keys.Where(k => k.Index > 0))
+        foreach (var key in liveKeys)
         {
             yield return await GetAsync(new IndirectObjectReference(key));
         }
@@ -321,7 +326,8 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         if (objectStream.Dictionary.Extends is null)
             throw new InvalidOperationException($"Requested object index {objectIndex} is out of bounds, and no Extends reference exists.");
 
-        // Recurse to resolve the correct object stream.
-        return await ResolveObjectStreamAsync(objectStream.Dictionary.Extends, objectIndex);
+        // Object indexes in an extended stream are relative to the full chain,
+        // so we need to subtract this segment's object count before recursing.
+        return await ResolveObjectStreamAsync(objectStream.Dictionary.Extends, objectIndex - objectStream.Dictionary.N);
     }
 }
