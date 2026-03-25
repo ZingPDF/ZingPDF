@@ -1,17 +1,22 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example 1.0.0)"
+        required: true
+      publish_nuget:
+        description: "Publish packages to NuGet"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
 
     steps:
@@ -27,15 +32,13 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          [xml]$props = Get-Content 'Directory.Build.props'
-          $versionPrefix = $props.Project.PropertyGroup.VersionPrefix
+          $version = '${{ github.event.inputs.version }}'.Trim()
 
-          if ([string]::IsNullOrWhiteSpace($versionPrefix)) {
-            throw 'VersionPrefix was not found in Directory.Build.props.'
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            throw "Version must be a valid SemVer string such as 1.0.0 or 1.0.0-rc.1."
           }
 
-          $version = "$versionPrefix.${{ github.run_number }}"
-          $assemblyVersion = "$version.0"
+          $assemblyVersion = ($version -replace '-.*$', '') + '.0'
 
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "assembly_version=$assemblyVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -57,9 +60,33 @@ jobs:
       - name: Test
         run: dotnet test ZingPDF.sln --configuration Release --no-build
 
-      - name: Pack
+      - name: Pack core package
         run: >
           dotnet pack ZingPDF/ZingPDF.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack fonts package
+        run: >
+          dotnet pack ZingPDF.Fonts/ZingPDF.Fonts.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack HTML package
+        run: >
+          dotnet pack ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
@@ -83,3 +110,7 @@ jobs:
           name: ZingPDF v${{ steps.version.outputs.version }}
           generate_release_notes: true
           files: artifacts/packages/*
+
+      - name: Publish to NuGet
+        if: ${{ github.event.inputs.publish_nuget == 'true' }}
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
