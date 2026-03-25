@@ -1,0 +1,64 @@
+name: Performance
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          path: current
+
+      - name: Checkout base branch
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: baseline
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run current benchmarks
+        shell: pwsh
+        working-directory: current
+        run: ./scripts/run-performance.ps1
+
+      - name: Run baseline benchmarks
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        working-directory: baseline
+        run: ./scripts/run-performance.ps1
+
+      - name: Compare with base branch
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        working-directory: current
+        run: ./scripts/compare-performance.ps1 -CurrentSummary ./artifacts/performance/latest-summary.json -BaselineSummary ../baseline/artifacts/performance/latest-summary.json -OutputMarkdown ./artifacts/performance/comparison.md -ThresholdPercent 10
+
+      - name: Publish workflow summary
+        if: always()
+        shell: pwsh
+        working-directory: current
+        run: |
+          if (Test-Path ./artifacts/performance/latest-summary.md) {
+            Get-Content ./artifacts/performance/latest-summary.md >> $env:GITHUB_STEP_SUMMARY
+          }
+          if (Test-Path ./artifacts/performance/comparison.md) {
+            "" >> $env:GITHUB_STEP_SUMMARY
+            Get-Content ./artifacts/performance/comparison.md >> $env:GITHUB_STEP_SUMMARY
+          }
+
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: current/artifacts/performance
