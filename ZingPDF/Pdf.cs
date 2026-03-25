@@ -507,14 +507,12 @@ public class Pdf : IPdf, IDisposable
         ArgumentOutOfRangeException.ThrowIfLessThan(quality, 1, nameof(quality));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(quality, 100, nameof(quality));
 
-        List<IndirectObject> toBeUpdated = [];
-
         await foreach (var obj in Objects)
         {
             if (obj.Object is StreamObject<ImageDictionary> imageStream
                 && await TryRecompressJpegImageAsync(imageStream, quality) is StreamObject<ImageDictionary> recompressedImage)
             {
-                toBeUpdated.Add(new IndirectObject(obj.Id, recompressedImage));
+                Objects.Update(new IndirectObject(obj.Id, recompressedImage));
                 continue;
             }
 
@@ -538,12 +536,9 @@ public class Pdf : IPdf, IDisposable
             newStreamDictionary.Set(Constants.DictionaryKeys.Stream.Length, (ZingPDF.Syntax.Objects.Number)compressedData.Length);
             newStreamDictionary.Set(Constants.DictionaryKeys.Stream.DL, (ZingPDF.Syntax.Objects.Number)rawData.Length);
 
-            toBeUpdated.Add(new IndirectObject(obj.Id, new StreamObject<IStreamDictionary>(compressedData, newStreamDictionary)));
-        }
-
-        foreach (var indirectObject in toBeUpdated)
-        {
-            Objects.Update(indirectObject);
+            // Apply each rewritten stream immediately so compression does not need
+            // to retain all transformed stream payloads in memory until the end.
+            Objects.Update(new IndirectObject(obj.Id, new StreamObject<IStreamDictionary>(compressedData, newStreamDictionary)));
         }
     }
 
