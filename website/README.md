@@ -26,7 +26,7 @@ Edit `config.js` and update:
 
 The page loads `https://assets.lemonsqueezy.com/lemon.js` once and automatically applies the `lemonsqueezy-button` class to non-enterprise checkout buttons.
 
-If a checkout URL still contains `your-store`, the button will stay in placeholder mode.
+If a checkout URL still contains `your-store`, the button will stay inactive until a real checkout URL is configured.
 
 ## How to run locally
 
@@ -114,7 +114,7 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 
 ## Suggested next steps
 
-1. Replace the placeholder support email.
+1. Confirm the configured support email is correct.
 2. Confirm the displayed prices match the Lemon Squeezy products.
-3. Decide whether Solo and Team should remain one-time purchases or move to subscriptions.
-4. Add a privacy policy and commercial terms page before going live.
+3. Confirm that Solo and Team pricing and subscription language match the commercial model.
+4. Confirm the published legal pages match the current commercial terms.

@@ -8,7 +8,7 @@ This repository README is intentionally maintainer-focused. End-user integration
 
 ZingPDF is proprietary software.
 
-Use, bundling, and commercial deployment require a separate written agreement from the copyright holder. Modification, redistribution of source, and resale are not permitted unless expressly granted in that agreement. See `LICENSE.txt` for the current commercial license notice.
+Commercial use requires an active paid subscription with sufficient seats or a separate commercial agreement. Modification, redistribution of source, and resale are not permitted unless expressly granted in writing. See `LICENSE.txt` for the current commercial license notice.
 
 ## Repository Purpose
 

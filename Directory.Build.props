@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>0.1</VersionPrefix>
+    <VersionPrefix>1.0</VersionPrefix>
     <VersionBase>$(VersionPrefix).0</VersionBase>
     <Version Condition="'$(Version)' == ''">$(VersionBase)-dev</Version>
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(VersionBase).0</AssemblyVersion>

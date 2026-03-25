@@ -109,7 +109,7 @@ foreach (var item in textItems)
               </article>
               <article class="doc-card">
                 <h3>Watermarking and compression</h3>
-                <pre><code class="language-csharp">await pdf.AddWatermarkAsync("DRAFT");
+                <pre><code class="language-csharp">await pdf.AddWatermarkAsync("CONFIDENTIAL");
 pdf.Compress(dpi: 72, quality: 75);
 await pdf.SaveAsync(output);</code></pre>
               </article>

@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-25
+
 ### Added
 
 - Blank PDF creation through `Pdf.Create(...)`
@@ -17,6 +19,11 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 - XML documentation for the primary public API
 - NuGet packaging metadata, packaged README, packaged license notice, and symbol package generation
 - Commercialization checklist for release planning
+- Commercial license notice, EULA, evaluation terms, commercial terms, and support policy
+- Support matrix for shipping packages
+- Package-specific readmes for `ZingPDF.Fonts` and `ZingPDF.FromHTML`
+- Maintainer-focused repository README and website-based developer documentation
+- Release-ready package metadata for `ZingPDF`, `ZingPDF.Fonts`, and `ZingPDF.FromHTML`
 
 ### Changed
 
@@ -25,16 +32,11 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 - Save behavior now updates document metadata to credit `ZingPDF` as producer
 - Save-time metadata handling now tolerates existing info dates stored as either PDF date objects or strings
 - Encryption APIs now use real-world password-based signatures
+- Core package nullable warning backlog in shipping paths has been resolved
+- Release/readme/site copy now reflects the commercial subscription model and bundled package set
 
 ### Fixed
 
 - Form updates are awaited before save output is generated
 - Save validation now rejects invalid output streams more clearly
 - Public forms enumeration is more resilient when optional field descriptions are missing
-
-## [0.1.0] - 2026-03-24
-
-### Added
-
-- Initial packaged commercial preview of ZingPDF for .NET 8
-- Core document loading, saving, page editing, text extraction, forms, encryption, metadata, compression, and watermark APIs
