@@ -15,7 +15,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     /// Special parser for xref streams.
     /// </summary>
     /// <remarks>
-    /// The usual stream object parser (<see cref="Objects.StreamObjectParser"/>) uses the <see cref="IPdfObjectCollection"/> to find any indirect objects if required.
+    /// The usual stream object parser (`StreamObjectParser&lt;TDictionary&gt;`) uses the <see cref="IPdfObjectCollection"/> to find any indirect objects if required.
     /// Some xref streams use an indirect object for the Length property, which we need to create a SubStream.
     /// </remarks>
     internal class CrossReferenceStreamParser : IParser<StreamObject<CrossReferenceStreamDictionary>>

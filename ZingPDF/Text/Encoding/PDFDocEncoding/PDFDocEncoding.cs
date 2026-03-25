@@ -274,7 +274,7 @@ public sealed class PDFDocEncoding : System.Text.Encoding
 
     public override string BodyName => "PDFDocEncoding";
     public override string EncodingName => "PDF Doc Encoding";
-    public override string HeaderName => null;
+    public override string HeaderName => string.Empty;
     public override string WebName => "pdf-doc";
     public override int WindowsCodePage => 1252;
 }

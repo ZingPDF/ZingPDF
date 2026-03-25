@@ -5,7 +5,7 @@
 /// </summary>
 public class FontMetrics
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int Ascent { get; set; }
     public int Descent { get; set; }
     public int? StandardHorizontalWidth { get; set; }

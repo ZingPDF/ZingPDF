@@ -3,6 +3,7 @@
 /// <summary>
 /// Wrapper for a value.
 /// </summary>
+/// <typeparam name="T">The PDF object type exposed by the property.</typeparam>
 /// <remarks>
 /// Most dictionary values can be either a direct object, or an indirect object reference.
 /// When they are a reference, the property value is represented as an indirect object elsewhere in the PDF.
@@ -17,7 +18,7 @@ public class RequiredProperty<T>(string key, Dictionary dictionary, IPdf pdf)
     /// <remarks>
     /// Returns the property value, whether it is a direct object or indirect object reference.
     /// </remarks>
-    /// <returns>An instance of <see cref="T"/></returns>
+    /// <returns>An instance of <typeparamref name="T"/>.</returns>
     /// <exception cref="InvalidPdfException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<T> GetAsync()

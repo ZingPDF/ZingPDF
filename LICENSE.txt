@@ -1,7 +1,26 @@
+ZingPDF Commercial License Notice
 Copyright (c) 2026 Tom Bowers. All rights reserved.
 
-This repository and the ZingPDF package are proprietary software.
+ZingPDF, including this repository, the distributed binaries, and the NuGet packages published under the ZingPDF name, is proprietary software.
 
-No permission is granted to use, copy, modify, distribute, sublicense, or sell this software except under a separate written agreement from the copyright holder.
+No rights are granted except as expressly provided in a separate written license agreement from the copyright holder.
+
+Without a separate written license agreement, you may not:
+
+- use this software in production or for commercial purposes
+- modify, adapt, translate, reverse engineer, decompile, or create derivative works from this software, except to the limited extent that applicable law expressly forbids such a restriction
+- copy, publish, distribute, sublicense, rent, lease, lend, assign, transfer, or make this software available to any third party
+- resell this software, whether on a standalone basis or as part of another offering
+- remove or alter any copyright, trademark, or proprietary notices
+
+With a valid paid commercial license, you may use and bundle the unmodified ZingPDF binaries in your own commercial applications only to the extent expressly permitted by that license agreement.
+
+For clarity, a paid commercial license does not by itself grant permission to:
+
+- modify the software
+- redistribute source code
+- resell ZingPDF as a library, SDK, package, or competing product
+
+All rights not expressly granted are reserved.
 
 For commercial licensing enquiries, contact the copyright holder.

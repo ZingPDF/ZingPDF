@@ -10,7 +10,7 @@ namespace ZingPDF.Syntax.Objects.Dictionaries
     public class Dictionary(IPdf pdf, ObjectContext context)
         : PdfObject(context), IPdfDictionary
     {
-        public Dictionary(Name type, IPdf pdf, ObjectContext context)
+        public Dictionary(Name? type, IPdf pdf, ObjectContext context)
             : this(pdf, context)
         {
             InnerDictionary = [];

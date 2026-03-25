@@ -6,11 +6,25 @@ ZingPDF is a .NET PDF library for reading, editing, and saving PDF files with an
 
 ZingPDF is proprietary software.
 
-Use, redistribution, and commercial access require a separate written agreement from the copyright holder. See `LICENSE.txt` for the current repository notice.
+Use, bundling, and commercial deployment require a separate written agreement from the copyright holder. Modification, redistribution of source, and resale are not permitted unless expressly granted in that agreement. See `LICENSE.txt` for the current commercial license notice.
 
 ## Target framework
 
 `ZingPDF` currently targets `.NET 8`.
+
+## Installation
+
+Install the core package from NuGet:
+
+```bash
+dotnet add package ZingPDF
+```
+
+If you are evaluating or licensing the library for commercial use, review the commercial license notice in `LICENSE.txt` and arrange the appropriate written agreement before production deployment.
+
+## Support and compatibility
+
+The current support matrix and documented feature scope are in [`SUPPORT.md`](SUPPORT.md).
 
 ## What it can do
 
