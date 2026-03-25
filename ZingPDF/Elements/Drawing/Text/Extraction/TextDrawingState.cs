@@ -66,20 +66,20 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             switch (op.Operator)
             {
                 case ContentStream.Operators.TextShowing.Tj:
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber)]);
+                    return CreateGlyphRunOrNull(pageNumber, await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber));
 
                 case ContentStream.Operators.TextShowing.TJ:
-                    return new GlyphRun(pageNumber, [.. await HandleTJAsync(op, pageNumber)]);
+                    return CreateGlyphRunOrNull(pageNumber, await HandleTJAsync(op, pageNumber));
 
                 case ContentStream.Operators.TextShowing.Apostrophe:
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber)]);
+                    return CreateGlyphRunOrNull(pageNumber, await HandleTjAsync(op.GetOperand<PdfString>(0), pageNumber));
 
                 case ContentStream.Operators.TextShowing.Quote:
                     WordSpacing = op.GetOperand<Number>(0);
                     CharSpacing = op.GetOperand<Number>(1);
                     MoveTextPosition(0, -TextLeading);
-                    return new GlyphRun(pageNumber, [.. await HandleTjAsync(op.GetOperand<PdfString>(2), pageNumber)]);
+                    return CreateGlyphRunOrNull(pageNumber, await HandleTjAsync(op.GetOperand<PdfString>(2), pageNumber));
 
                 case ContentStream.Operators.TextState.Tf:
                     FontResourceName = op.GetOperand<Name>(0);
@@ -262,7 +262,7 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
                             X = x,
                             Y = y,
                             Width = adv,
-                            Height = FontSize,
+                            Height = EffectiveFontSizeVertical,
                             FontName = fontName,
                             FontSize = FontSize
                         });
@@ -276,6 +276,12 @@ namespace ZingPDF.Elements.Drawing.Text.Extraction
             }
 
             return glyphs;
+        }
+
+        private static GlyphRun? CreateGlyphRunOrNull(int pageNumber, IEnumerable<PositionedGlyph> glyphs)
+        {
+            var materializedGlyphs = glyphs as IReadOnlyList<PositionedGlyph> ?? [.. glyphs];
+            return materializedGlyphs.Count == 0 ? null : new GlyphRun(pageNumber, materializedGlyphs);
         }
 
         private async Task<CMap?> ResolveCMapAsync(Name fontResourceName)

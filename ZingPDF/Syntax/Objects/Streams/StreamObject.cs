@@ -63,34 +63,50 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
     {
         Data.Position = 0;
 
+        ArrayObject? filterNames = await Dictionary.Filter.GetAsync();
+        var hasFilters = filterNames is not null && filterNames.Any();
+
+        if (_encryptionProvider is null)
+        {
+            // When no decryption is required, decode directly from the backing stream
+            // instead of copying the stream contents into a new buffer first.
+            Stream stream = new NonDisposingStreamView(Data);
+
+            if (!hasFilters)
+            {
+                return stream;
+            }
+
+            IEnumerable<Dictionary> allFilterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
+
+            foreach (var filter in FilterFactory.CreateFilterInstances(filterNames!.Cast<Name>(), allFilterParams))
+            {
+                stream = filter.Decode(stream);
+                stream.Position = 0;
+            }
+
+            return stream;
+        }
+
         var ms = new MemoryStream();
         await Data.CopyToAsync(ms);
-        var dataBytes = ms.ToArray();
+        var dataBytes = await _encryptionProvider.DecryptObjectBytesAsync(Context, ms.ToArray(), Dictionary);
+        Stream decryptedStream = new MemoryStream(dataBytes);
 
-        if (_encryptionProvider is not null)
+        if (!hasFilters)
         {
-            dataBytes = await _encryptionProvider.DecryptObjectBytesAsync(Context, dataBytes, Dictionary);
+            return decryptedStream;
         }
 
-        ms = new MemoryStream(dataBytes);
+        IEnumerable<Dictionary> filterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
 
-        // If there are no filters, return the source data as-is.
-        ArrayObject? filterNames = await Dictionary.Filter.GetAsync();
-        if (filterNames is null || !filterNames.Any())
+        foreach (var filter in FilterFactory.CreateFilterInstances(filterNames!.Cast<Name>(), filterParams))
         {
-            return ms;
+            decryptedStream = filter.Decode(decryptedStream);
+            decryptedStream.Position = 0;
         }
 
-        IEnumerable<Dictionary> allFilterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
-
-        foreach (var filter in FilterFactory.CreateFilterInstances(filterNames.Cast<Name>(), allFilterParams))
-        {
-            ms = filter.Decode(ms);
-
-            ms.Position = 0;
-        }
-
-        return ms;
+        return decryptedStream;
     }
 
     public override object Clone()
@@ -101,5 +117,47 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
         ms.Position = 0;
 
         return new StreamObject<TDictionary>(ms, (TDictionary)Dictionary.Clone(), Context);
+    }
+
+    private sealed class NonDisposingStreamView : Stream
+    {
+        private readonly Stream _source;
+
+        public NonDisposingStreamView(Stream source)
+        {
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _source.Position = 0;
+        }
+
+        public override bool CanRead => _source.CanRead;
+        public override bool CanSeek => _source.CanSeek;
+        public override bool CanWrite => false;
+        public override long Length => _source.Length;
+
+        public override long Position
+        {
+            get => _source.Position;
+            set => _source.Position = value;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => _source.Read(buffer, offset, count);
+
+        public override int ReadByte() => _source.ReadByte();
+
+        public override long Seek(long offset, SeekOrigin origin) => _source.Seek(offset, origin);
+
+        public override void Flush() => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            // Callers often dispose the stream returned by GetDecompressedDataAsync().
+            // This wrapper prevents those usages from closing the underlying PDF stream.
+            // Intentionally leave the source stream open.
+            base.Dispose(disposing);
+        }
     }
 }
