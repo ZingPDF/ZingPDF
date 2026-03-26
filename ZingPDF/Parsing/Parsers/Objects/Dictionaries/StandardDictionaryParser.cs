@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using MorseCode.ITask;
 using ZingPDF.DocumentInterchange.Metadata;
 using ZingPDF.Elements.Drawing;
@@ -30,7 +30,7 @@ namespace ZingPDF.Parsing.Parsers.Objects.Dictionaries;
 internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
 {
     // Rectangles are parsed as ArrayObjects. We'll identify them by their keys.
-    private readonly List<string> _rectKeys =
+    private static readonly HashSet<string> _rectKeys =
     [
         Constants.DictionaryKeys.PageTree.MediaBox,
         Constants.DictionaryKeys.PageTree.CropBox,
@@ -58,15 +58,7 @@ internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
 
     public async ITask<Dictionary> ParseAsync(Stream stream, ObjectContext context)
     {
-        //Logger.Log(LogLevel.Trace, $"Parsing Dictionary from {stream.GetType().Name} at offset: {stream.Position}.");
-
-        // A dictionary is a key-value collection, where the key is always a 'Name' object
-        // and the value can be any type of PDF object
-
-        // << /Size 50 /Root 49 0 R /Info 47 0 R /ID [ <66dbd809c84b6f6bd19bb2f8865b77cc> <66dbd809c84b6f6bd19bb2f8865b77cc> ] >>
-
-        var initialStreamPosition = stream.Position; // Reference starting point for output
-
+        var initialStreamPosition = stream.Position;
         SubStream dictStream = await ExtractDictionarySegmentAsync(stream);
 
         var objectGroup = await _parserResolver.GetParser<PdfObjectGroup>().ParseAsync(dictStream, context);
@@ -205,7 +197,7 @@ internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
                 goto DictionaryParsed;
         }
 
-        output ??= new Dictionary(dict, _pdf, context); 
+        output ??= new Dictionary(dict, _pdf, context);
 
     DictionaryParsed:
         stream.Position = dictStream.To + 2;
