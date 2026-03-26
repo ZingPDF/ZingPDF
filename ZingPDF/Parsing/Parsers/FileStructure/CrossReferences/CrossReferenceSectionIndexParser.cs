@@ -1,27 +1,50 @@
-﻿using MorseCode.ITask;
+using MorseCode.ITask;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
-using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceSectionIndexParser : IParser<CrossReferenceSectionIndex>
     {
-        private readonly IParser<Number> _numberParser;
-
-        public CrossReferenceSectionIndexParser(IParser<Number> numberParser)
-        {
-            _numberParser = numberParser;
-        }
+        public CrossReferenceSectionIndexParser() { }
 
         public async ITask<CrossReferenceSectionIndex> ParseAsync(Stream stream, ObjectContext context)
         {
             // Example: 0 28
+            stream.AdvancePastWhitepace();
+
+            await Task.CompletedTask;
             return new CrossReferenceSectionIndex(
-                await _numberParser.ParseAsync(stream, context),
-                await _numberParser.ParseAsync(stream, context),
+                ReadIntToken(stream),
+                ReadIntToken(stream),
                 context
                 );
+        }
+
+        private static int ReadIntToken(Stream stream)
+        {
+            stream.AdvancePastWhitepace();
+
+            int value = 0;
+
+            while (stream.Position < stream.Length)
+            {
+                int next = stream.ReadByte();
+                if (next < 0)
+                {
+                    break;
+                }
+
+                if (char.IsWhiteSpace((char)next))
+                {
+                    break;
+                }
+
+                value = (value * 10) + (next - '0');
+            }
+
+            return value;
         }
     }
 }
