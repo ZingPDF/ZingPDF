@@ -1,10 +1,7 @@
-﻿using FakeItEasy;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax;
-using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences;
 
@@ -17,16 +14,7 @@ public class CrossReferenceEntryParserTests
     {
         var stream = input.ToStream();
 
-        var services = new ServiceCollection()
-            .AddParsers()
-            .BuildServiceProvider();
-
-        using var scope = services.CreateScope();
-
-        var numberParser = scope.ServiceProvider.GetRequiredService<IParser<Number>>();
-        var keywordParser = scope.ServiceProvider.GetRequiredService<IParser<Keyword>>();
-
-        var output = await new CrossReferenceEntryParser(numberParser, keywordParser)
+        var output = await new CrossReferenceEntryParser()
             .ParseAsync(stream, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
 
         output.Value1.Should().Be(expectedOffset);
