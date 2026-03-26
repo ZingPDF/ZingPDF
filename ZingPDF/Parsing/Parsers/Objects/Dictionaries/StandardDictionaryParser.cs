@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MorseCode.ITask;
+using ZingPDF.Diagnostics;
 using ZingPDF.DocumentInterchange.Metadata;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Graphics.FormXObjects;
@@ -58,6 +59,7 @@ internal class StandardDictionaryParser : DictionaryParser, IParser<Dictionary>
 
     public async ITask<Dictionary> ParseAsync(Stream stream, ObjectContext context)
     {
+        using var trace = PerformanceTrace.Measure("StandardDictionaryParser.ParseAsync");
         var initialStreamPosition = stream.Position;
         SubStream dictStream = await ExtractDictionarySegmentAsync(stream);
 

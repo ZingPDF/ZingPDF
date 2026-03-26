@@ -39,7 +39,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000025777 00000 n
 
             // Ignore the xref keyword
-            _ = _keywordParser.ParseAsync(stream, context);
+            _ = await _keywordParser.ParseAsync(stream, context);
 
             List<CrossReferenceSection> sections = [];
 

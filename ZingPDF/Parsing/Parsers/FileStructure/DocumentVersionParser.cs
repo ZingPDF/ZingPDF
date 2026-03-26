@@ -40,6 +40,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
     // Parse all xref tables and streams to get all versions of the file
     public async Task<List<VersionInformation>> ParseAsync(Stream pdfInputStream)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseAsync");
         List<VersionInformation> versions = [];
 
         int? xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
@@ -61,6 +62,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
     // Given the byte offset of an xref table or stream, parse and produce a DocumentVersion instance
     private async Task<VersionInformation> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseDocumentVersionAsync");
         VersionInformation version;
 
         pdfInputStream.Position = xrefOffset;
@@ -109,6 +111,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
     /// </summary>
     private async Task<int> GetMainXrefOffsetAsync(Stream pdfStream)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.GetMainXrefOffsetAsync");
         // startxref
         // Byte_offset_of_last_cross-reference_section
         // %%EOF
