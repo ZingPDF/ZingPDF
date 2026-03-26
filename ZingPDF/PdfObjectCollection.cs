@@ -110,12 +110,17 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetAsync");
         // First check new/updated and deleted objects
-        foreach (var obj in NewOrUpdatedObjects)
+        foreach (var obj in _newObjects)
         {
             if (obj.Id == key.Id)
             {
                 return obj;
             }
+        }
+
+        if (_updatedObjects.TryGetValue(key.Id, out var updatedObject))
+        {
+            return updatedObject;
         }
 
         foreach (var obj in _deletedObjects)
