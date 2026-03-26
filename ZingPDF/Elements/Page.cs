@@ -77,18 +77,22 @@ namespace ZingPDF.Elements
             //    filters = [FilterFactory.Create(filter, null)];
             //}
 
+            var imageDictionary = new ImageDictionary(
+                _pdf,
+                ObjectContext.UserCreated,
+                imageMetadata.Width,
+                imageMetadata.Height,
+                imageMetadata.ColorSpace.ToString(),
+                imageMetadata.BitDepth,
+                filters: filter != null ? [(Name)filter] : null,
+                decodeParms: null
+                );
+
+            imageDictionary.Set<Number>(Constants.DictionaryKeys.Stream.Length, image.ImageData.Length);
+
             var imageXObject = new StreamObject<ImageDictionary>(
                 image.ImageData,
-                new ImageDictionary(
-                    _pdf,
-                    ObjectContext.UserCreated,
-                    imageMetadata.Width,
-                    imageMetadata.Height,
-                    imageMetadata.ColorSpace.ToString(),
-                    imageMetadata.BitDepth,
-                    filters: filter != null ? [(Name)filter] : null,
-                    decodeParms: null
-                    ),
+                imageDictionary,
                 ObjectContext.UserCreated
                 );
 
