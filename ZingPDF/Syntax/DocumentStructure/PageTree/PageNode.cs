@@ -105,7 +105,9 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
                 return;
             }
 
-            await ResourceDictionary.FromDictionary(resources).AddXObjectAsync(name, reference, pdf);
+            var resourceDictionary = ResourceDictionary.FromDictionary(resources);
+            await resourceDictionary.AddXObjectAsync(name, reference, pdf);
+            Set(Constants.DictionaryKeys.PageTree.Resources, resourceDictionary);
         }
     }
 }
