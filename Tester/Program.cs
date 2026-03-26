@@ -56,12 +56,12 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //await AddTextToPage();
 
-//await AddImageToPage();
+await AddImageToPage();
 
 //await RotatePage();
 
 //await RotateWholeDocument();
-await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
+//await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");

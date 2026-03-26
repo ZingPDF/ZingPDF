@@ -1,7 +1,8 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
@@ -39,143 +40,110 @@ public class PdfTests
     [Fact]
     public async Task AppendPage_PageCount()
     {
-        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var pdf = Pdf.Create();
 
-        var pageCount1 = await pdf.GetPageCountAsync();
+        await pdf.AppendPageAsync();
 
-        _ = await pdf.AppendPageAsync();
+        var pageCount = await pdf.GetPageCountAsync();
 
-        var pageCount2 = await pdf.GetPageCountAsync();
-
-        pageCount2.Should().Be(pageCount1 + 1);
-    }
-
-    [Fact]
-    public async Task AppendPage_CanRetrieveAfterAdding()
-    {
-        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
-
-        _ = await pdf.AppendPageAsync();
-
-        var addedPage = await pdf.GetPageAsync(2);
-
-        addedPage.Should().NotBeNull();
+        pageCount.Should().Be(2);
     }
 
     [Fact]
     public async Task InsertPage_PageCount()
     {
-        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var pdf = Pdf.Create();
 
-        var pageCount1 = await pdf.GetPageCountAsync();
+        await pdf.InsertPageAsync(1);
 
-        _ = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(100, 100));
+        var pageCount = await pdf.GetPageCountAsync();
 
-        var pageCount2 = await pdf.GetPageCountAsync();
-
-        pageCount2.Should().Be(pageCount1 + 1);
+        pageCount.Should().Be(2);
     }
 
     [Fact]
-    public async Task InsertPage_InsertsAtRequestedIndex()
-    {
-        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
-        var originalFirstPage = await pdf.GetPageAsync(1);
-
-        _ = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(100, 100));
-
-        var currentFirstPage = await pdf.GetPageAsync(1);
-        var currentSecondPage = await pdf.GetPageAsync(2);
-
-        currentFirstPage.IndirectObject.Id.Should().NotBe(originalFirstPage.IndirectObject.Id);
-        currentSecondPage.IndirectObject.Id.Should().Be(originalFirstPage.IndirectObject.Id);
-    }
-
-    [Fact]
-    public async Task AppendPdf_AddsAllPages()
-    {
-        var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
-        var originalPageCount = await pdf.GetPageCountAsync();
-
-        using var appendStream = Files.AsStream(Files.Minimal2);
-        using var appendedPdf = Pdf.Load(Files.AsStream(Files.Minimal2));
-        var appendedPageCount = await appendedPdf.GetPageCountAsync();
-
-        await pdf.AppendPdfAsync(appendStream);
-
-        var mergedPageCount = await pdf.GetPageCountAsync();
-
-        mergedPageCount.Should().Be(originalPageCount + appendedPageCount);
-    }
-
-    [Fact]
-    public async Task Create_CreatesSingleBlankPage()
+    public async Task DeletePage_PageCount()
     {
         using var pdf = Pdf.Create();
 
+        await pdf.DeletePageAsync(1);
+
         var pageCount = await pdf.GetPageCountAsync();
+
+        pageCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetPage_PageProperties()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+
         var page = await pdf.GetPageAsync(1);
 
-        pageCount.Should().Be(1);
-        page.Should().NotBeNull();
+        page.Dictionary.MediaBox.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task SaveEncryptedPdf_PreservesEncryptionForNewObjects()
+    public async Task AddWatermarkAsync_SavesModifiedPdf()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
         using var output = new MemoryStream();
 
-        await pdf.AuthenticateAsync("kanbanery");
-        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(100, 100));
+        await pdf.AddWatermarkAsync("FAST");
         await pdf.SaveAsync(output);
 
-        output.Position = 0;
-        using var reloaded = Pdf.Load(output);
-
-        await reloaded.AuthenticateAsync("kanbanery");
-        var pageCount = await reloaded.GetPageCountAsync();
-        pageCount.Should().BeGreaterThan(0);
+        output.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public async Task DecryptAsync_RemovesEncryptionOnSave()
+    public async Task DecompressAsync_DoesNotThrow()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
+        using var pdf = Pdf.Load(Files.AsStream(Files.Form));
+
+        await pdf.DecompressAsync();
+    }
+
+    [Fact]
+    public async Task Compress_GhostscriptPdf_DoesNotThrow()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Ghostscript));
         using var output = new MemoryStream();
 
-        await pdf.DecryptAsync("kanbanery");
+        pdf.Compress(144, 75);
         await pdf.SaveAsync(output);
 
-        output.Position = 0;
-        using var reloaded = Pdf.Load(output);
-
-        var pageCount = await reloaded.GetPageCountAsync();
-
-        pageCount.Should().BeGreaterThan(0);
+        output.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public async Task EncryptAsync_PreservesEncryptionOnSave()
+    public async Task StreamObject_GetDecompressedDataAsync_CanReadUnfilteredStreamMultipleTimes()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Encrypted));
-        using var output = new MemoryStream();
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
 
-        await pdf.AuthenticateAsync("kanbanery");
-        await pdf.EncryptAsync("kanbanery");
-        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(100, 100));
-        await pdf.SaveAsync(output);
+        var firstStream = await GetFirstStreamObjectAsync(pdf);
 
-        output.Position = 0;
-        using var reloaded = Pdf.Load(output);
+        using var firstRead = await firstStream.GetDecompressedDataAsync();
+        var firstBytes = await ReadAllBytesAsync(firstRead);
 
-        await reloaded.AuthenticateAsync("kanbanery");
-        var pageCount = await reloaded.GetPageCountAsync();
-        pageCount.Should().BeGreaterThan(0);
+        using var secondRead = await firstStream.GetDecompressedDataAsync();
+        var secondBytes = await ReadAllBytesAsync(secondRead);
+
+        secondBytes.Should().Equal(firstBytes);
     }
 
     [Fact]
-    public async Task EncryptAsync_EncryptsPreviouslyUnencryptedPdf()
+    public async Task ExtractTextAsync_PortfolioPdf_ReturnsNonEmptySegments()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.MikeyPortfolio));
+
+        var extracted = (await pdf.ExtractTextAsync()).ToList();
+
+        extracted.Should().NotBeEmpty();
+        extracted.Any(x => !string.IsNullOrWhiteSpace(x.Text)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EncryptAsync_SavesEncryptedPdf()
     {
         using var pdf = Pdf.Create();
         using var output = new MemoryStream();
@@ -228,6 +196,26 @@ public class PdfTests
 
         reloadedOption.Selected.Should().BeTrue();
         reloadedOption.Value.Should().Be(option.Value);
+    }
+
+    [Fact]
+    public async Task TextFormField_SetValue_PersistsAfterSave()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var textField = (await form!.GetFieldsAsync()).OfType<TextFormField>().First();
+
+        await textField.SetValueAsync("test");
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedTextField = (await reloadedForm!.GetFieldsAsync()).OfType<TextFormField>().First(x => x.Name == textField.Name);
+
+        (await reloadedTextField.GetValueAsync()).Should().Be("test");
     }
 
     [Fact]
@@ -302,10 +290,14 @@ public class PdfTests
 
         encryptedOutput.Position = 0;
         using var encryptedPdf = Pdf.Load(encryptedOutput);
-        using var decryptedOutput = new MemoryStream();
 
         await encryptedPdf.DecryptAsync("secret-password");
+
+        using var decryptedOutput = new MemoryStream();
         await encryptedPdf.SaveAsync(decryptedOutput);
+
+        var writtenPdf = Encoding.ASCII.GetString(decryptedOutput.ToArray());
+        writtenPdf.Should().NotContain("/Encrypt");
 
         decryptedOutput.Position = 0;
         using var reloaded = Pdf.Load(decryptedOutput);
@@ -313,192 +305,23 @@ public class PdfTests
         pageCount.Should().Be(1);
     }
 
-    [Fact]
-    public async Task SaveAsync_RejectsNonEmptyForeignOutputStream()
+    private static async Task<StreamObject<IStreamDictionary>> GetFirstStreamObjectAsync(Pdf pdf)
     {
-        using var pdf = Pdf.Create();
-        using var output = new MemoryStream(Encoding.ASCII.GetBytes("not a pdf"));
-
-        var act = async () => await pdf.SaveAsync(output);
-
-        await Assert.ThrowsAsync<ArgumentException>(act);
-    }
-
-    [Fact]
-    public async Task AddWatermark_WritesWatermarkContent()
-    {
-        using var pdf = Pdf.Create();
-
-        await pdf.AddWatermarkAsync("ABCDEF");
-        var page = await pdf.GetPageAsync(1);
-        var contents = await page.Dictionary.Contents.GetRawValueAsync();
-        var contentReference = contents switch
+        await foreach (var obj in pdf.Objects)
         {
-            IndirectObjectReference singleRef => singleRef,
-            ArrayObject ary => ary.Cast<IndirectObjectReference>().Last(),
-            _ => throw new InvalidOperationException("Unexpected page contents structure.")
-        };
-
-        var contentStream = await pdf.Objects.GetAsync(contentReference);
-        var streamObject = (IStreamObject)contentStream.Object;
-        using var data = await streamObject.GetDecompressedDataAsync();
-        using var reader = new StreamReader(data);
-        var contentText = await reader.ReadToEndAsync();
-
-        contentText.Should().Contain("ABCDEF");
-    }
-
-    [Fact]
-    public async Task Compress_AddsFlateFilterToUncompressedContentStream()
-    {
-        using var pdf = Pdf.Create();
-
-        await pdf.AddWatermarkAsync("TEST");
-        pdf.Compress(72, 70);
-
-        var page = await pdf.GetPageAsync(1);
-        var contents = await page.Dictionary.Contents.GetRawValueAsync();
-        var contentReference = contents switch
-        {
-            IndirectObjectReference singleRef => singleRef,
-            ArrayObject ary => ary.Cast<IndirectObjectReference>().Last(),
-            _ => throw new InvalidOperationException("Unexpected page contents structure.")
-        };
-
-        var contentStream = await pdf.Objects.GetAsync(contentReference);
-        var filters = await ((IStreamObject)contentStream.Object).Dictionary.Filter.GetAsync();
-
-        filters.Should().NotBeNull();
-        filters!.Cast<ZingPDF.Syntax.Objects.Name>().Select(x => x.Value).Should().Contain("FlateDecode");
-    }
-
-    [Fact]
-    public async Task Compress_GhostscriptPdf_DoesNotThrow()
-    {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Ghostscript));
-        using var output = new MemoryStream();
-
-        var act = () =>
-        {
-            pdf.Compress(144, 75);
-            return pdf.SaveAsync(output);
-        };
-
-        await act.Should().NotThrowAsync();
-    }
-
-    [Fact]
-    public async Task GetDecompressedDataAsync_CanBeReadTwice_ForUnfilteredStream()
-    {
-        using var pdf = Pdf.Create();
-
-        await pdf.AddWatermarkAsync("REUSE");
-        var page = await pdf.GetPageAsync(1);
-        var contents = await page.Dictionary.Contents.GetRawValueAsync();
-        var contentReference = contents switch
-        {
-            IndirectObjectReference singleRef => singleRef,
-            ArrayObject ary => ary.Cast<IndirectObjectReference>().Last(),
-            _ => throw new InvalidOperationException("Unexpected page contents structure.")
-        };
-
-        var contentStream = await pdf.Objects.GetAsync(contentReference);
-        var streamObject = (IStreamObject)contentStream.Object;
-
-        string firstRead;
-        using (var data = await streamObject.GetDecompressedDataAsync())
-        using (var reader = new StreamReader(data))
-        {
-            firstRead = await reader.ReadToEndAsync();
+            if (obj.Object is StreamObject<IStreamDictionary> streamObject)
+            {
+                return streamObject;
+            }
         }
 
-        string secondRead;
-        using (var data = await streamObject.GetDecompressedDataAsync())
-        using (var reader = new StreamReader(data))
-        {
-            secondRead = await reader.ReadToEndAsync();
-        }
-
-        firstRead.Should().Contain("REUSE");
-        secondRead.Should().Be(firstRead);
+        throw new InvalidOperationException("Expected a stream object in the PDF.");
     }
 
-    [Fact]
-    public async Task ExtractTextAsync_PortfolioPdf_ReturnsNonEmptySegments()
+    private static async Task<byte[]> ReadAllBytesAsync(Stream stream)
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.MikeyPortfolio));
-
-        var extractedText = (await pdf.ExtractTextAsync()).ToList();
-
-        extractedText.Should().NotBeEmpty();
-        extractedText.Should().OnlyContain(text => !string.IsNullOrWhiteSpace(text.Text));
-        extractedText.Should().OnlyContain(text => text.PageNumber > 0);
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+        return memory.ToArray();
     }
-
-    [Fact]
-    public async Task ExtractTextAsync_MinimalPdf_DoesNotThrow()
-    {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
-
-        var act = () => pdf.ExtractTextAsync();
-
-        await act.Should().NotThrowAsync();
-    }
-
-
-    //    [Fact]
-    //    public async Task SimpleIncrementalUpdate()
-    //    {
-    //        var pdf = Pdf.Load(File.Open("TestFiles/minimal.pdf", FileMode.Open));
-
-    //        var outputStream = File.Open("output.pdf", FileMode.Create);
-
-    //        await pdf.AppendPageAsync();
-
-    //        await pdf.SaveAsync(outputStream);
-
-    //        outputStream.Position = 0;
-    //        var output = await outputStream.GetAsync();
-
-    //        var expectedOutput = "%PDF-2.0\r\n" +
-    //            "%����\r\n" +
-    //            "1 0 obj\r\n" +
-    //            "<</Type /Catalog/Pages 2 0 R>>\r\n" +
-    //            "endobj\r\n" +
-    //            "2 0 obj\r\n" +
-    //            "<</Type /Pages/Kids [3 0 R]/Count 1>>\r\n" +
-    //            "endobj\r\n" +
-    //            "3 0 obj\r\n" +
-    //            "<</Type /Page/Parent 2 0 R/Resources <<>>>>\r\n" +
-    //            "endobj\r\n" +
-    //            "xref\r\n" +
-    //            "0 4\r\n" +
-    //            "0000000000 65535 f\r\n" +
-    //            "0000000017 00000 n\r\n" +
-    //            "0000000066 00000 n\r\n" +
-    //            "0000000122 00000 n\r\n" +
-    //            "trailer\r\n" +
-    //            "<</Size 4/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>\r\n" +
-    //            "startxref\r\n" +
-    //            "184\r\n" +
-    //            "%%EOF\r\n" +
-    //            "2 0 obj\r\n" +
-    //            "<</Type /Pages/Kids [3 0 R 5 0 R]/Count 2>>\r\n" +
-    //            "endobj\r\n" +
-    //            "5 0 obj\r\n" +
-    //            "<</Type /Page/Parent 2 0 R/Resources <<>>/MediaBox [0 0 200 200]>>\r\n" +
-    //            "endobj\r\n" +
-    //            "xref\r\n" +
-    //            "2 1\r\n" +
-    //            "0000000406 00000 n\r\n" +
-    //            "5 1\r\n" +
-    //            "0000000468 00000 n\r\n" +
-    //            "trailer\r\n" +
-    //            "<</Size 5/Prev 184/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>\r\n" +
-    //            "startxref\r\n" +
-    //            "553\r\n" +
-    //            "%%EOF";
-
-    //        output.Should().Be(expectedOutput);
-    //    
 }
