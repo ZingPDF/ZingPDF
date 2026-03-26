@@ -37,6 +37,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
         public async ITask<IndirectObject> ParseAsync(Stream stream, ObjectContext context)
         {
+            using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("IndirectObjectParser.ParseAsync");
             stream.AdvancePastWhitepace();
 
             var initialStreamPosition = stream.Position;

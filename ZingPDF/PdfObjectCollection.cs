@@ -111,6 +111,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     public async Task<IndirectObject> GetAsync(IndirectObjectReference key)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetAsync");
         // First check new/updated and deleted objects
         foreach (var obj in NewOrUpdatedObjects)
         {
@@ -233,10 +234,17 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
             );
     }
 
-    public Task<DocumentCatalogDictionary> GetDocumentCatalogAsync() => _root.Task;
+    public async Task<DocumentCatalogDictionary> GetDocumentCatalogAsync()
+    {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetDocumentCatalogAsync");
+        return await _root.Task;
+    }
 
     public async Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync()
-        => (await _versions).First().TrailerDictionary;
+    {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetLatestTrailerDictionaryAsync");
+        return (await _versions).First().TrailerDictionary;
+    }
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -280,6 +288,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     private async Task<IndirectObject> DereferenceObjectAsync(IndirectObjectReference key, CrossReferenceEntry xref)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.DereferenceObjectAsync");
         if (!xref.Compressed)
         {
             _pdf.Data.Position = xref.Value1;
@@ -325,6 +334,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.ResolveObjectStreamAsync");
         var objStreamIndirectObject = await GetAsync(objectStreamRef)
             ?? throw new InvalidOperationException($"Unable to find parent object stream {objectStreamRef}");
 
@@ -351,6 +361,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         int adjustedIndex,
         Stream decompressedObjectStream)
     {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.ParseCompressedObjectAsync");
         if ((uint)adjustedIndex >= (uint)objectOffsets.Length)
             throw new InvalidOperationException($"Object stream {objectStreamId} does not contain index {adjustedIndex}.");
 
