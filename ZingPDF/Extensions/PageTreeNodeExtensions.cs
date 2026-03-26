@@ -1,4 +1,5 @@
-﻿using ZingPDF.Syntax.DocumentStructure.PageTree;
+using ZingPDF.Diagnostics;
+using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Extensions
@@ -13,6 +14,8 @@ namespace ZingPDF.Extensions
             IPdfObjectCollection pdfEditor
             )
         {
+            using var trace = PerformanceTrace.Measure("PageTreeNodeExtensions.GetSubNodesAsync");
+
             // TODO: check page ordering, should mimic whatever Acrobat Reader infers
 
             List<IndirectObject> nodes = [];

@@ -26,7 +26,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure
 
         public async ITask<Trailer> ParseAsync(Stream stream, ObjectContext context)
         {
-            await stream.AdvanceBeyondNextAsync(Constants.Trailer);
+            _ = await _keywordParser.ParseAsync(stream, context); // trailer
 
             var trailerDict = TrailerDictionary.FromDictionary(await _dictionaryParser.ParseAsync(stream, context));
 
