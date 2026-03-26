@@ -387,6 +387,64 @@ public class PdfTests
         await act.Should().NotThrowAsync();
     }
 
+    [Fact]
+    public async Task GetDecompressedDataAsync_CanBeReadTwice_ForUnfilteredStream()
+    {
+        using var pdf = Pdf.Create();
+
+        await pdf.AddWatermarkAsync("REUSE");
+        var page = await pdf.GetPageAsync(1);
+        var contents = await page.Dictionary.Contents.GetRawValueAsync();
+        var contentReference = contents switch
+        {
+            IndirectObjectReference singleRef => singleRef,
+            ArrayObject ary => ary.Cast<IndirectObjectReference>().Last(),
+            _ => throw new InvalidOperationException("Unexpected page contents structure.")
+        };
+
+        var contentStream = await pdf.Objects.GetAsync(contentReference);
+        var streamObject = (IStreamObject)contentStream.Object;
+
+        string firstRead;
+        using (var data = await streamObject.GetDecompressedDataAsync())
+        using (var reader = new StreamReader(data))
+        {
+            firstRead = await reader.ReadToEndAsync();
+        }
+
+        string secondRead;
+        using (var data = await streamObject.GetDecompressedDataAsync())
+        using (var reader = new StreamReader(data))
+        {
+            secondRead = await reader.ReadToEndAsync();
+        }
+
+        firstRead.Should().Contain("REUSE");
+        secondRead.Should().Be(firstRead);
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_PortfolioPdf_ReturnsNonEmptySegments()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.MikeyPortfolio));
+
+        var extractedText = (await pdf.ExtractTextAsync()).ToList();
+
+        extractedText.Should().NotBeEmpty();
+        extractedText.Should().OnlyContain(text => !string.IsNullOrWhiteSpace(text.Text));
+        extractedText.Should().OnlyContain(text => text.PageNumber > 0);
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_MinimalPdf_DoesNotThrow()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+
+        var act = () => pdf.ExtractTextAsync();
+
+        await act.Should().NotThrowAsync();
+    }
+
 
     //    [Fact]
     //    public async Task SimpleIncrementalUpdate()
