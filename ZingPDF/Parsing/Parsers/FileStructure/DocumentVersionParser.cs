@@ -19,22 +19,19 @@ internal class DocumentVersionParser : IDocumentVersionParser
     private readonly IParser<CrossReferenceTable> _crossReferenceTableParser;
     private readonly IParser<Trailer> _trailerParser;
     private readonly IParser<StreamObject<CrossReferenceStreamDictionary>> _crossReferenceStreamParser;
-    private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
     public DocumentVersionParser(
         IParser<Keyword> keywordParser,
         IParser<Number> numberParser,
         IParser<CrossReferenceTable> crossReferenceTableParser,
         IParser<Trailer> trailerParser,
-        IParser<StreamObject<CrossReferenceStreamDictionary>> crossReferenceStreamParser,
-        ITokenTypeIdentifier tokenTypeIdentifier)
+        IParser<StreamObject<CrossReferenceStreamDictionary>> crossReferenceStreamParser)
     {
         _keywordParser = keywordParser;
         _numberParser = numberParser;
         _crossReferenceTableParser = crossReferenceTableParser;
         _trailerParser = trailerParser;
         _crossReferenceStreamParser = crossReferenceStreamParser;
-        _tokenTypeIdentifier = tokenTypeIdentifier;
     }
 
     // Parse all xref tables and streams to get all versions of the file
@@ -67,9 +64,9 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         pdfInputStream.Position = xrefOffset;
 
-        var type = await _tokenTypeIdentifier.TryIdentifyAsync(pdfInputStream);
+        int marker = PeekNextNonWhitespaceByte(pdfInputStream);
 
-        if (type == typeof(Keyword))
+        if (marker == 'x')
         {
             var xrefTable = await _crossReferenceTableParser.ParseAsync(pdfInputStream, _objectContext);
 
@@ -80,7 +77,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
                 IndirectObjects = ProcessXrefTable(xrefTable)
             };
         }
-        else if (type == typeof(IndirectObject))
+        else if (marker >= '0' && marker <= '9')
         {
             // Parse object number then move stream back to start of object
             // The xref stream parser will record the byte offset which should be at the start of the indirect object
@@ -127,6 +124,29 @@ internal class DocumentVersionParser : IDocumentVersionParser
         _ = await _keywordParser.ParseAsync(pdfStream, _objectContext);
 
         return await _numberParser.ParseAsync(pdfStream, _objectContext);
+    }
+
+    private static int PeekNextNonWhitespaceByte(Stream stream)
+    {
+        long originalPosition = stream.Position;
+
+        while (stream.Position < stream.Length)
+        {
+            int next = stream.ReadByte();
+            if (next < 0)
+            {
+                break;
+            }
+
+            if (!char.IsWhiteSpace((char)next))
+            {
+                stream.Position = originalPosition;
+                return next;
+            }
+        }
+
+        stream.Position = originalPosition;
+        return -1;
     }
 
     private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)

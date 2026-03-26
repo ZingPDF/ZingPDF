@@ -8,17 +8,14 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     {
         private readonly IParser<CrossReferenceSectionIndex> _xrefSectionIndexParser;
         private readonly IParser<CrossReferenceEntry> _xrefEntryParser;
-        private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
         public CrossReferenceSectionParser(
             IParser<CrossReferenceSectionIndex> xrefSectionIndexParser,
-            IParser<CrossReferenceEntry> xrefEntryParser,
-            ITokenTypeIdentifier tokenTypeIdentifier
+            IParser<CrossReferenceEntry> xrefEntryParser
             )
         {
             _xrefSectionIndexParser = xrefSectionIndexParser;
             _xrefEntryParser = xrefEntryParser;
-            _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
         public async ITask<CrossReferenceSection> ParseAsync(Stream stream, ObjectContext context)
@@ -32,21 +29,14 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             // 0000000409 00000 n
 
             var index = await _xrefSectionIndexParser.ParseAsync(stream, context);
+            List<CrossReferenceEntry> entries = new(index.Count);
 
-            Type? type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
-            List<CrossReferenceEntry> entries = [];
-            long position = stream.Position;
-
-            while (type == typeof(CrossReferenceEntry))
+            // The section header already tells us exactly how many entries follow, so
+            // there is no need to re-identify each line before parsing it.
+            for (int i = 0; i < index.Count; i++)
             {
                 entries.Add(await _xrefEntryParser.ParseAsync(stream, context));
-
-                position = stream.Position;
-                type = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
             }
-
-            // Since we've read an axtra token we don't need, reset stream
-            stream.Position = position;
 
             return new CrossReferenceSection(index.StartIndex, entries, context);
         }

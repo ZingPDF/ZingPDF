@@ -10,17 +10,14 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
     {
         private readonly IParser<Keyword> _keywordParser;
         private readonly IParser<CrossReferenceSection> _xrefSectionParser;
-        private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
 
         public CrossReferenceTableParser(
             IParser<Keyword> keywordParser,
-            IParser<CrossReferenceSection> xrefSectionParser,
-            ITokenTypeIdentifier tokenTypeIdentifier
+            IParser<CrossReferenceSection> xrefSectionParser
             )
         {
             _keywordParser = keywordParser;
             _xrefSectionParser = xrefSectionParser;
-            _tokenTypeIdentifier = tokenTypeIdentifier;
         }
 
         public async ITask<CrossReferenceTable> ParseAsync(Stream stream, ObjectContext context)
@@ -43,21 +40,35 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 
             List<CrossReferenceSection> sections = [];
 
-            Type? currentType = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
-
-            while (
-                currentType != null
-                && currentType != typeof(CrossReferenceEntry)
-                && currentType != typeof(Keyword)
-                && currentType != typeof(Trailer)
-                )
+            while (PeekNextNonWhitespaceByte(stream) != 't')
             {
                 sections.Add(await _xrefSectionParser.ParseAsync(stream, context));
-
-                currentType = await _tokenTypeIdentifier.TryIdentifyAsync(stream);
             }
 
             return new CrossReferenceTable(sections, context);
+        }
+
+        private static int PeekNextNonWhitespaceByte(Stream stream)
+        {
+            long originalPosition = stream.Position;
+
+            while (stream.Position < stream.Length)
+            {
+                int next = stream.ReadByte();
+                if (next < 0)
+                {
+                    break;
+                }
+
+                if (!char.IsWhiteSpace((char)next))
+                {
+                    stream.Position = originalPosition;
+                    return next;
+                }
+            }
+
+            stream.Position = originalPosition;
+            return -1;
         }
     }
 }
