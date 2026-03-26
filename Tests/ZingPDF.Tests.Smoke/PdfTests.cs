@@ -2,8 +2,14 @@ using FluentAssertions;
 using System.Text;
 using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
+using ZingPDF.Elements;
+using ZingPDF.Graphics;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Text;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -91,8 +97,78 @@ public class PdfTests
 
         await pdf.AddWatermarkAsync("FAST");
         await pdf.SaveAsync(output);
+        await WriteArtifactAsync("watermark-minimal.pdf", output);
 
         output.Length.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task AppendPdfAsync_AppendsPagesFromSecondDocument()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var appendedStream = Files.AsStream(Files.Minimal2);
+        using var output = new MemoryStream();
+
+        await pdf.AppendPdfAsync(appendedStream);
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("append-minimal1-minimal2.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_PersistsWrittenContent()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Test));
+        using var output = new MemoryStream();
+
+        var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
+
+        await page.AddTextAsync(new TextObject(
+            "test",
+            Rectangle.FromDimensions(200, 200),
+            new FontOptions
+            {
+                ResourceName = "Helv",
+                Size = 24,
+                Colour = RGBColour.PrimaryRed
+                    }));
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-text.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedPage = await reloaded.GetPageAsync(1);
+        var contents = await reloadedPage.Dictionary.Contents.GetAsync();
+
+        (await reloaded.GetPageCountAsync()).Should().BeGreaterThan(1);
+        contents.Should().NotBeNull();
+        contents!.Count().Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task Page_AddImageAsync_WritesValidImageXObject()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var output = new MemoryStream();
+        using var image = Image.FromFile(Files.CatImage, Rectangle.FromDimensions(200, 200));
+
+        var page = await pdf.GetPageAsync(1);
+
+        await page.AddImageAsync(image);
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-image.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/Subtype /Image");
+        writtenPdf.Should().Contain("/Type /XObject");
+        writtenPdf.Should().Contain("/Length ");
+        writtenPdf.Should().Contain("/Resources <</XObject <<");
+        writtenPdf.Should().Contain(" Do");
     }
 
     [Fact]
@@ -112,6 +188,36 @@ public class PdfTests
         pdf.Compress(144, 75);
         await pdf.SaveAsync(output);
 
+        output.Length.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task Page_RotateAsync_PersistsPageRotation()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Test));
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        await page.RotateAsync(Rotation.Degrees90);
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-rotate.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedPage = await reloaded.GetPageAsync(1);
+
+        ((int)(await reloadedPage.Dictionary.Rotate.GetAsync())!).Should().Be(90);
+    }
+
+    [Fact]
+    public async Task SetRotationAsync_SavesModifiedPdf()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var output = new MemoryStream();
+
+        await pdf.SetRotationAsync(Rotation.Degrees90);
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("document-rotate.pdf", output);
         output.Length.Should().BeGreaterThan(0);
     }
 
@@ -187,6 +293,7 @@ public class PdfTests
 
         await option.SelectAsync();
         await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-checkbox-select.pdf", output);
 
         output.Position = 0;
         using var reloaded = Pdf.Load(output);
@@ -196,6 +303,22 @@ public class PdfTests
 
         reloadedOption.Selected.Should().BeTrue();
         reloadedOption.Value.Should().Be(option.Value);
+    }
+
+    [Fact]
+    public async Task ChoiceFormField_SelectOption_ThenSave_DoesNotThrow()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComboboxForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var choiceField = (await form!.GetFieldsAsync()).OfType<ChoiceFormField>().First();
+        var option = (await choiceField.GetOptionsAsync()).First();
+
+        await option.SelectAsync();
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-choice-select.pdf", output);
+        output.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -209,6 +332,7 @@ public class PdfTests
 
         await textField.SetValueAsync("test");
         await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-text-set-value.pdf", output);
 
         output.Position = 0;
         using var reloaded = Pdf.Load(output);
@@ -216,6 +340,22 @@ public class PdfTests
         var reloadedTextField = (await reloadedForm!.GetFieldsAsync()).OfType<TextFormField>().First(x => x.Name == textField.Name);
 
         (await reloadedTextField.GetValueAsync()).Should().Be("test");
+    }
+
+    [Fact]
+    public async Task TextFormField_ClearAsync_ThenSave_DoesNotThrow()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var textField = (await form!.GetFieldsAsync()).OfType<TextFormField>().First();
+
+        await textField.SetValueAsync("test");
+        await textField.ClearAsync();
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-text-clear.pdf", output);
+        output.Length.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -323,5 +463,16 @@ public class PdfTests
         using var memory = new MemoryStream();
         await stream.CopyToAsync(memory);
         return memory.ToArray();
+    }
+
+    private static async Task WriteArtifactAsync(string fileName, MemoryStream output)
+    {
+        var artifactDirectory = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "artifacts", "manual-verification");
+        Directory.CreateDirectory(artifactDirectory);
+
+        var artifactPath = Path.Combine(artifactDirectory, fileName);
+
+        output.Position = 0;
+        await File.WriteAllBytesAsync(artifactPath, output.ToArray());
     }
 }

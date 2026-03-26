@@ -42,7 +42,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
                 return null;
             }
 
-            return (await _fieldDictionary.V.GetAsync() as PdfString)!.Decode();
+            return (await _fieldDictionary.V.GetAsync() as PdfString)?.Decode();
         }
 
         /// <summary>
