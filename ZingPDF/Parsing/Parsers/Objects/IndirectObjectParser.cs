@@ -16,15 +16,21 @@ namespace ZingPDF.Parsing.Parsers.Objects
     internal class IndirectObjectParser : IParser<IndirectObject>
     {
         private readonly IParserResolver _parserResolver;
+        private readonly IParser<Number> _numberParser;
+        private readonly IParser<Keyword> _keywordParser;
         private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
         private readonly IPdfEncryptionProvider _encryptionProvider;
 
         public IndirectObjectParser(
             IParserResolver parserResolver,
+            IParser<Number> numberParser,
+            IParser<Keyword> keywordParser,
             ITokenTypeIdentifier tokenTypeIdentifier,
             IPdfEncryptionProvider encryptionProvider)
         {
             _parserResolver = parserResolver;
+            _numberParser = numberParser;
+            _keywordParser = keywordParser;
             _tokenTypeIdentifier = tokenTypeIdentifier;
             _encryptionProvider = encryptionProvider;
         }
@@ -35,11 +41,11 @@ namespace ZingPDF.Parsing.Parsers.Objects
 
             var initialStreamPosition = stream.Position;
 
-            var id = await _parserResolver.GetParser<Number>().ParseAsync(stream, context);
-            var genNumber = await _parserResolver.GetParser<Number>().ParseAsync(stream, context);
+            var id = await _numberParser.ParseAsync(stream, context);
+            var genNumber = await _numberParser.ParseAsync(stream, context);
 
             // obj keyword
-            _ = await _parserResolver.GetParser<Keyword>().ParseAsync(stream, context);
+            _ = await _keywordParser.ParseAsync(stream, context);
 
             var items = new List<IPdfObject>();
             var parentReference = new IndirectObjectReference(new IndirectObjectId(id, genNumber), ObjectContext.WithOrigin(context.Origin));

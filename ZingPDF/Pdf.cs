@@ -29,6 +29,12 @@ namespace ZingPDF;
 /// </summary>
 public class Pdf : IPdf, IDisposable
 {
+    private static readonly ServiceProvider _rootServices = new ServiceCollection()
+        .AddDocumentServices()
+        .AddParsers()
+        .AddTextExtractor()
+        .BuildServiceProvider();
+
     private readonly IServiceProvider _services;
     private readonly IServiceScope _documentLifetime;
     private readonly IPdfEncryptionProvider _encryptionProvider;
@@ -53,13 +59,9 @@ public class Pdf : IPdf, IDisposable
 
         Data = data;
 
-        _services = new ServiceCollection()
-            .AddContext(this)
-            .AddParsers()
-            .AddTextExtractor()
-            .BuildServiceProvider();
-
-        _documentLifetime = _services.CreateScope();
+        _documentLifetime = _rootServices.CreateScope();
+        _services = _documentLifetime.ServiceProvider;
+        _services.GetRequiredService<PdfContextAccessor>().Pdf = this;
 
         Objects = _services.GetRequiredService<IPdfObjectCollection>();
         _encryptionProvider = _services.GetRequiredService<IPdfEncryptionProvider>();

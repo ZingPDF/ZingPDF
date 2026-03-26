@@ -8,6 +8,26 @@ namespace ZingPDF.Performance;
 [MemoryDiagnoser]
 public class CompetitiveBenchmarks
 {
+    [Benchmark(Description = "ZingPDF: Open a minimal PDF")]
+    public void ZingPdf_Open_MinimalPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Minimal));
+    }
+
+    [Benchmark(Description = "PDFsharp: Open a minimal PDF")]
+    public void PdfSharp_Open_MinimalPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
+    }
+
+    [Benchmark(Description = "PdfPig: Open a minimal PDF")]
+    public void PdfPig_Open_MinimalPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
+    }
+
     [Benchmark(Description = "ZingPDF: Open and count pages in a minimal PDF")]
     public async Task ZingPdf_CountPages_MinimalPdf()
     {
@@ -29,6 +49,26 @@ public class CompetitiveBenchmarks
         using var stream = TestFiles.OpenStream(TestFiles.Minimal);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
         _ = pdf.NumberOfPages;
+    }
+
+    [Benchmark(Description = "ZingPDF: Open a larger real-world PDF")]
+    public void ZingPdf_Open_RealWorldPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+    }
+
+    [Benchmark(Description = "PDFsharp: Open a larger real-world PDF")]
+    public void PdfSharp_Open_RealWorldPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
+    }
+
+    [Benchmark(Description = "PdfPig: Open a larger real-world PDF")]
+    public void PdfPig_Open_RealWorldPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
     }
 
     [Benchmark(Description = "ZingPDF: Open and count pages in a larger real-world PDF")]
