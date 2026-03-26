@@ -36,7 +36,7 @@ internal class VariableTextAppearanceStreamManager
     private readonly AsyncLazy<PdfString?> _fieldDA;
     private readonly AsyncLazy<ContentStream> _defaultAppearanceStream;
 
-    private readonly AsyncLazy<StreamObject<IStreamDictionary>?> _fieldAppearanceStreamObject;
+    private readonly AsyncLazy<IStreamObject?> _fieldAppearanceStreamObject;
     private readonly AsyncLazy<ContentStream?> _fieldAppearanceStream;
 
     private readonly ObjectContext _ObjectContext = ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream);
@@ -94,7 +94,7 @@ internal class VariableTextAppearanceStreamManager
             return await _contentStreamParser.ParseAsync(daStream, _ObjectContext);
         });
 
-        _fieldAppearanceStreamObject = new AsyncLazy<StreamObject<IStreamDictionary>?>(async () =>
+        _fieldAppearanceStreamObject = new AsyncLazy<IStreamObject?>(async () =>
         {
             var existingAppearanceDictionary = await _fieldDict.AP.GetAsync();
             if (existingAppearanceDictionary == null)
@@ -186,7 +186,7 @@ internal class VariableTextAppearanceStreamManager
         // form dictionary") into the stream’s Resources dictionary. (If the DR and Resources dictionaries contain
         // resources with the same name, the one already in the Resources dictionary shall be left intact, not replaced
         // with the corresponding value from the DR dictionary.)"
-        StreamObject<IStreamDictionary>? fieldApStreamObject = await _fieldAppearanceStreamObject;
+        IStreamObject? fieldApStreamObject = await _fieldAppearanceStreamObject;
         if (fieldApStreamObject == null)
         {
             throw new InvalidPdfException("Expected an appearance stream object for the field.");
@@ -333,11 +333,11 @@ internal class VariableTextAppearanceStreamManager
             .RestoreGraphicsState();
     }
 
-    private async Task<StreamObject<IStreamDictionary>> GetStreamObjectFromNormalAppearanceEntry(Either<StreamObject<IStreamDictionary>, Dictionary> normalAppearance)
+    private async Task<IStreamObject> GetStreamObjectFromNormalAppearanceEntry(Either<IStreamObject, Dictionary> normalAppearance)
     {
-        StreamObject<IStreamDictionary> normalApStream;
+        IStreamObject normalApStream;
 
-        if (normalAppearance.Value is StreamObject<IStreamDictionary> st)
+        if (normalAppearance.Value is IStreamObject st)
         {
             normalApStream = st;
         }
@@ -348,7 +348,7 @@ internal class VariableTextAppearanceStreamManager
             var onStateApRef = normalApDict.FirstOrDefault(k => k.Key != Constants.ButtonStates.Off).Value as IndirectObjectReference
                 ?? throw new InvalidPdfException("Malformed text field encountered");
 
-            normalApStream = await _pdf.Objects.GetAsync<StreamObject<IStreamDictionary>>(onStateApRef)
+            normalApStream = await _pdf.Objects.GetAsync<IStreamObject>(onStateApRef)
                 ?? throw new InvalidPdfException("Malformed text field encountered");
         }
         else
