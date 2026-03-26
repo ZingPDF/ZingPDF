@@ -87,6 +87,12 @@ public class PageTree
     public async Task<int> GetPageCountAsync()
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.GetPageCountAsync");
+        var fastCount = await TryGetDirectPageCountAsync();
+        if (fastCount != null)
+        {
+            return fastCount.Value;
+        }
+
         return await _pageCount.Task;
     }
 
@@ -97,5 +103,23 @@ public class PageTree
         _nodes.Reset();
         _pages.Reset();
         _pageCount.Reset();
+    }
+
+    private async Task<int?> TryGetDirectPageCountAsync()
+    {
+        var latestTrailer = await _objects.GetLatestTrailerDictionaryAsync();
+        if (latestTrailer.Root is not IndirectObjectReference catalogRef)
+        {
+            return null;
+        }
+
+        var catalog = (await _objects.GetAsync(catalogRef)).Object as DocumentCatalogDictionary;
+        if (catalog?.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.Pages) is not IndirectObjectReference pageTreeRef)
+        {
+            return null;
+        }
+
+        var pageTreeNode = (await _objects.GetAsync(pageTreeRef)).Object as PageTreeNodeDictionary;
+        return pageTreeNode?.GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count);
     }
 }

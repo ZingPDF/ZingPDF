@@ -37,6 +37,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly Dictionary<IndirectObjectId, IndirectObject> _updatedObjects = [];
     private readonly List<IndirectObjectId> _deletedObjects = [];
 
+    private readonly AsyncLazy<VersionInformation> _latestVersion;
     private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
     private readonly AsyncLazy<ITrailerDictionary> _latestTrailer;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
@@ -63,8 +64,22 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         _indirectObjectParser = indirectObjectParser;
         _parserResolver = parserResolver;
         _tokenTypeIdentifier = tokenTypeIdentifier;
-        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
-        _latestTrailer = new AsyncLazy<ITrailerDictionary>(async () => (await _versions).First().TrailerDictionary);
+        _latestVersion = new AsyncLazy<VersionInformation>(async () => await _documentVersionParser.ParseLatestAsync(_pdf.Data));
+        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () =>
+        {
+            List<VersionInformation> versions = [await _latestVersion];
+
+            int? xrefOffset = versions[0].TrailerDictionary.Prev;
+            while (xrefOffset != null)
+            {
+                var version = await _documentVersionParser.ParseAtAsync(_pdf.Data, xrefOffset.Value);
+                versions.Add(version);
+                xrefOffset = version.TrailerDictionary.Prev;
+            }
+
+            return versions;
+        });
+        _latestTrailer = new AsyncLazy<ITrailerDictionary>(async () => (await _latestVersion).TrailerDictionary);
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
@@ -137,11 +152,22 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
             return cachedObj;
         }
 
+        var latestVersion = await _latestVersion;
+
+        if (latestVersion.IndirectObjects.TryGetValue(key.Id, out var latestEntry))
+        {
+            IndirectObject latestObject = await DereferenceObjectAsync(key, latestEntry);
+
+            _parsedObjectCache.Add(key.Id, latestObject);
+
+            return latestObject;
+        }
+
         IEnumerable<VersionInformation> versions = await _versions;
 
         // Finally, parse and cache the value.
         // Search through versions, which are ordered most recent first.
-        foreach (var version in versions)
+        foreach (var version in versions.Skip(1))
         {
             if (version.IndirectObjects.TryGetValue(key.Id, out var entry))
             {
