@@ -40,11 +40,14 @@ internal class DocumentVersionParser : IDocumentVersionParser
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseAsync");
         List<VersionInformation> versions = [];
 
-        int? xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
+        var latestVersion = await ParseLatestAsync(pdfInputStream);
+        versions.Add(latestVersion);
+
+        int? xrefOffset = latestVersion.TrailerDictionary.Prev;
 
         while (xrefOffset != null)
         {
-            var version = await ParseDocumentVersionAsync(pdfInputStream, xrefOffset.Value);
+            var version = await ParseAtAsync(pdfInputStream, xrefOffset.Value);
 
             xrefOffset = version.TrailerDictionary.Prev;
 
@@ -52,6 +55,18 @@ internal class DocumentVersionParser : IDocumentVersionParser
         }
 
         return versions;
+    }
+
+    public async Task<VersionInformation> ParseLatestAsync(Stream pdfInputStream)
+    {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseLatestAsync");
+        int xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
+        return await ParseAtAsync(pdfInputStream, xrefOffset);
+    }
+
+    public async Task<VersionInformation> ParseAtAsync(Stream pdfInputStream, int xrefOffset)
+    {
+        return await ParseDocumentVersionAsync(pdfInputStream, xrefOffset);
     }
 
     // TODO: move to testable class

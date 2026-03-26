@@ -1,33 +1,63 @@
-﻿using MorseCode.ITask;
+using MorseCode.ITask;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
-using ZingPDF.Syntax.Objects;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
 {
     internal class CrossReferenceEntryParser : IParser<CrossReferenceEntry>
     {
-        private readonly IParser<Number> _numberParser;
-        private readonly IParser<Keyword> _keywordParser;
-        
-        public CrossReferenceEntryParser(
-            IParser<Number> numberParser,
-            IParser<Keyword> keywordParser
-            )
-        {
-            _numberParser = numberParser;
-            _keywordParser = keywordParser;
-        }
+        public CrossReferenceEntryParser() { }
 
         public async ITask<CrossReferenceEntry> ParseAsync(Stream stream, ObjectContext context)
         {
             // 0000000000 65535 f
+            stream.AdvancePastWhitepace();
 
-            var byteOffset = await _numberParser.ParseAsync(stream, context);
-            ushort genNumber = await _numberParser.ParseAsync(stream, context);
-            string inUse = await _keywordParser.ParseAsync(stream, context);
+            int byteOffset = ReadIntToken(stream);
+            ushort genNumber = checked((ushort)ReadIntToken(stream));
+            byte inUse = ReadSingleByteToken(stream);
 
-            return new CrossReferenceEntry(byteOffset, genNumber, inUse == "n", compressed: false, context);
+            await Task.CompletedTask;
+            return new CrossReferenceEntry(byteOffset, genNumber, inUse == 'n', compressed: false, context);
+        }
+
+        private static int ReadIntToken(Stream stream)
+        {
+            stream.AdvancePastWhitepace();
+
+            int value = 0;
+
+            while (stream.Position < stream.Length)
+            {
+                int next = stream.ReadByte();
+                if (next < 0)
+                {
+                    break;
+                }
+
+                if (char.IsWhiteSpace((char)next))
+                {
+                    break;
+                }
+
+                value = (value * 10) + (next - '0');
+            }
+
+            return value;
+        }
+
+        private static byte ReadSingleByteToken(Stream stream)
+        {
+            stream.AdvancePastWhitepace();
+
+            int next = stream.ReadByte();
+            if (next < 0)
+            {
+                throw new ParserException("Unexpected end of xref entry.");
+            }
+
+            return (byte)next;
         }
     }
 }
