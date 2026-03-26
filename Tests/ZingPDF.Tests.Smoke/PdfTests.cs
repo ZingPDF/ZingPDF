@@ -224,7 +224,7 @@ public class PdfTests
     [Fact]
     public async Task StreamObject_GetDecompressedDataAsync_CanReadUnfilteredStreamMultipleTimes()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var pdf = Pdf.Load(Files.AsStream(Files.Test));
 
         var firstStream = await GetFirstStreamObjectAsync(pdf);
 
@@ -436,20 +436,21 @@ public class PdfTests
         using var decryptedOutput = new MemoryStream();
         await encryptedPdf.SaveAsync(decryptedOutput);
 
-        var writtenPdf = Encoding.ASCII.GetString(decryptedOutput.ToArray());
-        writtenPdf.Should().NotContain("/Encrypt");
-
         decryptedOutput.Position = 0;
         using var reloaded = Pdf.Load(decryptedOutput);
+        var trailer = await reloaded.Objects.GetLatestTrailerDictionaryAsync();
+
+        (await trailer.Encrypt.GetAsync()).Should().BeNull();
+
         var pageCount = await reloaded.GetPageCountAsync();
         pageCount.Should().Be(1);
     }
 
-    private static async Task<StreamObject<IStreamDictionary>> GetFirstStreamObjectAsync(Pdf pdf)
+    private static async Task<IStreamObject> GetFirstStreamObjectAsync(Pdf pdf)
     {
         await foreach (var obj in pdf.Objects)
         {
-            if (obj.Object is StreamObject<IStreamDictionary> streamObject)
+            if (obj.Object is IStreamObject streamObject)
             {
                 return streamObject;
             }
