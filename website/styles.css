@@ -385,6 +385,11 @@ code {
   gap: 18px;
 }
 
+.capabilities {
+  display: grid;
+  gap: 24px;
+}
+
 .pricing-card,
 .feature-card,
 .faq-list details {
@@ -466,6 +471,81 @@ code {
   padding: 22px;
 }
 
+.support-table-wrap {
+  overflow-x: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.support-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.support-table th,
+.support-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.support-table th {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: rgba(14, 116, 144, 0.05);
+}
+
+.support-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.support-table td:nth-child(1) {
+  width: 32%;
+  font-weight: 700;
+}
+
+.support-table td:nth-child(2) {
+  width: 18%;
+}
+
+.support-table td:nth-child(3) {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-live {
+  color: #14532d;
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.status-roadmap {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
 .payment-note {
   display: grid;
 }
@@ -487,6 +567,18 @@ code {
 
 .site-footer a:hover {
   color: var(--accent-strong);
+}
+
+.footer-meta {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.footer-meta a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 .faq-list details {
@@ -796,6 +888,10 @@ code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .support-table {
+    min-width: 640px;
+  }
+
   .pricing-card.featured {
     transform: none;
   }
@@ -830,5 +926,13 @@ code {
 
   .platform-grid {
     grid-template-columns: 1fr;
+  }
+
+  .support-table-wrap {
+    padding: 0;
+  }
+
+  .support-table {
+    min-width: 560px;
   }
 }
