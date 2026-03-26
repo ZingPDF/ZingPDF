@@ -1,6 +1,7 @@
 param(
     [string]$Project = "Tests/ZingPDF.Performance/ZingPDF.Performance.csproj",
     [string]$OutputRoot = "artifacts/performance",
+    [string]$Filter = "*PdfBenchmarks*",
     [string]$ThresholdPercent = "10",
     [string]$BaselineSummary = "",
     [switch]$CompareToBaseline
@@ -18,7 +19,7 @@ $comparisonMarkdown = Join-Path $outputPath "comparison.md"
 
 New-Item -ItemType Directory -Force -Path $benchmarkArtifacts | Out-Null
 
-dotnet run --project $projectPath -c Release -- --filter "*" --artifacts $benchmarkArtifacts
+dotnet run --project $projectPath -c Release -- --filter $Filter --artifacts $benchmarkArtifacts
 
 & (Join-Path $PSScriptRoot "write-performance-summary.ps1") `
     -BenchmarkArtifacts $benchmarkArtifacts `
