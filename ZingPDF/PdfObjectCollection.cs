@@ -41,6 +41,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
     private readonly IDocumentVersionParser _documentVersionParser;
+    private readonly IParser<IndirectObject> _indirectObjectParser;
     private readonly IParserResolver _parserResolver;
     private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
     private readonly IPdf _pdf;
@@ -51,12 +52,14 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     public PdfObjectCollection(
         IPdf pdf,
         IDocumentVersionParser documentVersionParser,
+        IParser<IndirectObject> indirectObjectParser,
         IParserResolver parserResolver,
         ITokenTypeIdentifier tokenTypeIdentifier
         )
     {
         _pdf = pdf;
         _documentVersionParser = documentVersionParser;
+        _indirectObjectParser = indirectObjectParser;
         _parserResolver = parserResolver;
         _tokenTypeIdentifier = tokenTypeIdentifier;
         _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
@@ -281,7 +284,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         {
             _pdf.Data.Position = xref.Value1;
 
-            return await _parserResolver.GetParser<IndirectObject>().ParseAsync(_pdf.Data, _ObjectContext);
+            return await _indirectObjectParser.ParseAsync(_pdf.Data, _ObjectContext);
         }
 
         Logger.Log(LogLevel.Trace, $"{key} is compressed within object stream {xref.Value1}");

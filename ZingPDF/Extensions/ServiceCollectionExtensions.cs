@@ -26,8 +26,18 @@ public static class PdfServiceCollectionExtensions
 {
     public static IServiceCollection AddContext(this IServiceCollection services, IPdf pdf)
     {
+        services.AddDocumentServices();
+        services.AddScoped<PdfContextAccessor>(_ => new PdfContextAccessor { Pdf = pdf });
+        return services;
+    }
+
+    public static IServiceCollection AddDocumentServices(this IServiceCollection services)
+    {
         services
-            .AddScoped((s) => pdf)
+            .AddScoped<PdfContextAccessor>()
+            .AddScoped<IPdf>(serviceProvider =>
+                serviceProvider.GetRequiredService<PdfContextAccessor>().Pdf
+                ?? throw new InvalidOperationException("The current PDF scope has not been initialized."))
             .AddScoped<IPdfObjectCollection, PdfObjectCollection>()
             .AddScoped<IPdfEncryptionProvider, PdfEncryptionProvider>();
 
@@ -73,4 +83,9 @@ public static class PdfServiceCollectionExtensions
 
         return services;
     }
+}
+
+public sealed class PdfContextAccessor
+{
+    public IPdf? Pdf { get; set; }
 }

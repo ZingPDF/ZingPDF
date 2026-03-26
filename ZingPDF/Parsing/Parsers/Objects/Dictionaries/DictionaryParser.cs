@@ -10,8 +10,6 @@ internal abstract class DictionaryParser
     /// <exception cref="ParserException"></exception>
     protected static async Task<SubStream> ExtractDictionarySegmentAsync(Stream source)
     {
-        await Task.Yield();
-
         var countStart = 0;
         var countEnd = 0;
 
