@@ -1,5 +1,5 @@
 ﻿using MorseCode.ITask;
-using ZingPDF.Extensions;
+using System.Globalization;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.Objects;
 
@@ -9,14 +9,8 @@ internal class NumberParser : IParser<Number>
 {
     public async ITask<Number> ParseAsync(Stream stream, ObjectContext context)
     {
-        stream.AdvancePastWhitepace();
-
-        var content = await stream.ReadUpToExcludingAsync([.. Constants.Delimiters, .. Constants.WhitespaceCharacters]);
-
-        content = content.TrimStart();
-
-        var value = double.Parse(content);
-
+        await Task.CompletedTask;
+        var value = double.Parse(ParserTokenReader.ReadNumber(stream), CultureInfo.InvariantCulture);
         return new Number(value, context);
     }
 }
