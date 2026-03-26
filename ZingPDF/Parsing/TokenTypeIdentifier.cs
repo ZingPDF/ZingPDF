@@ -1,3 +1,4 @@
+using ZingPDF.Diagnostics;
 using ZingPDF.Logging;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.FileStructure;
@@ -17,6 +18,7 @@ namespace ZingPDF.Parsing
 
         public async Task<Type?> TryIdentifyAsync(Stream stream)
         {
+            using var trace = PerformanceTrace.Measure("TokenTypeIdentifier.TryIdentifyAsync");
             long originalPosition = stream.Position;
 
             try
