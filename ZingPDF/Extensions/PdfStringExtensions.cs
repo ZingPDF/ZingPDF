@@ -14,6 +14,7 @@ public static class PdfStringExtensions
         {
             ObjectOrigin.None or
             ObjectOrigin.UserCreated or
+            ObjectOrigin.ImplicitOperatorConversion or
             ObjectOrigin.ParsedDocumentObject => DecodeDocumentObjectString(pdfString),
             ObjectOrigin.ParsedContentStream when textState is not null => DecodeContentStreamString(pdfString, textState),
             ObjectOrigin.ParsedContentStream => throw new InvalidOperationException("TextDrawingState must be provided to decode a content stream string."),
