@@ -26,6 +26,9 @@ namespace ZingPDF;
 /// </remarks>
 public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<IndirectObject>
 {
+    private const int MaxCachedObjectStreamBytes = 4 * 1024 * 1024;
+    private const int MaxTotalCachedObjectStreamBytes = 32 * 1024 * 1024;
+
     private readonly ObjectContext _ObjectContext = ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject);
 
     private readonly Dictionary<IndirectObjectId, IndirectObject> _parsedObjectCache = [];
@@ -41,6 +44,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly IParserResolver _parserResolver;
     private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
     private readonly IPdf _pdf;
+    private readonly BoundedObjectStreamCache _objectStreamCache = new(MaxTotalCachedObjectStreamBytes, MaxCachedObjectStreamBytes);
 
     //private readonly Queue<IndirectObjectId> _freeIds;
 
@@ -287,28 +291,33 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
         var objectStream = (StreamObject<ObjectStreamDictionary>)objStreamIndirectObject.Object;
 
-        // TODO: cache decompressed stream data?
-        // Now that we have the correct stream, decompress it.
-        Stream decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
+        if (_objectStreamCache.TryGet(objStreamIndirectObject.Id, out var cachedObjectStream))
+        {
+            using var cachedStream = cachedObjectStream.OpenStream();
+            return await ParseCompressedObjectAsync(key, objStreamIndirectObject.Id, objectStream.Dictionary.First, cachedObjectStream.ObjectOffsets, adjustedIndex, cachedStream);
+        }
 
-        // Read the offset table without unnecessary allocations
-        var offsetTableBytes = new byte[objectStream.Dictionary.First];
-        await decompressedObjectStream.ReadExactlyAsync(offsetTableBytes, 0, objectStream.Dictionary.First);
+        using var decompressedObjectStream = await objectStream.GetDecompressedDataAsync();
 
-        // Decode integer pairs
-        var offsets = Encoding.ASCII.GetString(offsetTableBytes)
-            .Split([Constants.Characters.Whitespace, .. Constants.EndOfLineCharacters]);
+        int firstObjectOffset = objectStream.Dictionary.First;
+        var offsetTableBytes = new byte[firstObjectOffset];
+        await decompressedObjectStream.ReadExactlyAsync(offsetTableBytes, 0, firstObjectOffset);
+        var objectOffsets = ParseObjectOffsets(offsetTableBytes, objectStream.Dictionary.N);
 
-        var objectOffset = Convert.ToInt32(offsets[adjustedIndex * 2 + 1]);
+        if (ShouldCacheObjectStream(decompressedObjectStream, objectOffsets.Length))
+        {
+            decompressedObjectStream.Position = 0;
+            using var buffer = new MemoryStream((int)decompressedObjectStream.Length);
+            await decompressedObjectStream.CopyToAsync(buffer);
 
-        // The byte offset of an object is relative to the first object.
-        // Seek to the object's position and parse it
-        decompressedObjectStream.Position = objectStream.Dictionary.First + objectOffset;
+            var cachedEntry = new ObjectStreamData(buffer.ToArray(), objectOffsets);
+            _objectStreamCache.Store(objStreamIndirectObject.Id, cachedEntry);
 
-        var type = (await _tokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
+            using var cachedStream = cachedEntry.OpenStream();
+            return await ParseCompressedObjectAsync(key, objStreamIndirectObject.Id, firstObjectOffset, objectOffsets, adjustedIndex, cachedStream);
+        }
 
-        var itemContext = _ObjectContext with { NearestParent = new IndirectObjectReference(key.Id, _ObjectContext) };
-        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, itemContext));
+        return await ParseCompressedObjectAsync(key, objStreamIndirectObject.Id, firstObjectOffset, objectOffsets, adjustedIndex, decompressedObjectStream);
     }
 
     private async Task<(IndirectObject, int)> ResolveObjectStreamAsync(IndirectObjectReference objectStreamRef, int objectIndex)
@@ -329,5 +338,130 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         // Object indexes in an extended stream are relative to the full chain,
         // so we need to subtract this segment's object count before recursing.
         return await ResolveObjectStreamAsync(objectStream.Dictionary.Extends, objectIndex - objectStream.Dictionary.N);
+    }
+
+    private async Task<IndirectObject> ParseCompressedObjectAsync(
+        IndirectObjectReference key,
+        IndirectObjectId objectStreamId,
+        int firstObjectOffset,
+        int[] objectOffsets,
+        int adjustedIndex,
+        Stream decompressedObjectStream)
+    {
+        if ((uint)adjustedIndex >= (uint)objectOffsets.Length)
+            throw new InvalidOperationException($"Object stream {objectStreamId} does not contain index {adjustedIndex}.");
+
+        // The byte offset of an object is relative to the first object.
+        decompressedObjectStream.Position = firstObjectOffset + objectOffsets[adjustedIndex];
+
+        var type = (await _tokenTypeIdentifier.TryIdentifyAsync(decompressedObjectStream))!;
+        var itemContext = _ObjectContext with { NearestParent = new IndirectObjectReference(key.Id, _ObjectContext) };
+        return new IndirectObject(key.Id, await _parserResolver.GetParserFor(type).ParseAsync(decompressedObjectStream, itemContext));
+    }
+
+    private static bool ShouldCacheObjectStream(Stream decompressedObjectStream, int objectCount)
+    {
+        if (!decompressedObjectStream.CanSeek)
+            return false;
+
+        long estimatedEntrySize = decompressedObjectStream.Length + ((long)objectCount * sizeof(int));
+        return estimatedEntrySize <= MaxCachedObjectStreamBytes;
+    }
+
+    private static int[] ParseObjectOffsets(byte[] offsetTableBytes, int objectCount)
+    {
+        var offsets = new int[objectCount];
+        var table = Encoding.ASCII.GetString(offsetTableBytes);
+        int tokenIndex = 0;
+        int objectIndex = 0;
+
+        foreach (var token in table.Split([Constants.Characters.Whitespace, .. Constants.EndOfLineCharacters], StringSplitOptions.RemoveEmptyEntries))
+        {
+            if ((tokenIndex & 1) == 1)
+            {
+                if (objectIndex >= objectCount)
+                    break;
+
+                offsets[objectIndex++] = Convert.ToInt32(token);
+            }
+
+            tokenIndex++;
+        }
+
+        if (objectIndex != objectCount)
+            throw new InvalidPdfException("Object stream offset table is malformed.");
+
+        return offsets;
+    }
+
+    private sealed class ObjectStreamData(byte[] data, int[] objectOffsets)
+    {
+        public byte[] Data { get; } = data;
+        public int[] ObjectOffsets { get; } = objectOffsets;
+        public int SizeBytes => Data.Length + (ObjectOffsets.Length * sizeof(int));
+
+        public MemoryStream OpenStream() => new(Data, writable: false);
+    }
+
+    private sealed class BoundedObjectStreamCache(int maxTotalBytes, int maxEntryBytes)
+    {
+        private readonly int _maxTotalBytes = maxTotalBytes;
+        private readonly int _maxEntryBytes = maxEntryBytes;
+        private readonly object _gate = new();
+        private readonly Dictionary<IndirectObjectId, LinkedListNode<CacheEntry>> _entries = [];
+        private readonly LinkedList<CacheEntry> _lru = [];
+        private int _cachedBytes;
+
+        public bool TryGet(IndirectObjectId objectStreamId, out ObjectStreamData data)
+        {
+            lock (_gate)
+            {
+                if (_entries.TryGetValue(objectStreamId, out var node))
+                {
+                    _lru.Remove(node);
+                    _lru.AddFirst(node);
+                    data = node.Value.Data;
+                    return true;
+                }
+            }
+
+            data = null!;
+            return false;
+        }
+
+        public void Store(IndirectObjectId objectStreamId, ObjectStreamData data)
+        {
+            if (data.SizeBytes > _maxEntryBytes)
+                return;
+
+            lock (_gate)
+            {
+                if (_entries.TryGetValue(objectStreamId, out var existing))
+                {
+                    _cachedBytes -= existing.Value.Data.SizeBytes;
+                    _lru.Remove(existing);
+                    _entries.Remove(objectStreamId);
+                }
+
+                while (_cachedBytes + data.SizeBytes > _maxTotalBytes && _lru.Last is not null)
+                {
+                    var last = _lru.Last;
+                    _cachedBytes -= last.Value.Data.SizeBytes;
+                    _entries.Remove(last.Value.ObjectStreamId);
+                    _lru.RemoveLast();
+                }
+
+                var node = new LinkedListNode<CacheEntry>(new CacheEntry(objectStreamId, data));
+                _lru.AddFirst(node);
+                _entries[objectStreamId] = node;
+                _cachedBytes += data.SizeBytes;
+            }
+        }
+
+        private sealed class CacheEntry(IndirectObjectId objectStreamId, ObjectStreamData data)
+        {
+            public IndirectObjectId ObjectStreamId { get; } = objectStreamId;
+            public ObjectStreamData Data { get; } = data;
+        }
     }
 }
