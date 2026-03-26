@@ -18,20 +18,20 @@ namespace ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams
         /// <summary>
         /// (Required) The annotation’s normal appearance.
         /// </summary>
-        public RequiredMultiProperty<StreamObject<IStreamDictionary>, Dictionary> N
-            => GetRequiredMultiProperty<StreamObject<IStreamDictionary>, Dictionary>(Constants.DictionaryKeys.Appearance.N);
+        public RequiredMultiProperty<IStreamObject, Dictionary> N
+            => GetRequiredMultiProperty<IStreamObject, Dictionary>(Constants.DictionaryKeys.Appearance.N);
 
         /// <summary>
         /// (Optional) The annotation’s rollover appearance. Default value: the value of the N entry.
         /// </summary>
-        public OptionalMultiProperty<StreamObject<IStreamDictionary>, Dictionary> R
-            => GetOptionalMultiProperty<StreamObject<IStreamDictionary>, Dictionary>(Constants.DictionaryKeys.Appearance.R);
+        public OptionalMultiProperty<IStreamObject, Dictionary> R
+            => GetOptionalMultiProperty<IStreamObject, Dictionary>(Constants.DictionaryKeys.Appearance.R);
 
         /// <summary>
         /// (Optional) The annotation’s down appearance. Default value: the value of the N entry.
         /// </summary>
-        public OptionalMultiProperty<StreamObject<IStreamDictionary>, Dictionary> D
-            => GetOptionalMultiProperty<StreamObject<IStreamDictionary>, Dictionary>(Constants.DictionaryKeys.Appearance.D);
+        public OptionalMultiProperty<IStreamObject, Dictionary> D
+            => GetOptionalMultiProperty<IStreamObject, Dictionary>(Constants.DictionaryKeys.Appearance.D);
 
         public static AppearanceDictionary Create(
             IPdf pdf,
