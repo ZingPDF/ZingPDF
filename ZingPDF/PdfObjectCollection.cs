@@ -38,6 +38,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly List<IndirectObjectId> _deletedObjects = [];
 
     private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
+    private readonly AsyncLazy<ITrailerDictionary> _latestTrailer;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
     private readonly IDocumentVersionParser _documentVersionParser;
@@ -63,17 +64,13 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         _parserResolver = parserResolver;
         _tokenTypeIdentifier = tokenTypeIdentifier;
         _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () => await _documentVersionParser.ParseAsync(_pdf.Data));
+        _latestTrailer = new AsyncLazy<ITrailerDictionary>(async () => (await _versions).First().TrailerDictionary);
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
         _root = new AsyncLazy<DocumentCatalogDictionary>(async () =>
         {
-            IEnumerable<VersionInformation> versions = await _versions;
-
-            // The root property is copied from trailer to trailer during updates.
-            // Find the first non-null property.
-            // TODO: can the root reference change during an update? How do we ensure this is the latest?
-            var catalogRef = versions.FirstOrDefault(v => v.TrailerDictionary.Root != null)?.TrailerDictionary.Root
+            var catalogRef = (await _latestTrailer).Root
                 ?? throw new InvalidPdfException("Missing Root entry");
 
             return (await GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
@@ -243,7 +240,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     public async Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync()
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetLatestTrailerDictionaryAsync");
-        return (await _versions).First().TrailerDictionary;
+        return await _latestTrailer.Task;
     }
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
