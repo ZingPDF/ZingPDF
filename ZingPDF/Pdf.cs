@@ -178,9 +178,10 @@ public class Pdf : IPdf, IDisposable
         // Ensure page has all required properties.
         // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
         // TODO: if linearized, required properties may need to be set on all pages. (7.7.3.4 Inheritance of page attributes)
-        if (pageCreationOptions.MediaBox is null && (await parentPageTreeNode.MediaBox.GetAsync() == null))
+        if (pageCreationOptions.MediaBox is null)
         {
-            throw new Exception("This PDF does not have a default page size, you must therefore provide a PageCreationOptions.MediaBox property or ensure an ancestor has a value for this property."); // TODO: proper exception
+            pageCreationOptions.MediaBox = await pageAtNumber.Dictionary.MediaBox.GetAsync()
+                ?? throw new Exception("This PDF does not have a default page size, you must therefore provide a PageCreationOptions.MediaBox property or ensure an ancestor has a value for this property."); // TODO: proper exception
         }
 
         var page = PageDictionary.CreateNew(
@@ -417,13 +418,13 @@ public class Pdf : IPdf, IDisposable
     /// </summary>
     private async Task IncrementPageCountAsync(PageTreeNodeDictionary pageTreeNode, int delta = 1)
     {
-        PageTreeNodeDictionary? parentPageTreeNode = await pageTreeNode.Parent.GetAsync();
-        if (parentPageTreeNode is null)
+        if (await pageTreeNode.Parent.GetRawValueAsync() is not IndirectObjectReference parentReference)
         {
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
+        var parentPageTreeNodeIndirectObject = await Objects.GetAsync(parentReference);
+        var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         await parentPageTreeNode.IncrementCountAsync(delta);
 
@@ -438,12 +439,12 @@ public class Pdf : IPdf, IDisposable
     /// </summary>
     private async Task DecrementPageCountAsync(PageTreeNodeDictionary pageTreeNode, int delta = 1)
     {
-        if (pageTreeNode.Parent is null)
+        if (await pageTreeNode.Parent.GetRawValueAsync() is not IndirectObjectReference parentReference)
         {
             return;
         }
 
-        var parentPageTreeNodeIndirectObject = await pageTreeNode.Parent.GetIndirectObjectAsync();
+        var parentPageTreeNodeIndirectObject = await Objects.GetAsync(parentReference);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         await parentPageTreeNode.DecrementCountAsync(delta);

@@ -81,12 +81,6 @@ internal static class ParserTokenReader
             {
                 return;
             }
-
-            if (!char.IsWhiteSpace((char)next))
-            {
-                stream.Position--;
-                return;
-            }
         }
     }
 

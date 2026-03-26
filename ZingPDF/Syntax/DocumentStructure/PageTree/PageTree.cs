@@ -107,14 +107,8 @@ public class PageTree
 
     private async Task<int?> TryGetDirectPageCountAsync()
     {
-        var latestTrailer = await _objects.GetLatestTrailerDictionaryAsync();
-        if (latestTrailer.Root is not IndirectObjectReference catalogRef)
-        {
-            return null;
-        }
-
-        var catalog = (await _objects.GetAsync(catalogRef)).Object as DocumentCatalogDictionary;
-        if (catalog?.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.Pages) is not IndirectObjectReference pageTreeRef)
+        var catalog = await _objects.GetDocumentCatalogAsync();
+        if (catalog.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.Pages) is not IndirectObjectReference pageTreeRef)
         {
             return null;
         }

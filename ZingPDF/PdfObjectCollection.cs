@@ -39,7 +39,6 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     private readonly AsyncLazy<VersionInformation> _latestVersion;
     private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
-    private readonly AsyncLazy<ITrailerDictionary> _latestTrailer;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
     private readonly IDocumentVersionParser _documentVersionParser;
@@ -79,16 +78,31 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
             return versions;
         });
-        _latestTrailer = new AsyncLazy<ITrailerDictionary>(async () => (await _latestVersion).TrailerDictionary);
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
         _root = new AsyncLazy<DocumentCatalogDictionary>(async () =>
         {
-            var catalogRef = (await _latestTrailer).Root
+            var latestVersion = await _latestVersion;
+            var catalogRef = latestVersion.TrailerDictionary.Root
                 ?? throw new InvalidPdfException("Missing Root entry");
 
-            return (await GetAsync(catalogRef))?.Object as DocumentCatalogDictionary
+            if (_parsedObjectCache.TryGetValue(catalogRef.Id, out var cachedCatalogObject))
+            {
+                return cachedCatalogObject.Object as DocumentCatalogDictionary
+                    ?? throw new InvalidPdfException("Unable to dereference document catalog");
+            }
+
+            if (latestVersion.IndirectObjects.TryGetValue(catalogRef.Id, out var latestCatalogEntry))
+            {
+                var catalogObject = await DereferenceObjectAsync(catalogRef, latestCatalogEntry);
+                _parsedObjectCache[catalogRef.Id] = catalogObject;
+
+                return catalogObject.Object as DocumentCatalogDictionary
+                    ?? throw new InvalidPdfException("Unable to dereference document catalog");
+            }
+
+            return (await GetAsync(catalogRef)).Object as DocumentCatalogDictionary
                 ?? throw new InvalidPdfException("Unable to dereference document catalog");
         });
 
@@ -271,7 +285,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     public async Task<ITrailerDictionary> GetLatestTrailerDictionaryAsync()
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PdfObjectCollection.GetLatestTrailerDictionaryAsync");
-        return await _latestTrailer.Task;
+        return (await _latestVersion).TrailerDictionary;
     }
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
