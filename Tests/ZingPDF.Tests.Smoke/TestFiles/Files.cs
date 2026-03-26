@@ -11,6 +11,7 @@ public static class Files
 
     private static readonly ConcurrentDictionary<string, byte[]> _files = [];
 
+    public const string CatImage = $"{_imageBasePath}/cat.jpg";
     public const string ComboboxForm = $"{_pdfBasePath}/combobox-form.pdf";
     public const string ComplexForm = $"{_pdfBasePath}/complex-form.pdf";
     public const string Form = $"{_pdfBasePath}/form.pdf";

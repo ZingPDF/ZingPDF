@@ -44,6 +44,11 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
 
     protected override async Task WriteOutputAsync(Stream stream)
     {
+        if (Data.CanSeek)
+        {
+            Dictionary.Set(Constants.DictionaryKeys.Stream.Length, (Number)Data.Length);
+        }
+
         await Dictionary.WriteAsync(stream);
 
         await stream.WriteNewLineAsync();
