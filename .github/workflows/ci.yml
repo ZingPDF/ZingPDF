@@ -28,6 +28,10 @@ jobs:
       - name: Show environment
         run: dotnet --info
 
+      - name: Validate binary fixture checkout
+        shell: pwsh
+        run: ./scripts/assert-binary-fixtures.ps1
+
       - name: Restore
         run: dotnet restore ZingPDF.sln
 
