@@ -13,6 +13,7 @@ public class KeywordParserTests
     [InlineData("startxref", "startxref")]
     [InlineData("\r\nstartxref", "startxref")]
     [InlineData("\rendobj", "endobj")]
+    [InlineData("% comment\r\nstartxref", "startxref")]
     public async Task ParseBasicAsync(string content, string expected)
     {
         using var input = content.ToStream();
