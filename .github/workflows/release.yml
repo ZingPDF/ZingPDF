@@ -1,116 +1,189 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (for example 1.0.0)"
-        required: true
+        description: "Optional manual release version override (for example 2.0.0)"
+        required: false
+        default: ""
       publish_nuget:
         description: "Publish packages to NuGet"
         required: true
-        default: false
+        default: true
         type: boolean
 
 permissions:
   contents: write
+  id-token: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
 
 jobs:
   release:
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip release]') }}
     runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Determine version
-        id: version
+      - name: Prepare release version and changelog
+        id: prepare
+        shell: pwsh
+        run: ./scripts/prepare-release.ps1 -OverrideVersion '${{ github.event.inputs.version }}'
+
+      - name: Stop when no releasable changes were found
+        if: ${{ steps.prepare.outputs.should_release != 'true' }}
         shell: pwsh
         run: |
-          $version = '${{ github.event.inputs.version }}'.Trim()
+          Write-Host "No releasable changes found in CHANGELOG.md or commit history."
 
-          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
-            throw "Version must be a valid SemVer string such as 1.0.0 or 1.0.0-rc.1."
-          }
-
-          $assemblyVersion = ($version -replace '-.*$', '') + '.0'
-
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "assembly_version=$assemblyVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Commit release metadata
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Directory.Build.props CHANGELOG.md
+          git commit -m "chore(release): ${{ steps.prepare.outputs.version }} [skip ci][skip release]"
+          git tag "${{ steps.prepare.outputs.tag }}"
+          git push origin HEAD:main
+          git push origin "${{ steps.prepare.outputs.tag }}"
 
       - name: Restore
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: dotnet restore ZingPDF.sln
 
       - name: Build
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet build ZingPDF.sln
           --configuration Release
           --no-restore
           -p:ContinuousIntegrationBuild=true
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Test
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: dotnet test ZingPDF.sln --configuration Release --no-build
 
       - name: Pack core package
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF/ZingPDF.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.version.outputs.version }}
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Pack fonts package
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF.Fonts/ZingPDF.Fonts.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.version.outputs.version }}
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Pack HTML package
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.version.outputs.version }}
-          -p:Version=${{ steps.version.outputs.version }}
-          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.version.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Upload packages
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: zingpdf-packages-${{ steps.version.outputs.version }}
+          name: zingpdf-packages-${{ steps.prepare.outputs.version }}
           path: artifacts/packages/*
           if-no-files-found: error
 
+      - name: Extract release notes from changelog
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        id: notes
+        shell: pwsh
+        run: |
+          $version = '${{ steps.prepare.outputs.version }}'
+          $lines = Get-Content CHANGELOG.md
+          $pattern = '^## \[' + [regex]::Escape($version) + '\] - '
+          $start = -1
+          for ($i = 0; $i -lt $lines.Length; $i++) {
+            if ($lines[$i] -match $pattern) {
+              $start = $i
+              break
+            }
+          }
+          if ($start -lt 0) {
+            throw "Unable to find changelog section for version $version."
+          }
+
+          $end = $lines.Length
+          for ($i = $start + 1; $i -lt $lines.Length; $i++) {
+            if ($lines[$i] -match '^## \[') {
+              $end = $i
+              break
+            }
+          }
+
+          $body = if ($end -gt ($start + 1)) {
+            $lines[($start + 1)..($end - 1)]
+          }
+          else {
+            @()
+          }
+
+          $path = Join-Path $env:RUNNER_TEMP "release-notes.md"
+          [System.IO.File]::WriteAllLines($path, $body)
+          "path=$path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
       - name: Create GitHub release
+        if: ${{ steps.prepare.outputs.should_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: ZingPDF v${{ steps.version.outputs.version }}
-          generate_release_notes: true
+          tag_name: ${{ steps.prepare.outputs.tag }}
+          name: ZingPDF ${{ steps.prepare.outputs.tag }}
+          body_path: ${{ steps.notes.outputs.path }}
           files: artifacts/packages/*
 
+      - name: NuGet login (OIDC)
+        if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       - name: Publish to NuGet
-        if: ${{ github.event.inputs.publish_nuget == 'true' }}
-        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+        if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
