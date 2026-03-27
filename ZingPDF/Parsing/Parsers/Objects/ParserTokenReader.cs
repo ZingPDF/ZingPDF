@@ -16,13 +16,13 @@ internal static class ParserTokenReader
 
     public static string ReadNumber(Stream stream)
     {
-        stream.AdvancePastWhitepace();
+        AdvancePastIgnoredContent(stream);
         return ReadToken(stream, IsDelimiterOrWhitespace);
     }
 
     public static string ReadKeyword(Stream stream)
     {
-        stream.AdvancePastWhitepace();
+        AdvancePastIgnoredContent(stream);
         return ReadToken(stream, IsDelimiterOrWhitespace);
     }
 
@@ -80,6 +80,40 @@ internal static class ParserTokenReader
             if ((byte)next == (byte)Constants.Characters.Solidus)
             {
                 return;
+            }
+        }
+    }
+
+    private static void AdvancePastIgnoredContent(Stream stream)
+    {
+        while (stream.Position < stream.Length)
+        {
+            stream.AdvancePastWhitepace();
+
+            if (stream.Position >= stream.Length)
+            {
+                return;
+            }
+
+            int next = stream.ReadByte();
+            if (next < 0)
+            {
+                return;
+            }
+
+            if ((byte)next != (byte)Constants.Characters.Percent)
+            {
+                stream.Position--;
+                return;
+            }
+
+            while (stream.Position < stream.Length)
+            {
+                int current = stream.ReadByte();
+                if (current < 0 || current is 0x0A or 0x0D)
+                {
+                    break;
+                }
             }
         }
     }
