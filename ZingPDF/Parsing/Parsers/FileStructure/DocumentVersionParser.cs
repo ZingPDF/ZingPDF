@@ -7,6 +7,7 @@ using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using System.Text;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
@@ -94,21 +95,9 @@ internal class DocumentVersionParser : IDocumentVersionParser
         }
         else if (marker >= '0' && marker <= '9')
         {
-            // Parse object number then move stream back to start of object
-            // The xref stream parser will record the byte offset which should be at the start of the indirect object
-            // We only parse the object number here so that we can repair the xrefs (within ProcessXrefStreamAsync) if the stream isn't referenced.
-            var id = await _numberParser.ParseAsync(pdfInputStream, _objectContext);
-            var genNumber = await _numberParser.ParseAsync(pdfInputStream, _objectContext);
-
-            pdfInputStream.Position = xrefOffset;
-
-            var xrefStream = await _crossReferenceStreamParser.ParseAsync(pdfInputStream, _objectContext);
-
-            version = new VersionInformation
-            {
-                CrossReferenceStream = xrefStream,
-                IndirectObjects = await ProcessXrefStreamAsync(xrefStream, new IndirectObjectId(id, genNumber), xrefOffset)
-            };
+            version = await ParseCrossReferenceStreamVersionAsync(pdfInputStream, xrefOffset)
+                ?? await ParseNearbyCrossReferenceTableAsync(pdfInputStream, xrefOffset)
+                ?? throw new InvalidOperationException($"No valid xref stream or nearby xref table found at offset {xrefOffset}.");
         }
         else
         {
@@ -116,6 +105,73 @@ internal class DocumentVersionParser : IDocumentVersionParser
         }
 
         return version;
+    }
+
+    private async Task<VersionInformation?> ParseCrossReferenceStreamVersionAsync(Stream pdfInputStream, int xrefOffset)
+    {
+        long originalPosition = pdfInputStream.Position;
+
+        try
+        {
+            pdfInputStream.Position = xrefOffset;
+
+            // Parse object number then move stream back to start of object.
+            // The xref stream parser will record the byte offset which should be at the start of the indirect object.
+            var id = await _numberParser.ParseAsync(pdfInputStream, _objectContext);
+            var genNumber = await _numberParser.ParseAsync(pdfInputStream, _objectContext);
+            var objKeyword = await _keywordParser.ParseAsync(pdfInputStream, _objectContext);
+
+            if (objKeyword.Value != Constants.ObjStart)
+            {
+                return null;
+            }
+
+            pdfInputStream.Position = xrefOffset;
+
+            var xrefStream = await _crossReferenceStreamParser.ParseAsync(pdfInputStream, _objectContext);
+
+            return new VersionInformation
+            {
+                CrossReferenceStream = xrefStream,
+                IndirectObjects = await ProcessXrefStreamAsync(xrefStream, new IndirectObjectId(id, genNumber), xrefOffset)
+            };
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+        finally
+        {
+            pdfInputStream.Position = originalPosition;
+        }
+    }
+
+    private async Task<VersionInformation?> ParseNearbyCrossReferenceTableAsync(Stream pdfInputStream, int xrefOffset)
+    {
+        int? nearbyOffset = FindNearbyCrossReferenceTableOffset(pdfInputStream, xrefOffset);
+        if (nearbyOffset is null)
+        {
+            return null;
+        }
+
+        long originalPosition = pdfInputStream.Position;
+
+        try
+        {
+            pdfInputStream.Position = nearbyOffset.Value;
+            var xrefTable = await _crossReferenceTableParser.ParseAsync(pdfInputStream, _objectContext);
+
+            return new VersionInformation
+            {
+                CrossReferenceTable = xrefTable,
+                Trailer = await _trailerParser.ParseAsync(pdfInputStream, _objectContext),
+                IndirectObjects = ProcessXrefTable(xrefTable)
+            };
+        }
+        finally
+        {
+            pdfInputStream.Position = originalPosition;
+        }
     }
 
     /// <summary>
@@ -162,6 +218,58 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         stream.Position = originalPosition;
         return -1;
+    }
+
+    private static int? FindNearbyCrossReferenceTableOffset(Stream stream, int xrefOffset)
+    {
+        const int searchBack = 32;
+        const int searchForward = 8;
+
+        long originalPosition = stream.Position;
+
+        try
+        {
+            int windowStart = Math.Max(0, xrefOffset - searchBack);
+            int windowEnd = (int)Math.Min(stream.Length, xrefOffset + searchForward);
+            int length = windowEnd - windowStart;
+            if (length <= 0)
+            {
+                return null;
+            }
+
+            byte[] buffer = new byte[length];
+            stream.Position = windowStart;
+            int read = stream.Read(buffer, 0, length);
+            if (read < Constants.Xref.Length)
+            {
+                return null;
+            }
+
+            byte[] xrefBytes = Encoding.ASCII.GetBytes(Constants.Xref);
+
+            for (int i = 0; i <= read - xrefBytes.Length; i++)
+            {
+                if (!buffer.AsSpan(i, xrefBytes.Length).SequenceEqual(xrefBytes))
+                {
+                    continue;
+                }
+
+                bool validPrefix = i == 0 || char.IsWhiteSpace((char)buffer[i - 1]);
+                int suffixIndex = i + xrefBytes.Length;
+                bool validSuffix = suffixIndex >= read || char.IsWhiteSpace((char)buffer[suffixIndex]);
+
+                if (validPrefix && validSuffix)
+                {
+                    return windowStart + i;
+                }
+            }
+
+            return null;
+        }
+        finally
+        {
+            stream.Position = originalPosition;
+        }
     }
 
     private static Dictionary<IndirectObjectId, CrossReferenceEntry> ProcessXrefTable(CrossReferenceTable xrefTable)
