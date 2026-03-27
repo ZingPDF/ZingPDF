@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);4014;8321;8602</NoWarn>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
