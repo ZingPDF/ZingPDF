@@ -13,10 +13,17 @@ var basePdfPath2 = System.IO.Path.Combine(root, "TestFiles", "pdf", "minimal3.pd
 
 Directory.CreateDirectory(pdfDir);
 
+await GenerateMinimalFixtureAsync(System.IO.Path.Combine(pdfDir, "minimal.pdf"));
 await GenerateTextHeavyFixtureAsync(System.IO.Path.Combine(pdfDir, "generated-text-heavy.pdf"), basePdfPath, basePdfPath2);
 await GenerateImageHeavyFixtureAsync(System.IO.Path.Combine(pdfDir, "generated-image-heavy.pdf"), imagePath);
 await GenerateIncrementalHistoryFixtureAsync(System.IO.Path.Combine(pdfDir, "generated-incremental-history.pdf"));
 await GenerateMixedWorkloadFixtureAsync(System.IO.Path.Combine(pdfDir, "generated-mixed-workload.pdf"), imagePath);
+
+static async Task GenerateMinimalFixtureAsync(string outputPath)
+{
+    using var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595.276, 841.890));
+    await SaveFreshAsync(pdf, outputPath);
+}
 
 static async Task GenerateTextHeavyFixtureAsync(string outputPath, string basePdfPath, string basePdfPath2)
 {
