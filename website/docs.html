@@ -252,12 +252,13 @@ foreach (var field in await form.GetFieldsAsync())
                 <p>Choice items and selectable button options can be read and toggled through option wrappers like
                   <code>ChoiceItem</code> and <code>SelectableOption</code>.
                 </p>
+                <p><code>PushButtonFormField</code> supports caption lookup and action-presence inspection for discovery workflows.</p>
               </article>
             </div>
 
             <h3>Current public limitations</h3>
             <ul>
-              <li>Push-button actions are not yet exposed through the high-level API.</li>
+              <li>Push-button captions and action presence can be inspected, but action execution is not yet exposed through the high-level API.</li>
               <li>Signature fields are discoverable, but high-level signing is not yet implemented.</li>
               <li>Unusual viewer-specific appearance behavior may still require lower-level object work.</li>
             </ul>
