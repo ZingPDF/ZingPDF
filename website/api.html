@@ -872,9 +872,34 @@
   </div>
   <pre class="api-signature api-type-signature"><code class="language-csharp">public class PushButtonFormField : FormField&lt;IPdfObject&gt;</code></pre>
   <p>Represents a push-button field in an AcroForm.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>This type is currently useful for discovery and inspection only. Push-button actions are not yet exposed through the high-level API.</p></div>
+  <div class="api-meta"><h3>Remarks</h3><p>Push-button actions are not yet executable through the high-level API, but caption and action-presence inspection are available for discovery workflows.</p></div>
+  
+  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="pushbuttonformfield-getcaptionasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetCaptionAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetCaptionAsync()</code></pre>
+  <p>Gets the button caption when one is defined in the field or widget appearance characteristics.</p>
   
   
+  
+</article>
+<article class="api-member" id="pushbuttonformfield-hasactionasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>HasActionAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;bool&gt; HasActionAsync()</code></pre>
+  <p>Gets whether the button exposes any primary or additional action dictionaries.</p>
+  
+  
+  
+</article></div>
 </section>
 <section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-selectableoption">
   <div class="api-type-header">
