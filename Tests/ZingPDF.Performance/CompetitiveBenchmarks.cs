@@ -54,34 +54,34 @@ public class CompetitiveBenchmarks
     [Benchmark(Description = "ZingPDF: Open a larger real-world PDF")]
     public void ZingPdf_Open_RealWorldPdf()
     {
-        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
     }
 
     [Benchmark(Description = "PDFsharp: Open a larger real-world PDF")]
     public void PdfSharp_Open_RealWorldPdf()
     {
-        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
     }
 
     [Benchmark(Description = "PdfPig: Open a larger real-world PDF")]
     public void PdfPig_Open_RealWorldPdf()
     {
-        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
     }
 
     [Benchmark(Description = "ZingPDF: Open and count pages in a larger real-world PDF")]
     public async Task ZingPdf_CountPages_RealWorldPdf()
     {
-        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
         _ = await pdf.GetPageCountAsync();
     }
 
     [Benchmark(Description = "PDFsharp: Open and count pages in a larger real-world PDF")]
     public void PdfSharp_CountPages_RealWorldPdf()
     {
-        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
         _ = pdf.PageCount;
     }
@@ -89,22 +89,22 @@ public class CompetitiveBenchmarks
     [Benchmark(Description = "PdfPig: Open and count pages in a larger real-world PDF")]
     public void PdfPig_CountPages_RealWorldPdf()
     {
-        using var stream = TestFiles.OpenStream(TestFiles.Ghostscript);
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
         _ = pdf.NumberOfPages;
     }
 
-    [Benchmark(Description = "ZingPDF: Extract text from a portfolio PDF")]
-    public async Task ZingPdf_ExtractText_PortfolioPdf()
+    [Benchmark(Description = "ZingPDF: Extract text from a text-heavy PDF")]
+    public async Task ZingPdf_ExtractText_TextHeavyPdf()
     {
-        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Portfolio));
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.TextHeavy));
         _ = await pdf.ExtractTextAsync();
     }
 
-    [Benchmark(Description = "PdfPig: Extract text from a portfolio PDF")]
-    public void PdfPig_ExtractText_PortfolioPdf()
+    [Benchmark(Description = "PdfPig: Extract text from a text-heavy PDF")]
+    public void PdfPig_ExtractText_TextHeavyPdf()
     {
-        using var stream = TestFiles.OpenStream(TestFiles.Portfolio);
+        using var stream = TestFiles.OpenStream(TestFiles.TextHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
 
         foreach (var page in pdf.GetPages())

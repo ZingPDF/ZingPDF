@@ -59,20 +59,20 @@ public class PdfBenchmarks
     [Benchmark(Description = "Open a larger real-world PDF")]
     public void Open_RealWorldPdf()
     {
-        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
     }
 
     [Benchmark(Description = "Open and count pages in a larger real-world PDF")]
     public async Task CountPages_RealWorldPdf()
     {
-        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
         _ = await pdf.GetPageCountAsync();
     }
 
-    [Benchmark(Description = "Extract text from a portfolio PDF")]
-    public async Task ExtractText_PortfolioPdf()
+    [Benchmark(Description = "Extract text from a text-heavy PDF")]
+    public async Task ExtractText_TextHeavyPdf()
     {
-        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.Portfolio));
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.TextHeavy));
         _ = await pdf.ExtractTextAsync();
     }
 
@@ -99,7 +99,7 @@ public class PdfBenchmarks
     [Benchmark(Description = "Compress a larger real-world PDF and save")]
     public async Task Compress_AndSave_RealWorldPdf()
     {
-        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
         using var output = new MemoryStream();
 
         pdf.Compress(144, 75);
