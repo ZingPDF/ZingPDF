@@ -1,34 +1,24 @@
 # ZingPDF
 
-ZingPDF is a proprietary .NET PDF library for reading, editing, and saving PDF files.
+ZingPDF is a proprietary .NET library for reading, editing, and saving PDF files.
 
-This repository README is intentionally maintainer-focused. End-user integration guidance lives in the website docs and generated API reference.
+This repository contains the source for the core library, companion packages, website, and test suites. Customer-facing documentation lives in the website docs and generated API reference.
 
-## Licensing
+## Contents
 
-ZingPDF is proprietary software.
-
-Commercial use requires an active paid subscription with sufficient seats or a separate commercial agreement. Modification, redistribution of source, and resale are not permitted unless expressly granted in writing. See `LICENSE.txt` for the current commercial license notice.
-
-## Repository Purpose
-
-This repository contains the source for:
-
-- `ZingPDF`: the core PDF library
+- `ZingPDF`: core PDF APIs
 - `ZingPDF.Fonts`: font metrics and font-provider support
-- `ZingPDF.FromHTML`: optional HTML-to-PDF helpers
-- `website/`: the sales site, developer docs, and generated API reference
-- `Tests/`: unit, integration, and smoke test coverage
+- `ZingPDF.FromHTML`: HTML-to-PDF helpers
+- `website/`: product site, docs, and generated API reference
+- `Tests/`: unit, integration, smoke, and performance coverage
 
-## Developer Docs
-
-Customer/developer-facing documentation lives outside this README:
+## Documentation
 
 - website docs: `website/docs.html`
 - generated API reference: `website/api.html`
 - support and compatibility notes: `SUPPORT.md`
 
-## Build And Test
+## Build
 
 Common commands:
 
@@ -46,20 +36,6 @@ Generate the website API reference with:
 pwsh ./website/generate-api-reference.ps1
 ```
 
-Performance snapshots are written to `artifacts/performance/latest-summary.json` and `artifacts/performance/latest-summary.md`. Side-by-side library comparisons are written to `artifacts/performance-competitive/latest-summary.md` and `artifacts/performance-competitive/competitive-summary.md`. The dedicated GitHub Actions `Performance` workflow benchmarks both the pull request and its base branch on the same Windows runner, then fails if a scenario regresses by more than 10%.
+## Licensing
 
-## Packaging Notes
-
-- the core NuGet package is `ZingPDF`
-- companion packages `ZingPDF.Fonts` and `ZingPDF.FromHTML` also pack independently
-- package license/readme assets are sourced from the repository root
-
-## Status
-
-Before broad commercial release, keep these assets aligned:
-
-- `LICENSE.txt`
-- `SUPPORT.md`
-- package metadata in the `.csproj` files
-- website docs and generated API reference
-- `CHANGELOG.md`
+ZingPDF is proprietary software. Commercial use requires an active subscription or a separate commercial agreement. See `LICENSE.txt` for the current license terms.
