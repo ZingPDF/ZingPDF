@@ -64,7 +64,7 @@ internal static class TraceScenarios
 
     private static async Task RunRealWorldCountAsync()
     {
-        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.Ghostscript));
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.ImageHeavy));
         _ = await pdf.GetPageCountAsync();
     }
 }

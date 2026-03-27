@@ -180,9 +180,9 @@ public class PdfTests
     }
 
     [Fact]
-    public async Task Compress_GhostscriptPdf_DoesNotThrow()
+    public async Task Compress_ImageHeavyFixture_DoesNotThrow()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.Ghostscript));
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedImageHeavy));
         using var output = new MemoryStream();
 
         pdf.Compress(144, 75);
@@ -238,9 +238,9 @@ public class PdfTests
     }
 
     [Fact]
-    public async Task ExtractTextAsync_PortfolioPdf_ReturnsNonEmptySegments()
+    public async Task ExtractTextAsync_TextHeavyFixture_ReturnsNonEmptySegments()
     {
-        using var pdf = Pdf.Load(Files.AsStream(Files.MikeyPortfolio));
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
 
         var extracted = (await pdf.ExtractTextAsync()).ToList();
 
