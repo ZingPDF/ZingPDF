@@ -318,7 +318,8 @@ namespace ZingPDF.Elements.Forms
                     fieldDescription,
                     fieldProperties,
                     this,
-                    _pdf
+                    _pdf,
+                    kids
                 );
             }
             else if (fieldProperties.IsRadio)
