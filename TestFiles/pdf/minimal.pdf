@@ -1,4 +1,4 @@
-%PDF-1.6
+%PDF-2.0
 %‚„œ”
 1 0 obj
 <</Type /Catalog/Pages 2 0 R>>
@@ -7,22 +7,27 @@ endobj
 <</Type /Pages/Kids [3 0 R]/Count 1>>
 endobj
 3 0 obj
-<</Type /Page/Parent 2 0 R/MediaBox [0.000 0.000 595.276 841.890]/Resources <<>>/Contents 4 0 R>>
-endobj
-4 0 obj
-<</Length 0>>
-stream
-endstream
+<</Type /Page/Parent 2 0 R/Resources <<>>/MediaBox [0.000 0.000 595.276 841.890]>>
 endobj
 xref
-0 5
+0 4
 0000000000 65535 f
-0000000017 00000 n
-0000000066 00000 n
-0000000122 00000 n
-0000000238 00000 n
+0000000015 00000 n
+0000000061 00000 n
+0000000114 00000 n
 trailer
-<</Size 5/Root 1 0 R/ID [<2045e2246d17437290c929c74954eb23> <2045e2246d17437290c929c74954eb23>]>>
+<</Size 4/Root 1 0 R/ID [<91AF6A0006F940428D8257E99F3FA3AE> <91AF6A0006F940428D8257E99F3FA3AE>]>>
 startxref
-289
+212
+%%EOF
+4 0 obj
+<</Producer (ZingPDF)/ModDate (D:20260327194742+11'00')>>
+endobj
+xref
+4 1
+0000000427 00000 n
+trailer
+<</Size 5/Root 1 0 R/Prev 212/Info 4 0 R/ID [<91AF6A0006F940428D8257E99F3FA3AE> <C098929F5E11B144966E84C876C0A618>]>>
+startxref
+500
 %%EOF
