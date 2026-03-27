@@ -28,10 +28,16 @@
 	<None Include="..\testfiles\pdf\form.pdf" Link="testfiles\pdf\form.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	<None Include="..\testfiles\pdf\Ghostscript.pdf" Link="testfiles\pdf\Ghostscript.pdf">
+	<None Include="..\testfiles\pdf\generated-image-heavy.pdf" Link="testfiles\pdf\generated-image-heavy.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-	<None Include="..\testfiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="testfiles\pdf\MikeyFlemingFreelance_Folio.pdf">
+	<None Include="..\testfiles\pdf\generated-incremental-history.pdf" Link="testfiles\pdf\generated-incremental-history.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\testfiles\pdf\generated-mixed-workload.pdf" Link="testfiles\pdf\generated-mixed-workload.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\testfiles\pdf\generated-text-heavy.pdf" Link="testfiles\pdf\generated-text-heavy.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 	<None Include="..\testfiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
