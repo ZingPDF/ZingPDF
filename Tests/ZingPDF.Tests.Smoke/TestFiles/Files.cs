@@ -15,8 +15,10 @@ public static class Files
     public const string ComboboxForm = $"{_pdfBasePath}/combobox-form.pdf";
     public const string ComplexForm = $"{_pdfBasePath}/complex-form.pdf";
     public const string Form = $"{_pdfBasePath}/form.pdf";
-    public const string Ghostscript = $"{_pdfBasePath}/Ghostscript.pdf";
-    public const string MikeyPortfolio = $"{_pdfBasePath}/MikeyFlemingFreelance_Folio.pdf";
+    public const string GeneratedImageHeavy = $"{_pdfBasePath}/generated-image-heavy.pdf";
+    public const string GeneratedIncrementalHistory = $"{_pdfBasePath}/generated-incremental-history.pdf";
+    public const string GeneratedMixedWorkload = $"{_pdfBasePath}/generated-mixed-workload.pdf";
+    public const string GeneratedTextHeavy = $"{_pdfBasePath}/generated-text-heavy.pdf";
     public const string Minimal1 = $"{_pdfBasePath}/minimal.pdf";
     public const string Minimal2 = $"{_pdfBasePath}/minimal2.pdf";
     public const string Minimal3 = $"{_pdfBasePath}/minimal3.pdf";

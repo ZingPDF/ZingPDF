@@ -22,10 +22,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\TestFiles\pdf\Ghostscript.pdf" Link="TestFiles\pdf\Ghostscript.pdf">
+    <None Include="..\..\TestFiles\pdf\generated-image-heavy.pdf" Link="TestFiles\pdf\generated-image-heavy.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\TestFiles\pdf\MikeyFlemingFreelance_Folio.pdf" Link="TestFiles\pdf\MikeyFlemingFreelance_Folio.pdf">
+    <None Include="..\..\TestFiles\pdf\generated-incremental-history.pdf" Link="TestFiles\pdf\generated-incremental-history.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\TestFiles\pdf\generated-mixed-workload.pdf" Link="TestFiles\pdf\generated-mixed-workload.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\TestFiles\pdf\generated-text-heavy.pdf" Link="TestFiles\pdf\generated-text-heavy.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\TestFiles\pdf\minimal.pdf" Link="TestFiles\pdf\minimal.pdf">
