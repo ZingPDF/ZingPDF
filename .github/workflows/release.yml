@@ -40,6 +40,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Validate binary fixture checkout
+        shell: pwsh
+        run: ./scripts/assert-binary-fixtures.ps1
+
       - name: Prepare release version and changelog
         id: prepare
         shell: pwsh
