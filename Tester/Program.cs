@@ -29,7 +29,7 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 //await CreateNewPdfAndValidate("output.pdf");
 
 //await ParseResaveValidate("Spec/ISO_32000-2-2020.pdf", "output.pdf");
-//await ParseResaveValidate("testfiles/pdf/Ghostscript.pdf", "output.pdf");
+//await ParseResaveValidate("testfiles/pdf/generated-image-heavy.pdf", "output.pdf");
 //await ParseResaveValidate("testfiles/pdf/GS9_Color_Management.pdf", "output.pdf");
 //await ParseResaveValidate("output.pdf", "output2.pdf");
 //await ParseResaveValidate("testfiles/pdf/form.pdf", "output.pdf");
@@ -46,7 +46,7 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 //await Parse("testfiles/pdf/test.pdf");
 //await Parse("testfiles/pdf/form.pdf");
 //await Parse("output.pdf");
-//await Parse("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await Parse("testfiles/pdf/generated-text-heavy.pdf");
 //await Parse("testfiles/pdf/encrypted.pdf");
 
 //await ConvertFromHTML(new Uri("https://www.google.com"), "output.pdf");
@@ -73,10 +73,10 @@ await AddImageToPage();
 //await Test();
 
 //await Decompress("testfiles/pdf/form.pdf", "decompressed-form.pdf");
-//await Decompress("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", "decompressed-MikeyFlemingFreelance_Folio.pdf");
+//await Decompress("testfiles/pdf/generated-mixed-workload.pdf", "decompressed-generated-mixed-workload.pdf");
 //await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-//await ExtractText("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf");
+//await ExtractText("testfiles/pdf/generated-text-heavy.pdf");
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
@@ -174,7 +174,7 @@ static async Task TempFieldApTest()
 
 static async Task Test()
 {
-    //using var inputFileStream = new FileStream("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", FileMode.Open);
+    //using var inputFileStream = new FileStream("testfiles/pdf/generated-text-heavy.pdf", FileMode.Open);
     //using var inputFileStream = new FileStream("testfiles/pdf/complex-form.pdf", FileMode.Open);
     //using var inputFileStream = new FileStream("testfiles/pdf/combobox-form.pdf", FileMode.Open);
     using var inputFileStream = new FileStream("testfiles/pdf/encrypted.pdf", FileMode.Open);
@@ -279,7 +279,7 @@ static async Task AddTextToPage()
 
 static async Task RotateWholeDocument()
 {
-    using var inputFileStream = new FileStream("testfiles/pdf/MikeyFlemingFreelance_Folio.pdf", FileMode.Open);
+    using var inputFileStream = new FileStream("testfiles/pdf/generated-mixed-workload.pdf", FileMode.Open);
     using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 
     var pdf = Pdf.Load(inputFileStream);
