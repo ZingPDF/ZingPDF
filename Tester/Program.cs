@@ -40,7 +40,6 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 //await AppendPdf("testfiles/pdf/test.pdf", "testfiles/pdf/form.pdf", "output.pdf");
 //await AppendPdf("testfiles/pdf/combobox-form.pdf", "testfiles/pdf/test.pdf", "output.pdf");
 //await AppendPdf("testfiles/pdf/minimal.pdf", "testfiles/pdf/minimal2.pdf", "output.pdf");
-
 //await Parse("testfiles/pdf/minimal.pdf");
 //await Parse("testfiles/pdf/minimal3.pdf");
 //await Parse("testfiles/pdf/test.pdf");
@@ -359,10 +358,6 @@ static async Task AddPage(string input, string output)
 static async Task ParseResaveValidate(string input, string output)
 {
     using var inputFileStream = new FileStream(input, FileMode.Open);
-
-    var errors = ValidatePdf("Before", inputFileStream).ToList();
-    inputFileStream.Position = 0;
-
     var pdf = Pdf.Load(inputFileStream);
 
     //var test = await pdf.IndirectObjects.GetAsync(new IndirectObjectReference(new IndirectObjectId(17, 0)));
@@ -398,26 +393,5 @@ static async Task ParseResaveValidate(string input, string output)
     await pdf.SaveAsync(outputFileStream);
 
     Console.WriteLine($"Parsed {input} to {output} with ZingPdf");
-
-    //await pdf.GetPageAsync(1);
-
-    outputFileStream.Position = 0;
-
-    var errors2 = ValidatePdf("After", outputFileStream).ToList();
-
-    var newErrors = errors2.Except(errors);
-    var fixedErrors = errors.Except(errors2);
-
-    Console.WriteLine("New errors:");
-    foreach (var error in newErrors)
-    {
-       Console.WriteLine(error);
-    }
-
-    Console.WriteLine("Fixed errors:");
-    foreach (var error in fixedErrors)
-    {
-        Console.WriteLine(error);
-    }
 }
 
