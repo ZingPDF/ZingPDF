@@ -9,6 +9,7 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 ### Added
 
 - Push-button caption and action-presence inspection through `PushButtonFormField`
+- Signature field inspection through `SignatureFormField`, including signed-state, filter, subfilter, signer name, reason, and signing date
 
 ## [1.0.0] - 2026-03-25
 
