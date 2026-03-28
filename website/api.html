@@ -990,9 +990,86 @@
   </div>
   <pre class="api-signature api-type-signature"><code class="language-csharp">public class SignatureFormField : FormField&lt;IPdfObject&gt;</code></pre>
   <p>Represents a signature field.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>This type currently exposes metadata only. Digital signing is not yet implemented through this API.</p></div>
+  <div class="api-meta"><h3>Remarks</h3><p>This type currently supports signature metadata inspection. Digital signing is not yet implemented through this API.</p></div>
+  
+  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="signatureformfield-hassignaturevalueasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>HasSignatureValueAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;bool&gt; HasSignatureValueAsync()</code></pre>
+  <p>Gets whether the field currently contains a signature dictionary value.</p>
   
   
+  
+</article>
+<article class="api-member" id="signatureformfield-getfilterasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetFilterAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetFilterAsync()</code></pre>
+  <p>Gets the signature handler filter name when present.</p>
+  
+  
+  
+</article>
+<article class="api-member" id="signatureformfield-getsubfilterasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetSubFilterAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetSubFilterAsync()</code></pre>
+  <p>Gets the signature subfilter name when present.</p>
+  
+  
+  
+</article>
+<article class="api-member" id="signatureformfield-getsignernameasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetSignerNameAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetSignerNameAsync()</code></pre>
+  <p>Gets the signer name when present.</p>
+  
+  
+  
+</article>
+<article class="api-member" id="signatureformfield-getreasonasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetReasonAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetReasonAsync()</code></pre>
+  <p>Gets the human-readable signing reason when present.</p>
+  
+  
+  
+</article>
+<article class="api-member" id="signatureformfield-getsigningdateasync">
+  <div class="api-member-head">
+    <div>
+      <p class="eyebrow">Method</p>
+      <h3>GetSigningDateAsync</h3>
+    </div>
+  </div>
+  <pre class="api-signature"><code class="language-csharp">public Task&lt;DateTimeOffset?&gt; GetSigningDateAsync()</code></pre>
+  <p>Gets the signature timestamp when present.</p>
+  
+  
+  
+</article></div>
 </section>
         </div>
       </div>
