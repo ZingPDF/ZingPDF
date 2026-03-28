@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-03-28
+
 ### Added
 
 - Push-button caption and action-presence inspection through `PushButtonFormField`
