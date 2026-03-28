@@ -248,18 +248,19 @@ foreach (var field in await form.GetFieldsAsync())
                 </ul>
               </article>
               <article class="doc-card">
-                <h3>Choice and button fields</h3>
+                <h3>Choice, button, and signature fields</h3>
                 <p>Choice items and selectable button options can be read and toggled through option wrappers like
                   <code>ChoiceItem</code> and <code>SelectableOption</code>.
                 </p>
                 <p><code>PushButtonFormField</code> supports caption lookup and action-presence inspection for discovery workflows.</p>
+                <p><code>SignatureFormField</code> supports signed-state and signature metadata inspection, including filter, subfilter, signer name, reason, and signing time.</p>
               </article>
             </div>
 
             <h3>Current public limitations</h3>
             <ul>
               <li>Push-button captions and action presence can be inspected, but action execution is not yet exposed through the high-level API.</li>
-              <li>Signature fields are discoverable, but high-level signing is not yet implemented.</li>
+              <li>Signature fields can be inspected, but high-level signing is not yet implemented.</li>
               <li>Unusual viewer-specific appearance behavior may still require lower-level object work.</li>
             </ul>
           </section>
