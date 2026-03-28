@@ -1,5 +1,8 @@
 # ZingPDF
 
+[![CI](https://github.com/ZingPDF/ZingPDF/actions/workflows/ci.yml/badge.svg)](https://github.com/ZingPDF/ZingPDF/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/ZingPDF.svg)](https://www.nuget.org/packages/ZingPDF/)
+
 ZingPDF is a proprietary .NET library for reading, editing, and saving PDF files.
 
 This repository contains the source for the core library, companion packages, website, and test suites. Customer-facing documentation lives in the website docs and generated API reference.
