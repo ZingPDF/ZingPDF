@@ -48,7 +48,7 @@ Before NuGet publishing will work, configure trusted publishing on nuget.org for
 
 - `release.yml`
 
-Also add a repository variable named `NUGET_USER` containing the nuget.org profile name that owns the packages.
+Also add a repository secret named `NUGET_USER` containing the nuget.org profile name that owns the packages.
 
 ## Licensing
 
