@@ -190,4 +190,13 @@ jobs:
 
       - name: Publish to NuGet
         if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
-        run: dotnet nuget push "artifacts/packages/*.nupkg" --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem artifacts/packages -Filter *.nupkg | Where-Object { $_.Name -notlike '*.snupkg' }
+          if ($packages.Count -eq 0) {
+            throw "No NuGet packages were found to publish."
+          }
+
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --api-key "${{ steps.nuget_login.outputs.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          }
