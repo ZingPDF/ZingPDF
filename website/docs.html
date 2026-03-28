@@ -208,7 +208,7 @@ await pdf.SaveAsync(output);</code></pre>
             <ul>
               <li><code>Form.GetFieldsAsync()</code> returns terminal fields as <code>IFormField</code> instances.</li>
               <li>Nested names are flattened into dot-separated paths like <code>Applicant.Address.Suburb</code>.</li>
-              <li>Shared field metadata includes name, description, field flags, and field dimensions.</li>
+              <li>Shared field metadata includes name, description, field flags, field bounds, and field dimensions.</li>
             </ul>
 
             <h3>Recommended typed pattern</h3>
