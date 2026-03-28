@@ -1,6 +1,7 @@
-﻿using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Elements.Forms
@@ -55,6 +56,9 @@ namespace ZingPDF.Elements.Forms
         /// Gets the decoded field flags.
         /// </summary>
         public FieldProperties Properties { get; }
+
+        /// <inheritdoc />
+        public async Task<Rectangle> GetFieldBoundsAsync() => await _fieldDictionary.Rect.GetAsync();
 
         /// <inheritdoc />
         public async Task<Size> GetFieldDimensionsAsync() => (await _fieldDictionary.Rect.GetAsync()).Size;

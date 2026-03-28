@@ -280,6 +280,25 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task GetFormAsync_FieldBoundsInspection_IsAvailable()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var field = (await form!.GetFieldsAsync()).First();
+
+        var bounds = await field.GetFieldBoundsAsync();
+        var dimensions = await field.GetFieldDimensionsAsync();
+
+        bounds.LowerLeft.X.Should().BeGreaterThanOrEqualTo(0);
+        bounds.LowerLeft.Y.Should().BeGreaterThanOrEqualTo(0);
+        bounds.UpperRight.X.Should().BeGreaterThan(bounds.LowerLeft.X);
+        bounds.UpperRight.Y.Should().BeGreaterThan(bounds.LowerLeft.Y);
+        bounds.Size.Width.Should().Be(dimensions.Width);
+        bounds.Size.Height.Should().Be(dimensions.Height);
+    }
+
+    [Fact]
     public async Task CheckboxFormField_SelectOption_PersistsAfterSave()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
