@@ -186,7 +186,7 @@ jobs:
         uses: NuGet/login@v1
         id: nuget_login
         with:
-          user: ${{ vars.NUGET_USER }}
+          user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
         if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
