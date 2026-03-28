@@ -1,4 +1,5 @@
-﻿using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Drawing;
+using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Elements.Forms
 {
@@ -21,6 +22,11 @@ namespace ZingPDF.Elements.Forms
         /// Gets the decoded field flags.
         /// </summary>
         FieldProperties Properties { get; }
+
+        /// <summary>
+        /// Gets the field rectangle bounds.
+        /// </summary>
+        Task<Rectangle> GetFieldBoundsAsync();
 
         /// <summary>
         /// Gets the field rectangle size.
