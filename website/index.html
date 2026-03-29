@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Playfair+Display:wght@700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 </head>
 
 <body>
@@ -70,7 +71,6 @@ var metadata = await pdf.GetMetadataAsync();
 
 metadata.Title = "Invoice Pack";
 await pdf.AddWatermarkAsync("PAID");
-await pdf.EncryptAsync("user-password");
 await pdf.SaveAsync(output);</code></pre>
           </div>
           <p class="panel-note">
@@ -94,7 +94,8 @@ await pdf.SaveAsync(output);</code></pre>
           <p class="eyebrow">Platform Support</p>
           <h2>Built for .NET 8 on the platforms teams actually deploy to.</h2>
           <p>
-            The core library targets <code>net8.0</code> and is expected to run on Windows, Linux, and macOS. Runtime behavior
+            The core library targets <code>net8.0</code> and is expected to run on Windows, Linux, and macOS. Runtime
+            behavior
             still depends on environment-specific dependencies such as SkiaSharp and, for HTML conversion,
             PuppeteerSharp.
           </p>
@@ -280,7 +281,7 @@ await pdf.SaveAsync(output);</code></pre>
               <tr>
                 <td>Apply password protection</td>
                 <td><span class="status-pill status-live">Available</span></td>
-                <td>Current write support uses the Standard security handler with RC4.</td>
+                <td>Supports Standard security handler RC4-128, AES-128, and AES-256 output.</td>
               </tr>
               <tr>
                 <td>Decrypt to a plain latest revision</td>
@@ -305,7 +306,8 @@ await pdf.SaveAsync(output);</code></pre>
               <tr>
                 <td>Push-button caption and action inspection</td>
                 <td><span class="status-pill status-live">Available</span></td>
-                <td>Read button captions, inspect primary action types, inspect URI or named actions, and list additional-action triggers.</td>
+                <td>Read button captions, inspect primary action types, inspect URI or named actions, and list
+                  additional-action triggers.</td>
               </tr>
               <tr>
                 <td>Execute push-button actions</td>
@@ -321,11 +323,6 @@ await pdf.SaveAsync(output);</code></pre>
                 <td>Advanced appearance customization</td>
                 <td><span class="status-pill status-roadmap">Low-level API</span></td>
                 <td>Advanced or non-standard appearance work may require low-level PDF object access.</td>
-              </tr>
-              <tr>
-                <td>AES-128 and AES-256 encryption</td>
-                <td><span class="status-pill status-roadmap">Planned</span></td>
-                <td>Password-protected save support beyond the current RC4-based write path.</td>
               </tr>
               <tr>
                 <td>Document history removal</td>
@@ -351,23 +348,29 @@ await pdf.SaveAsync(output);</code></pre>
         <div class="faq-list">
           <details open>
             <summary>What does the commercial license actually cover?</summary>
-            <p>An active paid subscription with sufficient seats allows commercial use of ZingPDF, including bundling the unmodified binaries inside your own application.</p>
+            <p>An active paid subscription with sufficient seats allows commercial use of ZingPDF, including bundling
+              the unmodified binaries inside your own application.</p>
           </details>
           <details>
             <summary>Can I evaluate ZingPDF before paying?</summary>
-            <p>Yes. Evaluation and other non-commercial use are allowed without a fixed trial period. You only need a paid subscription when commercial use begins.</p>
+            <p>Yes. Evaluation and other non-commercial use are allowed without a fixed trial period. You only need a
+              paid subscription when commercial use begins.</p>
           </details>
           <details>
             <summary>Can I ship ZingPDF inside my own product?</summary>
-            <p>Yes. Bundling the unmodified binaries in your own application is allowed, provided the required licensing terms, notices, and attribution remain intact.</p>
+            <p>Yes. Bundling the unmodified binaries in your own application is allowed, provided the required licensing
+              terms, notices, and attribution remain intact.</p>
           </details>
           <details>
             <summary>What if my company needs procurement, invoicing, or custom terms?</summary>
-            <p>That is what the Enterprise option is for. It gives you a direct path for larger seat counts, custom terms, and support expectations.</p>
+            <p>That is what the Enterprise option is for. It gives you a direct path for larger seat counts, custom
+              terms, and support expectations.</p>
           </details>
           <details>
             <summary>Who handles checkout, billing, tax, and customer payment details?</summary>
-            <p>Lemon Squeezy is the merchant of record for ZingPDF purchases. Lemon Squeezy handles checkout, billing, tax, refunds, chargebacks, and payment processing. ZingPDF only receives the limited customer and order information needed to manage subscriptions, licensing, and support.</p>
+            <p>Lemon Squeezy is the merchant of record for ZingPDF purchases. Lemon Squeezy handles checkout, billing,
+              tax, refunds, chargebacks, and payment processing. ZingPDF only receives the limited customer and order
+              information needed to manage subscriptions, licensing, and support.</p>
           </details>
           <details>
             <summary>How mature is the library today?</summary>
@@ -386,7 +389,8 @@ await pdf.SaveAsync(output);</code></pre>
       <a href="./refund-policy.html">Refund Policy</a>
       <a href="./privacy.html">Privacy Policy</a>
       <a href="./support-policy.html">Support Policy</a>
-      <p class="footer-meta">ZingPDF is operated in Australia by Tom Bowers. ABN 43 174 958 042. Contact: <a href="mailto:tom@zingpdf.com">tom@zingpdf.com</a></p>
+      <p class="footer-meta">ZingPDF is operated in Australia by Tom Bowers. ABN 43 174 958 042. Contact: <a
+          href="mailto:tom@zingpdf.com">tom@zingpdf.com</a></p>
     </footer>
   </div>
 
@@ -406,3 +410,7 @@ await pdf.SaveAsync(output);</code></pre>
 </body>
 
 </html>
+
+
+
+

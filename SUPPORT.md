@@ -44,7 +44,7 @@ The current supported high-level feature set is:
 These limits should be treated as part of the current product contract unless explicitly expanded in release notes:
 
 - saves are incremental updates rather than full rewrites
-- encryption writing currently uses the Standard security handler with RC4 (`V=2`, `R=3`)
+- encryption writing supports Standard security handler RC4-128 (`V=2`, `R=3`), AES-128 (`V=4`, `R=4`), and AES-256 (`V=5`, `R=6`)
 - removing encryption from an incrementally saved document does not physically remove older encrypted revisions from the file bytes
 - text fields currently have the richest form write support
 - signature fields are discoverable but digital signing is not implemented through the high-level API

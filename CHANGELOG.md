@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ### Added
 
+- Standard security handler AES-128 (`V=4`, `R=4`) and AES-256 (`V=5`, `R=6`) encryption support alongside legacy RC4 output
 - Push-button caption and action inspection through `PushButtonFormField`, including action type, URI/named actions, and additional-action triggers
 - Signature field inspection through `SignatureFormField`, including signed-state, filter, subfilter, signer name, reason, and signing date
 - Public field-bounds inspection through `IFormField.GetFieldBoundsAsync()`

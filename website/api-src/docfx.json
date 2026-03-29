@@ -1,0 +1,58 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../..",
+          "files": [
+            "ZingPDF/ZingPDF.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "properties": {
+        "TargetFramework": "net8.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "index.md",
+          "toc.yml",
+          "api/**.yml",
+          "api/index.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "logo.svg",
+          "favicon.svg",
+          "styles/**"
+        ]
+      }
+    ],
+    "output": "../api",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appTitle": "ZingPDF API Reference",
+      "_appName": "ZingPDF",
+      "_appFooter": "Generated from source with DocFX.",
+      "_appLogoPath": "logo.svg",
+      "_appFaviconPath": "favicon.svg",
+      "_appCssPath": "styles/docfx-overrides.css",
+      "_disableContribution": true,
+      "_enableSearch": true,
+      "_noindex": false
+    },
+    "sitemap": {
+      "baseUrl": "https://zingpdf.com/api/"
+    }
+  }
+}
