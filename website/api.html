@@ -4,1142 +4,193 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF API Reference</title>
-  <meta name="description" content="Generated API reference for the main ZingPDF public API surface.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f3eb;
+      --card: #fffdf8;
+      --ink: #1f2833;
+      --muted: #56606d;
+      --line: #d9d0c3;
+      --accent: #b76528;
+      --accent-strong: #8c4918;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(183, 101, 40, 0.14), transparent 32%),
+        linear-gradient(180deg, #fbf8f1 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      color: inherit;
+      text-decoration: none;
+      margin-bottom: 40px;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      display: block;
+    }
+
+    .brand span {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 18px 60px rgba(31, 40, 51, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    p {
+      margin: 0 0 16px;
+      line-height: 1.6;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .button-primary:hover {
+      background: var(--accent-strong);
+    }
+
+    .button-secondary {
+      border-color: var(--line);
+      color: var(--ink);
+      background: white;
+    }
+
+    .code {
+      margin-top: 26px;
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: #221f1c;
+      color: #f5efe3;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95rem;
+      overflow-x: auto;
+    }
+
+    .status {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(183, 101, 40, 0.12);
+      color: var(--accent-strong);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  </style>
 </head>
 <body>
-  <div class="docs-shell api-page">
-    <header class="topbar">
-      <a class="brand" href="./index.html">
-        <span class="brand-mark">
-          <img src="./logo.svg" alt="ZingPDF logo">
-        </span>
-      </a>
-      <nav class="topnav" aria-label="Primary">
-        <a href="./index.html#licenses">Licenses</a>
-        <a href="./docs.html">Developer Docs</a>
-        <a href="./api.html">API Reference</a>
-      </nav>
-    </header>
+  <div class="shell">
+    <a class="brand" href="./index.html">
+      <img src="./logo.svg" alt="ZingPDF logomark">
+      <span>ZingPDF</span>
+    </a>
 
-    <main>
-      <section class="docs-hero api-hero">
-        <div class="docs-hero-copy">
-          <p class="eyebrow">API Reference</p>
-          <h1>Main public API</h1>
+    <main class="panel">
+      <div id="local-message" hidden>
+        <div class="status">Local Preview</div>
+        <h1>Run the API docs through a local web server.</h1>
+        <p>The generated DocFX site uses JavaScript modules and search assets that browsers block when pages are opened directly with <code>file://</code>.</p>
+        <p>Nothing is missing from the build. It just needs to be served over <code>http://localhost</code> instead of opened from disk.</p>
+        <div class="actions">
+          <a class="button button-primary" href="./index.html">Back to the site</a>
+          <a class="button button-secondary" href="./api/index.html">Try the DocFX entry anyway</a>
         </div>
-      </section>
+        <div class="code">cd C:\Users\tom\dev\ZingPDF\website
+python -m http.server 8080
 
-      <div class="docs-layout">
-        <aside class="docs-sidebar">
-          <h2>Types</h2>
-          <div class="api-nav-group">
-  <p class="eyebrow">Document</p>
-  <nav>
-    <a href="#zingpdf-ipdf">IPdf</a>
-    <a href="#zingpdf-pdfmetadata">PdfMetadata</a>
-  </nav>
-</div>
-<div class="api-nav-group">
-  <p class="eyebrow">Pages</p>
-  <nav>
-    <a href="#zingpdf-elements-page">Page</a>
-  </nav>
-</div>
-<div class="api-nav-group">
-  <p class="eyebrow">Forms</p>
-  <nav>
-    <a href="#zingpdf-elements-forms-form">Form</a>
-    <a href="#zingpdf-elements-forms-iformfield">IFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-text-textformfield">TextFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-choice-choiceformfield">ChoiceFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-choice-choiceitem">ChoiceItem</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-button-buttonoptionsformfield">ButtonOptionsFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-button-checkboxformfield">CheckboxFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-button-radiobuttonformfield">RadioButtonFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-button-pushbuttonformfield">PushButtonFormField</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-button-selectableoption">SelectableOption</a>
-    <a href="#zingpdf-elements-forms-fieldtypes-signature-signatureformfield">SignatureFormField</a>
-  </nav>
-</div>
-        </aside>
+Then open:
+http://localhost:8080/api/</div>
+      </div>
 
-        <div class="docs-main">
-          <section class="doc-callout api-callout">
-            <h3>How to use this page</h3>
-            <p>Use the developer guide for workflows and examples, then drop into this reference for canonical signatures, XML-backed member descriptions, and save-time behavior details.</p>
-          </section>
-          <section class="doc-section api-type" id="zingpdf-ipdf">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Interface</p>
-      <h2>IPdf</h2>
-      <p class="api-namespace">ZingPDF</p>
-    </div>
-    <span class="api-type-kind">Interface</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public interface IPdf</code></pre>
-  <p>Represents a loaded or newly created PDF document.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="ipdf-data">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Data</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Stream Data { get; }</code></pre>
-  <p>Gets the underlying source stream for the PDF.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-objects">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Objects</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">IPdfObjectCollection Objects { get; }</code></pre>
-  <p>Gets the low-level PDF object collection for advanced scenarios.</p>
-  
-  
-  
-</article></div>
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="ipdf-authenticateasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AuthenticateAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task AuthenticateAsync(string password);</code></pre>
-  <p>Unlocks the PDF for reading and/or writing. The password can be a user password or an owner password.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-getallpagesasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetAllPagesAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;IList&lt;IndirectObject&gt;&gt; GetAllPagesAsync();</code></pre>
-  <p>Gets every page indirect object in page order.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-getpageasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetPageAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Page&gt; GetPageAsync(int pageNumber);</code></pre>
-  <p>Gets a page by its 1-based page number.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-getpagecountasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetPageCountAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;int&gt; GetPageCountAsync();</code></pre>
-  <p>Gets the number of pages in the document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-getformasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetFormAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Form?&gt; GetFormAsync();</code></pre>
-  <p>Gets the document form wrapper if the PDF contains an AcroForm.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-getmetadataasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetMetadataAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;PdfMetadata&gt; GetMetadataAsync();</code></pre>
-  <p>Gets the editable document metadata backed by the trailer Info dictionary.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>Changes are persisted when <code>SaveAsync</code> is called. Saving also stamps the metadata producer as <code>ZingPDF</code> and refreshes the modification date.</p></div>
-</article>
-<article class="api-member" id="ipdf-appendpageasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AppendPageAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Page&gt; AppendPageAsync(Action&lt;PageDictionary.PageCreationOptions&gt;? configureOptions = null);</code></pre>
-  <p>Appends a new page to the end of the document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-insertpageasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>InsertPageAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Page&gt; InsertPageAsync(int pageNumber, Action&lt;PageDictionary.PageCreationOptions&gt;? configureOptions = null);</code></pre>
-  <p>Inserts a new page before the specified 1-based page number.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-deletepageasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>DeletePageAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task DeletePageAsync(int pageNumber);</code></pre>
-  <p>Deletes a page by its 1-based page number.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-setrotationasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>SetRotationAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task SetRotationAsync(Rotation rotation);</code></pre>
-  <p>Sets the rotation for every page in the document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-extracttextasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>ExtractTextAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;IEnumerable&lt;ExtractedText&gt;&gt; ExtractTextAsync();</code></pre>
-  <p>Extracts text from the document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-addwatermarkasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AddWatermarkAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task AddWatermarkAsync(string text);</code></pre>
-  <p>Adds a simple text watermark to each page.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-compress">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>Compress</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">void Compress(int dpi, int quality);</code></pre>
-  <p>Compresses eligible streams in the document.</p>
-  <div class="api-meta"><h4>Parameters</h4><ul class="api-param-list"><li><code>dpi</code> Reserved for future image downsampling behavior. Must be greater than zero.</li><li><code>quality</code> JPEG recompression quality from 1 to 100.</li></ul></div>
-  
-  
-</article>
-<article class="api-member" id="ipdf-decompressasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>DecompressAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task DecompressAsync();</code></pre>
-  <p>Removes compression filters from all objects in the PDF.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>This applies an incremental update to the PDF with all objects decompressed. This can add significant size to the PDF. Typically, this is used to make the source code of a PDF more readable.</p></div>
-</article>
-<article class="api-member" id="ipdf-encryptasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>EncryptAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task EncryptAsync(string userPassword, string? ownerPassword = null);</code></pre>
-  <p>Saves the PDF using standard password protection.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>If the source PDF is already encrypted, authenticate it first so the document can be rewritten. The current implementation writes Standard security handler encryption using RC4 (V=2, R=3).</p></div>
-</article>
-<article class="api-member" id="ipdf-decryptasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>DecryptAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task DecryptAsync(string password);</code></pre>
-  <p>Authenticates with the supplied password and saves the PDF without encryption.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-appendpdfasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AppendPdfAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task AppendPdfAsync(Stream stream);</code></pre>
-  <p>Appends the pages from another PDF stream to the current document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="ipdf-saveasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>SaveAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task SaveAsync(Stream outputStream);</code></pre>
-  <p>Saves the document by writing an incremental update.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>When saving to a different stream, the output stream must be empty, writable, and seekable.</p></div>
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-pdfmetadata">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>PdfMetadata</h2>
-      <p class="api-namespace">ZingPDF</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public sealed class PdfMetadata</code></pre>
-  <p>Represents editable document metadata backed by the trailer <code>Info</code> dictionary.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="pdfmetadata-title">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Title</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Title</code></pre>
-  <p>Gets or sets the document title.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pdfmetadata-author">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Author</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Author</code></pre>
-  <p>Gets or sets the document author.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pdfmetadata-subject">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Subject</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Subject</code></pre>
-  <p>Gets or sets the document subject.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pdfmetadata-keywords">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Keywords</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Keywords</code></pre>
-  <p>Gets or sets document keywords.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pdfmetadata-creator">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Creator</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Creator</code></pre>
-  <p>Gets or sets the application or person that originally created the document.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pdfmetadata-producer">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Producer</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string? Producer { get; private set; }</code></pre>
-  <p>Gets the producer value that will be written by ZingPDF on save.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>This value is managed by ZingPDF and is refreshed during <code>SaveAsync(...)</code>.</p></div>
-</article>
-<article class="api-member" id="pdfmetadata-creationdate">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>CreationDate</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public DateTimeOffset? CreationDate</code></pre>
-  <p>Gets or sets the original document creation date.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>Existing documents may store this as either a PDF date object or a raw string; both are supported when loading.</p></div>
-</article>
-<article class="api-member" id="pdfmetadata-modifieddate">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>ModifiedDate</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public DateTimeOffset? ModifiedDate { get; private set; }</code></pre>
-  <p>Gets the modification date that will be written on save.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>This value is managed by ZingPDF and is refreshed during <code>SaveAsync(...)</code>.</p></div>
-</article></div>
-  
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-page">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>Page</h2>
-      <p class="api-namespace">ZingPDF.Elements</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class Page</code></pre>
-  <p>Represents a single page in a PDF document.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="page-indirectobject">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>IndirectObject</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public IndirectObject IndirectObject { get; }</code></pre>
-  <p>Gets the underlying indirect object for the page.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="page-dictionary">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Dictionary</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public PageDictionary Dictionary { get; }</code></pre>
-  <p>Gets the page dictionary for the page.</p>
-  
-  
-  
-</article></div>
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="page-addtextasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AddTextAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task AddTextAsync(TextObject text)</code></pre>
-  <p>Adds a text object to the page contents.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="page-addimageasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>AddImageAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task AddImageAsync(Image image)</code></pre>
-  <p>Adds an image to the page contents.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="page-rotateasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>RotateAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task RotateAsync(Rotation rotation)</code></pre>
-  <p>Applies an additional rotation to the page.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-form">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>Form</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class Form</code></pre>
-  <p>Represents an AcroForm attached to a PDF document.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>Call <code>GetFieldsAsync</code> to discover fields, then pattern match the returned values to the public field types such as <code>TextFormField</code>, <code>ChoiceFormField</code>, <code>ButtonOptionsFormField</code>, or <code>SignatureFormField</code>.</p></div>
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="form-getfieldsasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetFieldsAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;IEnumerable&lt;IFormField&gt;&gt; GetFieldsAsync()</code></pre>
-  <p>Enumerates the terminal form fields in the document.</p>
-  
-  
-  <div class="api-meta"><h4>Remarks</h4><p>Field names are returned as fully qualified names using dot notation for nested fields.</p></div>
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-iformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Interface</p>
-      <h2>IFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms</p>
-    </div>
-    <span class="api-type-kind">Interface</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public interface IFormField</code></pre>
-  <p>Common metadata exposed for every discovered AcroForm field.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="iformfield-description">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Description</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">string? Description { get; }</code></pre>
-  <p>Gets the user-facing description or tooltip for the field, when present.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="iformfield-name">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Name</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">string Name { get; }</code></pre>
-  <p>Gets the fully qualified field name.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="iformfield-properties">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Properties</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">FieldProperties Properties { get; }</code></pre>
-  <p>Gets the decoded field flags.</p>
-  
-  
-  
-</article></div>
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="iformfield-getfieldboundsasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetFieldBoundsAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Rectangle&gt; GetFieldBoundsAsync();</code></pre>
-  <p>Gets the field rectangle bounds.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="iformfield-getfielddimensionsasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetFieldDimensionsAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">Task&lt;Size&gt; GetFieldDimensionsAsync();</code></pre>
-  <p>Gets the field rectangle size.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-text-textformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>TextFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Text</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class TextFormField : FormField&lt;PdfString&gt;</code></pre>
-  <p>Represents a text form field.</p>
-  
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="textformfield-getvalueasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetValueAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetValueAsync()</code></pre>
-  <p>Gets the current field value as decoded text.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="textformfield-setvalueasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>SetValueAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task SetValueAsync(string? value)</code></pre>
-  <p>Sets the field value and regenerates the field appearance.</p>
-  <div class="api-meta"><h4>Parameters</h4><ul class="api-param-list"><li><code>value</code> The new text value, or <code>null</code> to clear the field.</li></ul></div>
-  
-  
-</article>
-<article class="api-member" id="textformfield-getapasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetAPAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;ContentStream?&gt; GetAPAsync()</code></pre>
-  <p>Gets the field appearance stream, primarily for diagnostics and testing.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="textformfield-clearasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>ClearAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task ClearAsync()</code></pre>
-  <p>Clears the field value and wipes its appearance stream.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-choice-choiceformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>ChoiceFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Choice</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public abstract class ChoiceFormField( IndirectObject fieldIndirectObject, string name, string? description, FieldProperties properties, Form parent, IPdf pdf ) : FormField&lt;IPdfObject&gt;(fieldIndirectObject, name, description, properties, parent, pdf)</code></pre>
-  <p>Base class for choice fields such as combo boxes and list boxes.</p>
-  
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="choiceformfield-getoptionsasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetOptionsAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;IReadOnlyList&lt;ChoiceItem&gt;&gt; GetOptionsAsync()</code></pre>
-  <p>Gets the available options for the field, including their current selected state.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-choice-choiceitem">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>ChoiceItem</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Choice</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class ChoiceItem</code></pre>
-  <p>Represents a selectable option in a choice field.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="choiceitem-text">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Text</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public PdfString Text { get; set; }</code></pre>
-  <p>Gets or sets the display text for the option.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="choiceitem-value">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Value</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public PdfString Value { get; set; }</code></pre>
-  <p>Gets or sets the stored option value written to the field when this item is selected.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="choiceitem-selected">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Selected</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public bool Selected { get; }</code></pre>
-  <p>Gets whether the option is currently selected.</p>
-  
-  
-  
-</article></div>
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="choiceitem-selectasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>SelectAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task SelectAsync();</code></pre>
-  <p>Selects this option.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="choiceitem-deselectasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>DeselectAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task DeselectAsync();</code></pre>
-  <p>Deselects this option.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-buttonoptionsformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>ButtonOptionsFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Button</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public abstract class ButtonOptionsFormField : FormField&lt;Name&gt;</code></pre>
-  <p>Base class for checkbox and radio-button fields.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>Call <code>GetOptionsAsync</code> to inspect the available choices and then use <code>SelectAsync</code> or <code>DeselectAsync</code> to change selection state.</p></div>
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="buttonoptionsformfield-getoptionsasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetOptionsAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;IReadOnlyList&lt;SelectableOption&gt;&gt; GetOptionsAsync()</code></pre>
-  <p>Gets the selectable options for the field.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-checkboxformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>CheckboxFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Button</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class CheckboxFormField : ButtonOptionsFormField</code></pre>
-  <p>Represents a checkbox field whose options can be toggled on or off.</p>
-  
-  
-  
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-radiobuttonformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>RadioButtonFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Button</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class RadioButtonFormField : ButtonOptionsFormField</code></pre>
-  <p>Represents a radio-button field where selecting one option usually clears the others in the same group.</p>
-  
-  
-  
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-pushbuttonformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>PushButtonFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Button</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class PushButtonFormField : FormField&lt;IPdfObject&gt;</code></pre>
-  <p>Represents a push-button field in an AcroForm.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>Push-button actions are not yet executable through the high-level API, but caption and action inspection are available for discovery workflows.</p></div>
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="pushbuttonformfield-getcaptionasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetCaptionAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetCaptionAsync()</code></pre>
-  <p>Gets the button caption when one is defined in the field or widget appearance characteristics.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pushbuttonformfield-hasactionasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>HasActionAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;bool&gt; HasActionAsync()</code></pre>
-  <p>Gets whether the button exposes any primary or additional action dictionaries.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pushbuttonformfield-getactiontypeasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetActionTypeAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetActionTypeAsync()</code></pre>
-  <p>Gets the primary action type name from the first available action dictionary.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pushbuttonformfield-getactionuriasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetActionUriAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetActionUriAsync()</code></pre>
-  <p>Gets the target URI when the primary action is a URI action.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pushbuttonformfield-getnamedactionasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetNamedActionAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetNamedActionAsync()</code></pre>
-  <p>Gets the named action value when the primary action is a named action.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="pushbuttonformfield-getadditionalactiontriggersasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetAdditionalActionTriggersAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;IReadOnlyList&lt;string&gt;&gt; GetAdditionalActionTriggersAsync()</code></pre>
-  <p>Gets the distinct trigger keys defined in any additional-actions dictionaries on the field or widgets.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-button-selectableoption">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>SelectableOption</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Button</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class SelectableOption</code></pre>
-  <p>Represents a selectable checkbox or radio-button option.</p>
-  
-  <div class="api-member-group"><h3>Properties</h3><article class="api-member" id="selectableoption-text">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Text</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string Text { get; set; }</code></pre>
-  <p>Gets or sets the display text for the option.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="selectableoption-value">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Value</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public string Value { get; set; }</code></pre>
-  <p>Gets or sets the export value written to the field when this option is selected.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="selectableoption-selected">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Property</p>
-      <h3>Selected</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public bool Selected { get; }</code></pre>
-  <p>Gets whether the option is currently selected.</p>
-  
-  
-  
-</article></div>
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="selectableoption-selectasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>SelectAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task SelectAsync();</code></pre>
-  <p>Selects this option.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="selectableoption-deselectasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>DeselectAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task DeselectAsync();</code></pre>
-  <p>Deselects this option.</p>
-  
-  
-  
-</article></div>
-</section>
-<section class="doc-section api-type" id="zingpdf-elements-forms-fieldtypes-signature-signatureformfield">
-  <div class="api-type-header">
-    <div>
-      <p class="eyebrow">Class</p>
-      <h2>SignatureFormField</h2>
-      <p class="api-namespace">ZingPDF.Elements.Forms.FieldTypes.Signature</p>
-    </div>
-    <span class="api-type-kind">Class</span>
-  </div>
-  <pre class="api-signature api-type-signature"><code class="language-csharp">public class SignatureFormField : FormField&lt;IPdfObject&gt;</code></pre>
-  <p>Represents a signature field.</p>
-  <div class="api-meta"><h3>Remarks</h3><p>This type currently supports signature metadata inspection. Digital signing is not yet implemented through this API.</p></div>
-  
-  <div class="api-member-group"><h3>Methods</h3><article class="api-member" id="signatureformfield-hassignaturevalueasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>HasSignatureValueAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;bool&gt; HasSignatureValueAsync()</code></pre>
-  <p>Gets whether the field currently contains a signature dictionary value.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="signatureformfield-getfilterasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetFilterAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetFilterAsync()</code></pre>
-  <p>Gets the signature handler filter name when present.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="signatureformfield-getsubfilterasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetSubFilterAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetSubFilterAsync()</code></pre>
-  <p>Gets the signature subfilter name when present.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="signatureformfield-getsignernameasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetSignerNameAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetSignerNameAsync()</code></pre>
-  <p>Gets the signer name when present.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="signatureformfield-getreasonasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetReasonAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;string?&gt; GetReasonAsync()</code></pre>
-  <p>Gets the human-readable signing reason when present.</p>
-  
-  
-  
-</article>
-<article class="api-member" id="signatureformfield-getsigningdateasync">
-  <div class="api-member-head">
-    <div>
-      <p class="eyebrow">Method</p>
-      <h3>GetSigningDateAsync</h3>
-    </div>
-  </div>
-  <pre class="api-signature"><code class="language-csharp">public Task&lt;DateTimeOffset?&gt; GetSigningDateAsync()</code></pre>
-  <p>Gets the signature timestamp when present.</p>
-  
-  
-  
-</article></div>
-</section>
+      <div id="redirect-message" hidden>
+        <div class="status">Redirecting</div>
+        <h1>Opening the generated API reference.</h1>
+        <p>If nothing happens, use the button below.</p>
+        <div class="actions">
+          <a class="button button-primary" href="./api/index.html">Open API Reference</a>
         </div>
       </div>
     </main>
   </div>
-  <script src="./app.js"></script>
+
+  <script>
+    const isLocalFile = window.location.protocol === "file:";
+    const localMessage = document.getElementById("local-message");
+    const redirectMessage = document.getElementById("redirect-message");
+
+    if (isLocalFile) {
+      localMessage.hidden = false;
+    } else {
+      redirectMessage.hidden = false;
+      window.location.replace("./api/index.html");
+    }
+  </script>
 </body>
 </html>
+
+

@@ -26,7 +26,7 @@ internal static class EncryptionObjectTransformer
         switch (source)
         {
             case PdfString pdfString when encryptStrings:
-                return PdfString.FromBytes(handler.Encrypt(objectId, pdfString.Bytes), pdfString.Syntax, source.Context);
+                return PdfString.FromBytes(handler.Transform(objectId, pdfString.Bytes, null, encrypt: true), pdfString.Syntax, source.Context);
 
             case IStreamObject streamObject:
                 return await TransformStreamAsync(streamObject, objectId, handler, encryptStrings, decryptParsedStreams);
@@ -93,11 +93,11 @@ internal static class EncryptionObjectTransformer
 
         if (encryptStrings && handler.ShouldDecrypt(objectId, transformedDictionary))
         {
-            bytes = handler.Encrypt(objectId, bytes);
+            bytes = handler.Transform(objectId, bytes, transformedDictionary, encrypt: true);
         }
         else if (decryptParsedStreams && source.Context.Origin == ObjectOrigin.ParsedDocumentObject && handler.ShouldDecrypt(objectId, transformedDictionary))
         {
-            bytes = handler.Decrypt(objectId, bytes);
+            bytes = handler.Transform(objectId, bytes, transformedDictionary, encrypt: false);
         }
 
         return new StreamObject<IStreamDictionary>(new MemoryStream(bytes), transformedDictionary);

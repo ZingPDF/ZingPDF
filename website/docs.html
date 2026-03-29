@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 </head>
 
 <body>
@@ -62,9 +63,17 @@
           <section class="doc-section" id="quick-start">
             <p class="eyebrow">Quick Start</p>
             <h2>Load, create, edit, and save</h2>
-            <p>The main entry points are <code>Pdf.Load(...)</code> for existing documents and
-              <code>Pdf.Create(...)</code> for new ones.
+            <p>Start by installing the package, importing the core namespaces, and deciding whether you are loading an
+              existing PDF or creating a new one from scratch. The main entry points are <code>Pdf.Load(...)</code> for
+              existing documents and <code>Pdf.Create(...)</code> for new ones.
             </p>
+
+            <h3>Install the package</h3>
+            <pre><code class="language-bash">dotnet add package ZingPDF</code></pre>
+
+            <h3>Import the namespaces used in the examples</h3>
+            <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Syntax.CommonDataStructures;</code></pre>
 
             <h3>Load an existing PDF</h3>
             <pre><code class="language-csharp">using var input = File.OpenRead("input.pdf");
@@ -81,6 +90,9 @@ var firstPage = await pdf.GetPageAsync(1);</code></pre>
 
 using var output = File.Create("blank.pdf");
 await pdf.SaveAsync(output);</code></pre>
+
+            <p>When saving, use an output stream that is writable and seekable. If you save to a different stream than
+              the input stream, it must also be empty.</p>
 
             <h3>Append, insert, and delete pages</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
@@ -109,7 +121,9 @@ foreach (var item in textItems)
               </article>
               <article class="doc-card">
                 <h3>Watermarking and compression</h3>
-                <pre><code class="language-csharp">await pdf.AddWatermarkAsync("CONFIDENTIAL");
+                <pre><code class="language-csharp">using var output = File.Create("watermarked.pdf");
+
+await pdf.AddWatermarkAsync("CONFIDENTIAL");
 pdf.Compress(dpi: 72, quality: 75);
 await pdf.SaveAsync(output);</code></pre>
               </article>
@@ -165,8 +179,8 @@ await pdf.SaveAsync(output);</code></pre>
 
           <section class="doc-callout">
             <h3>API reference</h3>
-            <p>The symbol-by-symbol reference now lives on a dedicated static page generated from the XML docs and
-              source signatures.</p>
+            <p>The symbol-by-symbol reference is generated from the source and XML documentation comments, and is best
+              used when you need exact member signatures or type-level detail.</p>
             <p><a class="inline-link" href="./api.html">Open the API reference</a></p>
           </section>
 
@@ -187,7 +201,9 @@ await pdf.SaveAsync(output);</code></pre>
               <li>Date values may be read from either PDF date objects or strings.</li>
             </ul>
 
-            <pre><code class="language-csharp">var metadata = await pdf.GetMetadataAsync();
+            <pre><code class="language-csharp">using var output = File.Create("metadata-updated.pdf");
+
+var metadata = await pdf.GetMetadataAsync();
 metadata.Title = "Quarterly Report";
 metadata.Author = "Taylor Smith";
 metadata.Subject = "Q1 FY2026";
@@ -227,11 +243,13 @@ foreach (var field in await form.GetFieldsAsync())
             break;
 
         case ChoiceFormField choiceField when choiceField.Name == "Applicant.State":
-            var options = await choiceField.GetOptionsAsync();
-            var selected = options.FirstOrDefault(x => x.Text.DecodeText() == "NSW");
-            if (selected is not null)
+            foreach (var option in await choiceField.GetOptionsAsync())
             {
-                await selected.SelectAsync();
+                if (option.Text.AsText().DecodeText() == "NSW")
+                {
+                    await option.SelectAsync();
+                    break;
+                }
             }
             break;
     }
@@ -269,7 +287,8 @@ foreach (var field in await form.GetFieldsAsync())
             <p class="eyebrow">Encryption</p>
             <h2>Password-protected workflows</h2>
             <p>ZingPDF supports authenticating encrypted PDFs, applying password protection to plain PDFs, and saving
-              decrypted output from encrypted input.</p>
+              decrypted output from encrypted input. New encrypted output can use legacy RC4-128 for compatibility or
+              AES-128 and AES-256 through the Standard security handler.</p>
 
             <h3>Open an encrypted PDF</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));
@@ -282,6 +301,30 @@ var pageCount = await pdf.GetPageCountAsync();</code></pre>
 
 await pdf.EncryptAsync("user-password", "owner-password");
 await pdf.SaveAsync(File.Create("protected.pdf"));</code></pre>
+
+            <h3>Choose AES-128 or AES-256 when saving</h3>
+            <p>If you do not pass an algorithm, ZingPDF writes RC4-128 for compatibility. Pass
+              <code>PdfEncryptionAlgorithm.Aes128</code> or <code>PdfEncryptionAlgorithm.Aes256</code> when you want AES
+              output.</p>
+            <pre><code class="language-csharp">// AES-128
+using var aes128Pdf = Pdf.Create();
+
+await aes128Pdf.EncryptAsync(
+    "user-password",
+    "owner-password",
+    PdfEncryptionAlgorithm.Aes128);
+
+await aes128Pdf.SaveAsync(File.Create("protected-aes128.pdf"));
+
+// AES-256
+using var aes256Pdf = Pdf.Create();
+
+await aes256Pdf.EncryptAsync(
+    "user-password",
+    "owner-password",
+    PdfEncryptionAlgorithm.Aes256);
+
+await aes256Pdf.SaveAsync(File.Create("protected-aes256.pdf"));</code></pre>
 
             <h3>Decrypt an encrypted PDF</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));
@@ -315,8 +358,10 @@ await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
             <p class="eyebrow">Implementation Notes</p>
             <h2>The details most likely to affect production usage</h2>
             <ul>
-              <li>Encryption currently writes Standard security handler encryption using RC4 with <code>V=2</code> and
-                <code>R=3</code>.
+              <li><code>EncryptAsync(...)</code> supports Standard security handler RC4-128 (<code>V=2</code>,
+                <code>R=3</code>), AES-128 (<code>V=4</code>, <code>R=4</code>), and AES-256
+                (<code>V=5</code>, <code>R=6</code>). The default remains RC4-128 for compatibility unless you pass a
+                <code>PdfEncryptionAlgorithm</code>.
               </li>
               <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision, but older encrypted
                 revisions may still exist in the file bytes because saves are incremental.</li>
@@ -344,3 +389,8 @@ await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
 </body>
 
 </html>
+
+
+
+
+

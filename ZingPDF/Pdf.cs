@@ -321,7 +321,10 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
-    public Task EncryptAsync(string userPassword, string? ownerPassword = null)
+    public Task EncryptAsync(
+        string userPassword,
+        string? ownerPassword = null,
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userPassword);
 
@@ -329,7 +332,7 @@ public class Pdf : IPdf, IDisposable
 
         _rewriteAllObjects = true;
         _removeEncryptionOnSave = false;
-        _pendingEncryptionOptions = new PdfEncryptionOptions(userPassword, resolvedOwnerPassword);
+        _pendingEncryptionOptions = PdfEncryptionOptions.Create(userPassword, resolvedOwnerPassword, algorithm);
 
         return Task.CompletedTask;
     }

@@ -16,13 +16,13 @@ dotnet add package ZingPDF
 - merge documents and append pages
 - add text, images, and watermarks
 - work with forms and metadata
-- apply encryption and other document updates
+- apply password protection with RC4-128, AES-128, or AES-256 and other document updates
 
 ## Documentation
 
 - repository: [github.com/tombowers/ZingPDF](https://github.com/tombowers/ZingPDF)
 - docs: `website/docs.html`
-- API reference: `website/api.html`
+- API reference: `website/api/`
 
 ## Licensing
 

@@ -106,9 +106,14 @@ public interface IPdf
     /// </summary>
     /// <remarks>
     /// If the source PDF is already encrypted, authenticate it first so the document can be rewritten.
-    /// The current implementation writes Standard security handler encryption using RC4 (V=2, R=3).
+    /// By default this preserves the legacy RC4 writer behaviour for compatibility. Pass
+    /// <see cref="PdfEncryptionAlgorithm.Aes128"/> or <see cref="PdfEncryptionAlgorithm.Aes256"/>
+    /// to write AES-encrypted documents.
     /// </remarks>
-    Task EncryptAsync(string userPassword, string? ownerPassword = null);
+    Task EncryptAsync(
+        string userPassword,
+        string? ownerPassword = null,
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128);
 
     /// <summary>
     /// Authenticates with the supplied password and saves the PDF without encryption.
