@@ -89,6 +89,11 @@ internal static class Constants
         public const string CCITT = "CCITTFaxDecode";
     }
 
+    public static class Encryption
+    {
+        public const string StandardCryptFilterName = "StdCF";
+    }
+
     public static class DictionaryKeys
     {
         public const string Type = "Type";
@@ -493,6 +498,12 @@ internal static class Constants
             public const string StmF = "StmF";
             public const string StrF = "StrF";
             public const string EFF = "EFF";
+
+            public static class CryptFilter
+            {
+                public const string CFM = "CFM";
+                public const string AuthEvent = "AuthEvent";
+            }
 
             public static class Standard
             {

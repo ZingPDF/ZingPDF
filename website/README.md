@@ -8,7 +8,7 @@ This directory contains a very small static SPA for selling commercial access to
 - no build step
 - easy static hosting
 - hosted checkout links keep payment maintenance low
-- generated API reference is emitted as static HTML
+- generated API reference is emitted as a static DocFX site
 
 ## Recommended payment setup
 
@@ -39,17 +39,25 @@ python -m http.server 8080
 
 Then open `http://localhost:8080`.
 
+You can also use the helper script:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\serve-local.ps1
+```
+
 ## API reference generation
 
 The developer guide in `docs.html` is curated by hand.
 
-The API reference in `api.html` is generated from the library XML docs plus source signatures:
+The API reference in `api/` is generated from the library source and XML docs using DocFX:
 
 ```powershell
 pwsh ./generate-api-reference.ps1
 ```
 
-The script builds `ZingPDF` in `Release`, reads `ZingPDF.xml`, and writes a static `api.html` file that is safe to deploy on any static host.
+The script restores the local DocFX tool, generates metadata from `ZingPDF.csproj`, and writes a static site into `api/` that is safe to deploy on any static host.
+
+Important: the generated DocFX API site should be previewed through a local web server such as `python -m http.server`. Opening `api/index.html` directly with `file://` will trigger browser CORS/module restrictions and break search and other frontend behavior.
 
 ## How to deploy
 
@@ -71,7 +79,7 @@ It uses Cloudflare Pages Direct Upload rather than Cloudflare's Git-based build 
 This is intentional:
 
 - the site itself is static
-- `api.html` is generated from the .NET XML docs before deploy
+- `api/` is generated from the .NET source and XML docs before deploy
 - GitHub Actions is a better place to run the .NET build step than Cloudflare's Pages build image
 
 ### One-time Cloudflare setup

@@ -269,6 +269,48 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task EncryptAsync_Aes128_SavesEncryptedPdf()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.EncryptAsync("secret-password", algorithm: PdfEncryptionAlgorithm.Aes128);
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/V 4");
+        writtenPdf.Should().Contain("/R 4");
+        writtenPdf.Should().Contain("/CFM /AESV2");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        await reloaded.AuthenticateAsync("secret-password");
+        (await reloaded.GetPageCountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task EncryptAsync_Aes256_SavesEncryptedPdf()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.EncryptAsync("secret-password", algorithm: PdfEncryptionAlgorithm.Aes256);
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/V 5");
+        writtenPdf.Should().Contain("/R 6");
+        writtenPdf.Should().Contain("/CFM /AESV3");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        await reloaded.AuthenticateAsync("secret-password");
+        (await reloaded.GetPageCountAsync()).Should().Be(1);
+    }
+
+    [Fact]
     public async Task GetFormAsync_ExposesPublicButtonFieldTypes()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
