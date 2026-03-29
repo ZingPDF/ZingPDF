@@ -72,7 +72,7 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             return data;
         }
 
-        return handler.Decrypt(context.NearestParent.Id, data);
+        return handler.Transform(context.NearestParent.Id, data, streamDictionary, encrypt: false);
     }
 
     public async Task<EncryptionWritePlan?> CreateWritePlanAsync(PdfEncryptionOptions? encryptionOptions = null)
@@ -159,16 +159,23 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             throw new NotSupportedException($"Unsupported security handler: {filter}.");
         }
 
-        if (version > 2 || revision > 3)
-        {
-            throw new NotSupportedException($"Encryption handler only supports Standard security handler revisions 2-3 with V<=2 (RC4). Found V={version}, R={revision}.");
-        }
-
         var permissions = (int)(await standardEncryption.P.GetAsync());
-        var keyLengthBits = (int?)(await standardEncryption.Length.GetAsync()) ?? 40;
+        var keyLengthBits = (int?)(await standardEncryption.Length.GetAsync())
+            ?? version switch
+            {
+                1 => 40,
+                2 => 40,
+                4 => 128,
+                5 => 256,
+                _ => 40,
+            };
         var ownerString = await standardEncryption.O.GetAsync();
         var userString = await standardEncryption.U.GetAsync();
         var encryptMetadata = (await standardEncryption.EncryptMetadata.GetAsync())?.Value ?? true;
+        var ownerEncryptionKey = (await standardEncryption.OE.GetAsync())?.Bytes;
+        var userEncryptionKey = (await standardEncryption.UE.GetAsync())?.Bytes;
+        var encryptedPermissions = (await standardEncryption.Perms.GetAsync())?.Bytes;
+        var (stringMethod, streamMethod) = await ResolveCryptMethodsAsync(standardEncryption, version);
 
         var options = new StandardSecurityHandlerOptions(
             version,
@@ -179,6 +186,11 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             userString.Bytes,
             encryptMetadata,
             fileId,
+            stringMethod,
+            streamMethod,
+            ownerEncryptionKey,
+            userEncryptionKey,
+            encryptedPermissions,
             encryptionDictionaryId);
 
         return new StandardSecurityHandler(options);
@@ -194,7 +206,7 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             encryptionOptions.OwnerPassword,
             originalFileId.Bytes,
             encryptionOptions.Permissions,
-            encryptionOptions.KeyLengthBits,
+            encryptionOptions.Algorithm,
             encryptionOptions.EncryptMetadata);
 
         var encryptionDictionary = CreateStandardEncryptionDictionary(initialOptions);
@@ -227,8 +239,8 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             [Constants.DictionaryKeys.Encryption.Filter] = (Name)"Standard",
             [Constants.DictionaryKeys.Encryption.V] = (Number)options.Version,
             [Constants.DictionaryKeys.Encryption.Standard.R] = (Number)options.Revision,
-            [Constants.DictionaryKeys.Encryption.Standard.O] = PdfString.FromBytes(options.OwnerKey, PdfStringSyntax.Hex, ObjectContext.UserCreated),
-            [Constants.DictionaryKeys.Encryption.Standard.U] = PdfString.FromBytes(options.UserKey, PdfStringSyntax.Hex, ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Encryption.Standard.O] = PdfString.FromBytes(options.OwnerValue, PdfStringSyntax.Hex, ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Encryption.Standard.U] = PdfString.FromBytes(options.UserValue, PdfStringSyntax.Hex, ObjectContext.UserCreated),
             [Constants.DictionaryKeys.Encryption.Standard.P] = (Number)options.Permissions,
         };
 
@@ -242,6 +254,88 @@ internal sealed class PdfEncryptionProvider : IPdfEncryptionProvider
             dictionary[Constants.DictionaryKeys.Encryption.Standard.EncryptMetadata] = BooleanObject.FromBool(false, ObjectContext.UserCreated);
         }
 
+        if (options.Version >= 4)
+        {
+            dictionary[Constants.DictionaryKeys.Encryption.CF] = CreateCryptFiltersDictionary(options);
+            dictionary[Constants.DictionaryKeys.Encryption.StmF] = (Name)Constants.Encryption.StandardCryptFilterName;
+            dictionary[Constants.DictionaryKeys.Encryption.StrF] = (Name)Constants.Encryption.StandardCryptFilterName;
+        }
+
+        if (options.Version >= 5)
+        {
+            dictionary[Constants.DictionaryKeys.Encryption.Standard.OE] = PdfString.FromBytes(options.OwnerEncryptionKey!, PdfStringSyntax.Hex, ObjectContext.UserCreated);
+            dictionary[Constants.DictionaryKeys.Encryption.Standard.UE] = PdfString.FromBytes(options.UserEncryptionKey!, PdfStringSyntax.Hex, ObjectContext.UserCreated);
+            dictionary[Constants.DictionaryKeys.Encryption.Standard.Perms] = PdfString.FromBytes(options.EncryptedPermissions!, PdfStringSyntax.Hex, ObjectContext.UserCreated);
+        }
+
         return StandardEncryptionDictionary.FromDictionary(dictionary, _pdf, ObjectContext.UserCreated);
+    }
+
+    private static async Task<(StandardCryptMethod StringMethod, StandardCryptMethod StreamMethod)> ResolveCryptMethodsAsync(
+        StandardEncryptionDictionary standardEncryption,
+        int version)
+    {
+        if (version <= 2)
+        {
+            return (StandardCryptMethod.Rc4, StandardCryptMethod.Rc4);
+        }
+
+        var cryptFilters = await standardEncryption.CF.GetAsync();
+        var stringName = (await standardEncryption.StrF.GetAsync())?.Value ?? Constants.Encryption.StandardCryptFilterName;
+        var streamName = (await standardEncryption.StmF.GetAsync())?.Value ?? Constants.Encryption.StandardCryptFilterName;
+
+        return (
+            ResolveCryptMethod(stringName, cryptFilters),
+            ResolveCryptMethod(streamName, cryptFilters));
+    }
+
+    private static StandardCryptMethod ResolveCryptMethod(string name, ZingPDF.Syntax.Objects.Dictionaries.Dictionary? cryptFilters)
+    {
+        if (string.Equals(name, "Identity", StringComparison.Ordinal))
+        {
+            return StandardCryptMethod.Identity;
+        }
+
+        if (cryptFilters is null)
+        {
+            return name == Constants.Encryption.StandardCryptFilterName
+                ? StandardCryptMethod.Rc4
+                : throw new NotSupportedException($"Unsupported crypt filter '{name}'.");
+        }
+
+        var filterDictionary = cryptFilters.GetAs<ZingPDF.Syntax.Objects.Dictionaries.Dictionary>(name)
+            ?? throw new NotSupportedException($"Unsupported crypt filter '{name}'.");
+        var cfm = filterDictionary.GetAs<Name>(Constants.DictionaryKeys.Encryption.CryptFilter.CFM)?.Value;
+
+        return cfm switch
+        {
+            "V2" => StandardCryptMethod.Rc4,
+            "AESV2" => StandardCryptMethod.Aes128,
+            "AESV3" => StandardCryptMethod.Aes256,
+            _ => throw new NotSupportedException($"Unsupported crypt filter method '{cfm ?? "<missing>"}'."),
+        };
+    }
+
+    private ZingPDF.Syntax.Objects.Dictionaries.Dictionary CreateCryptFiltersDictionary(StandardSecurityHandlerOptions options)
+    {
+        var cryptMethod = options.StreamMethod switch
+        {
+            StandardCryptMethod.Rc4 => "V2",
+            StandardCryptMethod.Aes128 => "AESV2",
+            StandardCryptMethod.Aes256 => "AESV3",
+            _ => throw new NotSupportedException($"Unsupported stream crypt method '{options.StreamMethod}'."),
+        };
+
+        var cryptFilter = new ZingPDF.Syntax.Objects.Dictionaries.Dictionary(new Dictionary<string, IPdfObject>
+        {
+            [Constants.DictionaryKeys.Encryption.CryptFilter.CFM] = (Name)cryptMethod,
+            [Constants.DictionaryKeys.Encryption.CryptFilter.AuthEvent] = (Name)"DocOpen",
+            [Constants.DictionaryKeys.Encryption.Length] = (Number)(options.KeyLengthBits / 8),
+        }, _pdf, ObjectContext.UserCreated);
+
+        return new ZingPDF.Syntax.Objects.Dictionaries.Dictionary(new Dictionary<string, IPdfObject>
+        {
+            [Constants.Encryption.StandardCryptFilterName] = cryptFilter,
+        }, _pdf, ObjectContext.UserCreated);
     }
 }

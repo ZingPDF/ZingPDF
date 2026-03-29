@@ -1,0 +1,7 @@
+.navbar-brand #logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin-right: 10px;
+  display: inline-block;
+}
