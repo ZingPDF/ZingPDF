@@ -180,6 +180,24 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task RemoveHistoryAsync_RewritesPdfWithoutPrevTrailerChain()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedIncrementalHistory));
+        using var output = new MemoryStream();
+
+        await pdf.RemoveHistoryAsync();
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("remove-history.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().NotContain("/Prev ");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        (await reloaded.GetPageCountAsync()).Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task Compress_ImageHeavyFixture_DoesNotThrow()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedImageHeavy));
