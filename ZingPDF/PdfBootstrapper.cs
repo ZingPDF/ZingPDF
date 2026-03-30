@@ -112,6 +112,7 @@ internal static class PdfBootstrapper
         public Task AddWatermarkAsync(string text) => throw new NotSupportedException();
         public void Compress(int dpi, int quality) => throw new NotSupportedException();
         public Task DecompressAsync() => throw new NotSupportedException();
+        public Task RemoveHistoryAsync() => throw new NotSupportedException();
         public Task EncryptAsync(
             string userPassword,
             string? ownerPassword = null,
