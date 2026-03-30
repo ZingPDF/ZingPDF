@@ -50,6 +50,7 @@
           </div>
           <ul class="hero-points">
             <li>Page editing, forms, metadata, extraction, watermarks, and incremental saves through one API</li>
+            <li>Optional full rewrite to remove prior document history when sanitization requires it</li>
             <li>HTML-to-PDF package for Chromium-based rendering</li>
             <li>No license server, no activation keys, no deployment hoops</li>
             <li>Bundle unmodified binaries in your own application under the commercial terms</li>
@@ -165,6 +166,11 @@ await pdf.SaveAsync(output);</code></pre>
             <h3>Incremental save</h3>
             <p>Saves append a new PDF revision, which preserves document history and matches incremental-update
               workflows.</p>
+          </article>
+          <article class="feature-card">
+            <h3>History removal</h3>
+            <p>Rewrite a PDF so only the latest live objects are kept, which is useful for sanitization and other
+              workflows that should not retain prior incremental revisions.</p>
           </article>
           <article class="feature-card">
             <h3>HTML-to-PDF</h3>
@@ -326,8 +332,9 @@ await pdf.SaveAsync(output);</code></pre>
               </tr>
               <tr>
                 <td>Document history removal</td>
-                <td><span class="status-pill status-roadmap">Planned</span></td>
-                <td>Intended for sanitization, redaction, and history-removal workflows.</td>
+                <td><span class="status-pill status-live">Available</span></td>
+                <td>Rewrites the document so only the latest live objects are saved, removing prior incremental
+                  revision history.</td>
               </tr>
               <tr>
                 <td>Redaction</td>
@@ -375,7 +382,7 @@ await pdf.SaveAsync(output);</code></pre>
           <details>
             <summary>How mature is the library today?</summary>
             <p>ZingPDF already covers the core editing, form, metadata, extraction, watermarking, compression, and
-              password workflows listed above. The capability table shows current support and the smaller set of areas
+              password workflows listed above, including optional history removal. The capability table shows current support and the smaller set of areas
               still planned.</p>
           </details>
         </div>
