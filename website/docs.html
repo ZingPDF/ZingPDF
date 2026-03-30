@@ -335,9 +335,9 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
 
           <section class="doc-section" id="save">
             <p class="eyebrow">Save Behavior</p>
-            <h2>Understand the incremental save model</h2>
-            <p>ZingPDF saves by writing an incremental update. That gives you a predictable editing model, but it comes
-              with a few practical constraints you should understand before shipping at scale.</p>
+            <h2>Understand the save model</h2>
+            <p>By default, ZingPDF saves by writing an incremental update. That gives you a predictable editing model,
+              but it comes with a few practical constraints you should understand before shipping at scale.</p>
 
             <ol>
               <li>The input stream passed to <code>Pdf.Load(...)</code> must be seekable.</li>
@@ -348,10 +348,20 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
 
             <p>Form updates and metadata stamping are both applied as part of the save pipeline.</p>
 
+            <h3>Default behavior: preserve history</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
 
 await pdf.AddWatermarkAsync("INTERNAL");
 await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
+
+            <h3>Optional behavior: remove prior history</h3>
+            <p>Call <code>RemoveHistoryAsync()</code> before saving when you want a fresh rewrite that keeps only the
+              latest live objects instead of preserving previous incremental revisions.</p>
+
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.RemoveHistoryAsync();
+await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
           </section>
 
           <section class="doc-section" id="notes">
@@ -363,8 +373,9 @@ await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
                 (<code>V=5</code>, <code>R=6</code>). The default remains RC4-128 for compatibility unless you pass a
                 <code>PdfEncryptionAlgorithm</code>.
               </li>
-              <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision, but older encrypted
-                revisions may still exist in the file bytes because saves are incremental.</li>
+              <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision. If you also need to
+                drop older encrypted revisions from the file bytes, call <code>RemoveHistoryAsync()</code> before
+                saving.</li>
               <li><code>Compress(...)</code> currently compresses unfiltered streams and can recompress JPEG image
                 streams.</li>
               <li><code>DecompressAsync()</code> skips JPEG image streams to avoid forced decompression corruption.</li>
