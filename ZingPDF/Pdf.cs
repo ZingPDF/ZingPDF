@@ -8,6 +8,7 @@ using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.Images;
+using ZingPDF.IncrementalUpdates;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.ContentStreamsAndResources;
@@ -15,6 +16,9 @@ using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Filters;
+using ZingPDF.Syntax.FileStructure;
+using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
@@ -51,6 +55,7 @@ public class Pdf : IPdf, IDisposable
     private PdfMetadata? _metadata;
     private bool _rewriteAllObjects;
     private bool _removeEncryptionOnSave;
+    private bool _removeHistoryOnSave;
     private PdfEncryptionOptions? _pendingEncryptionOptions;
 
     private Pdf(Stream data)
@@ -321,6 +326,14 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
+    public Task RemoveHistoryAsync()
+    {
+        _rewriteAllObjects = true;
+        _removeHistoryOnSave = true;
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
     public Task EncryptAsync(
         string userPassword,
         string? ownerPassword = null,
@@ -360,16 +373,9 @@ public class Pdf : IPdf, IDisposable
         ArgumentNullException.ThrowIfNull(outputStream);
         if (!outputStream.CanWrite) throw new ArgumentException("Provided output stream must be writable", nameof(outputStream));
         if (!outputStream.CanSeek) throw new ArgumentException("Provided output stream must be seekable", nameof(outputStream));
-        if (!ReferenceEquals(outputStream, Data) && outputStream.Length != 0)
+        if (!_removeHistoryOnSave && !ReferenceEquals(outputStream, Data) && outputStream.Length != 0)
         {
             throw new ArgumentException("Provided output stream must be empty unless saving back to the source stream.", nameof(outputStream));
-        }
-
-        // Copy original PDf to output if required.
-        if (outputStream.Length == 0)
-        {
-            Data.Position = 0;
-            await Data.CopyToAsync(outputStream);
         }
 
         if (_form != null)
@@ -381,6 +387,21 @@ public class Pdf : IPdf, IDisposable
         await metadata.UpdateAsync();
 
         var encryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync(_pendingEncryptionOptions);
+        if (_removeHistoryOnSave)
+        {
+            await SaveWithoutHistoryAsync(outputStream, metadata, encryptionWritePlan);
+            await outputStream.FlushAsync();
+            Dispose();
+            return;
+        }
+
+        // Copy original PDF to output if required.
+        if (outputStream.Length == 0)
+        {
+            Data.Position = 0;
+            await Data.CopyToAsync(outputStream);
+        }
+
         var incrementalUpdate = await Objects.GenerateUpdateDeltaAsync(_rewriteAllObjects);
         if (incrementalUpdate != null)
         {
@@ -504,6 +525,150 @@ public class Pdf : IPdf, IDisposable
             await page.Dictionary.AddContentAsync(watermarkIndirectObject.Reference);
 
             Objects.Update(pageObject);
+        }
+    }
+
+    private async Task SaveWithoutHistoryAsync(
+        Stream outputStream,
+        PdfMetadata metadata,
+        EncryptionWritePlan? encryptionWritePlan)
+    {
+        if (ReferenceEquals(outputStream, Data))
+        {
+            using var rewrittenPdf = new MemoryStream();
+            await WriteFreshPdfAsync(rewrittenPdf, metadata, encryptionWritePlan);
+            rewrittenPdf.Position = 0;
+
+            outputStream.Position = 0;
+            outputStream.SetLength(0);
+            await rewrittenPdf.CopyToAsync(outputStream);
+            return;
+        }
+
+        outputStream.Position = 0;
+        outputStream.SetLength(0);
+        await WriteFreshPdfAsync(outputStream, metadata, encryptionWritePlan);
+    }
+
+    private async Task WriteFreshPdfAsync(
+        Stream outputStream,
+        PdfMetadata metadata,
+        EncryptionWritePlan? encryptionWritePlan)
+    {
+        var pdfVersion = await GetPdfVersionAsync();
+        await new Header(pdfVersion, ObjectContext.UserCreated).WriteAsync(outputStream);
+
+        var latestTrailer = await Objects.GetLatestTrailerDictionaryAsync();
+        var allObjects = new List<IndirectObject>();
+        await foreach (var obj in Objects)
+        {
+            allObjects.Add(obj);
+        }
+
+        allObjects.Sort(static (left, right) => left.Id.Index.CompareTo(right.Id.Index));
+
+        var writtenObjects = new List<IndirectObject>(allObjects.Count);
+        foreach (var entry in allObjects)
+        {
+            IndirectObject objectToWrite = entry;
+            var encryptionObjectId = encryptionWritePlan?.EncryptReference?.Id;
+            if (encryptionWritePlan != null && (encryptionObjectId is null || encryptionObjectId != entry.Id))
+            {
+                objectToWrite = _removeEncryptionOnSave
+                    ? await EncryptionObjectTransformer.DecryptAsync(entry, encryptionWritePlan.Handler)
+                    : await EncryptionObjectTransformer.EncryptAsync(entry, encryptionWritePlan.Handler);
+            }
+
+            await objectToWrite.WriteAsync(outputStream);
+            writtenObjects.Add(objectToWrite);
+        }
+
+        var xrefTable = new CrossReferenceTable(BuildFreshCrossReferenceSections(writtenObjects), ObjectContext.UserCreated);
+        await xrefTable.WriteAsync(outputStream);
+
+        var originalId = (IPdfObject?)encryptionWritePlan?.OriginalFileId
+            ?? latestTrailer.ID?[0]
+            ?? PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+        var updateId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+        var fileIdentifier = new ArrayObject([originalId, updateId], ObjectContext.UserCreated);
+        var encryptReference = _removeEncryptionOnSave
+            ? null
+            : (IPdfObject?)encryptionWritePlan?.EncryptReference
+                ?? latestTrailer.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.Trailer.Encrypt);
+        var rootReference = latestTrailer.Root
+            ?? throw new InvalidPdfException("Unable to save PDF because the latest trailer is missing the Root entry.");
+
+        var trailer = new Trailer(
+            TrailerDictionary.CreateNew(
+                GetFreshXrefSize(writtenObjects),
+                null,
+                rootReference,
+                encryptReference,
+                metadata.InfoReference ?? latestTrailer.Info,
+                fileIdentifier,
+                this,
+                ObjectContext.UserCreated),
+            xrefTable.ByteOffset!.Value,
+            ObjectContext.UserCreated);
+
+        await trailer.WriteAsync(outputStream);
+    }
+
+    private static List<CrossReferenceSection> BuildFreshCrossReferenceSections(IEnumerable<IndirectObject> writtenObjects)
+    {
+        var objectsByIndex = writtenObjects.ToDictionary(x => x.Id.Index);
+        var maxIndex = objectsByIndex.Count == 0 ? 0 : objectsByIndex.Keys.Max();
+        var section = new CrossReferenceSection(0, ObjectContext.UserCreated);
+        section.Add(CrossReferenceEntry.RootFreeEntry);
+
+        for (var index = 1; index <= maxIndex; index++)
+        {
+            if (objectsByIndex.TryGetValue(index, out var obj))
+            {
+                section.Add(new CrossReferenceEntry(
+                    obj.ByteOffset!.Value,
+                    obj.Id.GenerationNumber,
+                    inUse: true,
+                    compressed: false,
+                    ObjectContext.UserCreated));
+            }
+            else
+            {
+                section.Add(new CrossReferenceEntry(
+                    0,
+                    0,
+                    inUse: false,
+                    compressed: false,
+                    ObjectContext.UserCreated));
+            }
+        }
+
+        return [section];
+    }
+
+    private static int GetFreshXrefSize(IEnumerable<IndirectObject> writtenObjects)
+        => writtenObjects.Any() ? writtenObjects.Max(x => x.Id.Index) + 1 : 1;
+
+    private async Task<double> GetPdfVersionAsync()
+    {
+        var originalPosition = Data.Position;
+
+        try
+        {
+            Data.Position = 0;
+            byte[] headerBytes = new byte[8];
+            var read = await Data.ReadAsync(headerBytes, 0, headerBytes.Length);
+            if (read < headerBytes.Length)
+            {
+                throw new InvalidPdfException("Unable to read the PDF header.");
+            }
+
+            var version = Encoding.ASCII.GetString(headerBytes, 5, 3);
+            return double.Parse(version, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        finally
+        {
+            Data.Position = originalPosition;
         }
     }
 

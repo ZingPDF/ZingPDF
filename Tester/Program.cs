@@ -55,7 +55,9 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //await AddTextToPage();
 
-await AddImageToPage();
+//await AddImageToPage();
+
+await RemoveHistory();
 
 //await RotatePage();
 
@@ -79,6 +81,15 @@ await AddImageToPage();
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
+
+static async Task RemoveHistory()
+{
+    using var inputFileStream = new FileStream("testfiles/pdf/generated-incremental-history.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
+    var pdf = Pdf.Load(inputFileStream);
+    await pdf.RemoveHistoryAsync();
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task Watermark(string input, string output, string text)
 {
