@@ -1,6 +1,6 @@
 # ZingPDF
 
-`ZingPDF` is a proprietary .NET 8 library for loading, creating, editing, merging, watermarking, compressing, filling forms, and encrypting PDF documents.
+`ZingPDF` is a proprietary .NET 8 library for loading, creating, editing, merging, watermarking, compressing, filling forms, encrypting, and rewriting PDF documents without prior revision history.
 
 ## Installation
 
@@ -16,6 +16,7 @@ dotnet add package ZingPDF
 - merge documents and append pages
 - add text, images, and watermarks
 - work with forms and metadata
+- remove prior incremental-update history when required
 - apply password protection with RC4-128, AES-128, or AES-256 and other document updates
 
 ## Documentation
