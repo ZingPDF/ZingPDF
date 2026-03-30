@@ -102,6 +102,14 @@ public interface IPdf
     Task DecompressAsync();
 
     /// <summary>
+    /// Rewrites the document so only the latest live objects are saved.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the default save path, this removes prior incremental-update history instead of preserving it.
+    /// </remarks>
+    Task RemoveHistoryAsync();
+
+    /// <summary>
     /// Saves the PDF using standard password protection.
     /// </summary>
     /// <remarks>
