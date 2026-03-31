@@ -24,6 +24,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="..\..\testfiles\font\NotoSans-Regular.ttf" Link="TestFiles\font\NotoSans-Regular.ttf">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Include="..\..\testfiles\html\form-test.html" Link="TestFiles\html\form-test.html">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>

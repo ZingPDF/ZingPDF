@@ -229,8 +229,7 @@ await page.AddTextAsync(
 
             <h3>Register an embedded TrueType font from disk</h3>
             <pre><code class="language-csharp">var font = await pdf.RegisterTrueTypeFontAsync(
-    "MyFont-Regular.ttf",
-    fontName: "MyFont-Regular");
+    "MyFont-Regular.ttf");
 
 await page.AddTextAsync(
     "Custom font text",

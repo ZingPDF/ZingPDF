@@ -6,12 +6,14 @@ namespace ZingPDF.Tests.Smoke.TestFiles;
 public static class Files
 {
     private const string _htmlBasePath = "testfiles/html";
+    private const string _fontBasePath = "testfiles/font";
     private const string _imageBasePath = "testfiles/image";
     private const string _pdfBasePath = "testfiles/pdf";
 
     private static readonly ConcurrentDictionary<string, byte[]> _files = [];
 
     public const string CatImage = $"{_imageBasePath}/cat.jpg";
+    public const string NotoSansRegular = $"{_fontBasePath}/NotoSans-Regular.ttf";
     public const string ComboboxForm = $"{_pdfBasePath}/combobox-form.pdf";
     public const string ComplexForm = $"{_pdfBasePath}/complex-form.pdf";
     public const string Form = $"{_pdfBasePath}/form.pdf";

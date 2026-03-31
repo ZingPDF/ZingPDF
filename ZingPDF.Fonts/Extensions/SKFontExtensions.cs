@@ -23,11 +23,17 @@ internal static class SKFontExtensions
 
     public static FontBoundingBox GetBoundingBox(this SKFont font)
     {
+        var left = ConvertToEmUnits(font.Metrics.XMin, font);
+        var right = ConvertToEmUnits(font.Metrics.XMax, font);
+        // Skia metrics use a Y-down coordinate system. PDF font metrics use Y-up.
+        var top = ConvertToEmUnits(-font.Metrics.Top, font);
+        var bottom = ConvertToEmUnits(-font.Metrics.Bottom, font);
+
         return new FontBoundingBox(
-            ConvertToEmUnits(font.Metrics.XMin, font),
-            ConvertToEmUnits(font.Metrics.Bottom, font),
-            ConvertToEmUnits(font.Metrics.XMax, font),
-            ConvertToEmUnits(font.Metrics.Top, font));
+            Math.Min(left, right),
+            Math.Min(bottom, top),
+            Math.Max(left, right),
+            Math.Max(bottom, top));
     }
 
     private static int ConvertToEmUnits(float skiaValue, SKFont skFont)
