@@ -1,4 +1,6 @@
 using FluentAssertions;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Text;
 using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
@@ -7,6 +9,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements;
 using ZingPDF.Graphics;
 using ZingPDF.Extensions;
+using ZingPDF.Fonts;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Text;
@@ -14,6 +17,10 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Tests.Smoke.TestFiles;
+using DrawingCoordinate = ZingPDF.Elements.Drawing.Coordinate;
+using DrawingPath = ZingPDF.Elements.Drawing.Path;
+using DrawingPathType = ZingPDF.Elements.Drawing.PathType;
+using DrawingStrokeOptions = ZingPDF.Elements.Drawing.StrokeOptions;
 
 namespace ZingPDF;
 
@@ -151,6 +158,61 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task Page_AddTextAsync_Overload_PersistsWrittenContent()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Test));
+        using var output = new MemoryStream();
+
+        var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(200, 200));
+
+        await page.AddTextAsync(
+            "test",
+            Rectangle.FromDimensions(200, 200),
+            new FontOptions
+            {
+                ResourceName = "Helv",
+                Size = 24,
+                Colour = RGBColour.PrimaryBlue
+            });
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-text-overload.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedPage = await reloaded.GetPageAsync(1);
+        var contents = await reloadedPage.Dictionary.Contents.GetAsync();
+
+        contents.Should().NotBeNull();
+        contents!.Count().Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_WithRegisteredStandardFont_WritesFontResource()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+        await page.AddTextAsync(
+            "hello",
+            Rectangle.FromDimensions(200, 200),
+            font,
+            18,
+            RGBColour.Black);
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-text-registered-standard-font.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/BaseFont /Helvetica");
+        writtenPdf.Should().Contain("/Font <<");
+        writtenPdf.Should().Contain(" Tf");
+    }
+
+    [Fact]
     public async Task Page_AddImageAsync_WritesValidImageXObject()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
@@ -169,6 +231,63 @@ public class PdfTests
         writtenPdf.Should().Contain("/Length ");
         writtenPdf.Should().Contain("/Resources <</XObject <<");
         writtenPdf.Should().Contain(" Do");
+    }
+
+    [Fact]
+    public async Task Page_AddImageAsync_WithPng_WritesFlateImageAndCorrectTransform()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var output = new MemoryStream();
+        using var pngImage = new SixLabors.ImageSharp.Image<Rgba32>(1, 1, new Rgba32(255, 0, 0, 128));
+        using var pngStream = new MemoryStream();
+        await pngImage.SaveAsync(pngStream, new PngEncoder());
+        pngStream.Position = 0;
+        using var image = new Image(
+            pngStream,
+            Rectangle.FromCoordinates(new DrawingCoordinate(10, 20), new DrawingCoordinate(110, 70)),
+            preserveAspectRatio: false);
+
+        var page = await pdf.GetPageAsync(1);
+
+        await page.AddImageAsync(image);
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-image-png.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/Subtype /Image");
+        writtenPdf.Should().Contain("/Filter /FlateDecode");
+        writtenPdf.Should().Contain("/ColorSpace /DeviceRGB");
+        writtenPdf.Should().Contain("/SMask ");
+        writtenPdf.Should().Contain("1 0 0 1 10 20 cm 100 0 0 50 0 0 cm");
+    }
+
+    [Fact]
+    public async Task Page_AddPathAsync_WritesPathOperations()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+
+        await page.AddPathAsync(new DrawingPath(
+            new DrawingStrokeOptions(RGBColour.PrimaryRed, 2),
+            null,
+            DrawingPathType.Linear,
+            [
+                new DrawingCoordinate(10, 10),
+                new DrawingCoordinate(50, 60),
+                new DrawingCoordinate(80, 20)
+            ]));
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("page-add-path.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("10 10 m");
+        writtenPdf.Should().Contain("50 60 l");
+        writtenPdf.Should().Contain("80 20 l");
+        writtenPdf.Should().Contain("2 w");
+        writtenPdf.Should().Contain("S");
     }
 
     [Fact]
