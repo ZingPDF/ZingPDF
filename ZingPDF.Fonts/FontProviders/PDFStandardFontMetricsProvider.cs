@@ -60,7 +60,7 @@ public class PDFStandardFontMetricsProvider : IFontMetricsProvider
 
         var fontMetrics = new Dictionary<string, FontMetrics>();
 
-        foreach (string fontName in FontNames.All)
+        foreach (string fontName in StandardPdfFonts.All)
         {
             string resourceName = $"{resourcePrefix}{fontName}.afm";
 
@@ -104,28 +104,26 @@ public class PDFStandardFontMetricsProvider : IFontMetricsProvider
         };
     }
 
+    /// <summary>
+    /// Backwards-compatible access to the canonical standard PDF font names.
+    /// </summary>
     public static class FontNames
     {
-        public const string Helvetica = "Helvetica";
-        public const string HelveticaBold = "Helvetica-Bold";
-        public const string HelveticaOblique = "Helvetica-Oblique";
-        public const string HelveticaBoldOblique = "Helvetica-BoldOblique";
-        public const string TimesRoman = "Times-Roman";
-        public const string TimesBold = "Times-Bold";
-        public const string TimesItalic = "Times-Italic";
-        public const string TimesBoldItalic = "Times-BoldItalic";
-        public const string Courier = "Courier";
-        public const string CourierBold = "Courier-Bold";
-        public const string CourierOblique = "Courier-Oblique";
-        public const string CourierBoldOblique = "Courier-BoldOblique";
-        public const string Symbol = "Symbol";
-        public const string ZapfDingbats = "ZapfDingbats";
+        public const string Helvetica = StandardPdfFonts.Helvetica;
+        public const string HelveticaBold = StandardPdfFonts.HelveticaBold;
+        public const string HelveticaOblique = StandardPdfFonts.HelveticaOblique;
+        public const string HelveticaBoldOblique = StandardPdfFonts.HelveticaBoldOblique;
+        public const string TimesRoman = StandardPdfFonts.TimesRoman;
+        public const string TimesBold = StandardPdfFonts.TimesBold;
+        public const string TimesItalic = StandardPdfFonts.TimesItalic;
+        public const string TimesBoldItalic = StandardPdfFonts.TimesBoldItalic;
+        public const string Courier = StandardPdfFonts.Courier;
+        public const string CourierBold = StandardPdfFonts.CourierBold;
+        public const string CourierOblique = StandardPdfFonts.CourierOblique;
+        public const string CourierBoldOblique = StandardPdfFonts.CourierBoldOblique;
+        public const string Symbol = StandardPdfFonts.Symbol;
+        public const string ZapfDingbats = StandardPdfFonts.ZapfDingbats;
 
-        public static IEnumerable<string> All => [
-            Helvetica, HelveticaBold, HelveticaOblique, HelveticaBoldOblique,
-            TimesRoman, TimesBold, TimesItalic, TimesBoldItalic,
-            Courier, CourierBold, CourierOblique, CourierBoldOblique,
-            Symbol, ZapfDingbats
-        ];
+        public static IEnumerable<string> All => StandardPdfFonts.All;
     }
 }

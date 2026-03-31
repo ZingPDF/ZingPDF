@@ -49,8 +49,8 @@ public static class ContentStreamExtensions
             Operands = [
                     (Number)boundingBox.LowerLeft.X,
                     (Number)boundingBox.LowerLeft.Y,
-                    (Number)boundingBox.UpperRight.X,
-                    (Number)boundingBox.UpperRight.Y
+                    boundingBox.Width,
+                    boundingBox.Height
                     ]
         });
 
@@ -69,6 +69,28 @@ public static class ContentStreamExtensions
         {
             Operator = ContentStream.Operators.Colour.rg,
             Operands = [.. colour.Values]
+        });
+
+        return stream;
+    }
+
+    public static ContentStream SetStrokeColour(this ContentStream stream, RGBColour colour)
+    {
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = ContentStream.Operators.Colour.RG,
+            Operands = [.. colour.Values]
+        });
+
+        return stream;
+    }
+
+    public static ContentStream SetLineWidth(this ContentStream stream, Number width)
+    {
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = GeneralGraphicsState.w,
+            Operands = [width]
         });
 
         return stream;
@@ -106,6 +128,22 @@ public static class ContentStreamExtensions
         return stream;
     }
 
+    public static ContentStream ConcatenateMatrix(this ContentStream stream, params Number[] matrix)
+    {
+        if (matrix.Length != 6)
+        {
+            throw new ArgumentException("A transformation matrix must contain exactly 6 values.", nameof(matrix));
+        }
+
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = SpecialGraphicsState.cm,
+            Operands = [.. matrix]
+        });
+
+        return stream;
+    }
+
     public static ContentStream SetTextPosition(this ContentStream stream, Coordinate position)
     {
         stream.Operations.Add(new ContentStreamOperation
@@ -117,9 +155,53 @@ public static class ContentStreamExtensions
         return stream;
     }
 
+    public static ContentStream MoveTo(this ContentStream stream, Coordinate coordinate)
+    {
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = PathConstruction.m,
+            Operands = [(Number)coordinate.X, (Number)coordinate.Y]
+        });
+
+        return stream;
+    }
+
+    public static ContentStream LineTo(this ContentStream stream, Coordinate coordinate)
+    {
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = PathConstruction.l,
+            Operands = [(Number)coordinate.X, (Number)coordinate.Y]
+        });
+
+        return stream;
+    }
+
+    public static ContentStream CurveTo(this ContentStream stream, Coordinate controlPoint1, Coordinate controlPoint2, Coordinate endPoint)
+    {
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = PathConstruction.c,
+            Operands = [
+                (Number)controlPoint1.X, (Number)controlPoint1.Y,
+                (Number)controlPoint2.X, (Number)controlPoint2.Y,
+                (Number)endPoint.X, (Number)endPoint.Y
+            ]
+        });
+
+        return stream;
+    }
+
     public static ContentStream SetTextState(this ContentStream stream, Name fontResource, Number fontSize)
     {
         stream.Operations.Add(new ContentStreamOperation { Operator = TextState.Tf, Operands = [fontResource, fontSize] });
+
+        return stream;
+    }
+
+    public static ContentStream InvokeXObject(this ContentStream stream, Name name)
+    {
+        stream.Operations.Add(new ContentStreamOperation { Operator = XObjects.Do, Operands = [name] });
 
         return stream;
     }

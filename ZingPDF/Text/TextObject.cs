@@ -1,26 +1,25 @@
-﻿using ZingPDF.Extensions;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Text;
 
 public class TextObject : ContentStream
 {
+    private static readonly System.Text.Encoding _winAnsi = CreateWinAnsiEncoding();
+
     // TODO: should the position of the text box be controlled outside this object?
     //  text object should be text, font, size, box size
     public TextObject(string text, Rectangle boundingBox, FontOptions fontOptions)
         : base(ObjectContext.UserCreated)
     {
         ArgumentNullException.ThrowIfNull(text, nameof(text));
+        ArgumentNullException.ThrowIfNull(boundingBox, nameof(boundingBox));
         ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));
 
-        // Replace EOL characters with T* operators
-        // TODO: test this
-        text = text.Replace(new string(Constants.EndOfLineCharacters), $") {Operators.TextPositioning.TStar} (");
-
-        // TODO: test text box size and text position etc
         this
             .SaveGraphicsState()
             .SetClippingPath(boundingBox.Size)
@@ -28,8 +27,38 @@ public class TextObject : ContentStream
             .SetColour(fontOptions.Colour)
             .BeginTextObject()
             .SetTextPosition(boundingBox.LowerLeft)
-            .ShowText(PdfString.FromTextAuto(text, ObjectContext.UserCreated))
+            .ShowText(EncodeText(text, fontOptions.TextEncoding))
             .EndTextObject()
             .RestoreGraphicsState();
+    }
+
+    public TextObject(string text, Rectangle boundingBox, PdfFont font, Number size, Graphics.RGBColour colour)
+        : this(text, boundingBox, font.CreateOptions(size, colour))
+    {
+        ArgumentNullException.ThrowIfNull(font, nameof(font));
+        ArgumentNullException.ThrowIfNull(colour, nameof(colour));
+    }
+
+    private static PdfString EncodeText(string text, FontTextEncoding encoding)
+    {
+        // Replace EOL characters with T* operators
+        // TODO: test this
+        text = text.Replace(new string(Constants.EndOfLineCharacters), $") {Operators.TextPositioning.TStar} (");
+
+        return encoding switch
+        {
+            FontTextEncoding.Auto => PdfString.FromTextAuto(text, ObjectContext.UserCreated),
+            FontTextEncoding.WinAnsi => PdfString.FromBytes(_winAnsi.GetBytes(text), PdfStringSyntax.Literal, ObjectContext.UserCreated),
+            _ => throw new InvalidOperationException($"Unsupported font text encoding '{encoding}'.")
+        };
+    }
+
+    private static System.Text.Encoding CreateWinAnsiEncoding()
+    {
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        return System.Text.Encoding.GetEncoding(
+            1252,
+            System.Text.EncoderFallback.ExceptionFallback,
+            System.Text.DecoderFallback.ExceptionFallback);
     }
 }

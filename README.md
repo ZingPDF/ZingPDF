@@ -9,7 +9,8 @@ This repository contains the source for the core library, companion packages, we
 ## Contents
 
 - `ZingPDF`: core PDF APIs
-- `ZingPDF.Fonts`: font metrics and font-provider support
+- `ZingPDF.Fonts`: standard font metadata and TrueType font loading helpers
+- `ZingPDF.GoogleFonts`: optional Google Fonts integration package
 - `ZingPDF.FromHTML`: HTML-to-PDF helpers
 - `website/`: product site, docs, and generated API reference
 - `Tests/`: unit, integration, smoke, and performance coverage

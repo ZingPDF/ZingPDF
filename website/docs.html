@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Developer Docs</title>
   <meta name="description"
-    content="Developer documentation for ZingPDF, including quick start, forms, metadata, encryption, save behavior, and implementation notes.">
+    content="Developer documentation for ZingPDF, including quick start, fonts, forms, metadata, encryption, save behavior, and implementation notes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -29,6 +29,8 @@
         <a href="./docs.html">Docs</a>
         <a href="./api.html">API Reference</a>
         <a href="#quick-start">Quick Start</a>
+        <a href="#fonts">Fonts</a>
+        <a href="#drawing">Drawing</a>
         <a href="#forms">Forms</a>
         <a href="#encryption">Encryption</a>
       </nav>
@@ -49,6 +51,8 @@
           <nav>
             <a href="#quick-start">Quick Start</a>
             <a href="#packages">Packages</a>
+            <a href="#fonts">Fonts</a>
+            <a href="#drawing">Drawing</a>
             <a href="./api.html">API Reference</a>
             <a href="#metadata">Metadata</a>
             <a href="#forms">Forms</a>
@@ -152,14 +156,36 @@ await pdf.SaveAsync(output);</code></pre>
 
               <article class="doc-card">
                 <h3><code>ZingPDF.FromHTML</code></h3>
-                <p>Optional HTML-to-PDF support layered on top of the main package.</p>
+                <p>HTML-to-PDF package for Chromium-based rendering workflows.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
-                  <li>Intended role: optional add-on, not the default package</li>
+                  <li>Intended role: separate package for HTML-to-PDF workflows</li>
                   <li>Compatibility goal: cross-platform in principle, but operationally heavier because it relies on
                     browser automation</li>
                   <li>Current notes: keep this separate from the core package when documenting deployment requirements
                   </li>
+                </ul>
+              </article>
+
+              <article class="doc-card">
+                <h3><code>ZingPDF.Fonts</code></h3>
+                <p>Support package for standard PDF font metadata and TrueType font loading.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Intended role: companion package used by the core library</li>
+                  <li>Compatibility goal: cross-platform, subject to <code>SkiaSharp</code> runtime support</li>
+                  <li>Current notes: used by the core registration APIs for standard and embedded TrueType fonts</li>
+                </ul>
+              </article>
+
+              <article class="doc-card">
+                <h3><code>ZingPDF.GoogleFonts</code></h3>
+                <p>Google Fonts integration package for registering Google Fonts in a PDF document.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Intended role: package for Google Fonts workflows</li>
+                  <li>Compatibility goal: cross-platform with outbound HTTPS access</li>
+                  <li>Current notes: requires a Google Fonts Developer API key at registration time</li>
                 </ul>
               </article>
             </div>
@@ -168,6 +194,8 @@ await pdf.SaveAsync(output);</code></pre>
             <ul>
               <li>For application integrations, prefer <code>ZingPDF</code> unless you specifically need HTML
                 conversion.</li>
+              <li>Use <code>ZingPDF.GoogleFonts</code> when you want to register Google Fonts directly from the Google
+                Fonts catalog.</li>
               <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own operational
                 requirements.</li>
               <li>Expect the core library to remain <code>net8.0</code>-first until the dependency surface is slimmed
@@ -175,6 +203,101 @@ await pdf.SaveAsync(output);</code></pre>
               <li>Validate your exact deployment platform if your workflow depends on image handling, font metrics, or
                 browser automation.</li>
             </ul>
+          </section>
+
+          <section class="doc-section" id="fonts">
+            <p class="eyebrow">Fonts</p>
+            <h2>Register standard, local, and Google Fonts</h2>
+            <p>The core package now exposes document-level font registration APIs. Standard PDF fonts and embedded
+              TrueType fonts are registered in <code>ZingPDF</code>, while Google Fonts is available through the
+              <code>ZingPDF.GoogleFonts</code> package.</p>
+
+            <h3>Register a standard PDF font</h3>
+            <pre><code class="language-csharp">using ZingPDF.Fonts;
+using ZingPDF.Graphics;
+
+using var pdf = Pdf.Create();
+var page = await pdf.GetPageAsync(1);
+var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+await page.AddTextAsync(
+    "Hello, world",
+    Rectangle.FromDimensions(240, 80),
+    font,
+    18,
+    RGBColour.Black);</code></pre>
+
+            <h3>Register an embedded TrueType font from disk</h3>
+            <pre><code class="language-csharp">var font = await pdf.RegisterTrueTypeFontAsync(
+    "MyFont-Regular.ttf",
+    fontName: "MyFont-Regular");
+
+await page.AddTextAsync(
+    "Custom font text",
+    Rectangle.FromDimensions(240, 80),
+    font,
+    18,
+    RGBColour.Black);</code></pre>
+
+            <h3>Register a Google Font</h3>
+            <pre><code class="language-csharp">using ZingPDF.GoogleFonts;
+
+var client = new GoogleFontsClient("&lt;google-fonts-api-key&gt;");
+var font = await pdf.RegisterGoogleFontAsync(
+    client,
+    new GoogleFontRequest
+    {
+        Family = "Inter",
+        Variant = "regular"
+    });
+
+await page.AddTextAsync(
+    "Google Fonts text",
+    Rectangle.FromDimensions(240, 80),
+    font,
+    18,
+    RGBColour.Black);</code></pre>
+
+            <h3>Font notes</h3>
+            <ul>
+              <li>The current high-level registration path targets WinAnsi / Windows-1252 text workflows.</li>
+              <li>Symbol and ZapfDingbats are not yet exposed through the high-level registration API.</li>
+              <li><code>ZingPDF.GoogleFonts</code> requires a Google Fonts Developer API key and network access.</li>
+            </ul>
+          </section>
+
+          <section class="doc-section" id="drawing">
+            <p class="eyebrow">Drawing</p>
+            <h2>Draw vector paths on a page</h2>
+            <p>The page API supports drawing vector paths with stroke and fill options. Use linear paths for straight
+              segments and bezier paths for curves.</p>
+
+            <h3>Draw a stroked path</h3>
+            <pre><code class="language-csharp">using ZingPDF.Elements.Drawing;
+using ZingPDF.Graphics;
+
+await page.AddPathAsync(new Path(
+    new StrokeOptions(RGBColour.PrimaryRed, 2),
+    null,
+    PathType.Linear,
+    [
+        new Coordinate(10, 10),
+        new Coordinate(50, 60),
+        new Coordinate(80, 20)
+    ]));</code></pre>
+
+            <h3>Fill a bezier shape</h3>
+            <pre><code class="language-csharp">await page.AddPathAsync(new Path(
+    null,
+    new FillOptions(RGBColour.PrimaryBlue),
+    PathType.Bezier,
+    [
+        new Coordinate(20, 20),
+        new Coordinate(40, 80),
+        new Coordinate(90, 80),
+        new Coordinate(110, 20)
+    ]));</code></pre>
+
           </section>
 
           <section class="doc-callout">
@@ -258,7 +381,7 @@ foreach (var field in await form.GetFieldsAsync())
             <div class="doc-grid">
               <article class="doc-card">
                 <h3>Text fields</h3>
-                <p><code>TextFormField</code> currently has the richest editing support.</p>
+                <p><code>TextFormField</code> provides the most complete edit helpers in the high-level API.</p>
                 <ul>
                   <li><code>GetValueAsync()</code></li>
                   <li><code>SetValueAsync(string?)</code></li>
@@ -275,7 +398,7 @@ foreach (var field in await form.GetFieldsAsync())
               </article>
             </div>
 
-            <h3>Current public limitations</h3>
+            <h3>Current scope notes</h3>
             <ul>
               <li>Push-button action details can be inspected, but action execution is not yet exposed through the high-level API.</li>
               <li>Signature fields can be inspected, but high-level signing is not yet implemented.</li>
@@ -337,7 +460,7 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
             <p class="eyebrow">Save Behavior</p>
             <h2>Understand the save model</h2>
             <p>By default, ZingPDF saves by writing an incremental update. That gives you a predictable editing model,
-              but it comes with a few practical constraints you should understand before shipping at scale.</p>
+              with a few stream requirements worth knowing before production use.</p>
 
             <ol>
               <li>The input stream passed to <code>Pdf.Load(...)</code> must be seekable.</li>
@@ -354,7 +477,7 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
 await pdf.AddWatermarkAsync("INTERNAL");
 await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
 
-            <h3>Optional behavior: remove prior history</h3>
+            <h3>History removal when you need a clean rewrite</h3>
             <p>Call <code>RemoveHistoryAsync()</code> before saving when you want a fresh rewrite that keeps only the
               latest live objects instead of preserving previous incremental revisions.</p>
 
@@ -376,8 +499,7 @@ await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
               <li><code>DecryptAsync(...)</code> removes encryption in the latest saved revision. If you also need to
                 drop older encrypted revisions from the file bytes, call <code>RemoveHistoryAsync()</code> before
                 saving.</li>
-              <li><code>Compress(...)</code> currently compresses unfiltered streams and can recompress JPEG image
-                streams.</li>
+              <li><code>Compress(...)</code> works on unfiltered streams and can recompress JPEG image streams.</li>
               <li><code>DecompressAsync()</code> skips JPEG image streams to avoid forced decompression corruption.</li>
               <li><code>InsertPageAsync(...)</code> inserts before the requested page number, while
                 <code>AppendPageAsync(...)</code> adds to the end.

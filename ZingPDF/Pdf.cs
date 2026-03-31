@@ -6,6 +6,8 @@ using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
+using ZingPDF.Fonts;
+using ZingPDF.Fonts.FontProviders;
 using ZingPDF.Graphics;
 using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
@@ -23,6 +25,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Text;
 using ZingPDF.Text.Encoding.PDFDocEncoding;
 using ZingPDF.Text.SimpleFonts;
 
@@ -263,6 +266,59 @@ public class Pdf : IPdf, IDisposable
     public async Task AddWatermarkAsync(string text)
     {
         await AddWatermarkInternalAsync(text);
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfFont> RegisterStandardFontAsync(string fontName, string? resourceName = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fontName);
+
+        var metricsProvider = new PDFStandardFontMetricsProvider();
+        var metrics = metricsProvider.GetFontMetrics(fontName);
+        var resolvedFontName = metrics.Name;
+
+        if (resolvedFontName is StandardPdfFonts.Symbol or StandardPdfFonts.ZapfDingbats)
+        {
+            throw new NotSupportedException("High-level font registration currently supports WinAnsi text fonts only.");
+        }
+
+        var fontDictionary = new Type1FontDictionary(this, ObjectContext.UserCreated);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)resolvedFontName);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
+
+        var fontObject = await Objects.AddAsync(fontDictionary);
+
+        return new PdfFont(
+            (Name)(resourceName ?? UniqueStringGenerator.Generate()),
+            fontObject.Reference,
+            resolvedFontName,
+            FontTextEncoding.WinAnsi,
+            isEmbedded: false);
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfFont> RegisterTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fontPath);
+
+        await using var stream = new FileStream(fontPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return await RegisterTrueTypeFontAsync(stream, resourceName, fontName);
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfFont> RegisterTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null)
+    {
+        ArgumentNullException.ThrowIfNull(fontData);
+
+        var fontFace = await TrueTypeFontLoader.LoadAsync(fontData, fontName);
+        var embeddedFont = await CreateTrueTypeFontAsync(fontFace);
+
+        return new PdfFont(
+            (Name)(resourceName ?? UniqueStringGenerator.Generate()),
+            embeddedFont.Reference,
+            fontFace.FontName,
+            FontTextEncoding.WinAnsi,
+            isEmbedded: true);
     }
 
     /// <inheritdoc />
@@ -526,6 +582,72 @@ public class Pdf : IPdf, IDisposable
 
             Objects.Update(pageObject);
         }
+    }
+
+    private async Task<IndirectObject> CreateTrueTypeFontAsync(TrueTypeFontFace fontFace)
+    {
+        var fontProgramDictionary = new StreamDictionary(this, ObjectContext.UserCreated);
+        fontProgramDictionary.Set<Number>(Constants.DictionaryKeys.Stream.Length, fontFace.FontData.Length);
+        fontProgramDictionary.Set<Number>("Length1", fontFace.FontData.Length);
+
+        var fontProgram = new StreamObject<IStreamDictionary>(
+            new MemoryStream(fontFace.FontData, writable: false),
+            fontProgramDictionary,
+            ObjectContext.UserCreated);
+        var fontProgramObject = await Objects.AddAsync(fontProgram);
+
+        var descriptor = new FontDescriptorDictionary(this, ObjectContext.UserCreated);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.FontName, (Name)fontFace.FontName);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.Flags, (Number)CreateFontFlags(fontFace.Metrics));
+        descriptor.Set(
+            Constants.DictionaryKeys.FontDescriptor.FontBBox,
+            Syntax.CommonDataStructures.Rectangle.FromCoordinates(
+                new Elements.Drawing.Coordinate(fontFace.BoundingBox.Left, fontFace.BoundingBox.Bottom),
+                new Elements.Drawing.Coordinate(fontFace.BoundingBox.Right, fontFace.BoundingBox.Top)));
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.ItalicAngle, (Number)fontFace.Metrics.ItalicAngle);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.Ascent, (Number)fontFace.Metrics.Ascent);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.Descent, (Number)(-Math.Abs(fontFace.Metrics.Descent)));
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.CapHeight, (Number)fontFace.Metrics.CapHeight);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.XHeight, (Number)fontFace.Metrics.XHeight);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.StemV, (Number)Math.Max(fontFace.Metrics.StandardVerticalWidth ?? 80, 1));
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.StemH, (Number)Math.Max(fontFace.Metrics.StandardHorizontalWidth ?? 80, 1));
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.AvgWidth, (Number)fontFace.AverageWidth);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.MaxWidth, (Number)fontFace.MaxWidth);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.MissingWidth, (Number)fontFace.MissingWidth);
+        descriptor.Set(Constants.DictionaryKeys.FontDescriptor.FontFile2, fontProgramObject.Reference);
+
+        var descriptorObject = await Objects.AddAsync(descriptor);
+
+        var widths = new ArrayObject(
+            [.. Enumerable.Range(32, 224).Select(code => (IPdfObject)(Number)fontFace.WidthsByCharacterCode[(byte)code])],
+            ObjectContext.UserCreated);
+
+        var fontDictionary = new TrueTypeFontDictionary(this, ObjectContext.UserCreated);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)fontFace.FontName);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.FirstChar, (Number)32);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.LastChar, (Number)255);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.Widths, widths);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.FontDescriptor, descriptorObject.Reference);
+
+        return await Objects.AddAsync(fontDictionary);
+    }
+
+    private static int CreateFontFlags(FontMetrics metrics)
+    {
+        var flags = FontFlags.NonSymbolic;
+
+        if (metrics.IsFixedPitch)
+        {
+            flags |= FontFlags.FixedPitch;
+        }
+
+        if (metrics.ItalicAngle != 0)
+        {
+            flags |= FontFlags.Italic;
+        }
+
+        return (int)flags;
     }
 
     private async Task SaveWithoutHistoryAsync(

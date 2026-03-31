@@ -18,13 +18,17 @@ namespace ZingPDF.Elements.Drawing
         {
             if (strokeOptions == null && fillOptions == null) throw new ArgumentException("One of strokeOptions or fillOptions must be specified");
             if (!Enum.IsDefined(typeof(PathType), type)) throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(PathType));
+            ArgumentNullException.ThrowIfNull(points);
+
+            var pointList = points.ToArray();
+            if (pointList.Any(c => c == null)) throw new ArgumentException($"Null value encountered in {nameof(points)} collection", nameof(points));
+
+            ValidatePoints(type, pointList);
 
             StrokeOptions = strokeOptions;
             FillOptions = fillOptions;
             Type = type;
-            Points = points ?? throw new ArgumentNullException(nameof(points));
-
-            if (points.Any(c => c == null)) throw new ArgumentException($"Null value encountered in {nameof(points)} collection", nameof(points));
+            Points = pointList;
         }
 
         /// <summary>
@@ -52,5 +56,16 @@ namespace ZingPDF.Elements.Drawing
         /// Points defining the path.
         /// </summary>
         public IEnumerable<Coordinate> Points { get; }
+
+        private static void ValidatePoints(PathType type, IReadOnlyCollection<Coordinate> points)
+        {
+            switch (type)
+            {
+                case PathType.Linear when points.Count < 2:
+                    throw new ArgumentException("A linear path requires at least 2 points.", nameof(points));
+                case PathType.Bezier when points.Count < 4 || (points.Count - 1) % 3 != 0:
+                    throw new ArgumentException("A bezier path requires 4 points, plus 3 points for each additional segment.", nameof(points));
+            }
+        }
     }
 }

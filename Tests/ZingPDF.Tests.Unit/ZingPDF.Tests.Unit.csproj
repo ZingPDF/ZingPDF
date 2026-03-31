@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ZingPDF.Tests.Common\ZingPDF.Tests.Common.csproj" />
+    <ProjectReference Include="..\..\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
   </ItemGroup>
 
 </Project>
