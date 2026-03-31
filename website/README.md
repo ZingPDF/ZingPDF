@@ -24,7 +24,7 @@ Edit `config.js` and update:
 - `licenses[].checkoutUrl`
 - pricing copy and plan names if needed
 
-The page loads `https://assets.lemonsqueezy.com/lemon.js` once and automatically applies the `lemonsqueezy-button` class to non-enterprise checkout buttons.
+The page loads `https://assets.lemonsqueezy.com/lemon.js` once and automatically applies the `lemonsqueezy-button` class to non-contact checkout buttons.
 
 If a checkout URL still contains `your-store`, the button will stay inactive until a real checkout URL is configured.
 
@@ -123,6 +123,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 ## Suggested next steps
 
 1. Confirm the configured support email is correct.
-2. Confirm the displayed prices match the Lemon Squeezy products.
-3. Confirm that Solo and Team pricing and subscription language match the commercial model.
+2. Create or confirm Lemon Squeezy products and hosted checkout links for Solo, Team, and Unlimited.
+3. Confirm that Solo, Team, and Unlimited pricing and subscription language match the commercial model.
 4. Confirm the published legal pages match the current commercial terms.
