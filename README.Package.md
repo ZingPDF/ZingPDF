@@ -15,6 +15,7 @@ dotnet add package ZingPDF
 - inspect pages and document structure
 - merge documents and append pages
 - add text, images, and watermarks
+- register standard PDF fonts and embedded TrueType fonts for page text
 - work with forms and metadata
 - remove prior incremental-update history when required
 - apply password protection with RC4-128, AES-128, or AES-256 and other document updates
@@ -24,6 +25,7 @@ dotnet add package ZingPDF
 - repository: [github.com/tombowers/ZingPDF](https://github.com/tombowers/ZingPDF)
 - docs: `website/docs.html`
 - API reference: `website/api/`
+- Google Fonts add-on: `ZingPDF.GoogleFonts`
 
 ## Licensing
 

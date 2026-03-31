@@ -21,6 +21,15 @@ internal static class SKFontExtensions
         };
     }
 
+    public static FontBoundingBox GetBoundingBox(this SKFont font)
+    {
+        return new FontBoundingBox(
+            ConvertToEmUnits(font.Metrics.XMin, font),
+            ConvertToEmUnits(font.Metrics.Bottom, font),
+            ConvertToEmUnits(font.Metrics.XMax, font),
+            ConvertToEmUnits(font.Metrics.Top, font));
+    }
+
     private static int ConvertToEmUnits(float skiaValue, SKFont skFont)
     {
         // SkiaSharp uses pixels at the current font size, so we need to scale
