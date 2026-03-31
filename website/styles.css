@@ -101,6 +101,12 @@ a {
   align-items: center;
 }
 
+.hero > *,
+.docs-hero > *,
+.docs-layout > * {
+  min-width: 0;
+}
+
 .section-copy h2,
 .payment-panel h2,
 .contact-dialog-card h2 {
@@ -284,6 +290,7 @@ a {
 
 pre {
   margin: 0;
+  max-width: 100%;
   padding: 18px;
   overflow-x: auto;
   font-size: 0.95rem;
@@ -957,6 +964,16 @@ code {
 
   .hero-copy h1 {
     font-size: clamp(2.6rem, 14vw, 4rem);
+  }
+
+  .hero-panel,
+  .payment-panel {
+    padding: 18px;
+  }
+
+  .hero-panel pre {
+    padding: 16px;
+    font-size: 0.88rem;
   }
 
   .hero-highlights {
