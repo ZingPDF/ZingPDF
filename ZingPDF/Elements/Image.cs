@@ -22,9 +22,9 @@ namespace ZingPDF.Elements
             ArgumentNullException.ThrowIfNull(imagePath, nameof(imagePath));
             ArgumentNullException.ThrowIfNull(maxBounds, nameof(maxBounds));
 
-            var inputFileStream = new FileStream(imagePath, FileMode.Open);
+            var inputFileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            return new Image(inputFileStream, maxBounds);
+            return new Image(inputFileStream, maxBounds, preserveAspectRatio);
         }
 
         protected virtual void Dispose(bool disposing)

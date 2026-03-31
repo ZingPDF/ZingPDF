@@ -190,19 +190,34 @@ a {
   transform: none;
 }
 
-.hero-points {
+.hero-highlights {
   display: grid;
-  gap: 10px;
-  padding: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
   margin: 28px 0 0;
-  list-style: none;
-  color: var(--muted);
 }
 
-.hero-points li::before {
-  content: "*";
-  color: var(--accent);
-  margin-right: 10px;
+.hero-highlight {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid rgba(14, 116, 144, 0.12);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.05);
+}
+
+.hero-highlight strong {
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.hero-highlight-label {
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .hero-panel,
@@ -388,6 +403,29 @@ code {
 .capabilities {
   display: grid;
   gap: 24px;
+}
+
+.support-groups {
+  display: grid;
+  gap: 24px;
+}
+
+.support-group {
+  display: grid;
+  gap: 14px;
+}
+
+.support-group-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.support-group-copy h3 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
 .pricing-card,
@@ -877,6 +915,7 @@ code {
   .hero,
   .pricing-grid,
   .feature-grid,
+  .hero-highlights,
   .platform-band,
   .docs-hero,
   .docs-layout,
@@ -918,6 +957,10 @@ code {
 
   .hero-copy h1 {
     font-size: clamp(2.6rem, 14vw, 4rem);
+  }
+
+  .hero-highlights {
+    grid-template-columns: 1fr;
   }
 
   .trust-strip {

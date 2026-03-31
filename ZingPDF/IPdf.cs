@@ -1,8 +1,9 @@
-﻿using ZingPDF.Elements;
+using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Text;
 
 namespace ZingPDF;
 
@@ -84,6 +85,21 @@ public interface IPdf
     /// Adds a simple text watermark to each page.
     /// </summary>
     Task AddWatermarkAsync(string text);
+
+    /// <summary>
+    /// Registers one of the standard PDF fonts for use with page text APIs.
+    /// </summary>
+    Task<PdfFont> RegisterStandardFontAsync(string fontName, string? resourceName = null);
+
+    /// <summary>
+    /// Registers an embedded TrueType font from a file path.
+    /// </summary>
+    Task<PdfFont> RegisterTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null);
+
+    /// <summary>
+    /// Registers an embedded TrueType font from a stream.
+    /// </summary>
+    Task<PdfFont> RegisterTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null);
 
     /// <summary>
     /// Compresses eligible streams in the document.
