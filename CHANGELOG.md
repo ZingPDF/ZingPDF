@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.19] - 2026-03-31
+
 ### Added
 
 - Standard security handler AES-128 (`V=4`, `R=4`) and AES-256 (`V=5`, `R=6`) encryption support alongside legacy RC4 output
