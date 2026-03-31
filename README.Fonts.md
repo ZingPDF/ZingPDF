@@ -1,6 +1,6 @@
 # ZingPDF.Fonts
 
-`ZingPDF.Fonts` contains the font metrics and font-provider support used by `ZingPDF`.
+`ZingPDF.Fonts` contains the font metadata, metrics, and loading helpers used by `ZingPDF`.
 
 ## Installation
 
@@ -17,8 +17,28 @@ dotnet add package ZingPDF.Fonts
 This package provides:
 
 - PDF standard font metrics
+- TrueType font loading helpers for embedded font registration
 - embedded font metrics helpers
 - simple font metrics providers used by the main library
+
+## Typical usage
+
+`ZingPDF.Fonts` is used by the core `ZingPDF` package to support:
+
+- registration of standard PDF fonts
+- registration of embedded TrueType fonts from files or streams
+- text measurement for forms and other layout calculations
+
+The document-level registration APIs live in the main `ZingPDF` package:
+
+```csharp
+using var pdf = Pdf.Create();
+
+var helvetica = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+var custom = await pdf.RegisterTrueTypeFontAsync("MyFont.ttf", fontName: "MyFont-Regular");
+```
+
+High-level text registration currently targets WinAnsi / Windows-1252 text workflows.
 
 ## Licensing
 

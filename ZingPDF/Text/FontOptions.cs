@@ -19,4 +19,9 @@ public record FontOptions
     /// The colour of the font.
     /// </summary>
     public required RGBColour Colour { get; init; }
+
+    /// <summary>
+    /// Controls how text should be encoded for the font resource.
+    /// </summary>
+    public FontTextEncoding TextEncoding { get; init; } = FontTextEncoding.Auto;
 }

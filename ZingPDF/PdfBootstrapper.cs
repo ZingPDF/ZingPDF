@@ -12,6 +12,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Text;
 
 namespace ZingPDF;
 
@@ -110,6 +111,9 @@ internal static class PdfBootstrapper
         public Task SetRotationAsync(Rotation rotation) => throw new NotSupportedException();
         public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => throw new NotSupportedException();
         public Task AddWatermarkAsync(string text) => throw new NotSupportedException();
+        public Task<PdfFont> RegisterStandardFontAsync(string fontName, string? resourceName = null) => throw new NotSupportedException();
+        public Task<PdfFont> RegisterTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
+        public Task<PdfFont> RegisterTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
         public void Compress(int dpi, int quality) => throw new NotSupportedException();
         public Task DecompressAsync() => throw new NotSupportedException();
         public Task RemoveHistoryAsync() => throw new NotSupportedException();

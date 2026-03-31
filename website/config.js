@@ -15,7 +15,7 @@ window.ZINGPDF_STORE_CONFIG = {
       bullets: [
         "1 developer seat",
         "Commercial use",
-        "Core, Fonts, and FromHTML packages included",
+        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Email-based support"
       ]
     },
@@ -32,7 +32,7 @@ window.ZINGPDF_STORE_CONFIG = {
       badge: "Most Popular",
       bullets: [
         "Up to 10 developer seats",
-        "Core, Fonts, and FromHTML packages included",
+        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Commercial use",
         "Priority email support"
       ]
@@ -49,7 +49,7 @@ window.ZINGPDF_STORE_CONFIG = {
       featured: false,
       bullets: [
         "Unlimited developer seats",
-        "Core, Fonts, and FromHTML packages included",
+        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Commercial use",
         "Priority email support"
       ]
