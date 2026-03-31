@@ -2,6 +2,7 @@ using FluentAssertions;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Elements.Forms.FieldTypes.Choice;
@@ -210,6 +211,110 @@ public class PdfTests
         writtenPdf.Should().Contain("/BaseFont /Helvetica");
         writtenPdf.Should().Contain("/Font <<");
         writtenPdf.Should().Contain(" Tf");
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_WithRegisteredTrueTypeFont_WritesEmbeddedFontResource()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        var font = await pdf.RegisterTrueTypeFontAsync(Files.NotoSansRegular);
+
+        await page.AddTextAsync(
+            "hello",
+            Rectangle.FromDimensions(200, 200),
+            font,
+            18,
+            RGBColour.Black);
+
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/Subtype /TrueType");
+        writtenPdf.Should().Contain("/FontFile2 ");
+        writtenPdf.Should().Contain("/BaseFont /NotoSans-Regular");
+        writtenPdf.Should().Contain("/FontBBox [-621.000 -389.000 2800.000 1067.000]");
+        writtenPdf.Should().NotContain("2,800.000");
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_DefaultLayout_DoesNotClipByDefault()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+        await page.AddTextAsync(
+            "hello",
+            Rectangle.FromCoordinates(new DrawingCoordinate(40, 120), new DrawingCoordinate(320, 180)),
+            font,
+            18,
+            RGBColour.Black);
+
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().NotContain(" re W n");
+        writtenPdf.Should().Contain("BT 42");
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_WithClipOverflow_ClipsUsingThePaddedRectangle()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+        await page.AddTextAsync(
+            "hello",
+            Rectangle.FromCoordinates(new DrawingCoordinate(40, 120), new DrawingCoordinate(320, 180)),
+            font,
+            18,
+            RGBColour.Black,
+            new TextLayoutOptions
+            {
+                Overflow = TextOverflowMode.Clip
+            });
+
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("42 122 276 56 re W n");
+        writtenPdf.Should().Contain("BT 42");
+    }
+
+    [Fact]
+    public async Task Page_AddTextAsync_WithShrinkToFit_ReducesFontSizeWhenNeeded()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var page = await pdf.GetPageAsync(1);
+        var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+        await page.AddTextAsync(
+            "This sentence is intentionally too long for the width at the requested size.",
+            Rectangle.FromCoordinates(new DrawingCoordinate(40, 120), new DrawingCoordinate(220, 170)),
+            font,
+            24,
+            RGBColour.Black,
+            new TextLayoutOptions
+            {
+                Overflow = TextOverflowMode.ShrinkToFit
+            });
+
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        var match = Regex.Match(writtenPdf, @"/[A-Za-z0-9]+\s+([0-9.]+)\s+Tf");
+        match.Success.Should().BeTrue();
+        double.Parse(match.Groups[1].Value).Should().BeLessThan(24);
     }
 
     [Fact]

@@ -27,9 +27,6 @@ public static class PdfGoogleFontsExtensions
         return await pdf.RegisterTrueTypeFontAsync(
             fontStream,
             resourceName,
-            fontName ?? BuildPdfFontName(request));
+            fontName);
     }
-
-    private static string BuildPdfFontName(GoogleFontRequest request)
-        => string.Concat($"{request.Family}-{request.Variant}".Where(ch => !char.IsWhiteSpace(ch)));
 }
