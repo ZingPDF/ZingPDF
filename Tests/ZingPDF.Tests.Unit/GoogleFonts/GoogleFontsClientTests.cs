@@ -109,8 +109,8 @@ public class GoogleFontsClientTests
         A.CallTo(() => pdf.RegisterTrueTypeFontAsync(
                 A<Stream>.Ignored,
                 "GF",
-                "Inter-regular"))
-            .Invokes((Stream stream, string _, string _) => capturedBytes = ReadAllBytes(stream))
+                null))
+            .Invokes((Stream stream, string _, string? _) => capturedBytes = ReadAllBytes(stream))
             .Returns(Task.FromResult<ZingPDF.Text.PdfFont>(null!));
 
         var result = await pdf.RegisterGoogleFontAsync(
@@ -123,7 +123,7 @@ public class GoogleFontsClientTests
         A.CallTo(() => pdf.RegisterTrueTypeFontAsync(
             A<Stream>.Ignored,
             "GF",
-            "Inter-regular")).MustHaveHappenedOnceExactly();
+            null)).MustHaveHappenedOnceExactly();
     }
 
     private static byte[] ReadAllBytes(Stream stream)
