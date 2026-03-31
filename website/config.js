@@ -38,19 +38,20 @@ window.ZINGPDF_STORE_CONFIG = {
       ]
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
-      price: "Custom",
-      cadence: "",
-      subtitle: "For larger teams, custom terms, or commercial negotiations.",
-      description: "Use this when seat count, procurement, support expectations, or contractual terms need a direct conversation.",
-      ctaLabel: "Contact Sales",
-      contactOnly: true,
+      id: "unlimited",
+      name: "Unlimited",
+      price: "$499",
+      cadence: "per month",
+      subtitle: "For companies that want one subscription with no seat cap.",
+      description: "Best for larger engineering teams that want predictable commercial coverage without tracking developer seats.",
+      ctaLabel: "Buy Unlimited",
+      checkoutUrl: "https://zing.lemonsqueezy.com/checkout/buy/e546bfe7-c289-4bf7-877e-b1c12cd3e69e?embed=1",
       featured: false,
       bullets: [
-        "Custom commercial terms",
-        "Volume pricing",
-        "Support and roadmap discussions"
+        "Unlimited developer seats",
+        "Core, Fonts, and FromHTML packages included",
+        "Commercial use",
+        "Priority email support"
       ]
     }
   ]

@@ -7,8 +7,8 @@
 
   if (pricingGrid && dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
-    emailText.textContent = `Email ${supportEmail} to discuss enterprise licensing, redistribution, or custom support terms.`;
-    emailLink.href = `mailto:${supportEmail}?subject=${encodeURIComponent("ZingPDF enterprise licensing")}`;
+    emailText.textContent = `Email ${supportEmail} to discuss custom licensing, redistribution, procurement, or support terms.`;
+    emailLink.href = `mailto:${supportEmail}?subject=${encodeURIComponent("ZingPDF commercial licensing")}`;
     emailLink.textContent = `Email ${supportEmail}`;
 
     for (const license of config.licenses || []) {
