@@ -26,7 +26,7 @@ internal static class StreamExtensions
         => await stream.WriteTextAsync(value.ToString("G", CultureInfo.InvariantCulture));
 
     public static async Task WriteDoubleAsync(this Stream stream, double value)
-        => await stream.WriteTextAsync(value.ToString("N3", CultureInfo.InvariantCulture));
+        => await stream.WriteTextAsync(value.ToString("0.000", CultureInfo.InvariantCulture));
 
     public static async Task WriteLeftPaddedAsync(this Stream stream, ushort value, int padToBytes)
         => await stream.WriteTextAsync(value.ToString("G", CultureInfo.InvariantCulture).PadLeft(padToBytes, '0'));

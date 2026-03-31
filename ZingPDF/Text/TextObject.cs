@@ -1,4 +1,5 @@
 using ZingPDF.Extensions;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
@@ -22,11 +23,35 @@ public class TextObject : ContentStream
 
         this
             .SaveGraphicsState()
-            .SetClippingPath(boundingBox.Size)
+            .SetClippingPath(boundingBox)
             .SetTextState(fontOptions.ResourceName, fontOptions.Size)
             .SetColour(fontOptions.Colour)
             .BeginTextObject()
             .SetTextPosition(boundingBox.LowerLeft)
+            .ShowText(EncodeText(text, fontOptions.TextEncoding))
+            .EndTextObject()
+            .RestoreGraphicsState();
+    }
+
+    public TextObject(string text, Coordinate textOrigin, FontOptions fontOptions, Rectangle? clipBounds = null)
+        : base(ObjectContext.UserCreated)
+    {
+        ArgumentNullException.ThrowIfNull(text, nameof(text));
+        ArgumentNullException.ThrowIfNull(textOrigin, nameof(textOrigin));
+        ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));
+
+        this.SaveGraphicsState();
+
+        if (clipBounds is not null)
+        {
+            this.SetClippingPath(clipBounds);
+        }
+
+        this
+            .SetTextState(fontOptions.ResourceName, fontOptions.Size)
+            .SetColour(fontOptions.Colour)
+            .BeginTextObject()
+            .SetTextPosition(textOrigin)
             .ShowText(EncodeText(text, fontOptions.TextEncoding))
             .EndTextObject()
             .RestoreGraphicsState();

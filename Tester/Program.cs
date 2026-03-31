@@ -18,6 +18,13 @@ using ZingPDF.Extensions;
 using System;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Text;
+using ZingPDF.Fonts;
+using ZingPDF.GoogleFonts;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using DrawingPath = ZingPDF.Elements.Drawing.Path;
+using IOPath = System.IO.Path;
 
 //using var outputFileStream = new FileStream("output.pdf", FileMode.Create);
 //var pdf = new Pdf();
@@ -57,7 +64,8 @@ using ZingPDF.Syntax.FileStructure.CrossReferences;
 
 //await AddImageToPage();
 
-await RemoveHistory();
+await RunRecentFeatureManualTestsAsync();
+//await RemoveHistory();
 
 //await RotatePage();
 
@@ -81,6 +89,44 @@ await RemoveHistory();
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
+
+static async Task RunRecentFeatureManualTestsAsync()
+{
+    var outputDirectory = IOPath.Combine(AppContext.BaseDirectory, "manual-output");
+    Directory.CreateDirectory(outputDirectory);
+    var runStamp = CreateManualTestRunStamp();
+
+    Console.WriteLine($"Writing manual test artifacts to {outputDirectory}");
+
+    await ManualTest_AddTextWithFontOptionsAsync(outputDirectory, runStamp);
+    await ManualTest_TextLayoutOptionsAsync(outputDirectory, runStamp);
+    await ManualTest_AddImagesAsync(outputDirectory, runStamp);
+    await ManualTest_AddPathsAsync(outputDirectory, runStamp);
+    await ManualTest_RegisterStandardFontAsync(outputDirectory, runStamp);
+
+    var localTrueTypeFontPath = TryGetLocalTrueTypeFontPath();
+    if (localTrueTypeFontPath is not null)
+    {
+        await ManualTest_RegisterTrueTypeFontsAsync(outputDirectory, runStamp, localTrueTypeFontPath);
+    }
+    else
+    {
+        Console.WriteLine("Skipping embedded TrueType font registration tests because no local .ttf font was found.");
+    }
+
+    var googleFontsApiKey = TryGetGoogleFontsApiKey();
+    if (!string.IsNullOrWhiteSpace(googleFontsApiKey))
+    {
+        await ManualTest_RegisterGoogleFontAsync(outputDirectory, runStamp, googleFontsApiKey);
+    }
+    else
+    {
+        Console.WriteLine("Skipping Google Fonts registration test because GOOGLE_FONTS_API_KEY is not set.");
+    }
+}
+
+static string CreateManualTestRunStamp()
+    => DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss");
 
 static async Task RemoveHistory()
 {
@@ -327,6 +373,319 @@ static async Task AddImageToPage()
     await page.AddImageAsync(Image.FromFile("testfiles/image/cat.jpg", Rectangle.FromDimensions(200, 200)));
 
     await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task ManualTest_AddTextWithFontOptionsAsync(string outputDirectory, string runStamp)
+{
+    using var inputFileStream = OpenTestAsset("test.pdf");
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-text-font-options.pdf", runStamp);
+
+    var pdf = Pdf.Load(inputFileStream);
+    var page = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(400, 220));
+
+    await page.AddTextAsync(
+        "FontOptions overload using an existing page font resource. jumping glyphs prove descenders stay visible.",
+        Rectangle.FromCoordinates(new Coordinate(24, 120), new Coordinate(376, 184)),
+        new FontOptions
+        {
+            ResourceName = "Helv",
+            Size = 20,
+            Colour = RGBColour.PrimaryBlue
+        });
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_TextLayoutOptionsAsync(string outputDirectory, string runStamp)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-text-layout-options.pdf", runStamp);
+    var page = await pdf.GetPageAsync(1);
+    var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+    await page.AddTextAsync(
+        "Visible overflow keeps descenders intact and lets the line run naturally beyond the box if needed.",
+        Rectangle.FromCoordinates(new Coordinate(24, 180), new Coordinate(300, 232)),
+        font,
+        18,
+        RGBColour.Black);
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(new RGBColour(0.75, 0.75, 0.75), 1),
+        null,
+        PathType.Linear,
+        [
+            new Coordinate(24, 180),
+            new Coordinate(300, 180),
+            new Coordinate(300, 232),
+            new Coordinate(24, 232),
+            new Coordinate(24, 180)
+        ]));
+
+    await page.AddTextAsync(
+        "Clip overflow keeps everything inside the box, including the end of the sentence.",
+        Rectangle.FromCoordinates(new Coordinate(24, 110), new Coordinate(300, 162)),
+        font,
+        18,
+        RGBColour.PrimaryBlue,
+        new TextLayoutOptions
+        {
+            Overflow = TextOverflowMode.Clip
+        });
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(new RGBColour(0.75, 0.75, 0.75), 1),
+        null,
+        PathType.Linear,
+        [
+            new Coordinate(24, 110),
+            new Coordinate(300, 110),
+            new Coordinate(300, 162),
+            new Coordinate(24, 162),
+            new Coordinate(24, 110)
+        ]));
+
+    await page.AddTextAsync(
+        "Shrink to fit keeps the full sentence visible within the available width.",
+        Rectangle.FromCoordinates(new Coordinate(24, 40), new Coordinate(300, 92)),
+        font,
+        18,
+        RGBColour.PrimaryRed,
+        new TextLayoutOptions
+        {
+            Overflow = TextOverflowMode.ShrinkToFit
+        });
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(new RGBColour(0.75, 0.75, 0.75), 1),
+        null,
+        PathType.Linear,
+        [
+            new Coordinate(24, 40),
+            new Coordinate(300, 40),
+            new Coordinate(300, 92),
+            new Coordinate(24, 92),
+            new Coordinate(24, 40)
+        ]));
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_AddImagesAsync(string outputDirectory, string runStamp)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-images-jpg-and-png.pdf", runStamp);
+    var page = await pdf.GetPageAsync(1);
+
+    await page.AddImageAsync(
+        ResolveTestAssetPath(IOPath.Combine("testfiles", "image", "cat.jpg")),
+        Rectangle.FromCoordinates(new Coordinate(24, 24), new Coordinate(204, 204)));
+
+    await using var pngStream = await CreateSamplePngAsync();
+    await page.AddImageAsync(
+        pngStream,
+        Rectangle.FromCoordinates(new Coordinate(220, 40), new Coordinate(380, 140)),
+        preserveAspectRatio: false);
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_AddPathsAsync(string outputDirectory, string runStamp)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-drawing-paths.pdf", runStamp);
+    var page = await pdf.GetPageAsync(1);
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(RGBColour.PrimaryRed, 3),
+        null,
+        PathType.Linear,
+        [
+            new Coordinate(30, 30),
+            new Coordinate(120, 130),
+            new Coordinate(200, 50),
+            new Coordinate(280, 140)
+        ]));
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(RGBColour.PrimaryBlue, 2),
+        new FillOptions(new RGBColour(0.78, 0.9, 1)),
+        PathType.Bezier,
+        [
+            new Coordinate(60, 210),
+            new Coordinate(110, 310),
+            new Coordinate(220, 310),
+            new Coordinate(280, 210)
+        ]));
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_RegisterStandardFontAsync(string outputDirectory, string runStamp)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-registered-standard-font.pdf", runStamp);
+    var page = await pdf.GetPageAsync(1);
+    var standardFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+
+    await page.AddTextAsync(
+        "Registered standard font: Helvetica Bold",
+        Rectangle.FromCoordinates(new Coordinate(40, 120), new Coordinate(520, 180)),
+        standardFont,
+        28,
+        RGBColour.Black);
+
+    await page.AddTextAsync(
+        "This sample should be clearly visible near the middle of the page.",
+        Rectangle.FromCoordinates(new Coordinate(40, 84), new Coordinate(540, 128)),
+        standardFont,
+        16,
+        RGBColour.PrimaryBlue);
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_RegisterTrueTypeFontsAsync(string outputDirectory, string runStamp, string fontPath)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-registered-truetype-fonts.pdf", runStamp);
+
+    var firstPage = await pdf.GetPageAsync(1);
+    var pathFont = await pdf.RegisterTrueTypeFontAsync(fontPath);
+
+    await firstPage.AddTextAsync(
+        $"Registered from file path: {IOPath.GetFileName(fontPath)}",
+        Rectangle.FromCoordinates(new Coordinate(24, 124), new Coordinate(560, 184)),
+        pathFont,
+        24,
+        RGBColour.PrimaryRed);
+
+    await firstPage.AddTextAsync(
+        "Embedded TrueType font sample rendered from a local file.",
+        Rectangle.FromCoordinates(new Coordinate(24, 88), new Coordinate(560, 128)),
+        pathFont,
+        15,
+        RGBColour.Black);
+
+    var secondPage = await pdf.AppendPageAsync();
+    await using var fontStream = File.OpenRead(fontPath);
+    var streamFont = await pdf.RegisterTrueTypeFontAsync(fontStream);
+
+    await secondPage.AddTextAsync(
+        "Registered from a supplied font stream.",
+        Rectangle.FromCoordinates(new Coordinate(24, 124), new Coordinate(520, 184)),
+        streamFont,
+        24,
+        RGBColour.PrimaryBlue);
+
+    await secondPage.AddTextAsync(
+        "Second page verifies the stream-based registration path.",
+        Rectangle.FromCoordinates(new Coordinate(24, 88), new Coordinate(520, 128)),
+        streamFont,
+        15,
+        RGBColour.Black);
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static async Task ManualTest_RegisterGoogleFontAsync(string outputDirectory, string runStamp, string apiKey)
+{
+    using var pdf = Pdf.Create();
+    using var outputFileStream = CreateOutputPdf(outputDirectory, "manual-registered-google-font.pdf", runStamp);
+    var page = await pdf.GetPageAsync(1);
+    var client = new GoogleFontsClient(apiKey);
+    var font = await pdf.RegisterGoogleFontAsync(
+        client,
+        new GoogleFontRequest
+        {
+            Family = "Inter",
+            Variant = "regular",
+            PreferVariableFont = true
+        });
+
+    await page.AddTextAsync(
+        "Registered from Google Fonts.",
+        Rectangle.FromCoordinates(new Coordinate(24, 124), new Coordinate(420, 184)),
+        font,
+        24,
+        RGBColour.Black);
+
+    await page.AddTextAsync(
+        "If this page renders text, Google Fonts registration is working.",
+        Rectangle.FromCoordinates(new Coordinate(24, 88), new Coordinate(560, 128)),
+        font,
+        15,
+        RGBColour.PrimaryBlue);
+
+    await pdf.SaveAsync(outputFileStream);
+    Console.WriteLine($"Created {outputFileStream.Name}");
+}
+
+static FileStream CreateOutputPdf(string outputDirectory, string fileName, string runStamp)
+{
+    var baseName = IOPath.GetFileNameWithoutExtension(fileName);
+    var extension = IOPath.GetExtension(fileName);
+    var stampedBaseName = $"{baseName}-{runStamp}";
+
+    for (var attempt = 0; attempt < 20; attempt++)
+    {
+        var candidateName = attempt == 0
+            ? $"{stampedBaseName}{extension}"
+            : $"{stampedBaseName}-{attempt + 1}{extension}";
+        var candidatePath = IOPath.Combine(outputDirectory, candidateName);
+
+        try
+        {
+            return new FileStream(candidatePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        }
+        catch (IOException) when (File.Exists(candidatePath))
+        {
+        }
+    }
+
+    throw new IOException($"Unable to create an output file for '{fileName}' in '{outputDirectory}'.");
+}
+
+static FileStream OpenTestAsset(string relativePath)
+    => new(ResolveTestAssetPath(relativePath), FileMode.Open, FileAccess.Read, FileShare.Read);
+
+static string ResolveTestAssetPath(string relativePath)
+    => IOPath.Combine(AppContext.BaseDirectory, relativePath);
+
+static async Task<MemoryStream> CreateSamplePngAsync()
+{
+    using var image = new SixLabors.ImageSharp.Image<Rgba32>(120, 80, new Rgba32(36, 132, 228, 220));
+    var output = new MemoryStream();
+    await image.SaveAsync(output, new PngEncoder());
+    output.Position = 0;
+    return output;
+}
+
+static string? TryGetGoogleFontsApiKey()
+    => Environment.GetEnvironmentVariable("GOOGLE_FONTS_API_KEY")
+        ?? Environment.GetEnvironmentVariable("ZINGPDF_GOOGLE_FONTS_API_KEY");
+
+static string? TryGetLocalTrueTypeFontPath()
+{
+    var candidatePaths = new[]
+    {
+        ResolveTestAssetPath(IOPath.Combine("testfiles", "font", "NotoSans-Regular.ttf")),
+        IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf"),
+        IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "segoeui.ttf"),
+        IOPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "calibri.ttf"),
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+        "/Library/Fonts/Arial.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf"
+    };
+
+    return candidatePaths.FirstOrDefault(File.Exists);
 }
 
 static async Task ConvertFromHTML(Uri uri, string output)

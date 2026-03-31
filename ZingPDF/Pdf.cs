@@ -618,6 +618,8 @@ public class Pdf : IPdf, IDisposable
 
         var descriptorObject = await Objects.AddAsync(descriptor);
 
+        var firstChar = 32;
+        var lastChar = 255;
         var widths = new ArrayObject(
             [.. Enumerable.Range(32, 224).Select(code => (IPdfObject)(Number)fontFace.WidthsByCharacterCode[(byte)code])],
             ObjectContext.UserCreated);
@@ -625,8 +627,8 @@ public class Pdf : IPdf, IDisposable
         var fontDictionary = new TrueTypeFontDictionary(this, ObjectContext.UserCreated);
         fontDictionary.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)fontFace.FontName);
         fontDictionary.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
-        fontDictionary.Set(Constants.DictionaryKeys.Font.FirstChar, (Number)32);
-        fontDictionary.Set(Constants.DictionaryKeys.Font.LastChar, (Number)255);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.FirstChar, (Number)firstChar);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.LastChar, (Number)lastChar);
         fontDictionary.Set(Constants.DictionaryKeys.Font.Widths, widths);
         fontDictionary.Set(Constants.DictionaryKeys.Font.FontDescriptor, descriptorObject.Reference);
 
