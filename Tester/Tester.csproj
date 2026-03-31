@@ -8,11 +8,16 @@
     <NoWarn>$(NoWarn);4014;8321;8602</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
     <ProjectReference Include="..\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
+    <ProjectReference Include="..\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\\testfiles\\font\\NotoSans-Regular.ttf" Link="testfiles\\font\\NotoSans-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\testfiles\image\cat.jpg" Link="testfiles\image\cat.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

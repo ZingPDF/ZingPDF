@@ -10,6 +10,7 @@ public sealed class TrueTypeFontFace
     public required byte[] FontData { get; init; }
     public required FontMetrics Metrics { get; init; }
     public required FontBoundingBox BoundingBox { get; init; }
+    public required TrueTypeEmbeddingPermissions EmbeddingPermissions { get; init; }
     public required IReadOnlyDictionary<byte, int> WidthsByCharacterCode { get; init; }
     public required int MissingWidth { get; init; }
     public required int AverageWidth { get; init; }

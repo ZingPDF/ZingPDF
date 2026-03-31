@@ -35,7 +35,7 @@ The document-level registration APIs live in the main `ZingPDF` package:
 using var pdf = Pdf.Create();
 
 var helvetica = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
-var custom = await pdf.RegisterTrueTypeFontAsync("MyFont.ttf", fontName: "MyFont-Regular");
+var custom = await pdf.RegisterTrueTypeFontAsync("MyFont.ttf");
 ```
 
 High-level text registration currently targets WinAnsi / Windows-1252 text workflows.
