@@ -17,12 +17,19 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Extensions;
 using System;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Syntax.FileStructure;
 using ZingPDF.Syntax.FileStructure.CrossReferences;
+using ZingPDF.Syntax.FileStructure.Trailer;
 using ZingPDF.Text;
 using ZingPDF.Fonts;
 using ZingPDF.GoogleFonts;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.Graphics.Images;
+using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.Streams;
 using DrawingPath = ZingPDF.Elements.Drawing.Path;
 using IOPath = System.IO.Path;
 
@@ -64,7 +71,7 @@ using IOPath = System.IO.Path;
 
 //await AddImageToPage();
 
-await RunRecentFeatureManualTestsAsync();
+//await RunRecentFeatureManualTestsAsync();
 //await RemoveHistory();
 
 //await RotatePage();
@@ -72,7 +79,15 @@ await RunRecentFeatureManualTestsAsync();
 //await RotateWholeDocument();
 //await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
 
-//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+var command = Environment.GetCommandLineArgs().Skip(1).FirstOrDefault();
+
+if (string.Equals(command, "sanitize-complex-form", StringComparison.OrdinalIgnoreCase))
+{
+    await SanitizeComplexFormFixtureAsync();
+    return;
+}
+
+await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
 //await WipeFields();
@@ -127,6 +142,608 @@ static async Task RunRecentFeatureManualTestsAsync()
 
 static string CreateManualTestRunStamp()
     => DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss");
+
+static async Task SanitizeComplexFormFixtureAsync()
+{
+    var fixturePath = IOPath.GetFullPath("testfiles/pdf/complex-form.pdf");
+    var tempOutputPath = IOPath.Combine(IOPath.GetDirectoryName(fixturePath)!, "complex-form.sanitized.tmp.pdf");
+
+    Console.WriteLine($"Sanitizing {fixturePath}");
+
+    using var inputFileStream = new FileStream(fixturePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+    var pdf = Pdf.Load(inputFileStream);
+
+    await SanitizeComplexFormFieldsAsync(pdf);
+    await SanitizePdfObjectsAsync(pdf);
+    await WriteReachablePdfAsync(pdf, tempOutputPath);
+
+    pdf.Dispose();
+
+    File.Copy(tempOutputPath, fixturePath, overwrite: true);
+    File.Delete(tempOutputPath);
+
+    Console.WriteLine($"Replaced fixture with sanitized copy: {fixturePath}");
+}
+
+static async Task SanitizeComplexFormFieldsAsync(Pdf pdf)
+{
+    var form = await pdf.GetFormAsync();
+    if (form is null)
+    {
+        return;
+    }
+
+    foreach (var field in await form.GetFieldsAsync())
+    {
+        switch (field)
+        {
+            case TextFormField textField:
+                await textField.SetValueAsync(string.Empty);
+                break;
+
+            case CheckboxFormField checkboxField:
+                foreach (var option in await checkboxField.GetOptionsAsync())
+                {
+                    if (option.Selected)
+                    {
+                        await option.DeselectAsync();
+                    }
+                }
+                break;
+
+            case RadioButtonFormField radioField:
+                if (!radioField.Properties.NoToggleToOff)
+                {
+                    foreach (var option in await radioField.GetOptionsAsync())
+                    {
+                        if (option.Selected)
+                        {
+                            await option.DeselectAsync();
+                        }
+                    }
+                }
+                break;
+
+            case ComboBoxFormField comboBoxField:
+                foreach (var option in await comboBoxField.GetOptionsAsync())
+                {
+                    if (option.Selected)
+                    {
+                        await option.DeselectAsync();
+                    }
+                }
+                break;
+
+            case ListBoxFormField listBoxField:
+                foreach (var option in await listBoxField.GetOptionsAsync())
+                {
+                    if (option.Selected)
+                    {
+                        await option.DeselectAsync();
+                    }
+                }
+                break;
+        }
+    }
+
+    var documentCatalog = await pdf.Objects.GetDocumentCatalogAsync();
+    var formDictionary = await documentCatalog.AcroForm.GetAsync();
+    formDictionary?.SetNeedAppearances(BooleanObject.FromBool(true, ObjectContext.UserCreated));
+}
+
+static async Task SanitizePdfObjectsAsync(Pdf pdf)
+{
+    var trailer = await pdf.Objects.GetLatestTrailerDictionaryAsync();
+    if (trailer.Info is not null)
+    {
+        var infoObject = await pdf.Objects.GetAsync(trailer.Info);
+        if (infoObject.Object is Dictionary infoDictionary)
+        {
+            infoDictionary.Set(Constants.DictionaryKeys.DocumentInformation.Title, PdfString.FromTextAuto("Sanitized form fixture", ObjectContext.UserCreated));
+            infoDictionary.Set(Constants.DictionaryKeys.DocumentInformation.Author, PdfString.FromTextAuto("Sanitized", ObjectContext.UserCreated));
+            infoDictionary.Set(Constants.DictionaryKeys.DocumentInformation.Subject, PdfString.FromTextAuto("Sanitized test artifact", ObjectContext.UserCreated));
+            infoDictionary.Set(Constants.DictionaryKeys.DocumentInformation.Keywords, PdfString.FromTextAuto("sanitized,form,fixture", ObjectContext.UserCreated));
+            infoDictionary.Set(Constants.DictionaryKeys.DocumentInformation.Creator, PdfString.FromTextAuto("ZingPDF Tester", ObjectContext.UserCreated));
+            infoDictionary.Unset(Constants.DictionaryKeys.DocumentInformation.CreationDate);
+            infoDictionary.Unset(Constants.DictionaryKeys.DocumentInformation.ModDate);
+            pdf.Objects.Update(infoObject);
+        }
+    }
+
+    var fieldCounter = 1;
+    var optionCounter = 1;
+    var annotationCounter = 1;
+
+    await foreach (var indirectObject in pdf.Objects)
+    {
+        switch (indirectObject.Object)
+        {
+            case PageDictionary pageDictionary:
+                pageDictionary.Unset(Constants.DictionaryKeys.PageTree.Page.Contents);
+                pageDictionary.Unset(Constants.DictionaryKeys.PageTree.Page.Thumb);
+                pageDictionary.Unset(Constants.DictionaryKeys.PageTree.Page.Metadata);
+                pageDictionary.Unset(Constants.DictionaryKeys.PageTree.Page.PieceInfo);
+                StripPageResources(pageDictionary);
+                await RemoveImageReferencesAsync(pageDictionary, pdf);
+                pdf.Objects.Update(indirectObject);
+                break;
+
+            case FieldDictionary fieldDictionary:
+                SanitizeFieldDictionary(fieldDictionary, ref fieldCounter, ref optionCounter, ref annotationCounter);
+                await RemoveImageReferencesAsync(fieldDictionary, pdf);
+                pdf.Objects.Update(indirectObject);
+                break;
+
+            case WidgetAnnotationDictionary widgetAnnotation:
+                SanitizeWidgetAnnotation(widgetAnnotation, ref annotationCounter);
+                await RemoveImageReferencesAsync(widgetAnnotation, pdf);
+                pdf.Objects.Update(indirectObject);
+                break;
+
+            case AnnotationDictionary annotationDictionary:
+                annotationDictionary.Unset(Constants.DictionaryKeys.Annotation.Contents);
+                annotationDictionary.Unset(Constants.DictionaryKeys.Annotation.Lang);
+                await RemoveImageReferencesAsync(annotationDictionary, pdf);
+                pdf.Objects.Update(indirectObject);
+                break;
+
+            case Dictionary dictionary:
+                await RemoveImageReferencesAsync(dictionary, pdf);
+                pdf.Objects.Update(indirectObject);
+                break;
+        }
+    }
+}
+
+static void SanitizeFieldDictionary(FieldDictionary fieldDictionary, ref int fieldCounter, ref int optionCounter, ref int annotationCounter)
+{
+    fieldDictionary.SetValue(null);
+    fieldDictionary.Unset(Constants.DictionaryKeys.Field.DV);
+    fieldDictionary.Unset(Constants.DictionaryKeys.Field.VariableText.RV);
+    fieldDictionary.Unset(Constants.DictionaryKeys.Field.VariableText.DS);
+    fieldDictionary.Unset(Constants.DictionaryKeys.Annotation.Contents);
+    fieldDictionary.Unset(Constants.DictionaryKeys.Annotation.Lang);
+
+    if (fieldDictionary.T is not null)
+    {
+        fieldDictionary.Set(Constants.DictionaryKeys.Field.T, PdfString.FromTextAuto($"Field{fieldCounter:000}", ObjectContext.UserCreated));
+        fieldCounter++;
+    }
+
+    if (fieldDictionary.TU is not null)
+    {
+        fieldDictionary.Set(Constants.DictionaryKeys.Field.TU, PdfString.FromTextAuto("Sanitized field", ObjectContext.UserCreated));
+    }
+
+    if (fieldDictionary.TM is not null)
+    {
+        fieldDictionary.Set(Constants.DictionaryKeys.Field.TM, PdfString.FromTextAuto($"Map{fieldCounter:000}", ObjectContext.UserCreated));
+    }
+
+    if (fieldDictionary.Opt is not null)
+    {
+        var existingOptions = fieldDictionary.GetAs<ArrayObject>(Constants.DictionaryKeys.Field.Opt);
+        if (existingOptions is not null)
+        {
+            fieldDictionary.Set(Constants.DictionaryKeys.Field.Opt, SanitizeChoiceOptions(existingOptions, ref optionCounter));
+        }
+    }
+
+    SanitizeWidgetAnnotation(fieldDictionary, ref annotationCounter);
+}
+
+static ArrayObject SanitizeChoiceOptions(ArrayObject options, ref int optionCounter)
+{
+    var sanitizedOptions = new ArrayObject([], ObjectContext.UserCreated);
+
+    foreach (var option in options)
+    {
+        if (option is ArrayObject pair && pair.Get<PdfString>(0) is { } exportValue && pair.Get<PdfString>(1) is { } displayValue)
+        {
+            sanitizedOptions.Add(new ArrayObject(
+            [
+                PdfString.FromTextAuto($"Option{optionCounter:000}", ObjectContext.UserCreated, syntax: exportValue.Syntax),
+                PdfString.FromTextAuto($"Choice {optionCounter:000}", ObjectContext.UserCreated, syntax: displayValue.Syntax)
+            ], ObjectContext.UserCreated));
+            optionCounter++;
+            continue;
+        }
+
+        if (option is PdfString textValue)
+        {
+            sanitizedOptions.Add(PdfString.FromTextAuto($"Option{optionCounter:000}", ObjectContext.UserCreated, syntax: textValue.Syntax));
+            optionCounter++;
+            continue;
+        }
+
+        sanitizedOptions.Add((IPdfObject)option.Clone());
+    }
+
+    return sanitizedOptions;
+}
+
+static void SanitizeWidgetAnnotation(WidgetAnnotationDictionary widgetAnnotation, ref int annotationCounter)
+{
+    widgetAnnotation.Unset(Constants.DictionaryKeys.Annotation.Contents);
+    widgetAnnotation.Unset(Constants.DictionaryKeys.Annotation.Lang);
+
+    if (widgetAnnotation.NM is not null)
+    {
+        widgetAnnotation.Set(Constants.DictionaryKeys.Annotation.NM, PdfString.FromTextAuto($"Annot{annotationCounter:000}", ObjectContext.UserCreated));
+        annotationCounter++;
+    }
+
+    if (widgetAnnotation.GetAs<Dictionary>(Constants.DictionaryKeys.WidgetAnnotation.MK) is { } appearanceCharacteristics)
+    {
+        if (appearanceCharacteristics.ContainsKey("CA"))
+        {
+            appearanceCharacteristics.Set("CA", PdfString.FromTextAuto($"Button {annotationCounter:000}", ObjectContext.UserCreated));
+        }
+
+        if (appearanceCharacteristics.ContainsKey("RC"))
+        {
+            appearanceCharacteristics.Unset("RC");
+        }
+
+        if (appearanceCharacteristics.ContainsKey("AC"))
+        {
+            appearanceCharacteristics.Unset("AC");
+        }
+    }
+
+    if (widgetAnnotation.AS is not null)
+    {
+        widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
+    }
+}
+
+static void StripPageResources(PageDictionary pageDictionary)
+{
+    var resources = pageDictionary.GetAs<Dictionary>(Constants.DictionaryKeys.PageTree.Resources);
+    if (resources is null)
+    {
+        return;
+    }
+
+    resources.Unset(Constants.DictionaryKeys.Resource.XObject);
+
+    if (resources.GetAs<ArrayObject>(Constants.DictionaryKeys.Resource.ProcSet) is { } procSet)
+    {
+        var retainedProcSetNames = procSet
+            .OfType<Name>()
+            .Where(name => !name.Value.StartsWith("/Image", StringComparison.Ordinal))
+            .Select(name => (IPdfObject)name.Clone())
+            .ToList();
+
+        procSet.Clear();
+        procSet.AddRange(retainedProcSetNames);
+    }
+}
+
+static void StripXObjectResources(Dictionary dictionary)
+{
+    if (dictionary.ContainsKey(Constants.DictionaryKeys.Resource.XObject))
+    {
+        dictionary.Unset(Constants.DictionaryKeys.Resource.XObject);
+    }
+
+    if (dictionary.GetAs<ArrayObject>(Constants.DictionaryKeys.Resource.ProcSet) is { } procSet)
+    {
+        var retainedProcSetNames = procSet
+            .OfType<Name>()
+            .Where(name => !name.Value.StartsWith("/Image", StringComparison.Ordinal))
+            .Select(name => (IPdfObject)name.Clone())
+            .ToList();
+
+        procSet.Clear();
+        procSet.AddRange(retainedProcSetNames);
+    }
+}
+
+static async Task RemoveImageReferencesAsync(IPdfObject pdfObject, Pdf pdf)
+{
+    switch (pdfObject)
+    {
+        case Dictionary dictionary:
+            StripXObjectResources(dictionary);
+
+            foreach (var key in dictionary.Keys.ToList())
+            {
+                var value = dictionary.InnerDictionary[key];
+
+                if (value is IndirectObjectReference reference)
+                {
+                    var referencedObject = await pdf.Objects.GetAsync(reference);
+                    if (await ContainsImageContentAsync(referencedObject.Object, pdf, []))
+                    {
+                        dictionary.Unset(key);
+                        continue;
+                    }
+                }
+
+                await RemoveImageReferencesAsync(value, pdf);
+            }
+            break;
+
+        case ArrayObject array:
+            for (var index = array.Count() - 1; index >= 0; index--)
+            {
+                var value = array[index];
+
+                if (value is IndirectObjectReference reference)
+                {
+                    var referencedObject = await pdf.Objects.GetAsync(reference);
+                    if (await ContainsImageContentAsync(referencedObject.Object, pdf, []))
+                    {
+                        var rewritten = array
+                            .Where((_, itemIndex) => itemIndex != index)
+                            .ToList();
+                        array.Clear();
+                        array.AddRange(rewritten);
+                        continue;
+                    }
+                }
+
+                await RemoveImageReferencesAsync(value, pdf);
+            }
+            break;
+    }
+}
+
+static async Task<bool> ContainsImageContentAsync(IPdfObject pdfObject, Pdf pdf, HashSet<IndirectObjectId> visited)
+{
+    if (IsImageStream(pdfObject))
+    {
+        return true;
+    }
+
+    switch (pdfObject)
+    {
+        case Dictionary dictionary:
+            foreach (var value in dictionary.InnerDictionary.Values)
+            {
+                if (value is IndirectObjectReference reference)
+                {
+                    if (!visited.Add(reference.Id))
+                    {
+                        continue;
+                    }
+
+                    var referencedObject = await pdf.Objects.GetAsync(reference);
+                    if (await ContainsImageContentAsync(referencedObject.Object, pdf, visited))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (await ContainsImageContentAsync(value, pdf, visited))
+                {
+                    return true;
+                }
+            }
+            break;
+
+        case ArrayObject array:
+            foreach (var value in array)
+            {
+                if (value is IndirectObjectReference reference)
+                {
+                    if (!visited.Add(reference.Id))
+                    {
+                        continue;
+                    }
+
+                    var referencedObject = await pdf.Objects.GetAsync(reference);
+                    if (await ContainsImageContentAsync(referencedObject.Object, pdf, visited))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (await ContainsImageContentAsync(value, pdf, visited))
+                {
+                    return true;
+                }
+            }
+            break;
+    }
+
+    return false;
+}
+
+static async Task WriteReachablePdfAsync(Pdf pdf, string outputPath)
+{
+    var trailer = await pdf.Objects.GetLatestTrailerDictionaryAsync();
+    var rootReference = trailer.Root ?? throw new InvalidOperationException("Missing trailer root.");
+
+    var reachableIds = new HashSet<IndirectObjectId>();
+    var pendingReferences = new Queue<IndirectObjectReference>();
+    var parentMap = new Dictionary<IndirectObjectId, IndirectObjectId?>();
+    pendingReferences.Enqueue(rootReference);
+    parentMap[rootReference.Id] = null;
+
+    if (trailer.Info is not null)
+    {
+        pendingReferences.Enqueue(trailer.Info);
+        parentMap[trailer.Info.Id] = null;
+    }
+
+    while (pendingReferences.Count > 0)
+    {
+        var reference = pendingReferences.Dequeue();
+        if (!reachableIds.Add(reference.Id))
+        {
+            continue;
+        }
+
+        var indirectObject = await pdf.Objects.GetAsync(reference);
+        foreach (var childReference in EnumerateReferences(indirectObject.Object))
+        {
+            parentMap.TryAdd(childReference.Id, reference.Id);
+            pendingReferences.Enqueue(childReference);
+        }
+    }
+
+    var reachableObjects = new List<IndirectObject>(reachableIds.Count);
+    foreach (var id in reachableIds.OrderBy(x => x.Index))
+    {
+        reachableObjects.Add(await pdf.Objects.GetAsync(new IndirectObjectReference(id, ObjectContext.UserCreated)));
+    }
+
+    foreach (var imageObject in reachableObjects.Where(x => IsImageStream(x.Object)))
+    {
+        Console.WriteLine($"Reachable image object: {imageObject.Id.Index} {imageObject.Id.GenerationNumber} obj");
+        Console.WriteLine($"Reference chain: {FormatReferenceChain(imageObject.Id, parentMap)}");
+    }
+
+    await using var outputStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
+    await new Header(await ReadPdfVersionAsync(pdf), ObjectContext.UserCreated).WriteAsync(outputStream);
+
+    foreach (var indirectObject in reachableObjects)
+    {
+        await indirectObject.WriteAsync(outputStream);
+    }
+
+    var xrefTable = new CrossReferenceTable(BuildCrossReferenceSections(reachableObjects), ObjectContext.UserCreated);
+    await xrefTable.WriteAsync(outputStream);
+
+    var trailerDictionary = CreateTrailerDictionary(
+        size: reachableObjects.Max(x => x.Id.Index) + 1,
+        root: rootReference,
+        info: trailer.Info is not null && reachableIds.Contains(trailer.Info.Id) ? trailer.Info : null,
+        pdf: pdf);
+    await new Trailer(trailerDictionary, xrefTable.ByteOffset!.Value, ObjectContext.UserCreated).WriteAsync(outputStream);
+}
+
+static string FormatReferenceChain(IndirectObjectId targetId, IReadOnlyDictionary<IndirectObjectId, IndirectObjectId?> parentMap)
+{
+    var chain = new List<string>();
+    IndirectObjectId? current = targetId;
+
+    while (current is not null)
+    {
+        chain.Add($"{current.Index} {current.GenerationNumber} obj");
+        current = parentMap.TryGetValue(current, out var parent) ? parent : null;
+    }
+
+    chain.Reverse();
+    return string.Join(" -> ", chain);
+}
+
+static bool IsImageStream(IPdfObject pdfObject)
+    => pdfObject is ZingPDF.Syntax.Objects.Streams.IStreamObject streamObject
+       && streamObject.Dictionary.GetAs<Name>(Constants.DictionaryKeys.Subtype)?.Value == ZingPDF.Graphics.XObjectDictionary.Subtypes.Image;
+
+static IEnumerable<IndirectObjectReference> EnumerateReferences(IPdfObject pdfObject)
+{
+    switch (pdfObject)
+    {
+        case IndirectObjectReference reference:
+            yield return reference;
+            yield break;
+
+        case ArrayObject array:
+            foreach (var item in array)
+            {
+                foreach (var childReference in EnumerateReferences(item))
+                {
+                    yield return childReference;
+                }
+            }
+            yield break;
+
+        case ZingPDF.Syntax.Objects.Streams.IStreamObject streamObject:
+            foreach (var childReference in EnumerateReferences(streamObject.Dictionary))
+            {
+                yield return childReference;
+            }
+            yield break;
+
+        case Dictionary dictionary:
+            foreach (var value in dictionary.InnerDictionary.Values)
+            {
+                foreach (var childReference in EnumerateReferences(value))
+                {
+                    yield return childReference;
+                }
+            }
+            yield break;
+    }
+}
+
+static IEnumerable<CrossReferenceSection> BuildCrossReferenceSections(IReadOnlyCollection<IndirectObject> objects)
+{
+    var objectsByIndex = objects.ToDictionary(x => x.Id.Index);
+    var maxIndex = objectsByIndex.Count == 0 ? 0 : objectsByIndex.Keys.Max();
+    var section = new CrossReferenceSection(0, ObjectContext.UserCreated);
+    section.Add(CrossReferenceEntry.RootFreeEntry);
+
+    for (var index = 1; index <= maxIndex; index++)
+    {
+        if (objectsByIndex.TryGetValue(index, out var indirectObject))
+        {
+            section.Add(new CrossReferenceEntry(indirectObject.ByteOffset!.Value, indirectObject.Id.GenerationNumber, inUse: true, compressed: false, ObjectContext.UserCreated));
+        }
+        else
+        {
+            section.Add(new CrossReferenceEntry(0, 0, inUse: false, compressed: false, ObjectContext.UserCreated));
+        }
+    }
+
+    return [section];
+}
+
+static TrailerDictionary CreateTrailerDictionary(int size, IndirectObjectReference root, IndirectObjectReference? info, Pdf pdf)
+{
+    var createNew = typeof(TrailerDictionary).GetMethod(
+        "CreateNew",
+        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("Unable to locate TrailerDictionary.CreateNew.");
+
+    var originalId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+    var updateId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+    var fileIdentifier = new ArrayObject([originalId, updateId], ObjectContext.UserCreated);
+
+    return (TrailerDictionary)createNew.Invoke(
+        null,
+        [
+            size,
+            null!,
+            root,
+            null!,
+            info,
+            fileIdentifier,
+            pdf,
+            ObjectContext.UserCreated
+        ])!;
+}
+
+static async Task<double> ReadPdfVersionAsync(Pdf pdf)
+{
+    var originalPosition = pdf.Data.Position;
+
+    try
+    {
+        pdf.Data.Position = 0;
+        byte[] headerBytes = new byte[8];
+        var read = await pdf.Data.ReadAsync(headerBytes, 0, headerBytes.Length);
+        if (read < headerBytes.Length)
+        {
+            return 2.0;
+        }
+
+        var version = Encoding.ASCII.GetString(headerBytes, 5, 3);
+        return double.Parse(version, System.Globalization.CultureInfo.InvariantCulture);
+    }
+    finally
+    {
+        pdf.Data.Position = originalPosition;
+    }
+}
 
 static async Task RemoveHistory()
 {

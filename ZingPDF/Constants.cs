@@ -282,6 +282,7 @@ internal static class Constants
                 public const string Q = "Q";
                 public const string DS = "DS";
                 public const string RV = "RV";
+                public const string MaxLen = "MaxLen";
             }
         }
 
