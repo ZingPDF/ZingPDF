@@ -708,6 +708,39 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task TextFormField_SetValue_OnCombField_PersistsAndWritesSegmentedAppearance()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.Form));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var combField = (await form!.GetFieldsAsync())
+            .OfType<TextFormField>()
+            .FirstOrDefault(x => x.Properties.IsComb);
+
+        combField.Should().NotBeNull("the Adobe-authored form fixture should contain at least one comb field");
+
+        await combField!.SetValueAsync("1234");
+
+        var updatedAp = await combField.GetAPAsync();
+        updatedAp.Should().NotBeNull();
+        updatedAp!.Operations.Count(x => x.Operator == "Tj").Should().BeGreaterThan(1);
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-comb-text-set-value.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedField = (await reloadedForm!.GetFieldsAsync())
+            .OfType<TextFormField>()
+            .First(x => x.Name == combField.Name);
+
+        reloadedField.Properties.IsComb.Should().BeTrue();
+        (await reloadedField.GetValueAsync()).Should().Be("1234");
+    }
+
+    [Fact]
     public async Task Metadata_CanBeEdited_AndRoundTrips()
     {
         using var pdf = Pdf.Create();
