@@ -589,7 +589,7 @@ public class PdfTests
         using var output = new MemoryStream();
 
         var form = await pdf.GetFormAsync();
-        var checkbox = (await form!.GetFieldsAsync()).OfType<CheckboxFormField>().First(x => x.Name == "Phone1");
+        var checkbox = (await form!.GetFieldsAsync()).OfType<CheckboxFormField>().First();
         var option = (await checkbox.GetOptionsAsync()).Single();
 
         option.Selected.Should().BeFalse();
@@ -601,7 +601,7 @@ public class PdfTests
         output.Position = 0;
         using var reloaded = Pdf.Load(output);
         var reloadedForm = await reloaded.GetFormAsync();
-        var reloadedCheckbox = (await reloadedForm!.GetFieldsAsync()).OfType<CheckboxFormField>().First(x => x.Name == "Phone1");
+        var reloadedCheckbox = (await reloadedForm!.GetFieldsAsync()).OfType<CheckboxFormField>().First();
         var reloadedOption = (await reloadedCheckbox.GetOptionsAsync()).Single();
 
         reloadedOption.Selected.Should().BeTrue();
@@ -643,6 +643,52 @@ public class PdfTests
         var reloadedTextField = (await reloadedForm!.GetFieldsAsync()).OfType<TextFormField>().First(x => x.Name == textField.Name);
 
         (await reloadedTextField.GetValueAsync()).Should().Be("test");
+    }
+
+    [Fact]
+    public async Task TextFormField_SetValue_PreservesFixedFontSizeAndWritesClippedAppearance()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var textFields = (await form!.GetFieldsAsync()).OfType<TextFormField>().ToList();
+
+        TextFormField? fixedSizeField = null;
+        double originalFontSize = 0;
+
+        foreach (var candidate in textFields)
+        {
+            var ap = await candidate.GetAPAsync();
+            var tf = ap?.Operations.LastOrDefault(x => x.Operator == "Tf");
+            if (tf is null)
+            {
+                continue;
+            }
+
+            var size = (double)tf.GetOperand<Number>(1);
+            if (size > 0)
+            {
+                fixedSizeField = candidate;
+                originalFontSize = size;
+                break;
+            }
+        }
+
+        fixedSizeField.Should().NotBeNull("the Acrobat-authored fixture should contain at least one fixed-size text field");
+
+        await fixedSizeField!.SetValueAsync("test");
+
+        var updatedAp = await fixedSizeField.GetAPAsync();
+        updatedAp.Should().NotBeNull();
+        updatedAp!.Operations.Should().Contain(x => x.Operator == "q");
+        updatedAp.Operations.Should().Contain(x => x.Operator == "re");
+        updatedAp.Operations.Should().Contain(x => x.Operator == "W");
+        updatedAp.Operations.Should().Contain(x =>
+            x.Operator == "Tf"
+            && Math.Abs((double)x.GetOperand<Number>(1) - originalFontSize) < 0.01d);
+        updatedAp.Operations.Should().Contain(x =>
+            x.Operator == "Td"
+            && Math.Abs((double)x.GetOperand<Number>(0) - 2d) < 0.01d);
     }
 
     [Fact]
