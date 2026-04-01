@@ -92,6 +92,7 @@ namespace ZingPDF.Extensions
                 StandardHorizontalWidth = fontDescriptor.StemH != null ? await fontDescriptor.StemH.GetAsync() : null,
                 StandardVerticalWidth = fontDescriptor.StemV != null ? await fontDescriptor.StemV.GetAsync() : null,
                 CapHeight = await fontDescriptor.CapHeight.GetAsync() ?? 0,
+                XHeight = await fontDescriptor.XHeight.GetAsync() ?? 0,
                 ItalicAngle = await fontDescriptor.ItalicAngle.GetAsync(),
                 IsFixedPitch = fontProperties.IsFixedPitch,
                 Widths = widths

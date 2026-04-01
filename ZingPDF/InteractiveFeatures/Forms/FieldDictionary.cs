@@ -148,6 +148,13 @@ namespace ZingPDF.InteractiveFeatures.Forms
         public OptionalMultiProperty<PdfString, StreamObject<IStreamDictionary>> RV
             => GetOptionalMultiProperty<PdfString, StreamObject<IStreamDictionary>>(Constants.DictionaryKeys.Field.VariableText.RV);
 
+        /// <summary>
+        /// (Optional; inheritable) The maximum length of the field’s text, in characters.
+        /// Required when the comb flag is set.
+        /// </summary>
+        [Inheritable]
+        public OptionalProperty<Number> MaxLen => GetOptionalProperty<Number>(Constants.DictionaryKeys.Field.VariableText.MaxLen);
+
         public void SetValue(IPdfObject? value)
         {
             Set(Constants.DictionaryKeys.Field.V, value);
