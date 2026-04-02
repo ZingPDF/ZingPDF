@@ -1,14 +1,15 @@
-﻿using Nito.AsyncEx;
+using System.Runtime.CompilerServices;
+using Nito.AsyncEx;
 using ZingPDF.Extensions;
-using ZingPDF.Syntax.Objects.IndirectObjects;
-
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 
 namespace ZingPDF.Syntax.DocumentStructure.PageTree;
 
 public class PageTree
 {
     private readonly IPdfObjectCollection _objects;
+    private readonly Dictionary<int, IndirectObject> _pageLookupCache = [];
 
     private readonly AsyncLazy<IndirectObject> _rootPageTreeNode;
     private readonly ResettableAsyncLazy<IList<IndirectObject>> _nodes;
@@ -32,8 +33,6 @@ public class PageTree
                     ?? throw new InvalidPdfException($"Unable to resolve page tree root: {rootPageTreeNodeRef}");
             }
 
-            // Fall back to the property wrapper path for unusual PDFs that don't expose
-            // the root page tree as a direct indirect reference in the catalog.
             return await documentCatalog.Pages.GetIndirectObjectAsync();
         });
 
@@ -44,13 +43,22 @@ public class PageTree
 
             var subNodes = await ((PageTreeNodeDictionary)rootPageTreeNode.Object).GetSubNodesAsync(_objects);
 
-            return new List<IndirectObject>([rootPageTreeNode, ..subNodes]);
+            return new List<IndirectObject>([rootPageTreeNode, .. subNodes]);
         });
 
         _pages = new ResettableAsyncLazy<IList<IndirectObject>>(async () =>
         {
             using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.BuildPageList");
-            return [.. (await _nodes).Where(node => node.Object is PageDictionary)];
+            var pages = new List<IndirectObject>();
+            var pageNumber = 1;
+
+            await foreach (var page in EnumeratePagesAsync())
+            {
+                pages.Add(page);
+                _pageLookupCache[pageNumber++] = page;
+            }
+
+            return pages;
         });
 
         _pageCount = new ResettableAsyncLazy<int>(async () =>
@@ -58,8 +66,6 @@ public class PageTree
             using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.GetPageCount");
             var rootPageTreeNode = await GetRootPageTreeNodeDictionaryAsync();
 
-            // Reading the root /Count directly avoids the property wrapper and
-            // indirect-resolution pipeline for the common page-count hot path.
             if (rootPageTreeNode.GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count) is Number directCount)
             {
                 return directCount;
@@ -84,6 +90,45 @@ public class PageTree
         return await _pages.Task;
     }
 
+    public async IAsyncEnumerable<IndirectObject> EnumeratePagesAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var page in EnumeratePagesUnderNodeAsync(await _rootPageTreeNode, cancellationToken))
+        {
+            yield return page;
+        }
+    }
+
+    public async Task<IndirectObject> GetPageAsync(int pageNumber)
+    {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.GetPageAsync");
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        if (_pageLookupCache.TryGetValue(pageNumber, out var cachedPage))
+        {
+            return cachedPage;
+        }
+
+        var location = await TryFindPageLocationAsync(await _rootPageTreeNode, pageNumber - 1);
+        if (location != null)
+        {
+            _pageLookupCache[pageNumber] = location.Page;
+        }
+
+        return location?.Page
+            ?? throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages.");
+    }
+
+    public async Task<(IndirectObject Page, IndirectObject Parent, int ChildIndex)> GetPageLocationAsync(int pageNumber)
+    {
+        using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.GetPageLocationAsync");
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        var location = await TryFindPageLocationAsync(await _rootPageTreeNode, pageNumber - 1);
+        return location is null
+            ? throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages.")
+            : (location.Page, location.Parent, location.ChildIndex);
+    }
+
     public async Task<int> GetPageCountAsync()
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("PageTree.GetPageCountAsync");
@@ -100,6 +145,7 @@ public class PageTree
 
     public void Reset()
     {
+        _pageLookupCache.Clear();
         _nodes.Reset();
         _pages.Reset();
         _pageCount.Reset();
@@ -116,4 +162,102 @@ public class PageTree
         var pageTreeNode = (await _objects.GetAsync(pageTreeRef)).Object as PageTreeNodeDictionary;
         return pageTreeNode?.GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count);
     }
+
+    private async Task<PageLocation?> TryFindPageLocationAsync(IndirectObject node, int zeroBasedPageIndex)
+    {
+        if (node.Object is PageDictionary)
+        {
+            return zeroBasedPageIndex == 0
+                ? new PageLocation(node, node, -1)
+                : null;
+        }
+
+        var pageTreeNode = (PageTreeNodeDictionary)node.Object;
+        var remainingIndex = zeroBasedPageIndex;
+        var kids = await pageTreeNode.Kids.GetAsync();
+        var childIndex = 0;
+
+        foreach (var childRef in kids.Cast<IndirectObjectReference>())
+        {
+            var child = await _objects.GetAsync(childRef);
+
+            if (child.Object is PageDictionary)
+            {
+                if (remainingIndex == 0)
+                {
+                    return new PageLocation(child, node, childIndex);
+                }
+
+                remainingIndex--;
+                childIndex++;
+                continue;
+            }
+
+            if (remainingIndex == 0)
+            {
+                return await TryFindPageLocationAsync(child, 0);
+            }
+
+            var childPageCount = await GetNodePageCountAsync((PageTreeNodeDictionary)child.Object);
+            if (remainingIndex < childPageCount)
+            {
+                return await TryFindPageLocationAsync(child, remainingIndex);
+            }
+
+            remainingIndex -= childPageCount;
+            childIndex++;
+        }
+
+        return null;
+    }
+
+    private async IAsyncEnumerable<IndirectObject> EnumeratePagesUnderNodeAsync(
+        IndirectObject node,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (node.Object is PageDictionary)
+        {
+            yield return node;
+            yield break;
+        }
+
+        var pageTreeNode = (PageTreeNodeDictionary)node.Object;
+        var kids = await pageTreeNode.Kids.GetAsync();
+
+        foreach (var childRef in kids.Cast<IndirectObjectReference>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var child = await _objects.GetAsync(childRef);
+
+            await foreach (var page in EnumeratePagesUnderNodeAsync(child, cancellationToken))
+            {
+                yield return page;
+            }
+        }
+    }
+
+    private async Task<int> GetNodePageCountAsync(PageTreeNodeDictionary pageTreeNode)
+    {
+        if (pageTreeNode.GetAs<Number>(Constants.DictionaryKeys.PageTree.PageTreeNode.Count) is Number directCount)
+        {
+            return directCount;
+        }
+
+        var kids = await pageTreeNode.Kids.GetAsync();
+        var count = 0;
+
+        foreach (var childRef in kids.Cast<IndirectObjectReference>())
+        {
+            var child = await _objects.GetAsync(childRef);
+            count += child.Object is PageDictionary
+                ? 1
+                : await GetNodePageCountAsync((PageTreeNodeDictionary)child.Object);
+        }
+
+        return count;
+    }
+
+    private sealed record PageLocation(IndirectObject Page, IndirectObject Parent, int ChildIndex);
 }

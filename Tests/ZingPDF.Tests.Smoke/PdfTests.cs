@@ -7,6 +7,7 @@ using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
+using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements;
 using ZingPDF.Graphics;
 using ZingPDF.Extensions;
@@ -85,6 +86,41 @@ public class PdfTests
         var pageCount = await pdf.GetPageCountAsync();
 
         pageCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task AppendPage_ManyTimes_StillAllowsRandomPageAccess()
+    {
+        using var pdf = Pdf.Create();
+
+        for (var i = 0; i < 80; i++)
+        {
+            await pdf.AppendPageAsync();
+        }
+
+        (await pdf.GetPageCountAsync()).Should().Be(81);
+        (await pdf.GetPageAsync(1)).Should().NotBeNull();
+        (await pdf.GetPageAsync(40)).Should().NotBeNull();
+        (await pdf.GetPageAsync(81)).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task DeletePage_AfterManyAppends_PrunesEmptyPageTreeBranches()
+    {
+        using var pdf = Pdf.Create();
+
+        for (var i = 0; i < 40; i++)
+        {
+            await pdf.AppendPageAsync();
+        }
+
+        for (var i = 0; i < 40; i++)
+        {
+            await pdf.DeletePageAsync(2);
+        }
+
+        (await pdf.GetPageCountAsync()).Should().Be(1);
+        (await pdf.GetPageAsync(1)).Should().NotBeNull();
     }
 
     [Fact]
@@ -491,6 +527,163 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task ExtractTextAsync_PageNumber_ReturnsOnlyRequestedPageSegments()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var firstPageOnly = (await pdf.ExtractTextAsync(1)).ToList();
+        var fullDocumentFirstPage = (await pdf.ExtractTextAsync())
+            .Where(x => x.PageNumber == 1)
+            .ToList();
+
+        firstPageOnly.Should().NotBeEmpty();
+        firstPageOnly.Should().OnlyContain(x => x.PageNumber == 1);
+        firstPageOnly.Select(x => x.Text).Should().Equal(fullDocumentFirstPage.Select(x => x.Text));
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_PlainTextOptions_ReturnExpectedTextForRequestedPage()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var plainText = (await pdf.ExtractTextAsync(1, new TextExtractionOptions
+        {
+            OutputKind = TextExtractionOutputKind.PlainText
+        })).PlainText;
+
+        plainText.Should().NotBeNullOrWhiteSpace();
+        plainText.Should().Contain("Tax Invoice");
+        plainText.Should().Contain("Thomas Bowers");
+        plainText.Should().NotContain("Your Service Summary");
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_SegmentOptions_MatchLegacySegmentApi()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var legacy = (await pdf.ExtractTextAsync(1)).ToList();
+        var result = await pdf.ExtractTextAsync(1, new TextExtractionOptions
+        {
+            OutputKind = TextExtractionOutputKind.Segments
+        });
+
+        result.Segments.Should().NotBeNull();
+        result.Segments!.Select(x => x.Text).Should().Equal(legacy.Select(x => x.Text));
+        result.Segments!.Select(x => x.PageNumber).Should().Equal(legacy.Select(x => x.PageNumber));
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_PageNumber_RepeatedCallsOnSamePdf_ReturnSameSegments()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var firstRead = (await pdf.ExtractTextAsync(1)).ToList();
+        var secondRead = (await pdf.ExtractTextAsync(1)).ToList();
+
+        firstRead.Select(x => x.Text).Should().Equal(secondRead.Select(x => x.Text));
+        firstRead.Select(x => x.PageNumber).Should().Equal(secondRead.Select(x => x.PageNumber));
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_PageNumber_ThrowsWhenOutOfRange()
+    {
+        using var pdf = Pdf.Create();
+
+        var act = async () => await pdf.ExtractTextAsync(2);
+
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_GeneratedTextHeavy_FirstPage_ContainsExpectedInvoiceDetailsInOrder()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var firstPageText = string.Join("\n", (await pdf.ExtractTextAsync(1)).Select(x => x.Text));
+
+        firstPageText.Should().Contain("Tax Invoice");
+        firstPageText.Should().Contain("Thomas Bowers");
+        firstPageText.Should().Contain("Invoice Number:");
+        firstPageText.Should().Contain("E68854390");
+        AssertContainsInOrder(
+            firstPageText,
+            "1/545 Queen Street,",
+            "Brisbane, QLD 4000",
+            "ABN 96 169 263 094",
+            "Tax Invoice",
+            "Thomas Bowers",
+            "Invoice Number:",
+            "E68854390");
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_GeneratedTextHeavy_PageSpecificExtraction_IsolatesPageContent()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        var firstPageText = string.Join("\n", (await pdf.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await pdf.ExtractTextAsync(2)).Select(x => x.Text));
+        var wholeDocumentText = string.Join("\n", (await pdf.ExtractTextAsync()).Select(x => x.Text));
+
+        firstPageText.Should().Contain("Tax Invoice");
+        firstPageText.Should().NotContain("Your Service Summary");
+        secondPageText.Should().Contain("Your Service Summary");
+        secondPageText.Should().Contain("Powered by TCPDF (www.tcpdf.org)");
+        secondPageText.Should().NotContain("Tax Invoice");
+        wholeDocumentText.Should().Contain("Tax Invoice");
+        wholeDocumentText.Should().Contain("Your Service Summary");
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_AfterWatermark_InvalidatesCachedPageText()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+
+        _ = await pdf.ExtractTextAsync(1);
+        await pdf.AddWatermarkAsync("CACHE WATERMARK");
+
+        var firstPageTextAfterMutation = string.Join("\n", (await pdf.ExtractTextAsync(1)).Select(x => x.Text));
+
+        firstPageTextAfterMutation.Should().Contain("CACHE WATERMARK");
+    }
+
+    [Fact]
+    public async Task ExtractTextAsync_TestPdf_Type0ToUnicodeFixture_DecodesExpectedCompositeFontText()
+    {
+        var rawPdf = Encoding.ASCII.GetString(Files.ConcurrentRead(Files.Test));
+        rawPdf.Should().Contain("/Subtype /Type0");
+        rawPdf.Should().Contain("/ToUnicode ");
+
+        using var pdf = Pdf.Load(Files.AsStream(Files.Test));
+
+        var firstPageText = string.Join("\n", (await pdf.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await pdf.ExtractTextAsync(2)).Select(x => x.Text));
+
+        firstPageText.Should().NotContain("\uFFFD");
+        secondPageText.Should().NotContain("\uFFFD");
+
+        AssertContainsInOrder(
+            firstPageText,
+            "1/545 Queen Street,",
+            "Brisbane, QLD 4000",
+            "Tax Invoice",
+            "Thomas Bowers",
+            "Invoice Number:",
+            "E68854390",
+            "Total Owing:",
+            "-$62.30");
+
+        AssertContainsInOrder(
+            secondPageText,
+            "Your Service Summary",
+            "Broadband - 0201818095",
+            "15 Sep 2023 - 5 Oct 2023",
+            "-$62.30",
+            "Powered by TCPDF (www.tcpdf.org)");
+    }
+
+    [Fact]
     public async Task EncryptAsync_SavesEncryptedPdf()
     {
         using var pdf = Pdf.Create();
@@ -846,6 +1039,18 @@ public class PdfTests
         using var memory = new MemoryStream();
         await stream.CopyToAsync(memory);
         return memory.ToArray();
+    }
+
+    private static void AssertContainsInOrder(string value, params string[] fragments)
+    {
+        var currentIndex = 0;
+
+        foreach (var fragment in fragments)
+        {
+            var foundIndex = value.IndexOf(fragment, currentIndex, StringComparison.Ordinal);
+            foundIndex.Should().BeGreaterThanOrEqualTo(0, $"expected to find '{fragment}' after index {currentIndex}");
+            currentIndex = foundIndex + fragment.Length;
+        }
     }
 
     private static async Task WriteArtifactAsync(string fileName, MemoryStream output)

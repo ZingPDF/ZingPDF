@@ -36,6 +36,8 @@ namespace ZingPDF;
 /// </summary>
 public class Pdf : IPdf, IDisposable
 {
+    private const int PageTreeBranchFactor = 32;
+
     private static readonly ServiceProvider _rootServices = new ServiceCollection()
         .AddDocumentServices()
         .AddParsers()
@@ -56,6 +58,7 @@ public class Pdf : IPdf, IDisposable
 
     private Form? _form;
     private PdfMetadata? _metadata;
+    private IndirectObjectReference? _appendLeafHint;
     private bool _rewriteAllObjects;
     private bool _removeEncryptionOnSave;
     private bool _removeHistoryOnSave;
@@ -119,7 +122,7 @@ public class Pdf : IPdf, IDisposable
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
 
-        var pageIndirectObject = (await Objects.PageTree.GetPagesAsync())[pageNumber - 1];
+        var pageIndirectObject = await Objects.PageTree.GetPageAsync(pageNumber);
 
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
@@ -133,23 +136,20 @@ public class Pdf : IPdf, IDisposable
     public async Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
     {
         var pageCreationOptions = PageDictionary.PageCreationOptions.Initialize(configureOptions);
-
-        var rootPageTreeNodeIndirectObject = await Objects.PageTree.GetRootPageTreeNodeAsync();
-
-        DocumentCatalogDictionary documentCatalog = await Objects.GetDocumentCatalogAsync();
-
-        var page = PageDictionary.CreateNew((await documentCatalog.Pages.GetRawValueAsync() as IndirectObjectReference)!, this, pageCreationOptions);
-
+        var appendParentIndirectObject = await EnsureAppendLeafAsync();
+        var page = PageDictionary.CreateNew(appendParentIndirectObject.Reference, this, pageCreationOptions);
         var pageIndirectObject = await Objects.AddAsync(page);
+        var appendParent = (PageTreeNodeDictionary)appendParentIndirectObject.Object;
 
-        var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
+        await appendParent.AddChildAsync(pageIndirectObject.Reference);
+        Objects.Update(appendParentIndirectObject);
+        _appendLeafHint = appendParentIndirectObject.Reference;
 
-        // TODO: For now, to simplify adding pages,
-        // new pages are appended to the root page tree node.
-        // Determine if there's a better way, like ensuring a balanced tree.
-        await rootPageTreeNode.AddChildAsync(pageIndirectObject.Reference);
+        if (await appendParent.Parent.GetRawValueAsync() is IndirectObjectReference)
+        {
+            await IncrementPageCountAsync(appendParent);
+        }
 
-        Objects.Update(rootPageTreeNodeIndirectObject);
         Objects.PageTree.Reset();
 
         return new Page(pageIndirectObject, this);
@@ -176,12 +176,9 @@ public class Pdf : IPdf, IDisposable
             throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages. To add a page to the end of the PDF, use {nameof(AppendPageAsync)}");
         }
 
-        var pageAtNumber = await GetPageAsync(pageNumber);
-
-        var parentPageTreeNodeIndirectObject = await pageAtNumber.Dictionary.Parent.GetIndirectObjectAsync();
+        var (pageAtNumberIndirectObject, parentPageTreeNodeIndirectObject, kidsIndex) = await Objects.PageTree.GetPageLocationAsync(pageNumber);
+        var pageAtNumber = new Page(pageAtNumberIndirectObject, this);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
-
-        var kidsIndex = (await parentPageTreeNode.Kids.GetAsync()).ToList().IndexOf(pageAtNumber.IndirectObject.Reference);
 
         // Ensure page has all required properties.
         // required, inheritable properties (Resources, MediaBox) must be set on this or any ancestor
@@ -205,6 +202,7 @@ public class Pdf : IPdf, IDisposable
         await IncrementPageCountAsync(parentPageTreeNode);
 
         Objects.Update(parentPageTreeNodeIndirectObject);
+        _appendLeafHint = null;
         Objects.PageTree.Reset();
 
         return new Page(newPageIndirectObject, this);
@@ -222,11 +220,8 @@ public class Pdf : IPdf, IDisposable
             throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must be less than or equal to the total number of pages.");
         }
 
-        var page = await GetPageAsync(pageNumber);
-
-        var parentIndirectObject = await page.Dictionary.Parent.GetIndirectObjectAsync()
-            ?? throw new InvalidPdfException("Unable to find parent page tree node of requested page");
-
+        var (pageIndirectObject, parentIndirectObject, _) = await Objects.PageTree.GetPageLocationAsync(pageNumber);
+        var page = new Page(pageIndirectObject, this);
         var parent = (PageTreeNodeDictionary)parentIndirectObject.Object;
 
         // TODO: Find pages which are subpages of this, move them so they don't become orphans
@@ -234,9 +229,10 @@ public class Pdf : IPdf, IDisposable
         await parent.RemoveChildAsync(page.IndirectObject.Reference);
 
         await DecrementPageCountAsync(parent);
+        await PruneEmptyPageTreeNodesAsync(parentIndirectObject);
 
         Objects.Delete(page.IndirectObject.Id);
-        Objects.Update(new IndirectObject(parentIndirectObject.Id, parent));
+        _appendLeafHint = null;
         Objects.PageTree.Reset();
     }
 
@@ -247,7 +243,7 @@ public class Pdf : IPdf, IDisposable
 
         // Each page may have a rotation property already, therefore a loop is required to set all.
         // i.e. you can't just set an inheritable property on the root page tree node.
-        foreach (var page in await Objects.PageTree.GetPagesAsync())
+        await foreach (var page in Objects.PageTree.EnumeratePagesAsync())
         {
             ((PageDictionary)page.Object).SetRotation(rotation);
             Objects.Update(page);
@@ -260,6 +256,33 @@ public class Pdf : IPdf, IDisposable
         var textExtractor = _services.GetRequiredService<ITextExtractor>();
 
         return textExtractor.ExtractTextAsync();
+    }
+
+    public Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        var textExtractor = _services.GetRequiredService<ITextExtractor>();
+        return textExtractor.ExtractTextAsync(pageNumber);
+    }
+
+    /// <inheritdoc />
+    public Task<TextExtractionResult> ExtractTextAsync(TextExtractionOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        var textExtractor = _services.GetRequiredService<ITextExtractor>();
+        return textExtractor.ExtractTextAsync(options);
+    }
+
+    /// <inheritdoc />
+    public Task<TextExtractionResult> ExtractTextAsync(int pageNumber, TextExtractionOptions options)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+        ArgumentNullException.ThrowIfNull(options);
+
+        var textExtractor = _services.GetRequiredService<ITextExtractor>();
+        return textExtractor.ExtractTextAsync(pageNumber, options);
     }
 
     /// <inheritdoc />
@@ -421,6 +444,7 @@ public class Pdf : IPdf, IDisposable
     public async Task AppendPdfAsync(Stream stream)
     {
         await new PdfMerger(this, Load(stream)).AppendAsync();
+        _appendLeafHint = null;
     }
 
     /// <inheritdoc />
@@ -534,6 +558,218 @@ public class Pdf : IPdf, IDisposable
         await DecrementPageCountAsync(parentPageTreeNode, delta);
     }
 
+    private async Task<IndirectObject> EnsureAppendLeafAsync()
+    {
+        if (_appendLeafHint != null)
+        {
+            var hintedLeaf = await Objects.GetAsync(_appendLeafHint);
+            var hintedNode = hintedLeaf.Object as PageTreeNodeDictionary;
+            if (hintedNode != null && (await hintedNode.Kids.GetAsync()).Count() < PageTreeBranchFactor)
+            {
+                return hintedLeaf;
+            }
+
+            _appendLeafHint = null;
+        }
+
+        var rootPageTreeNode = await Objects.PageTree.GetRootPageTreeNodeAsync();
+
+        while (true)
+        {
+            var leaf = await TryGetAppendLeafAsync(rootPageTreeNode);
+            if (leaf != null)
+            {
+                return leaf;
+            }
+
+            rootPageTreeNode = await GrowRootForAppendAsync(rootPageTreeNode);
+        }
+    }
+
+    private async Task<IndirectObject?> TryGetAppendLeafAsync(IndirectObject nodeIndirectObject)
+    {
+        var childObjects = await NormalizeAndResolveChildrenAsync(nodeIndirectObject);
+
+        if (childObjects.Count == 0 || childObjects.All(static child => child.Object is PageDictionary))
+        {
+            return childObjects.Count < PageTreeBranchFactor
+                ? nodeIndirectObject
+                : null;
+        }
+
+        var rightmostChild = childObjects[^1];
+        var leaf = await TryGetAppendLeafAsync(rightmostChild);
+        if (leaf != null)
+        {
+            return leaf;
+        }
+
+        if (childObjects.Count >= PageTreeBranchFactor)
+        {
+            return null;
+        }
+
+        var newBranch = await CreateEmptyAppendBranchAsync(rightmostChild, nodeIndirectObject.Reference);
+        var nodeDictionary = (PageTreeNodeDictionary)nodeIndirectObject.Object;
+        var kids = await nodeDictionary.Kids.GetAsync();
+        kids.Add(newBranch.Root.Reference);
+        Objects.Update(nodeIndirectObject);
+
+        return newBranch.Leaf;
+    }
+
+    private async Task<IReadOnlyList<IndirectObject>> NormalizeAndResolveChildrenAsync(IndirectObject nodeIndirectObject)
+    {
+        var nodeDictionary = (PageTreeNodeDictionary)nodeIndirectObject.Object;
+        var kids = await nodeDictionary.Kids.GetAsync();
+        var originalRefs = kids.Cast<IndirectObjectReference>().ToList();
+        if (originalRefs.Count == 0)
+        {
+            return [];
+        }
+
+        var resolvedChildren = new List<IndirectObject>(originalRefs.Count);
+        foreach (var childRef in originalRefs)
+        {
+            resolvedChildren.Add(await Objects.GetAsync(childRef));
+        }
+
+        var normalizedRefs = new List<IndirectObjectReference>(originalRefs.Count);
+        var normalizedChildren = new List<IndirectObject>(originalRefs.Count);
+        var changed = false;
+
+        for (var index = 0; index < resolvedChildren.Count; index++)
+        {
+            var child = resolvedChildren[index];
+            if (child.Object is not PageDictionary)
+            {
+                normalizedRefs.Add(child.Reference);
+                normalizedChildren.Add(child);
+                continue;
+            }
+
+            var pageRun = new List<IndirectObject>();
+            while (index < resolvedChildren.Count && resolvedChildren[index].Object is PageDictionary)
+            {
+                pageRun.Add(resolvedChildren[index]);
+                index++;
+            }
+
+            index--;
+
+            if (pageRun.Count == resolvedChildren.Count && normalizedChildren.Count == 0)
+            {
+                return resolvedChildren;
+            }
+
+            var pageRefs = new ArrayObject(pageRun.Select(static page => (IPdfObject)page.Reference), ObjectContext.UserCreated);
+            var leafNode = PageTreeNodeDictionary.CreateNew(pageRefs, this, pageRun.Count);
+            leafNode.SetParent(nodeIndirectObject.Reference);
+            var leafIndirectObject = await Objects.AddAsync(leafNode);
+
+            foreach (var pageObject in pageRun)
+            {
+                ((PageDictionary)pageObject.Object).SetParent(leafIndirectObject.Reference);
+                Objects.Update(pageObject);
+            }
+
+            normalizedRefs.Add(leafIndirectObject.Reference);
+            normalizedChildren.Add(leafIndirectObject);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            await nodeDictionary.ReplaceAllChildrenAsync(normalizedRefs);
+            Objects.Update(nodeIndirectObject);
+        }
+
+        return normalizedChildren;
+    }
+
+    private async Task<AppendBranch> CreateEmptyAppendBranchAsync(IndirectObject templateChild, IndirectObjectReference parentReference)
+    {
+        if (templateChild.Object is not PageTreeNodeDictionary templateNode)
+        {
+            throw new InvalidOperationException("Append branch templates must be page tree nodes.");
+        }
+
+        var childObjects = await NormalizeAndResolveChildrenAsync(templateChild);
+        if (childObjects.Count == 0 || childObjects.All(static child => child.Object is PageDictionary))
+        {
+            var leafNode = PageTreeNodeDictionary.CreateNew(new ArrayObject([], ObjectContext.UserCreated), this, 0);
+            leafNode.SetParent(parentReference);
+            var leafIndirectObject = await Objects.AddAsync(leafNode);
+
+            return new AppendBranch(leafIndirectObject, leafIndirectObject);
+        }
+
+        var branchNode = PageTreeNodeDictionary.CreateNew(new ArrayObject([], ObjectContext.UserCreated), this, 0);
+        branchNode.SetParent(parentReference);
+        var branchIndirectObject = await Objects.AddAsync(branchNode);
+
+        var childBranch = await CreateEmptyAppendBranchAsync(childObjects[^1], branchIndirectObject.Reference);
+        var branchKids = await branchNode.Kids.GetAsync();
+        branchKids.Add(childBranch.Root.Reference);
+        Objects.Update(branchIndirectObject);
+
+        return new AppendBranch(branchIndirectObject, childBranch.Leaf);
+    }
+
+    private async Task<IndirectObject> GrowRootForAppendAsync(IndirectObject rootPageTreeNodeIndirectObject)
+    {
+        var rootPageTreeNode = (PageTreeNodeDictionary)rootPageTreeNodeIndirectObject.Object;
+        var childObjects = await NormalizeAndResolveChildrenAsync(rootPageTreeNodeIndirectObject);
+        if (childObjects.Count == 0)
+        {
+            return rootPageTreeNodeIndirectObject;
+        }
+
+        var rootPageCount = (int)(await rootPageTreeNode.PageCount.GetAsync());
+        var preservedChildren = new ArrayObject(childObjects.Select(static child => (IPdfObject)child.Reference), ObjectContext.UserCreated);
+        var wrappedNode = PageTreeNodeDictionary.CreateNew(preservedChildren, this, rootPageCount);
+        wrappedNode.SetParent(rootPageTreeNodeIndirectObject.Reference);
+        var wrappedIndirectObject = await Objects.AddAsync(wrappedNode);
+
+        foreach (var childObject in childObjects)
+        {
+            ((PageNode)childObject.Object).SetParent(wrappedIndirectObject.Reference);
+            Objects.Update(childObject);
+        }
+
+        await rootPageTreeNode.ReplaceAllChildrenAsync([wrappedIndirectObject.Reference]);
+        rootPageTreeNode.Set(Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number)rootPageCount);
+        Objects.Update(rootPageTreeNodeIndirectObject);
+
+        return rootPageTreeNodeIndirectObject;
+    }
+
+    private async Task PruneEmptyPageTreeNodesAsync(IndirectObject pageTreeNodeIndirectObject)
+    {
+        var pageTreeNode = (PageTreeNodeDictionary)pageTreeNodeIndirectObject.Object;
+        var kids = await pageTreeNode.Kids.GetAsync();
+        if (kids.Any())
+        {
+            Objects.Update(pageTreeNodeIndirectObject);
+            return;
+        }
+
+        if (await pageTreeNode.Parent.GetRawValueAsync() is not IndirectObjectReference parentReference)
+        {
+            Objects.Update(pageTreeNodeIndirectObject);
+            return;
+        }
+
+        var parentIndirectObject = await Objects.GetAsync(parentReference);
+        var parent = (PageTreeNodeDictionary)parentIndirectObject.Object;
+        var parentKids = await parent.Kids.GetAsync();
+        parentKids.Remove<IndirectObjectReference>(x => x.Id.Index == pageTreeNodeIndirectObject.Id.Index);
+        Objects.Update(parentIndirectObject);
+        Objects.Delete(pageTreeNodeIndirectObject.Id);
+
+        await PruneEmptyPageTreeNodesAsync(parentIndirectObject);
+    }
+
     private async Task AddWatermarkInternalAsync(string text)
     {
         var watermarkFont = new Type1FontDictionary(this, ObjectContext.UserCreated);
@@ -543,7 +779,7 @@ public class Pdf : IPdf, IDisposable
         var fontObject = await Objects.AddAsync(watermarkFont);
         var fontResourceName = (Name)UniqueStringGenerator.Generate();
 
-        foreach (var pageObject in await Objects.PageTree.GetPagesAsync())
+        await foreach (var pageObject in Objects.PageTree.EnumeratePagesAsync())
         {
             var page = new Page(pageObject, this);
             var mediaBox = await page.Dictionary.MediaBox.GetAsync();
@@ -583,6 +819,8 @@ public class Pdf : IPdf, IDisposable
             Objects.Update(pageObject);
         }
     }
+
+    private sealed record AppendBranch(IndirectObject Root, IndirectObject Leaf);
 
     private async Task<IndirectObject> CreateTrueTypeFontAsync(TrueTypeFontFace fontFace)
     {

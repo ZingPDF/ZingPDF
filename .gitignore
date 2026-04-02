@@ -400,3 +400,5 @@ FodyWeavers.xsd
 # Generated DocFX output
 /website/api/
 /website/api-src/api/
+
+.tools/

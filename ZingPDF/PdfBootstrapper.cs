@@ -110,6 +110,9 @@ internal static class PdfBootstrapper
         public Task DeletePageAsync(int pageNumber) => throw new NotSupportedException();
         public Task SetRotationAsync(Rotation rotation) => throw new NotSupportedException();
         public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => throw new NotSupportedException();
+        public Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber) => throw new NotSupportedException();
+        public Task<TextExtractionResult> ExtractTextAsync(TextExtractionOptions options) => throw new NotSupportedException();
+        public Task<TextExtractionResult> ExtractTextAsync(int pageNumber, TextExtractionOptions options) => throw new NotSupportedException();
         public Task AddWatermarkAsync(string text) => throw new NotSupportedException();
         public Task<PdfFont> RegisterStandardFontAsync(string fontName, string? resourceName = null) => throw new NotSupportedException();
         public Task<PdfFont> RegisterTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();

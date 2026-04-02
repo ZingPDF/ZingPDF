@@ -40,6 +40,9 @@
     <None Include="..\..\TestFiles\pdf\minimal2.pdf" Link="TestFiles\pdf\minimal2.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\TestFiles\pdf\test.pdf" Link="TestFiles\pdf\test.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

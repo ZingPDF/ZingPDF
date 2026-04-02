@@ -13,6 +13,11 @@ namespace ZingPDF;
 public interface IPdfObjectCollection : IAsyncEnumerable<IndirectObject>
 {
     /// <summary>
+    /// Gets a version counter that increments whenever the in-memory object graph is mutated.
+    /// </summary>
+    long ChangeVersion { get; }
+
+    /// <summary>
     /// Gets the document catalog of the PDF.
     /// </summary>
     Task<DocumentCatalogDictionary> GetDocumentCatalogAsync();

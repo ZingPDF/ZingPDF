@@ -169,6 +169,23 @@ public class ArrayParserTests
     }
 
     [Fact]
+    public async Task ParseArray_IgnoresComments()
+    {
+        var contentString = "[ /Test % keep parsing\r\n 12 ]";
+
+        using var input = contentString.ToStream();
+
+        var output = await new ArrayParser(CreateParserResolver())
+            .ParseAsync(input, ObjectContext.WithOrigin(ObjectOrigin.ParsedDocumentObject));
+
+        output.Should().HaveCount(2);
+        output[0].Should().BeOfType<Name>();
+        output[1].Should().BeOfType<Number>();
+        output.Should().NotContainItemsAssignableTo<Comment>();
+        input.Position.Should().Be(contentString.Length);
+    }
+
+    [Fact]
     public async Task ParseEmptyNestedArray_WithWhitespace_CorrectCounts()
     {
         var contentString = "[ [ ] ]";

@@ -1,196 +1,449 @@
-﻿using System.Text;
-using ZingPDF.Extensions;
+using System.Runtime.CompilerServices;
+using System.Text;
+using ZingPDF.Diagnostics;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
-using ZingPDF.Parsing.Parsers;
-using ZingPDF.Syntax;
-using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
-using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 
-namespace ZingPDF.Elements.Drawing.Text.Extraction
+namespace ZingPDF.Elements.Drawing.Text.Extraction;
+
+/// <summary>
+/// Extracts text from PDF page content streams using a dedicated low-level scanner.
+/// </summary>
+public class TextExtractor : ITextExtractor
 {
-    /// <summary>
-    /// Orchestrates PDF parsing, font/CMap resolution, and emits text lines or glyphs.
-    /// </summary>
-    public class TextExtractor : ITextExtractor
+    private readonly IPdf _pdf;
+    private readonly IReadOnlyList<IFontMetricsProvider> _baseProviders;
+    private readonly Dictionary<string, ResolvedFontResourceSet> _fontResourceSetCache = [];
+    private readonly Dictionary<PageExtractionCacheKey, IReadOnlyList<ExtractedText>> _pageExtractionCache = [];
+    private readonly Dictionary<PageExtractionCacheKey, string> _pagePlainTextCache = [];
+
+    public TextExtractor(IPdf pdf, IEnumerable<IFontMetricsProvider>? baseProviders = null)
     {
-        private readonly IPdf _pdf;
-        private readonly IParser<ContentStream> _contentStreamParser;
-        private readonly IEnumerable<IFontMetricsProvider> _baseProviders;
+        _pdf = pdf;
+        _baseProviders = (baseProviders ?? [new PDFStandardFontMetricsProvider()]).ToArray();
+    }
 
-        public TextExtractor(
-            IPdf pdf,
-            IParser<ContentStream> contentStreamParser,
-            IEnumerable<IFontMetricsProvider>? baseProviders = null)
+    public async Task<IEnumerable<GlyphRun>> ExtractGlyphRunsAsync()
+    {
+        var glyphRuns = new List<GlyphRun>();
+        var pageNumber = 0;
+
+        await foreach (var page in _pdf.Objects.PageTree.EnumeratePagesAsync())
         {
-            _pdf = pdf;
-            _contentStreamParser = contentStreamParser;
-            _baseProviders = baseProviders ?? [new PDFStandardFontMetricsProvider()];
+            pageNumber++;
+            glyphRuns.AddRange(await ExtractPageGlyphRunsAsync((PageDictionary)page.Object, pageNumber));
         }
 
-        /// <summary>
-        /// Extracts raw glyph runs (one run per Tj/TJ/'/" operator) in document order.
-        /// </summary>
-        public async Task<IEnumerable<GlyphRun>> ExtractGlyphRunsAsync()
+        return glyphRuns;
+    }
+
+    public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
+    {
+        return (await ExtractTextAsync(new TextExtractionOptions())).Segments!;
+    }
+
+    public async Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+
+        var page = await _pdf.Objects.PageTree.GetPageAsync(pageNumber);
+        if (page is null)
         {
-            var pages = await _pdf.Objects.PageTree.GetPagesAsync();
-            var glyphRuns = new List<GlyphRun>();
-
-            for (int i = 0; i < pages.Count; i++)
-            {
-                int pageNum = i + 1;
-                var pageDict = (PageDictionary)pages[i].Object;
-                glyphRuns.AddRange(await ExtractPageGlyphRunsAsync(pageDict, pageNum));
-            }
-
-            return glyphRuns;
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must reference an existing page.");
         }
 
-        /// <summary>
-        /// Groups glyph runs by page and line, then concatenates them into <see cref="ExtractedText"/> values.
-        /// </summary>
-        public async Task<IEnumerable<ExtractedText>> ExtractTextAsync()
+        return (await GetExtractedTextForPageAsync((PageDictionary)page.Object, pageNumber)).ToList();
+    }
+
+    public async Task<TextExtractionResult> ExtractTextAsync(TextExtractionOptions options)
+    {
+        using var trace = PerformanceTrace.Measure("TextExtractor.ExtractTextAsync(options)");
+        ArgumentNullException.ThrowIfNull(options);
+
+        return options.OutputKind switch
         {
-            var texts = new List<ExtractedText>();
-            var pages = await _pdf.Objects.PageTree.GetPagesAsync();
+            TextExtractionOutputKind.PlainText => await ExtractPlainTextResultAsync(),
+            TextExtractionOutputKind.Segments => await ExtractSegmentsResultAsync(),
+            TextExtractionOutputKind.Letters => await ExtractLettersResultAsync(),
+            _ => throw new ArgumentOutOfRangeException(nameof(options))
+        };
+    }
 
-            for (int i = 0; i < pages.Count; i++)
-            {
-                int pageNum = i + 1;
-                var pageDict = (PageDictionary)pages[i].Object;
-                var pageRuns = await ExtractPageGlyphRunsAsync(pageDict, pageNum);
-                texts.AddRange(BuildExtractedText(pageNum, pageRuns));
-            }
+    public async Task<TextExtractionResult> ExtractTextAsync(int pageNumber, TextExtractionOptions options)
+    {
+        using var trace = PerformanceTrace.Measure("TextExtractor.ExtractTextAsync(pageNumber,options)");
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
+        ArgumentNullException.ThrowIfNull(options);
 
-            return texts;
+        var page = await _pdf.Objects.PageTree.GetPageAsync(pageNumber);
+        if (page is null)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), $"{nameof(pageNumber)} must reference an existing page.");
         }
 
-        private async Task<List<GlyphRun>> ExtractPageGlyphRunsAsync(PageDictionary pageDict, int pageNum)
+        var pageDictionary = (PageDictionary)page.Object;
+
+        return options.OutputKind switch
         {
-            ArrayObject? contents = await pageDict.Contents.GetAsync();
-            if (contents == null)
+            TextExtractionOutputKind.PlainText => new TextExtractionResult
             {
-                return [];
+                OutputKind = TextExtractionOutputKind.PlainText,
+                PlainText = await GetPlainTextForPageAsync(pageDictionary, pageNumber)
+            },
+            TextExtractionOutputKind.Segments => new TextExtractionResult
+            {
+                OutputKind = TextExtractionOutputKind.Segments,
+                Segments = await GetExtractedTextForPageAsync(pageDictionary, pageNumber)
+            },
+            TextExtractionOutputKind.Letters => new TextExtractionResult
+            {
+                OutputKind = TextExtractionOutputKind.Letters,
+                Letters = await ExtractPageGlyphRunsAsync(pageDictionary, pageNumber)
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(options))
+        };
+    }
+
+    private async Task<List<GlyphRun>> ExtractPageGlyphRunsAsync(PageDictionary pageDictionary, int pageNumber)
+    {
+        var contents = await pageDictionary.Contents.GetAsync();
+        if (contents is null)
+        {
+            return [];
+        }
+
+        var fontResources = await GetFontResourceSetAsync(pageDictionary);
+        using var pageExtractor = new LowLevelTextPageExtractor(fontResources);
+
+        var glyphRuns = new List<GlyphRun>();
+        foreach (var content in contents)
+        {
+            if (content is not StreamObject<StreamDictionary> streamObject)
+            {
+                continue;
             }
 
-            Dictionary? rawRes = await pageDict.Resources.GetAsync();
-            var resDict = rawRes != null ? ResourceDictionary.FromDictionary(rawRes) : null;
-            var providers = new List<IFontMetricsProvider>(_baseProviders);
-            if (resDict != null)
+            using var data = await streamObject.GetDecompressedDataAsync();
+            await pageExtractor.AppendGlyphRunsAsync(data, pageNumber, glyphRuns);
+        }
+
+        return glyphRuns;
+    }
+
+    private async Task<List<TextRun>> ExtractPageTextRunsAsync(PageDictionary pageDictionary, int pageNumber)
+    {
+        var contents = await pageDictionary.Contents.GetAsync();
+        if (contents is null)
+        {
+            return [];
+        }
+
+        var fontResources = await GetFontResourceSetAsync(pageDictionary);
+        using var pageExtractor = new LowLevelTextPageExtractor(fontResources);
+
+        var textRuns = new List<TextRun>();
+        foreach (var content in contents)
+        {
+            if (content is not StreamObject<StreamDictionary> streamObject)
             {
-                var dynamicProviders = await resDict.GetFontMetricsProvidersAsync(_pdf.Objects);
-                providers.AddRange(dynamicProviders);
+                continue;
             }
 
-            var fontResources = resDict != null
-                ? await resDict.Font.GetAsync() ?? new Dictionary(_pdf, ObjectContext.None)
-                : new Dictionary(_pdf, ObjectContext.None);
+            using var data = await streamObject.GetDecompressedDataAsync();
+            await pageExtractor.AppendTextRunsAsync(data, pageNumber, textRuns);
+        }
 
-            var state = new TextDrawingState(providers, fontResources);
-            var context = ObjectContext.WithOrigin(ObjectOrigin.ParsedContentStream);
-            var glyphRuns = new List<GlyphRun>();
+        return textRuns;
+    }
 
-            foreach (var streamObject in contents.Cast<StreamObject<StreamDictionary>>())
+    private async Task<ResolvedFontResourceSet> GetFontResourceSetAsync(
+        PageDictionary pageDictionary,
+        ISet<string>? selectedResourceNames = null,
+        bool includeDisplayName = true,
+        bool includeMetrics = true)
+    {
+        using var trace = PerformanceTrace.Measure("TextExtractor.GetFontResourceSetAsync");
+        Dictionary? rawResources = await pageDictionary.Resources.GetAsync();
+        if (rawResources is null)
+        {
+            return ResolvedFontResourceSet.Empty;
+        }
+
+        var resourceDictionary = Syntax.ContentStreamsAndResources.ResourceDictionary.FromDictionary(rawResources);
+        var fontResources = await resourceDictionary.Font.GetAsync();
+        if (fontResources is null || fontResources.InnerDictionary.Count == 0)
+        {
+            return ResolvedFontResourceSet.Empty;
+        }
+
+        var cacheKey = CreateFontResourceCacheKey(fontResources, selectedResourceNames, includeDisplayName, includeMetrics);
+        if (_fontResourceSetCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
+        }
+
+        var resolved = await ResolvedFontResourceSet.CreateAsync(_pdf, fontResources, _baseProviders, selectedResourceNames, includeDisplayName, includeMetrics);
+        _fontResourceSetCache[cacheKey] = resolved;
+        return resolved;
+    }
+
+    private async Task<IReadOnlyList<ExtractedText>> GetExtractedTextForPageAsync(PageDictionary pageDictionary, int pageNumber)
+    {
+        var cacheKey = new PageExtractionCacheKey(_pdf.Objects.ChangeVersion, pageNumber);
+        if (_pageExtractionCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
+        }
+
+        var pageRuns = await ExtractPageTextRunsAsync(pageDictionary, pageNumber);
+        var extracted = BuildExtractedText(pageNumber, pageRuns);
+        _pageExtractionCache[cacheKey] = extracted;
+        return extracted;
+    }
+
+    private async Task<string> GetPlainTextForPageAsync(PageDictionary pageDictionary, int pageNumber)
+    {
+        using var trace = PerformanceTrace.Measure("TextExtractor.GetPlainTextForPageAsync");
+        var cacheKey = new PageExtractionCacheKey(_pdf.Objects.ChangeVersion, pageNumber);
+        if (_pagePlainTextCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
+        }
+
+        var contents = await pageDictionary.Contents.GetAsync();
+        if (contents is null)
+        {
+            _pagePlainTextCache[cacheKey] = string.Empty;
+            return string.Empty;
+        }
+
+        var usedFontResourceNames = new HashSet<string>(StringComparer.Ordinal);
+        using (var scanner = new LowLevelTextPageExtractor(ResolvedFontResourceSet.Empty))
+        {
+            foreach (var content in contents)
             {
+                if (content is not StreamObject<StreamDictionary> streamObject)
+                {
+                    continue;
+                }
+
                 using var data = await streamObject.GetDecompressedDataAsync();
-                var ops = (await _contentStreamParser.ParseAsync(data, context)).Operations;
-
-                foreach (ContentStreamOperation op in ops)
-                {
-                    var emittedGlyphs = await state.ProcessOperatorAsync(op, pageNum);
-                    if (emittedGlyphs != null)
-                    {
-                        glyphRuns.Add(emittedGlyphs);
-                    }
-                }
+                await scanner.AppendUsedFontResourceNamesAsync(data, usedFontResourceNames);
             }
-
-            return glyphRuns;
         }
 
-        private static IEnumerable<ExtractedText> BuildExtractedText(int pageNumber, IReadOnlyList<GlyphRun> runs)
+        var fontResources = await GetFontResourceSetAsync(pageDictionary, usedFontResourceNames, includeDisplayName: false, includeMetrics: false);
+        using var pageExtractor = new LowLevelTextPageExtractor(fontResources);
+        var builder = new StringBuilder();
+
+        foreach (var content in contents)
         {
-            const float yTolerance = 2f;
-            const float gapFactor = 0.2f;  // threshold relative to glyph height
-
-            var lineGroups = new List<List<GlyphRun>>();
-
-            foreach (var run in runs)
+            if (content is not StreamObject<StreamDictionary> streamObject)
             {
-                if (run.Glyphs.Count == 0)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                float y = run.Glyphs[0].Y;
-                var line = lineGroups.FirstOrDefault(group => Math.Abs(group[0].Glyphs[0].Y - y) < yTolerance);
-                if (line == null)
+            using var data = await streamObject.GetDecompressedDataAsync();
+            await pageExtractor.AppendPlainTextAsync(data, builder);
+        }
+
+        var plainText = builder.ToString();
+        _pagePlainTextCache[cacheKey] = plainText;
+        return plainText;
+    }
+
+    private async Task<TextExtractionResult> ExtractSegmentsResultAsync()
+    {
+        var extracted = new List<ExtractedText>();
+        var pageNumber = 0;
+
+        await foreach (var page in _pdf.Objects.PageTree.EnumeratePagesAsync())
+        {
+            pageNumber++;
+            extracted.AddRange(await GetExtractedTextForPageAsync((PageDictionary)page.Object, pageNumber));
+        }
+
+        return new TextExtractionResult
+        {
+            OutputKind = TextExtractionOutputKind.Segments,
+            Segments = extracted
+        };
+    }
+
+    private async Task<TextExtractionResult> ExtractPlainTextResultAsync()
+    {
+        using var trace = PerformanceTrace.Measure("TextExtractor.ExtractPlainTextResultAsync");
+        var builder = new StringBuilder();
+        var pageNumber = 0;
+
+        await foreach (var page in _pdf.Objects.PageTree.EnumeratePagesAsync())
+        {
+            pageNumber++;
+            var pageText = await GetPlainTextForPageAsync((PageDictionary)page.Object, pageNumber);
+            if (pageText.Length == 0)
+            {
+                continue;
+            }
+
+            if (builder.Length != 0)
+            {
+                builder.Append('\n');
+            }
+
+            builder.Append(pageText);
+        }
+
+        return new TextExtractionResult
+        {
+            OutputKind = TextExtractionOutputKind.PlainText,
+            PlainText = builder.ToString()
+        };
+    }
+
+    private async Task<TextExtractionResult> ExtractLettersResultAsync()
+    {
+        var letters = (await ExtractGlyphRunsAsync()).ToList();
+        return new TextExtractionResult
+        {
+            OutputKind = TextExtractionOutputKind.Letters,
+            Letters = letters
+        };
+    }
+
+    private static string CreateFontResourceCacheKey(
+        Dictionary fontResources,
+        ISet<string>? selectedResourceNames,
+        bool includeDisplayName,
+        bool includeMetrics)
+    {
+        var builder = new StringBuilder();
+        builder.Append(includeDisplayName ? "display|" : "plain|");
+        builder.Append(includeMetrics ? "metrics|" : "nometrics|");
+
+        if (selectedResourceNames != null && selectedResourceNames.Count != 0)
+        {
+            builder.Append("selected=");
+            foreach (var selected in selectedResourceNames.OrderBy(static x => x, StringComparer.Ordinal))
+            {
+                builder.Append(selected).Append(',');
+            }
+
+            builder.Append('|');
+        }
+
+        foreach (var entry in fontResources.OrderBy(static entry => entry.Key, StringComparer.Ordinal))
+        {
+            builder.Append(entry.Key).Append('=');
+            if (entry.Value is IndirectObjectReference reference)
+            {
+                builder.Append(reference.Id.Index).Append(':').Append(reference.Id.GenerationNumber);
+            }
+            else
+            {
+                builder.Append("direct:").Append(RuntimeHelpers.GetHashCode(entry.Value));
+            }
+
+            builder.Append(';');
+        }
+
+        return builder.ToString();
+    }
+
+    private static IReadOnlyList<ExtractedText> BuildExtractedText(int pageNumber, IReadOnlyList<TextRun> runs)
+    {
+        const float yTolerance = 2f;
+        const float gapFactor = 0.2f;
+
+        var lineGroups = new List<List<TextRun>>();
+
+        for (var i = 0; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            if (string.IsNullOrEmpty(run.Text))
+            {
+                continue;
+            }
+
+            List<TextRun>? line = null;
+            for (var lineIndex = 0; lineIndex < lineGroups.Count; lineIndex++)
+            {
+                var candidate = lineGroups[lineIndex];
+                if (Math.Abs(candidate[0].Y - run.Y) < yTolerance)
                 {
-                    lineGroups.Add([run]);
-                }
-                else
-                {
-                    line.Add(run);
+                    line = candidate;
+                    break;
                 }
             }
 
-            var texts = new List<ExtractedText>();
-
-            foreach (var line in lineGroups)
+            if (line is null)
             {
-                var orderedRuns = line.OrderBy(run => run.Glyphs[0].X).ToList();
-                if (orderedRuns.Count == 0)
+                lineGroups.Add([run]);
+            }
+            else
+            {
+                line.Add(run);
+            }
+        }
+
+        var extracted = new List<ExtractedText>();
+        var textBuilder = new StringBuilder();
+
+        for (var lineIndex = 0; lineIndex < lineGroups.Count; lineIndex++)
+        {
+            var line = lineGroups[lineIndex];
+            line.Sort(static (left, right) => left.X.CompareTo(right.X));
+
+            var segmentStart = 0;
+            while (segmentStart < line.Count)
+            {
+                var segmentEnd = segmentStart + 1;
+                var hasNonWhitespace = !line[segmentStart].AllWhitespace;
+
+                while (segmentEnd < line.Count)
                 {
-                    continue;
-                }
-
-                var segments = new List<List<GlyphRun>>();
-                var segment = new List<GlyphRun> { orderedRuns[0] };
-
-                for (int i = 1; i < orderedRuns.Count; i++)
-                {
-                    var prevRun = orderedRuns[i - 1];
-                    var currRun = orderedRuns[i];
-                    var lastGlyph = prevRun.Glyphs[prevRun.Glyphs.Count - 1];
-                    float prevEnd = lastGlyph.X + lastGlyph.Width;
-                    float gap = currRun.Glyphs[0].X - prevEnd;
-                    float threshold = lastGlyph.Height * gapFactor;
-
+                    var previous = line[segmentEnd - 1];
+                    var current = line[segmentEnd];
+                    var gap = current.X - previous.EndX;
+                    var threshold = previous.Height * gapFactor;
                     if (gap > threshold)
                     {
-                        segments.Add(segment);
-                        segment = [];
+                        break;
                     }
 
-                    segment.Add(currRun);
+                    hasNonWhitespace |= !current.AllWhitespace;
+                    segmentEnd++;
                 }
 
-                segments.Add(segment);
-
-                foreach (var runSegment in segments)
+                if (hasNonWhitespace)
                 {
-                    if (runSegment.All(run => run.Glyphs.All(glyph => char.IsWhiteSpace(glyph.Character))))
+                    textBuilder.Clear();
+                    for (var runIndex = segmentStart; runIndex < segmentEnd; runIndex++)
                     {
-                        continue;
+                        textBuilder.Append(line[runIndex].Text);
                     }
 
-                    var firstGlyph = runSegment[0].Glyphs[0];
-                    texts.Add(new ExtractedText
+                    var firstRun = line[segmentStart];
+                    extracted.Add(new ExtractedText
                     {
                         PageNumber = pageNumber,
-                        Text = string.Concat(runSegment.SelectMany(run => run.Glyphs).Select(glyph => glyph.Character)),
-                        FontName = firstGlyph.FontName,
-                        FontSize = firstGlyph.FontSize,
-                        X = firstGlyph.X,
-                        Y = firstGlyph.Y
+                        Text = textBuilder.ToString(),
+                        FontName = firstRun.FontName,
+                        FontSize = firstRun.FontSize,
+                        X = firstRun.X,
+                        Y = firstRun.Y
                     });
                 }
-            }
 
-            return texts;
+                segmentStart = segmentEnd;
+            }
         }
+
+        return extracted;
     }
+
+    private readonly record struct PageExtractionCacheKey(long ChangeVersion, int PageNumber);
 }

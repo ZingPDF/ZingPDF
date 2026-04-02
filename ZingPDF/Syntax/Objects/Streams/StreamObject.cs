@@ -1,4 +1,5 @@
 ﻿using ZingPDF.Extensions;
+using ZingPDF.Diagnostics;
 using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.Dictionaries;
@@ -15,6 +16,8 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
     where TDictionary : class, IStreamDictionary
 {
     private readonly IPdfEncryptionProvider? _encryptionProvider;
+    private readonly object _decodedDataLock = new();
+    private Task<byte[]>? _decodedDataTask;
 
     public StreamObject(Stream data, TDictionary dictionary, ObjectContext context)
         : this(data, dictionary, context, null)
@@ -66,6 +69,7 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
 
     public async Task<Stream> GetDecompressedDataAsync()
     {
+        using var trace = PerformanceTrace.Measure("StreamObject.GetDecompressedDataAsync");
         Data.Position = 0;
 
         ArrayObject? filterNames = await Dictionary.Filter.GetAsync();
@@ -93,16 +97,50 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
             return stream;
         }
 
-        var ms = new MemoryStream();
+        var decodedData = await GetOrCreateDecodedDataAsync(filterNames, hasFilters);
+        return new MemoryStream(decodedData, writable: false);
+    }
+
+    private Task<byte[]> GetOrCreateDecodedDataAsync(ArrayObject? filterNames, bool hasFilters)
+    {
+        lock (_decodedDataLock)
+        {
+            return _decodedDataTask ??= DecodeToBytesAsync(filterNames, hasFilters);
+        }
+    }
+
+    private async Task<byte[]> DecodeToBytesAsync(ArrayObject? filterNames, bool hasFilters)
+    {
+        if (_encryptionProvider is null)
+        {
+            Stream stream = new NonDisposingStreamView(Data);
+
+            if (!hasFilters)
+            {
+                return await stream.ReadToEndAsync();
+            }
+
+            IEnumerable<Dictionary> allFilterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
+
+            foreach (var filter in FilterFactory.CreateFilterInstances(filterNames!.Cast<Name>(), allFilterParams))
+            {
+                stream = filter.Decode(stream);
+                stream.Position = 0;
+            }
+
+            return await stream.ReadToEndAsync();
+        }
+
+        using var ms = new MemoryStream();
         await Data.CopyToAsync(ms);
         var dataBytes = await _encryptionProvider.DecryptObjectBytesAsync(Context, ms.ToArray(), Dictionary);
-        Stream decryptedStream = new MemoryStream(dataBytes);
 
         if (!hasFilters)
         {
-            return decryptedStream;
+            return dataBytes;
         }
 
+        Stream decryptedStream = new MemoryStream(dataBytes, writable: false);
         IEnumerable<Dictionary> filterParams = (await Dictionary.DecodeParms.GetAsync() ?? []).Cast<Dictionary>();
 
         foreach (var filter in FilterFactory.CreateFilterInstances(filterNames!.Cast<Name>(), filterParams))
@@ -111,7 +149,7 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
             decryptedStream.Position = 0;
         }
 
-        return decryptedStream;
+        return await decryptedStream.ReadToEndAsync();
     }
 
     public override object Clone()
