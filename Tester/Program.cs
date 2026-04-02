@@ -78,14 +78,8 @@ using IOPath = System.IO.Path;
 
 //await RotateWholeDocument();
 //await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
-
-//var command = Environment.GetCommandLineArgs().Skip(1).FirstOrDefault();
-
-//if (string.Equals(command, "sanitize-complex-form", StringComparison.OrdinalIgnoreCase))
-//{
-//    await SanitizeComplexFormFixtureAsync();
-//    return;
-//}
+//await SanitizeComplexFormFixtureAsync();
+await ProfileAppendSavePathForProfilerAsync();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
@@ -100,7 +94,7 @@ using IOPath = System.IO.Path;
 //await Decompress("testfiles/pdf/generated-mixed-workload.pdf", "decompressed-generated-mixed-workload.pdf");
 //await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-await ExtractText("testfiles/pdf/generated-text-heavy.pdf");
+//await ExtractText("testfiles/pdf/generated-text-heavy.pdf");
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
@@ -1340,6 +1334,21 @@ static async Task AddPage(string input, string output)
     var count2 = await pdf.GetPageCountAsync();
 
     await pdf.SaveAsync(outputFileStream);
+}
+
+static async Task ProfileAppendSavePathForProfilerAsync()
+{
+    const string input = "testfiles/pdf/generated-mixed-workload.pdf";
+
+    await using var inputFileStream = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
+    using var pdf = Pdf.Load(inputFileStream);
+
+    await pdf.AppendPageAsync();
+
+    await using var outputStream = new MemoryStream();
+    await pdf.SaveAsync(outputStream);
+
+    Console.WriteLine();
 }
 
 static async Task ParseResaveValidate(string input, string output)

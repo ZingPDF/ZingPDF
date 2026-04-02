@@ -39,7 +39,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly List<IndirectObjectId> _deletedObjects = [];
 
     private readonly AsyncLazy<VersionInformation> _latestVersion;
-    private readonly AsyncLazy<IEnumerable<VersionInformation>> _versions;
+    private readonly AsyncLazy<List<VersionInformation>> _versions;
     private readonly AsyncLazy<DocumentCatalogDictionary> _root;
 
     private readonly IDocumentVersionParser _documentVersionParser;
@@ -67,48 +67,12 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         _indirectObjectParser = indirectObjectParser;
         _parserResolver = parserResolver;
         _tokenTypeIdentifier = tokenTypeIdentifier;
-        _latestVersion = new AsyncLazy<VersionInformation>(async () => await _documentVersionParser.ParseLatestAsync(_pdf.Data));
-        _versions = new AsyncLazy<IEnumerable<VersionInformation>>(async () =>
-        {
-            List<VersionInformation> versions = [await _latestVersion];
-
-            int? xrefOffset = versions[0].TrailerDictionary.Prev;
-            while (xrefOffset != null)
-            {
-                var version = await _documentVersionParser.ParseAtAsync(_pdf.Data, xrefOffset.Value);
-                versions.Add(version);
-                xrefOffset = version.TrailerDictionary.Prev;
-            }
-
-            return versions;
-        });
+        _latestVersion = new AsyncLazy<VersionInformation>(() => ToTask(_documentVersionParser.ParseLatestAsync(_pdf.Data)));
+        _versions = new AsyncLazy<List<VersionInformation>>(() => ToTask(_documentVersionParser.ParseAsync(_pdf.Data)));
 
         //_freeIds = new Queue<IndirectObjectId>(GetFreeIds());
 
-        _root = new AsyncLazy<DocumentCatalogDictionary>(async () =>
-        {
-            var latestVersion = await _latestVersion;
-            var catalogRef = latestVersion.TrailerDictionary.Root
-                ?? throw new InvalidPdfException("Missing Root entry");
-
-            if (_parsedObjectCache.TryGetValue(catalogRef.Id, out var cachedCatalogObject))
-            {
-                return cachedCatalogObject.Object as DocumentCatalogDictionary
-                    ?? throw new InvalidPdfException("Unable to dereference document catalog");
-            }
-
-            if (latestVersion.IndirectObjects.TryGetValue(catalogRef.Id, out var latestCatalogEntry))
-            {
-                var catalogObject = await DereferenceObjectAsync(catalogRef, latestCatalogEntry);
-                _parsedObjectCache[catalogRef.Id] = catalogObject;
-
-                return catalogObject.Object as DocumentCatalogDictionary
-                    ?? throw new InvalidPdfException("Unable to dereference document catalog");
-            }
-
-            return (await GetAsync(catalogRef)).Object as DocumentCatalogDictionary
-                ?? throw new InvalidPdfException("Unable to dereference document catalog");
-        });
+        _root = new AsyncLazy<DocumentCatalogDictionary>(LoadRootAsync);
 
         PageTree = new PageTree(this);
     }
@@ -181,7 +145,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
             return latestObject;
         }
 
-        IEnumerable<VersionInformation> versions = await _versions;
+        List<VersionInformation> versions = await _versions;
 
         // Finally, parse and cache the value.
         // Search through versions, which are ordered most recent first.
@@ -257,7 +221,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
             return null;
         }
 
-        IEnumerable<VersionInformation> versions = await _versions;
+        List<VersionInformation> versions = await _versions;
 
         var latestVersion = versions.First();
 
@@ -333,6 +297,41 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         var highestIndex = keys.Max(k => k.Index);
 
         return new IndirectObjectId(highestIndex + 1, 0);
+    }
+
+    private async Task<DocumentCatalogDictionary> LoadRootAsync()
+    {
+        var latestVersion = await _latestVersion;
+        var catalogRef = latestVersion.TrailerDictionary.Root
+            ?? throw new InvalidPdfException("Missing Root entry");
+
+        if (_parsedObjectCache.TryGetValue(catalogRef.Id, out var cachedCatalogObject))
+        {
+            return cachedCatalogObject.Object as DocumentCatalogDictionary
+                ?? throw new InvalidPdfException("Unable to dereference document catalog");
+        }
+
+        if (latestVersion.IndirectObjects.TryGetValue(catalogRef.Id, out var latestCatalogEntry))
+        {
+            var catalogObject = await DereferenceObjectAsync(catalogRef, latestCatalogEntry);
+            _parsedObjectCache[catalogRef.Id] = catalogObject;
+
+            return catalogObject.Object as DocumentCatalogDictionary
+                ?? throw new InvalidPdfException("Unable to dereference document catalog");
+        }
+
+        return (await GetAsync(catalogRef)).Object as DocumentCatalogDictionary
+            ?? throw new InvalidPdfException("Unable to dereference document catalog");
+    }
+
+    private static Task<T> ToTask<T>(ValueTask<T> valueTask)
+    {
+        if (valueTask.IsCompletedSuccessfully)
+        {
+            return Task.FromResult(valueTask.Result);
+        }
+
+        return valueTask.AsTask();
     }
 
     private async Task<IndirectObject> DereferenceObjectAsync(IndirectObjectReference key, CrossReferenceEntry xref)

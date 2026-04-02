@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp.Formats.Jpeg;
+﻿using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
@@ -104,7 +104,6 @@ public class Pdf : IPdf, IDisposable
         }
 
         var contentStreamParser = _services.GetRequiredService<IParser<ContentStream>>();
-
         _form = new Form(documentCatalog.AcroForm, this, contentStreamParser);
 
         return _form;
@@ -253,17 +252,14 @@ public class Pdf : IPdf, IDisposable
     /// <inheritdoc />
     public Task<IEnumerable<ExtractedText>> ExtractTextAsync()
     {
-        var textExtractor = _services.GetRequiredService<ITextExtractor>();
-
-        return textExtractor.ExtractTextAsync();
+        return _services.GetRequiredService<ITextExtractor>().ExtractTextAsync();
     }
 
     public Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
 
-        var textExtractor = _services.GetRequiredService<ITextExtractor>();
-        return textExtractor.ExtractTextAsync(pageNumber);
+        return _services.GetRequiredService<ITextExtractor>().ExtractTextAsync(pageNumber);
     }
 
     /// <inheritdoc />
@@ -271,8 +267,7 @@ public class Pdf : IPdf, IDisposable
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        var textExtractor = _services.GetRequiredService<ITextExtractor>();
-        return textExtractor.ExtractTextAsync(options);
+        return _services.GetRequiredService<ITextExtractor>().ExtractTextAsync(options);
     }
 
     /// <inheritdoc />
@@ -281,8 +276,7 @@ public class Pdf : IPdf, IDisposable
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));
         ArgumentNullException.ThrowIfNull(options);
 
-        var textExtractor = _services.GetRequiredService<ITextExtractor>();
-        return textExtractor.ExtractTextAsync(pageNumber, options);
+        return _services.GetRequiredService<ITextExtractor>().ExtractTextAsync(pageNumber, options);
     }
 
     /// <inheritdoc />
@@ -1123,11 +1117,9 @@ public class Pdf : IPdf, IDisposable
         if (disposing)
         {
             ((IDisposable)Data).Dispose();
-
             _documentLifetime.Dispose();
+        }
     }
-
-}
 
     #endregion
 }

@@ -20,7 +20,6 @@ public sealed class PdfMetadata
     /// The producer value written by ZingPDF during save.
     /// </summary>
     public const string ProducerName = "ZingPDF";
-
     private readonly IPdf _pdf;
     private IndirectObject? _infoIndirectObject;
     private DocumentInformationDictionary? _infoDictionary;
