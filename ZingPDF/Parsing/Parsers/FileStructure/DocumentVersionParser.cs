@@ -8,6 +8,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace ZingPDF.Parsing.Parsers.FileStructure;
 
@@ -20,6 +21,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
     private readonly IParser<CrossReferenceTable> _crossReferenceTableParser;
     private readonly IParser<Trailer> _trailerParser;
     private readonly IParser<StreamObject<CrossReferenceStreamDictionary>> _crossReferenceStreamParser;
+    private readonly ConditionalWeakTable<Stream, ParseCache> _parseCaches = new();
 
     public DocumentVersionParser(
         IParser<Keyword> keywordParser,
@@ -36,38 +38,70 @@ internal class DocumentVersionParser : IDocumentVersionParser
     }
 
     // Parse all xref tables and streams to get all versions of the file
-    public async Task<List<VersionInformation>> ParseAsync(Stream pdfInputStream)
+    public async ValueTask<List<VersionInformation>> ParseAsync(Stream pdfInputStream)
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseAsync");
-        List<VersionInformation> versions = [];
-
-        var latestVersion = await ParseLatestAsync(pdfInputStream);
-        versions.Add(latestVersion);
-
-        int? xrefOffset = latestVersion.TrailerDictionary.Prev;
-
-        while (xrefOffset != null)
+        var cache = _parseCaches.GetOrCreateValue(pdfInputStream);
+        if (cache.AllVersions is not null)
         {
-            var version = await ParseAtAsync(pdfInputStream, xrefOffset.Value);
+            return cache.AllVersions;
+        }
 
-            xrefOffset = version.TrailerDictionary.Prev;
+        List<VersionInformation> versions = [];
+        int xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
+        cache.MainXrefOffset ??= xrefOffset;
+
+        VersionInformation latestVersion = await ParseAtAsync(pdfInputStream, xrefOffset);
+        versions.Add(latestVersion);
+        cache.LatestVersion ??= latestVersion;
+
+        int? previousXrefOffset = latestVersion.TrailerDictionary.Prev;
+
+        while (previousXrefOffset != null)
+        {
+            var version = await ParseAtAsync(pdfInputStream, previousXrefOffset.Value);
+
+            previousXrefOffset = version.TrailerDictionary.Prev;
 
             versions.Add(version);
         }
 
+        cache.AllVersions = versions;
         return versions;
     }
 
-    public async Task<VersionInformation> ParseLatestAsync(Stream pdfInputStream)
+    public async ValueTask<VersionInformation> ParseLatestAsync(Stream pdfInputStream)
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseLatestAsync");
-        int xrefOffset = await GetMainXrefOffsetAsync(pdfInputStream);
-        return await ParseAtAsync(pdfInputStream, xrefOffset);
+        var cache = _parseCaches.GetOrCreateValue(pdfInputStream);
+        if (cache.LatestVersion is not null)
+        {
+            return cache.LatestVersion;
+        }
+
+        if (cache.AllVersions is not null && cache.AllVersions.Count > 0)
+        {
+            cache.LatestVersion = cache.AllVersions[0];
+            return cache.LatestVersion;
+        }
+
+        int xrefOffset = cache.MainXrefOffset ?? await GetMainXrefOffsetAsync(pdfInputStream);
+        cache.MainXrefOffset ??= xrefOffset;
+
+        var latestVersion = await ParseAtAsync(pdfInputStream, xrefOffset);
+        cache.LatestVersion = latestVersion;
+        return latestVersion;
     }
 
-    public async Task<VersionInformation> ParseAtAsync(Stream pdfInputStream, int xrefOffset)
+    public ValueTask<VersionInformation> ParseAtAsync(Stream pdfInputStream, int xrefOffset)
     {
-        return await ParseDocumentVersionAsync(pdfInputStream, xrefOffset);
+        var cache = _parseCaches.GetOrCreateValue(pdfInputStream);
+        if (cache.VersionsByOffset.TryGetValue(xrefOffset, out var cachedVersion))
+        {
+            return ValueTask.FromResult(cachedVersion);
+        }
+
+        return ParseAndCacheVersionAsync(pdfInputStream, xrefOffset, cache);
     }
 
     // TODO: move to testable class
@@ -104,6 +138,13 @@ internal class DocumentVersionParser : IDocumentVersionParser
             throw new InvalidOperationException("No xrefs found at offset");
         }
 
+        return version;
+    }
+
+    private async ValueTask<VersionInformation> ParseAndCacheVersionAsync(Stream pdfInputStream, int xrefOffset, ParseCache cache)
+    {
+        var version = await ParseDocumentVersionAsync(pdfInputStream, xrefOffset);
+        cache.VersionsByOffset[xrefOffset] = version;
         return version;
     }
 
@@ -187,10 +228,16 @@ internal class DocumentVersionParser : IDocumentVersionParser
         var objectFinder = new ObjectFinder();
 
         // First, find the startxref keyword
-        var offset = await objectFinder.FindAsync(pdfStream, Constants.StartXref, forwards: false)
-            ?? throw new InvalidOperationException($"{Constants.StartXref} not found.");
+        long? offset = pdfStream.CanSeek
+            ? objectFinder.Find(pdfStream, Constants.StartXref, forwards: false)
+            : await objectFinder.FindAsync(pdfStream, Constants.StartXref, forwards: false);
 
-        pdfStream.Position = offset;
+        if (offset is null)
+        {
+            throw new InvalidOperationException($"{Constants.StartXref} not found.");
+        }
+
+        pdfStream.Position = offset.Value;
 
         _ = await _keywordParser.ParseAsync(pdfStream, _objectContext);
 
@@ -412,5 +459,16 @@ internal class DocumentVersionParser : IDocumentVersionParser
         }
 
         return fieldValue;
+    }
+
+    private sealed class ParseCache
+    {
+        public int? MainXrefOffset { get; set; }
+
+        public VersionInformation? LatestVersion { get; set; }
+
+        public List<VersionInformation>? AllVersions { get; set; }
+
+        public Dictionary<int, VersionInformation> VersionsByOffset { get; } = [];
     }
 }
