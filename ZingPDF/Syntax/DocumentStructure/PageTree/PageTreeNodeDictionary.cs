@@ -111,12 +111,15 @@ namespace ZingPDF.Syntax.DocumentStructure.PageTree
         }
 
         public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdf pdf)
+            => CreateNew(pageReferences, pdf, pageReferences.Count());
+
+        public static PageTreeNodeDictionary CreateNew(ArrayObject pageReferences, IPdf pdf, int pageCount)
         {
             return new(new Dictionary<string, IPdfObject>
             {
                 { Constants.DictionaryKeys.Type, (Name)Constants.DictionaryTypes.Pages },
                 { Constants.DictionaryKeys.PageTree.PageTreeNode.Kids, pageReferences },
-                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number) pageReferences.Count() },
+                { Constants.DictionaryKeys.PageTree.PageTreeNode.Count, (Number)pageCount },
             }, pdf, ObjectContext.UserCreated);
         }
 

@@ -82,6 +82,21 @@ public interface IPdf
     Task<IEnumerable<ExtractedText>> ExtractTextAsync();
 
     /// <summary>
+    /// Extracts text from a single 1-based page number.
+    /// </summary>
+    Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber);
+
+    /// <summary>
+    /// Extracts text from the document using the requested output shape.
+    /// </summary>
+    Task<TextExtractionResult> ExtractTextAsync(TextExtractionOptions options);
+
+    /// <summary>
+    /// Extracts text from a single 1-based page number using the requested output shape.
+    /// </summary>
+    Task<TextExtractionResult> ExtractTextAsync(int pageNumber, TextExtractionOptions options);
+
+    /// <summary>
     /// Adds a simple text watermark to each page.
     /// </summary>
     Task AddWatermarkAsync(string text);

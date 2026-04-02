@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Nito.AsyncEx;
 using System.Text;
+using System.Threading;
 using ZingPDF.IncrementalUpdates;
 using ZingPDF.Logging;
 using ZingPDF.Parsing;
@@ -47,8 +48,11 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     private readonly ITokenTypeIdentifier _tokenTypeIdentifier;
     private readonly IPdf _pdf;
     private readonly BoundedObjectStreamCache _objectStreamCache = new(MaxTotalCachedObjectStreamBytes, MaxCachedObjectStreamBytes);
+    private long _changeVersion;
 
     //private readonly Queue<IndirectObjectId> _freeIds;
+
+    public long ChangeVersion => Interlocked.Read(ref _changeVersion);
 
     public PdfObjectCollection(
         IPdf pdf,
@@ -213,6 +217,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         var indirectObject = new IndirectObject(newObjectId, pdfObject);
 
         _newObjects.Add(indirectObject);
+        Interlocked.Increment(ref _changeVersion);
 
         return indirectObject;
     }
@@ -234,6 +239,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         indirectObjectId.GenerationNumber++;
 
         _deletedObjects.Add(indirectObjectId);
+        Interlocked.Increment(ref _changeVersion);
     }
 
     public void Update(IndirectObject indirectObject)
@@ -241,6 +247,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
         ArgumentNullException.ThrowIfNull(indirectObject);
 
         _updatedObjects[indirectObject.Id] = indirectObject;
+        Interlocked.Increment(ref _changeVersion);
     }
 
     public async Task<IncrementalUpdate?> GenerateUpdateDeltaAsync(bool includeAllObjects = false)
