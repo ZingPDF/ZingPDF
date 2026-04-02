@@ -12,6 +12,7 @@ internal static class TestFiles
     public const string Minimal = $"{PdfBasePath}/minimal.pdf";
     public const string Minimal2 = $"{PdfBasePath}/minimal2.pdf";
     public const string MixedWorkload = $"{PdfBasePath}/generated-mixed-workload.pdf";
+    public const string Test = $"{PdfBasePath}/test.pdf";
     public const string TextHeavy = $"{PdfBasePath}/generated-text-heavy.pdf";
 
     public static MemoryStream OpenStream(string path) => new(ReadAllBytes(path), writable: false);

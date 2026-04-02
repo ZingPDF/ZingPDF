@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace ZingPDF.Elements.Drawing.Text.Extraction.CmapParsing;
 
@@ -13,7 +13,7 @@ public class CMapParser
         while ((line = reader.ReadLine()) != null)
         {
             line = line.Trim();
-            if (line.EndsWith("beginbfchar"))
+            if (line.EndsWith("begincodespacerange"))
             {
                 int count = int.Parse(line.Split(' ')[0]);
                 for (int i = 0; i < count; i++)
@@ -21,9 +21,20 @@ public class CMapParser
                     var parts = reader.ReadLine()?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     if (parts?.Length == 2)
                     {
-                        var src = HexToBytes(parts[0]);
-                        var dst = DecodeUtf16Be(parts[1]);
-                        cmap.AddMapping(src, dst);
+                        cmap.RegisterCodeLength(GetHexByteLength(parts[0]));
+                        cmap.RegisterCodeLength(GetHexByteLength(parts[1]));
+                    }
+                }
+            }
+            else if (line.EndsWith("beginbfchar"))
+            {
+                int count = int.Parse(line.Split(' ')[0]);
+                for (int i = 0; i < count; i++)
+                {
+                    var parts = reader.ReadLine()?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts?.Length == 2)
+                    {
+                        cmap.AddMapping(HexToBytes(parts[0]), DecodeUtf16Be(parts[1]));
                     }
                 }
             }
@@ -33,38 +44,45 @@ public class CMapParser
                 for (int i = 0; i < count; i++)
                 {
                     var parts = reader.ReadLine()?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (parts == null || parts.Length < 3) continue;
+                    if (parts == null || parts.Length < 3)
+                    {
+                        continue;
+                    }
 
                     var start = HexToBytes(parts[0]);
-                    var end = HexToBytes(parts[1]);
+                    var startValue = ByteArrayToUInt64(start);
+                    var endValue = HexToUInt64(parts[1]);
 
-                    if (parts[2].StartsWith("<"))
+                    if (parts[2].StartsWith("<", StringComparison.Ordinal))
                     {
-                        var dstStart = HexToBytes(parts[2]);
-                        int rangeCount = ByteArrayToInt(end) - ByteArrayToInt(start) + 1;
+                        var dstStartValue = HexToUInt64(parts[2]);
+                        var dstByteLength = GetHexByteLength(parts[2]);
+                        var rangeCount = checked((int)(endValue - startValue + 1));
 
-                        for (int j = 0; j < rangeCount; j++)
+                        for (var j = 0; j < rangeCount; j++)
                         {
-                            var src = IntToByteArray(ByteArrayToInt(start) + j, start.Length);
-                            var dst = DecodeUtf16Be(dstStart, j);
-                            cmap.AddMapping(src, dst);
+                            cmap.AddMapping(startValue + (uint)j, start.Length, DecodeUtf16Be(dstStartValue + (uint)j, dstByteLength));
                         }
                     }
                     else if (parts[2] == "[")
                     {
-                        var dsts = new List<string>();
-                        string innerLine;
-                        while (!(innerLine = reader.ReadLine() ?? "").Contains("]"))
-                        {
-                            dsts.AddRange(innerLine.Trim().Split(' ').Where(x => x.StartsWith("<")).Select(DecodeUtf16Be));
-                        }
-                        dsts.AddRange(innerLine.Trim().Split(' ').Where(x => x.StartsWith("<")).Select(DecodeUtf16Be));
+                        var sourceValue = startValue;
+                        string? innerLine;
 
-                        int startInt = ByteArrayToInt(start);
-                        for (int j = 0; j < dsts.Count; j++)
+                        while ((innerLine = reader.ReadLine()) != null)
                         {
-                            var src = IntToByteArray(startInt + j, start.Length);
-                            cmap.AddMapping(src, dsts[j]);
+                            var index = 0;
+                            var innerSpan = innerLine.AsSpan();
+                            while (TryReadNextHexToken(innerSpan, ref index, out var token))
+                            {
+                                cmap.AddMapping(sourceValue, start.Length, DecodeUtf16Be(token));
+                                sourceValue++;
+                            }
+
+                            if (innerSpan.IndexOf(']') >= 0)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -76,54 +94,113 @@ public class CMapParser
 
     private static byte[] HexToBytes(string hex)
     {
-        hex = hex.Trim('<', '>');
-        byte[] bytes = new byte[hex.Length / 2];
-        for (int i = 0; i < hex.Length; i += 2)
-            bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+        var digits = GetHexDigits(hex.AsSpan());
+        byte[] bytes = new byte[digits.Length / 2];
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            bytes[i] = (byte)((HexValue(digits[i * 2]) << 4) | HexValue(digits[(i * 2) + 1]));
+        }
+
         return bytes;
     }
 
-    private static string DecodeUtf16Be(string hex)
+    private static string DecodeUtf16Be(string hex) => DecodeUtf16Be(GetHexDigits(hex.AsSpan()));
+
+    private static string DecodeUtf16Be(ReadOnlySpan<char> hexDigits)
     {
-        var bytes = HexToBytes(hex);
-        return Encoding.BigEndianUnicode.GetString(bytes);
+        var digits = GetHexDigits(hexDigits);
+        var byteLength = digits.Length / 2;
+        var value = HexToUInt64(digits);
+        return DecodeUtf16Be(value, byteLength);
     }
 
-    private static string DecodeUtf16Be(byte[] start, int offset)
+    private static string DecodeUtf16Be(ulong value, int byteLength)
     {
-        int codeUnitCount = start.Length / 2;
-        byte[] bytes = new byte[codeUnitCount * 2];
-        Buffer.BlockCopy(start, 0, bytes, 0, bytes.Length);
+        var codeUnitCount = byteLength / 2;
+        Span<char> chars = codeUnitCount <= 4 ? stackalloc char[codeUnitCount] : new char[codeUnitCount];
 
-        // Increment by offset
-        for (int i = 0; i < offset; i++)
+        for (var i = codeUnitCount - 1; i >= 0; i--)
         {
-            bool carry = true;
-            for (int j = bytes.Length - 1; j >= 0 && carry; j--)
-            {
-                carry = ++bytes[j] == 0;
-            }
+            chars[i] = (char)(value & 0xFFFF);
+            value >>= 16;
         }
 
-        return Encoding.BigEndianUnicode.GetString(bytes);
+        return new string(chars);
     }
 
-    private static int ByteArrayToInt(byte[] bytes)
+    private static ulong ByteArrayToUInt64(byte[] bytes)
     {
-        int result = 0;
-        for (int i = 0; i < bytes.Length; i++)
+        ulong result = 0;
+        for (var i = 0; i < bytes.Length; i++)
+        {
             result = (result << 8) | bytes[i];
+        }
+
         return result;
     }
 
-    private static byte[] IntToByteArray(int value, int length)
+    private static ulong HexToUInt64(string token) => HexToUInt64(GetHexDigits(token.AsSpan()));
+
+    private static ulong HexToUInt64(ReadOnlySpan<char> hexDigits)
     {
-        byte[] result = new byte[length];
-        for (int i = length - 1; i >= 0; i--)
+        ulong result = 0;
+        for (var i = 0; i < hexDigits.Length; i++)
         {
-            result[i] = (byte)(value & 0xFF);
-            value >>= 8;
+            result = (result << 4) | (uint)HexValue(hexDigits[i]);
         }
+
         return result;
     }
+
+    private static ReadOnlySpan<char> GetHexDigits(ReadOnlySpan<char> token)
+    {
+        token = token.Trim();
+        if (token.Length >= 2 && token[0] == '<' && token[^1] == '>')
+        {
+            return token[1..^1];
+        }
+
+        return token;
+    }
+
+    private static int GetHexByteLength(string token) => GetHexDigits(token.AsSpan()).Length / 2;
+
+    private static bool TryReadNextHexToken(ReadOnlySpan<char> line, ref int index, out ReadOnlySpan<char> token)
+    {
+        while (index < line.Length && char.IsWhiteSpace(line[index]))
+        {
+            index++;
+        }
+
+        if (index >= line.Length || line[index] != '<')
+        {
+            token = default;
+            return false;
+        }
+
+        var start = index;
+        index++;
+        while (index < line.Length && line[index] != '>')
+        {
+            index++;
+        }
+
+        if (index >= line.Length)
+        {
+            token = default;
+            return false;
+        }
+
+        index++;
+        token = line[start..index];
+        return true;
+    }
+
+    private static int HexValue(char value) => value switch
+    {
+        >= '0' and <= '9' => value - '0',
+        >= 'A' and <= 'F' => 10 + (value - 'A'),
+        >= 'a' and <= 'f' => 10 + (value - 'a'),
+        _ => throw new FormatException($"Invalid hex character '{value}'.")
+    };
 }

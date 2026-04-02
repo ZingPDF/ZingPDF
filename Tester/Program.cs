@@ -79,15 +79,15 @@ using IOPath = System.IO.Path;
 //await RotateWholeDocument();
 //await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
 
-var command = Environment.GetCommandLineArgs().Skip(1).FirstOrDefault();
+//var command = Environment.GetCommandLineArgs().Skip(1).FirstOrDefault();
 
-if (string.Equals(command, "sanitize-complex-form", StringComparison.OrdinalIgnoreCase))
-{
-    await SanitizeComplexFormFixtureAsync();
-    return;
-}
+//if (string.Equals(command, "sanitize-complex-form", StringComparison.OrdinalIgnoreCase))
+//{
+//    await SanitizeComplexFormFixtureAsync();
+//    return;
+//}
 
-await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
+//await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
 
 //await WipeFields();
@@ -100,7 +100,7 @@ await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await Decompress("testfiles/pdf/generated-mixed-workload.pdf", "decompressed-generated-mixed-workload.pdf");
 //await Decompress("testfiles/pdf/combobox-form.pdf", "decompressed-combobox-form.pdf");
 
-//await ExtractText("testfiles/pdf/generated-text-heavy.pdf");
+await ExtractText("testfiles/pdf/generated-text-heavy.pdf");
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
