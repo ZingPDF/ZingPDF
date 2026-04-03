@@ -2,7 +2,7 @@
 
 ## 1. Parties
 
-This ZingPDF Commercial End User License Agreement ("Agreement") is between Tom Bowers of `tom@zingpdf.dev` ("Licensor") and the person or entity obtaining rights under this Agreement ("Customer").
+This ZingPDF Commercial End User License Agreement ("Agreement") is between Thomas Bowers of `tom@zingpdf.dev` ("Licensor") and the person or entity obtaining rights under this Agreement ("Customer").
 
 ## 2. Definitions
 
