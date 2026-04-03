@@ -25,10 +25,11 @@
         </span>
       </a>
       <nav class="topnav" aria-label="Primary">
-        <a href="#licenses">Licenses</a>
+        <a href="./docs.html">Get Started</a>
+        <a href="#licenses">Pricing</a>
         <a href="#why">Why ZingPDF</a>
-        <a href="#capabilities">Capabilities</a>
-        <a href="./docs.html">Docs</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
         <a href="./commercial-terms.html">Terms</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -38,30 +39,18 @@
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">Commercial PDF toolkit for .NET</p>
-          <h1>PDF editing for .NET.</h1>
+          <h1>PDF editing and extraction for .NET.</h1>
           <p class="lead">
-            ZingPDF is a commercial .NET PDF toolkit for applications and services that need to load, edit, create,
-            and save PDFs. Use one API for page operations, forms, metadata, extraction, fonts, drawing, watermarks,
-            compression, and protected document workflows.
+            Load, edit, create, extract, protect, and save PDFs with one library built for .NET applications and
+            services. ZingPDF combines broad document coverage, strong read performance, public documentation, and
+            straightforward commercial licensing.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#licenses">Buy a License</a>
-            <a class="button button-secondary" href="#capabilities">See Capabilities</a>
+            <a class="button button-primary" href="./docs.html">Get Started</a>
+            <a class="button button-secondary" href="#licenses">View Pricing</a>
+            <a class="button button-ghost" href="./performance.html">See Performance</a>
           </div>
-          <div class="hero-highlights" aria-label="Key product highlights">
-            <article class="hero-highlight">
-              <span class="hero-highlight-label">Edit</span>
-              <strong>Work with pages, forms, metadata, extraction, watermarks, and save workflows.</strong>
-            </article>
-            <article class="hero-highlight">
-              <span class="hero-highlight-label">Design</span>
-              <strong>Add text, images, vector drawing, standard fonts, TrueType fonts, and Google Fonts.</strong>
-            </article>
-            <article class="hero-highlight">
-              <span class="hero-highlight-label">Ship</span>
-              <strong>Deploy public packages with straightforward licensing on .NET 8, without activation hoops.</strong>
-            </article>
-          </div>
+          <p class="hero-subnote">Evaluate freely. Subscribe when commercial use begins.</p>
         </div>
 
         <div class="hero-panel">
@@ -82,29 +71,189 @@ await pdf.AddWatermarkAsync("PAID");
 await pdf.SaveAsync(output);</code></pre>
           </div>
           <p class="panel-note">
-            Public packages, clear licensing, and a core API built for .NET 8 application and service workloads.
+            Start with the docs, test against your own files, and move into production with the same core API.
           </p>
         </div>
       </section>
 
-      <section class="trust-strip" aria-label="Highlights">
-        <div>Page editing</div>
-        <div>Forms</div>
-        <div>Encryption</div>
-        <div>Metadata</div>
-        <div>Watermarks</div>
-        <div>Text extraction</div>
+      <section class="hero-strip" aria-label="Key product highlights">
+        <article class="hero-strip-item">
+          <span class="mini-icon" aria-hidden="true">A</span>
+          <div>
+            <strong>One API</strong>
+            <p>Edit, create, extract, protect, and save PDFs.</p>
+          </div>
+        </article>
+        <article class="hero-strip-item">
+          <span class="mini-icon" aria-hidden="true">P</span>
+          <div>
+            <strong>Fast reads</strong>
+            <p>Strong page access and plain-text extraction performance.</p>
+          </div>
+        </article>
+        <article class="hero-strip-item">
+          <span class="mini-icon" aria-hidden="true">L</span>
+          <div>
+            <strong>Clear licensing</strong>
+            <p>Evaluate freely and subscribe when commercial use begins.</p>
+          </div>
+        </article>
+        <article class="hero-strip-item">
+          <span class="mini-icon" aria-hidden="true">D</span>
+          <div>
+            <strong>Public docs</strong>
+            <p>Assess fit with docs, benchmarks, and capability detail.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="homepage-performance-band" aria-labelledby="performance-summary-title">
+        <div class="homepage-performance-shell">
+          <div class="section-copy">
+            <p class="eyebrow">Performance</p>
+            <h2 id="performance-summary-title">Fast in the workflows teams actually measure.</h2>
+            <p>
+              Current benchmarks show strong results for page access, plain-text extraction, and realistic append
+              workflows on in-memory .NET streams.
+            </p>
+          </div>
+
+          <div class="homepage-performance-grid">
+            <article class="homepage-performance-card">
+              <span class="metric-label">First-page access</span>
+              <strong>80.48 &micro;s</strong>
+              <div class="benchmark-bars compact">
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">ZingPDF</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 2.2%;"></span></div>
+                </div>
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">PDFsharp</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 30.3%;"></span></div>
+                </div>
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">iText</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 100%;"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="homepage-performance-card">
+              <span class="metric-label">First-page text extraction</span>
+              <strong>53.39 ms</strong>
+              <div class="benchmark-bars compact">
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">ZingPDF</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 16.1%;"></span></div>
+                </div>
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">PdfPig</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 22.0%;"></span></div>
+                </div>
+                <div class="benchmark-bar-row compact">
+                  <span class="benchmark-bar-label">iText</span>
+                  <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 100%;"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="homepage-performance-card homepage-performance-cta">
+              <span class="metric-label">Detailed comparison</span>
+              <strong>Full benchmark breakdown</strong>
+              <p>See the benchmark methodology, comparison tables, and the full multi-library breakdown.</p>
+              <a class="button button-performance" href="./performance.html">View performance page</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="why" id="why">
+        <div class="why-layout">
+          <div class="why-copy">
+            <p class="eyebrow">Why teams buy</p>
+            <h2>Wide PDF coverage with a smaller integration surface.</h2>
+            <p>
+              ZingPDF is built for teams that want one serious PDF library instead of a mix of partial tools, wrappers,
+              and one-off workarounds.
+            </p>
+            <p>
+              The core value is not just feature count. It is being able to evaluate, ship, and support one .NET PDF
+              library with clear docs, clear licensing, and strong performance in the workflows teams care about most.
+            </p>
+          </div>
+
+          <div class="why-points">
+            <article class="why-point">
+              <span class="mini-icon" aria-hidden="true">A</span>
+              <h3>One library for everyday PDF work</h3>
+              <p>Create, inspect, edit, merge, watermark, encrypt, and update PDFs through one API.</p>
+            </article>
+            <article class="why-point">
+              <span class="mini-icon" aria-hidden="true">E</span>
+              <h3>Easy to evaluate</h3>
+              <p>Public docs, public packages, and useful benchmark coverage make fit easier to judge early.</p>
+            </article>
+            <article class="why-point">
+              <span class="mini-icon" aria-hidden="true">P</span>
+              <h3>Fast on read-heavy workflows</h3>
+              <p>Page access and plain-text extraction are especially strong for document-heavy services.</p>
+            </article>
+            <article class="why-point">
+              <span class="mini-icon" aria-hidden="true">C</span>
+              <h3>Commercially straightforward</h3>
+              <p>Use a clear subscription model without layering on enterprise-style friction too early.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="licenses" id="licenses">
+        <div class="section-copy">
+          <p class="eyebrow">Licensing</p>
+          <h2>Choose a license that fits your team.</h2>
+          <p>Simple commercial pricing for individuals, product teams, and growing companies.</p>
+        </div>
+
+        <div class="pricing-context-grid">
+          <article class="doc-card pricing-context-card">
+            <span class="mini-icon" aria-hidden="true">I</span>
+            <h3>All paid plans include</h3>
+            <ul class="pricing-context-list">
+              <li>Commercial use</li>
+              <li>Core, Fonts, GoogleFonts, and FromHTML packages</li>
+              <li>Ongoing updates</li>
+              <li>Email support</li>
+              <li>Free evaluation before you subscribe</li>
+            </ul>
+          </article>
+          <article class="doc-card pricing-context-card">
+            <span class="mini-icon" aria-hidden="true">S</span>
+            <h3>How licensing works</h3>
+            <ul class="pricing-context-list">
+              <li>Evaluation and non-commercial use are free</li>
+              <li>A seat covers one developer using ZingPDF commercially</li>
+              <li>Choose the plan that matches how many developers use the library</li>
+              <li>Custom arrangements are available when needed</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="pricing-grid" id="pricing-grid"></div>
+
+        <p class="pricing-enterprise-note">
+          Need procurement, invoicing, or broader team coverage? <button type="button" class="pricing-inline-button"
+            data-contact-sales>Contact ZingPDF directly</button> for a tailored commercial arrangement.
+        </p>
       </section>
 
       <section class="platform-band" aria-label="Platform support">
         <div class="platform-copy">
           <p class="eyebrow">Platform Support</p>
-          <h2>Built for .NET 8 on the platforms teams actually deploy to.</h2>
+          <h2>Built for .NET 8 across common application and service environments.</h2>
           <p>
-            The core library targets <code>net8.0</code> and is expected to run on Windows, Linux, and macOS. Runtime
-            behavior
-            still depends on environment-specific dependencies such as SkiaSharp and, for HTML conversion,
-            PuppeteerSharp.
+            The core package targets <code>net8.0</code> and is intended for Windows, Linux, and macOS deployments.
+            Related packages are available when your workflow needs browser-based HTML rendering or extra runtime
+            integrations.
           </p>
         </div>
         <div class="platform-grid">
@@ -127,349 +276,40 @@ await pdf.SaveAsync(output);</code></pre>
         </div>
       </section>
 
-      <section class="licenses" id="licenses">
-        <div class="section-copy">
-          <p class="eyebrow">Licensing</p>
-          <h2>Choose a license that fits your team.</h2>
-          <p>
-            Commercial use requires an active subscription with enough seats for the developers using ZingPDF.
-            Non-commercial use and evaluation do not require a paid license. Standard Solo, Team, and Unlimited plans
-            cover most buyers, and custom terms can still be handled directly when needed.
-          </p>
-        </div>
-
-        <div class="pricing-grid" id="pricing-grid"></div>
-      </section>
-
-      <section class="why" id="why">
-        <div class="section-copy">
-          <p class="eyebrow">Why teams buy</p>
-          <h2>Technical scope, small integration surface.</h2>
-        </div>
-
-        <div class="feature-grid">
-          <article class="feature-card">
-            <h3>Core editing API</h3>
-            <p>Create, inspect, edit, merge, watermark, compress, encrypt, decrypt, and update metadata through one
-              library designed for application and backend document workflows.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Font registration</h3>
-            <p>Register standard PDF fonts and embedded TrueType fonts directly in the core package, then reuse them
-              from page text APIs.</p>
-          </article>
-          <article class="feature-card">
-            <h3>AcroForm support</h3>
-            <p>Enumerate AcroForm fields and work with text, choice, checkbox, and radio controls through typed
-              wrappers. Text fields support read, write, and clear operations.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Straightforward licensing</h3>
-            <p>Public packages, clear commercial terms, and a subscription model that stays out of the way during local
-              development, CI, and deployment.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Public docs</h3>
-            <p>Quick start guidance, forms, metadata, encryption, save semantics, and API reference are public so your
-              team can assess fit before rollout.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Incremental save</h3>
-            <p>Saves append a new PDF revision, which preserves document history and matches incremental-update
-              workflows.</p>
-          </article>
-          <article class="feature-card">
-            <h3>History removal</h3>
-            <p>Rewrite a PDF so only the latest live objects are kept, which is useful for sanitization and other
-              workflows that should not retain prior incremental revisions.</p>
-          </article>
-          <article class="feature-card">
-            <h3>HTML-to-PDF</h3>
-            <p>Use the HTML-to-PDF package when you need Chromium-based rendering, without pulling browser automation
-              into applications that only need core PDF editing.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Google Fonts package</h3>
-            <p>Register Google Fonts in your PDF workflow using the Google Fonts package and a Google Fonts Developer
-              API key.</p>
-          </article>
-          <article class="feature-card">
-            <h3>Drawing API</h3>
-            <p>Draw vector paths with stroke and fill options directly from the page API for lines, shapes, and
-              bezier-based graphics.</p>
-          </article>
-        </div>
-      </section>
-
       <section class="capabilities" id="capabilities">
         <div class="section-copy">
           <p class="eyebrow">Capabilities</p>
-          <h2>Support matrix.</h2>
+          <h2>Core workflows already covered.</h2>
           <p>
-            Current support and planned work, grouped by the way teams usually evaluate a PDF library.
+            A quick view of the PDF work most teams care about first. Public documentation covers the API surface in
+            more detail.
           </p>
         </div>
 
-        <div class="support-groups">
-          <section class="support-group">
-            <div class="support-group-copy">
-              <p class="eyebrow">Document Core</p>
-              <h3>Open, create, inspect, and restructure documents.</h3>
-            </div>
-            <div class="support-table-wrap">
-              <table class="support-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Capability</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Load existing PDFs from seekable streams</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Load existing documents from seekable streams.</td>
-                  </tr>
-                  <tr>
-                    <td>Create blank PDFs</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Includes page creation APIs.</td>
-                  </tr>
-                  <tr>
-                    <td>Get page counts and retrieve pages</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Page count and page access APIs.</td>
-                  </tr>
-                  <tr>
-                    <td>Append, insert, delete, and merge pages</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Append, insert, delete, and merge operations.</td>
-                  </tr>
-                  <tr>
-                    <td>Rotate pages</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Page-level and document-wide rotation.</td>
-                  </tr>
-                  <tr>
-                    <td>Read and update document metadata</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Title, author, subject, keywords, creator, and dates.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="support-group">
-            <div class="support-group-copy">
-              <p class="eyebrow">Page Content</p>
-              <h3>Add visible content with page APIs for text, graphics, and media.</h3>
-            </div>
-            <div class="support-table-wrap">
-              <table class="support-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Capability</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Add text and image content</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Text and image placement through the page API.</td>
-                  </tr>
-                  <tr>
-                    <td>Draw vector paths</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Path drawing with stroke and fill options through the page API.</td>
-                  </tr>
-                  <tr>
-                    <td>Text watermarks</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Simple all-pages watermarking.</td>
-                  </tr>
-                  <tr>
-                    <td>Extract text</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Text extraction API.</td>
-                  </tr>
-                  <tr>
-                    <td>Register standard PDF fonts</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Document-level registration API for the standard PDF text fonts.</td>
-                  </tr>
-                  <tr>
-                    <td>Register embedded TrueType fonts</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Document-level registration API for local TrueType font files and streams.</td>
-                  </tr>
-                  <tr>
-                    <td>Google Fonts package</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Package for registering Google Fonts through the Google Fonts Developer API.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="support-group">
-            <div class="support-group-copy">
-              <p class="eyebrow">Forms</p>
-              <h3>Inspect and update AcroForm content through typed field wrappers.</h3>
-            </div>
-            <div class="support-table-wrap">
-              <table class="support-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Capability</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>AcroForm field enumeration</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Typed wrappers for terminal fields.</td>
-                  </tr>
-                  <tr>
-                    <td>Inspect form field bounds</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Read full field rectangles for placement and layout workflows.</td>
-                  </tr>
-                  <tr>
-                    <td>Text field read/write</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Read, set, and clear text field values.</td>
-                  </tr>
-                  <tr>
-                    <td>Choice, checkbox, and radio selection</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Selection APIs exposed through option wrappers.</td>
-                  </tr>
-                  <tr>
-                    <td>Signature field discovery</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Signature fields can be identified and inspected.</td>
-                  </tr>
-                  <tr>
-                    <td>Inspect signature metadata</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Read signature presence, filter, subfilter, signer name, reason, and signing time.</td>
-                  </tr>
-                  <tr>
-                    <td>Push-button caption and action inspection</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Read button captions, inspect primary action types, inspect URI or named actions, and list additional-action triggers.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="support-group">
-            <div class="support-group-copy">
-              <p class="eyebrow">Security And Output</p>
-              <h3>Protect documents, rewrite history, and control how output is saved.</h3>
-            </div>
-            <div class="support-table-wrap">
-              <table class="support-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Capability</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Compress and decompress stream content</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Compression and decompression APIs for supported streams.</td>
-                  </tr>
-                  <tr>
-                    <td>Authenticate encrypted PDFs</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Password authentication for encrypted files.</td>
-                  </tr>
-                  <tr>
-                    <td>Apply password protection</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Supports Standard security handler RC4-128, AES-128, and AES-256 output.</td>
-                  </tr>
-                  <tr>
-                    <td>Decrypt to a plain latest revision</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Removes encryption from the latest saved revision.</td>
-                  </tr>
-                  <tr>
-                    <td>Incremental save</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Writes a new revision and preserves prior document history.</td>
-                  </tr>
-                  <tr>
-                    <td>Document history removal</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Rewrites the document so only the latest live objects are saved, removing prior incremental revision history.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="support-group">
-            <div class="support-group-copy">
-              <p class="eyebrow">Packages And Roadmap</p>
-              <h3>What ships today, what depends on deployment environment, and what still needs lower-level work.</h3>
-            </div>
-            <div class="support-table-wrap">
-              <table class="support-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Capability</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Cross-platform core library support</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>Windows, Linux, and macOS, subject to runtime dependencies.</td>
-                  </tr>
-                  <tr>
-                    <td>HTML-to-PDF package</td>
-                    <td><span class="status-pill status-live">Available</span></td>
-                    <td>HTML-to-PDF package with browser automation requirements.</td>
-                  </tr>
-                  <tr>
-                    <td>Execute push-button actions</td>
-                    <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>Action execution is not exposed through the high-level API yet.</td>
-                  </tr>
-                  <tr>
-                    <td>Digital signatures</td>
-                    <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>Signature fields are discoverable; signing is not implemented yet.</td>
-                  </tr>
-                  <tr>
-                    <td>Advanced appearance customization</td>
-                    <td><span class="status-pill status-roadmap">Low-level API</span></td>
-                    <td>Advanced or non-standard appearance work may require low-level PDF object access.</td>
-                  </tr>
-                  <tr>
-                    <td>Redaction</td>
-                    <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>Not implemented in the current release.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+        <div class="capability-summary-list">
+          <article class="capability-summary-row">
+            <span class="mini-icon" aria-hidden="true">D</span>
+            <h3>Open, create, inspect, and restructure PDFs.</h3>
+            <p>Load documents from streams, create blank PDFs, get pages, append, insert, delete, rotate, merge, and
+              update metadata.</p>
+          </article>
+          <article class="capability-summary-row">
+            <span class="mini-icon" aria-hidden="true">P</span>
+            <h3>Add visible content and pull text back out.</h3>
+            <p>Add text, images, vector paths, watermarks, and fonts, and extract plain text from existing files.</p>
+          </article>
+          <article class="capability-summary-row">
+            <span class="mini-icon" aria-hidden="true">F</span>
+            <h3>Work with forms, security, and save behavior.</h3>
+            <p>Handle AcroForm fields, authenticate encrypted PDFs, apply password protection, save incrementally, and
+              rewrite to a clean latest state.</p>
+          </article>
+          <article class="capability-summary-row capability-summary-row-cta">
+            <span class="mini-icon" aria-hidden="true">+</span>
+            <h3>Review the full capability matrix.</h3>
+            <p>See the detailed support table, deployment notes, and roadmap areas in one place.</p>
+            <a class="button button-secondary" href="./capabilities.html">View capabilities</a>
+          </article>
         </div>
       </section>
 
@@ -497,8 +337,8 @@ await pdf.SaveAsync(output);</code></pre>
           </details>
           <details>
             <summary>What if my company needs procurement, invoicing, or custom terms?</summary>
-            <p>You can still contact ZingPDF directly for procurement, invoicing, or custom terms. The Unlimited plan
-              is the default option for larger teams that just want simple commercial coverage.</p>
+            <p>You can contact ZingPDF directly for procurement, invoicing, or custom terms. Larger organizations do
+              not need to force themselves into the self-serve plans if a tailored commercial arrangement makes more sense.</p>
           </details>
           <details>
             <summary>Who handles checkout, billing, tax, and customer payment details?</summary>
