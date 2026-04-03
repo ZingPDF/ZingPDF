@@ -1,5 +1,5 @@
 ZingPDF Commercial License Notice
-Copyright (c) 2026 Tom Bowers. All rights reserved.
+Copyright (c) 2026 Thomas Bowers. All rights reserved.
 
 ZingPDF, including this repository, the distributed binaries, and the NuGet packages published under the ZingPDF name, is proprietary software.
 
