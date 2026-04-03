@@ -1,6 +1,6 @@
 # ZingPDF Commercial Terms
 
-Commercial licensing contact: Tom Bowers, `tom@zingpdf.com`
+Commercial licensing contact: Tom Bowers, `tom@zingpdf.dev`
 
 ## 1. Commercial Model
 

@@ -54,5 +54,5 @@ See `SUPPORT.md` in the package root or the repository for the current support s
 
 ## More information
 
-- core docs: [zingpdf.com/docs.html](https://zingpdf.com/docs.html)
-- capability matrix: [zingpdf.com/capabilities.html](https://zingpdf.com/capabilities.html)
+- core docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
+- capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)

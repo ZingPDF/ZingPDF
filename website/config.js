@@ -1,6 +1,6 @@
 window.ZINGPDF_STORE_CONFIG = {
   provider: "lemonsqueezy",
-  supportEmail: "tom@zingpdf.com",
+  supportEmail: "tom@zingpdf.dev",
   licenses: [
     {
       id: "solo",
