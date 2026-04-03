@@ -179,10 +179,14 @@ a {
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(14, 116, 144, 0.14), rgba(20, 184, 166, 0.18));
   color: var(--accent-strong);
-  font-size: 0.82rem;
-  font-weight: 700;
   line-height: 1;
   flex-shrink: 0;
+}
+
+.mini-icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
 }
 
 .button {
@@ -547,7 +551,13 @@ code {
 }
 
 .why-point {
-  display: grid;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.why-point {
   gap: 10px;
   padding: 20px 22px;
   border-top: 1px solid rgba(14, 116, 144, 0.2);
@@ -555,9 +565,14 @@ code {
   border-radius: 0 0 14px 14px;
 }
 
+.why-point > div {
+  min-width: 0;
+}
+
 .why-point h3 {
   margin: 0 0 10px;
   font-size: 1.08rem;
+  line-height: 1.25;
 }
 
 .why-point p {
@@ -611,6 +626,7 @@ code {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 18px;
+  align-items: center;
 }
 
 .pricing-context-grid {
@@ -625,10 +641,25 @@ code {
   display: grid;
   gap: 12px;
   align-content: start;
+  position: relative;
+  overflow: hidden;
 }
 
-.pricing-context-card h3 {
+.pricing-context-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pricing-context-head .mini-icon {
+  flex-shrink: 0;
+}
+
+.pricing-context-card h3,
+.pricing-context-card.doc-card h3 {
   margin: 0;
+  line-height: 1.2;
 }
 
 .pricing-context-list {
@@ -729,14 +760,17 @@ code {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 24px;
+  padding: 26px 24px 24px;
 }
 
 .pricing-card.featured {
   background: linear-gradient(180deg, rgba(244, 251, 255, 1), rgba(233, 244, 248, 1));
   border-color: rgba(14, 116, 144, 0.22);
   box-shadow: 0 16px 36px rgba(14, 116, 144, 0.12);
-  transform: translateY(-10px) scale(1.025);
+  transform: scale(1.04);
+  transform-origin: center;
+  z-index: 1;
+  padding: 30px 26px 28px;
 }
 
 .pricing-badge {

@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>ZingPDF</PackageId>
-    <Authors>Tom Bowers</Authors>
+    <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>.NET 8 PDF library for loading, creating, editing, merging, watermarking, compressing, filling forms, and encrypting PDF documents.</Description>
     <PackageTags>pdf;documents;forms;encryption;compression;watermark</PackageTags>

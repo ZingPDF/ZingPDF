@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>ZingPDF.FromHTML</PackageId>
-    <Authors>Tom Bowers</Authors>
+    <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>HTML-to-PDF conversion helpers for ZingPDF using PuppeteerSharp.</Description>
     <PackageTags>pdf;html;documents;puppeteer</PackageTags>
