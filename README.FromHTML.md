@@ -21,3 +21,8 @@ ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an act
 ## Support and compatibility
 
 See `SUPPORT.md` in the package root or the repository for the current support stance and release-readiness notes.
+
+## More information
+
+- core docs: [zingpdf.com/docs.html](https://zingpdf.com/docs.html)
+- capability matrix: [zingpdf.com/capabilities.html](https://zingpdf.com/capabilities.html)
