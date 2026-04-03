@@ -1,6 +1,14 @@
 using BenchmarkDotNet.Attributes;
-using PdfSharp.Pdf;
-using PdfSharp.Pdf.IO;
+using iText.Kernel.Pdf.Canvas.Parser;
+using ITextPageSize = iText.Kernel.Geom.PageSize;
+using ITextPdfDocument = iText.Kernel.Pdf.PdfDocument;
+using ITextPdfReader = iText.Kernel.Pdf.PdfReader;
+using ITextPdfWriter = iText.Kernel.Pdf.PdfWriter;
+using ITextPdfMerger = iText.Kernel.Utils.PdfMerger;
+using PdfDocumentOpenMode = PdfSharp.Pdf.IO.PdfDocumentOpenMode;
+using PdfPage = PdfSharp.Pdf.PdfPage;
+using PdfReader = PdfSharp.Pdf.IO.PdfReader;
+using Rectangle = ZingPDF.Syntax.CommonDataStructures.Rectangle;
 using UglyToad.PdfPig;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 
@@ -48,6 +56,14 @@ public class CompetitiveBenchmarks
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
     }
 
+    [Benchmark(Description = "iText: Open a minimal PDF")]
+    public void IText_Open_MinimalPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+    }
+
     [Benchmark(Description = "ZingPDF: Open and count pages in a minimal PDF")]
     public async Task ZingPdf_CountPages_MinimalPdf()
     {
@@ -71,6 +87,15 @@ public class CompetitiveBenchmarks
         _ = pdf.NumberOfPages;
     }
 
+    [Benchmark(Description = "iText: Open and count pages in a minimal PDF")]
+    public void IText_CountPages_MinimalPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = pdf.GetNumberOfPages();
+    }
+
     [Benchmark(Description = "ZingPDF: Open a larger real-world PDF")]
     public void ZingPdf_Open_RealWorldPdf()
     {
@@ -89,6 +114,14 @@ public class CompetitiveBenchmarks
     {
         using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
+    }
+
+    [Benchmark(Description = "iText: Open a larger real-world PDF")]
+    public void IText_Open_RealWorldPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
     }
 
     [Benchmark(Description = "ZingPDF: Open and count pages in a larger real-world PDF")]
@@ -121,6 +154,15 @@ public class CompetitiveBenchmarks
         _ = pdf.GetPage(1);
     }
 
+    [Benchmark(Description = "iText: Open and get the first page in a mixed-workload PDF")]
+    public void IText_GetFirstPage_MixedWorkloadPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = pdf.GetPage(1);
+    }
+
     [Benchmark(Description = "ZingPDF: Open and get the middle page in a mixed-workload PDF")]
     public async Task ZingPdf_GetMiddlePage_MixedWorkloadPdf()
     {
@@ -141,6 +183,15 @@ public class CompetitiveBenchmarks
     {
         using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
+        _ = pdf.GetPage(_mixedWorkloadMiddlePageNumber);
+    }
+
+    [Benchmark(Description = "iText: Open and get the middle page in a mixed-workload PDF")]
+    public void IText_GetMiddlePage_MixedWorkloadPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
         _ = pdf.GetPage(_mixedWorkloadMiddlePageNumber);
     }
 
@@ -167,6 +218,15 @@ public class CompetitiveBenchmarks
         _ = pdf.GetPage(_mixedWorkloadLastPageNumber);
     }
 
+    [Benchmark(Description = "iText: Open and get the last page in a mixed-workload PDF")]
+    public void IText_GetLastPage_MixedWorkloadPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = pdf.GetPage(_mixedWorkloadLastPageNumber);
+    }
+
     [Benchmark(Description = "PDFsharp: Open and count pages in a larger real-world PDF")]
     public void PdfSharp_CountPages_RealWorldPdf()
     {
@@ -181,6 +241,15 @@ public class CompetitiveBenchmarks
         using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
         _ = pdf.NumberOfPages;
+    }
+
+    [Benchmark(Description = "iText: Open and count pages in a larger real-world PDF")]
+    public void IText_CountPages_RealWorldPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.ImageHeavy);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = pdf.GetNumberOfPages();
     }
 
     [Benchmark(Description = "ZingPDF: Extract plain text from a text-heavy PDF")]
@@ -211,12 +280,34 @@ public class CompetitiveBenchmarks
         }
     }
 
+    [Benchmark(Description = "iText: Extract plain text from a text-heavy PDF")]
+    public void IText_ExtractText_TextHeavyPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.TextHeavy);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+
+        for (var pageNumber = 1; pageNumber <= pdf.GetNumberOfPages(); pageNumber++)
+        {
+            _ = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber));
+        }
+    }
+
     [Benchmark(Description = "PdfPig: Open and extract plain text from the first page in a text-heavy PDF")]
     public void PdfPig_ExtractText_FirstPage_TextHeavyPdf()
     {
         using var stream = TestFiles.OpenStream(TestFiles.TextHeavy);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
         _ = pdf.GetPage(1).Text;
+    }
+
+    [Benchmark(Description = "iText: Open and extract plain text from the first page in a text-heavy PDF")]
+    public void IText_ExtractText_FirstPage_TextHeavyPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.TextHeavy);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = PdfTextExtractor.GetTextFromPage(pdf.GetPage(1));
     }
 
     [Benchmark(Description = "ZingPDF: Open and extract plain text from a small composite-font PDF")]
@@ -239,6 +330,19 @@ public class CompetitiveBenchmarks
         }
     }
 
+    [Benchmark(Description = "iText: Open and extract plain text from a small composite-font PDF")]
+    public void IText_ExtractText_TestPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Test);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+
+        for (var pageNumber = 1; pageNumber <= pdf.GetNumberOfPages(); pageNumber++)
+        {
+            _ = PdfTextExtractor.GetTextFromPage(pdf.GetPage(pageNumber));
+        }
+    }
+
     [Benchmark(Description = "ZingPDF: Open and extract plain text from the first page in a small composite-font PDF")]
     public async Task ZingPdf_ExtractText_FirstPage_TestPdf()
     {
@@ -253,6 +357,15 @@ public class CompetitiveBenchmarks
         using var stream = TestFiles.OpenStream(TestFiles.Test);
         using var pdf = UglyToad.PdfPig.PdfDocument.Open(stream);
         _ = pdf.GetPage(1).Text;
+    }
+
+    [Benchmark(Description = "iText: Open and extract plain text from the first page in a small composite-font PDF")]
+    public void IText_ExtractText_FirstPage_TestPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.Test);
+        using var reader = new ITextPdfReader(stream);
+        using var pdf = new ITextPdfDocument(reader);
+        _ = PdfTextExtractor.GetTextFromPage(pdf.GetPage(1));
     }
 
     [IterationSetup(Target = nameof(ZingPdf_ExtractText_FirstPage_TestPdf_Opened))]
@@ -354,6 +467,183 @@ public class CompetitiveBenchmarks
 
         pdf.AddPage(new PdfPage());
         pdf.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Append a page and save")]
+    public void IText_AppendPage_AndSave()
+    {
+        using var input = TestFiles.OpenStream(TestFiles.Minimal);
+        using var output = new MemoryStream();
+        using var reader = new ITextPdfReader(input);
+        using var writer = new ITextPdfWriter(output);
+        using var pdf = new ITextPdfDocument(reader, writer);
+
+        pdf.AddNewPage(ITextPageSize.A4);
+    }
+
+    [Benchmark(Description = "ZingPDF: Append a page to a mixed-workload PDF and save")]
+    public async Task ZingPdf_AppendPage_AndSave_MixedWorkloadPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "PDFsharp: Append a page to a mixed-workload PDF and save")]
+    public void PdfSharp_AppendPage_AndSave_MixedWorkloadPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        using var output = new MemoryStream();
+
+        pdf.AddPage(new PdfPage());
+        pdf.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Append a page to a mixed-workload PDF and save")]
+    public void IText_AppendPage_AndSave_MixedWorkloadPdf()
+    {
+        using var input = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var output = new MemoryStream();
+        using var reader = new ITextPdfReader(input);
+        using var writer = new ITextPdfWriter(output);
+        using var pdf = new ITextPdfDocument(reader, writer);
+
+        pdf.AddNewPage(ITextPageSize.A4);
+    }
+
+    [Benchmark(Description = "ZingPDF: Append 10 pages to a mixed-workload PDF and save")]
+    public async Task ZingPdf_Append10Pages_AndSave_MixedWorkloadPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        for (var i = 0; i < 10; i++)
+        {
+            _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        }
+
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "PDFsharp: Append 10 pages to a mixed-workload PDF and save")]
+    public void PdfSharp_Append10Pages_AndSave_MixedWorkloadPdf()
+    {
+        using var stream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
+        using var output = new MemoryStream();
+
+        for (var i = 0; i < 10; i++)
+        {
+            pdf.AddPage(new PdfPage());
+        }
+
+        pdf.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Append 10 pages to a mixed-workload PDF and save")]
+    public void IText_Append10Pages_AndSave_MixedWorkloadPdf()
+    {
+        using var input = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var output = new MemoryStream();
+        using var reader = new ITextPdfReader(input);
+        using var writer = new ITextPdfWriter(output);
+        using var pdf = new ITextPdfDocument(reader, writer);
+
+        for (var i = 0; i < 10; i++)
+        {
+            pdf.AddNewPage(ITextPageSize.A4);
+        }
+    }
+
+    [Benchmark(Description = "ZingPDF: Merge a minimal PDF with a second minimal PDF and save")]
+    public async Task ZingPdf_Merge_MinimalPlusMinimal2_AndSave()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.Minimal));
+        using var output = new MemoryStream();
+        using var appendStream = TestFiles.OpenStream(TestFiles.Minimal2);
+
+        await pdf.AppendPdfAsync(appendStream);
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "PDFsharp: Merge a minimal PDF with a second minimal PDF and save")]
+    public void PdfSharp_Merge_MinimalPlusMinimal2_AndSave()
+    {
+        using var destinationStream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var sourceStream = TestFiles.OpenStream(TestFiles.Minimal2);
+        using var pdf = PdfReader.Open(destinationStream, PdfDocumentOpenMode.Modify);
+        using var source = PdfReader.Open(sourceStream, PdfDocumentOpenMode.Import);
+        using var output = new MemoryStream();
+
+        foreach (var page in source.Pages)
+        {
+            pdf.AddPage(page);
+        }
+
+        pdf.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Merge a minimal PDF with a second minimal PDF and save")]
+    public void IText_Merge_MinimalPlusMinimal2_AndSave()
+    {
+        using var destinationStream = TestFiles.OpenStream(TestFiles.Minimal);
+        using var sourceStream = TestFiles.OpenStream(TestFiles.Minimal2);
+        using var output = new MemoryStream();
+        using var destinationReader = new ITextPdfReader(destinationStream);
+        using var writer = new ITextPdfWriter(output);
+        using var destination = new ITextPdfDocument(destinationReader, writer);
+        using var sourceReader = new ITextPdfReader(sourceStream);
+        using var source = new ITextPdfDocument(sourceReader);
+
+        var merger = new ITextPdfMerger(destination);
+        merger.Merge(source, 1, source.GetNumberOfPages());
+    }
+
+    [Benchmark(Description = "ZingPDF: Merge a text-heavy PDF into a mixed-workload PDF and save")]
+    public async Task ZingPdf_AppendPdf_AndSave_MixedPlusTextHeavy()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+        using var appendStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+
+        await pdf.AppendPdfAsync(appendStream);
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "PDFsharp: Merge a text-heavy PDF into a mixed-workload PDF and save")]
+    public void PdfSharp_AppendPdf_AndSave_MixedPlusTextHeavy()
+    {
+        using var destinationStream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var sourceStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+        using var pdf = PdfReader.Open(destinationStream, PdfDocumentOpenMode.Modify);
+        using var source = PdfReader.Open(sourceStream, PdfDocumentOpenMode.Import);
+        using var output = new MemoryStream();
+
+        foreach (var page in source.Pages)
+        {
+            pdf.AddPage(page);
+        }
+
+        pdf.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Merge a text-heavy PDF into a mixed-workload PDF and save")]
+    public void IText_AppendPdf_AndSave_MixedPlusTextHeavy()
+    {
+        using var destinationStream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var sourceStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+        using var output = new MemoryStream();
+        using var destinationReader = new ITextPdfReader(destinationStream);
+        using var writer = new ITextPdfWriter(output);
+        using var destination = new ITextPdfDocument(destinationReader, writer);
+        using var sourceReader = new ITextPdfReader(sourceStream);
+        using var source = new ITextPdfDocument(sourceReader);
+
+        var merger = new ITextPdfMerger(destination);
+        merger.Merge(source, 1, source.GetNumberOfPages());
     }
 
 }

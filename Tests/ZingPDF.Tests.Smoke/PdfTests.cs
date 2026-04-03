@@ -164,6 +164,70 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task AppendPdfAsync_AppendedDocumentText_CanBeReadAfterSave()
+    {
+        using var basePdf = Pdf.Load(Files.AsStream(Files.Minimal1));
+        using var sourcePdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        using var appendedStream = Files.AsStream(Files.GeneratedTextHeavy);
+        using var output = new MemoryStream();
+
+        var basePageCount = await basePdf.GetPageCountAsync();
+        var appendedPageCount = await sourcePdf.GetPageCountAsync();
+
+        await basePdf.AppendPdfAsync(appendedStream);
+        await basePdf.SaveAsync(output);
+        await WriteArtifactAsync("append-minimal-text-heavy.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(basePageCount + appendedPageCount);
+
+        var firstAppendedPageText = (await reloaded.ExtractTextAsync(
+            basePageCount + 1,
+            new TextExtractionOptions { OutputKind = TextExtractionOutputKind.PlainText }))
+            .PlainText;
+
+        firstAppendedPageText.Should().Contain("Tax Invoice");
+        firstAppendedPageText.Should().Contain("Thomas Bowers");
+    }
+
+    [Fact]
+    public async Task AppendPdfAsync_MergedDocument_CanBeSavedAgainWithoutLosingAppendedContent()
+    {
+        using var basePdf = Pdf.Load(Files.AsStream(Files.GeneratedMixedWorkload));
+        using var sourcePdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        using var appendedStream = Files.AsStream(Files.GeneratedTextHeavy);
+        using var firstOutput = new MemoryStream();
+
+        var basePageCount = await basePdf.GetPageCountAsync();
+        var appendedPageCount = await sourcePdf.GetPageCountAsync();
+
+        await basePdf.AppendPdfAsync(appendedStream);
+        await basePdf.SaveAsync(firstOutput);
+
+        firstOutput.Position = 0;
+        using var reloaded = Pdf.Load(firstOutput);
+        using var secondOutput = new MemoryStream();
+
+        await reloaded.SaveAsync(secondOutput);
+        await WriteArtifactAsync("append-mixed-text-heavy-resave.pdf", secondOutput);
+
+        secondOutput.Position = 0;
+        using var savedAgain = Pdf.Load(secondOutput);
+
+        (await savedAgain.GetPageCountAsync()).Should().Be(basePageCount + appendedPageCount);
+
+        var firstAppendedPageText = (await savedAgain.ExtractTextAsync(
+            basePageCount + 1,
+            new TextExtractionOptions { OutputKind = TextExtractionOutputKind.PlainText }))
+            .PlainText;
+
+        firstAppendedPageText.Should().Contain("Tax Invoice");
+        firstAppendedPageText.Should().Contain("Thomas Bowers");
+    }
+
+    [Fact]
     public async Task Page_AddTextAsync_PersistsWrittenContent()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.Test));
