@@ -342,8 +342,8 @@ await pdf.SaveAsync(output);</code></pre>
           </details>
           <details>
             <summary>Who handles checkout, billing, tax, and customer payment details?</summary>
-            <p>Lemon Squeezy is the merchant of record for ZingPDF purchases. Lemon Squeezy handles checkout, billing,
-              tax, refunds, chargebacks, and payment processing. ZingPDF only receives the limited customer and order
+            <p>Stripe handles checkout, billing, refunds, chargebacks, and payment processing for ZingPDF purchases.
+              ZingPDF only receives the limited customer and order
               information needed to manage subscriptions, licensing, and support.</p>
           </details>
           <details>
@@ -378,7 +378,6 @@ await pdf.SaveAsync(output);</code></pre>
     </form>
   </dialog>
 
-  <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
   <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>

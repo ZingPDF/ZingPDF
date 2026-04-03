@@ -12,7 +12,7 @@
     <Company>ZingPDF</Company>
     <Description>.NET 8 PDF library for loading, creating, editing, merging, watermarking, compressing, filling forms, and encrypting PDF documents.</Description>
     <PackageTags>pdf;documents;forms;encryption;compression;watermark</PackageTags>
-    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.Package.md</PackageReadmeFile>

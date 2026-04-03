@@ -12,9 +12,9 @@ This directory contains a very small static SPA for selling commercial access to
 
 ## Recommended payment setup
 
-The site is currently configured for Lemon Squeezy checkout overlays.
+The site is currently configured for Stripe-hosted checkout links.
 
-This is a strong low-maintenance default because Lemon Squeezy offers hosted checkout and acts as merchant of record.
+This is a strong low-maintenance default because Stripe-hosted checkout keeps payment handling off the site and works well with a static deployment.
 
 ## How to configure
 
@@ -24,9 +24,7 @@ Edit `config.js` and update:
 - `licenses[].checkoutUrl`
 - pricing copy and plan names if needed
 
-The page loads `https://assets.lemonsqueezy.com/lemon.js` once and automatically applies the `lemonsqueezy-button` class to non-contact checkout buttons.
-
-If a checkout URL still contains `your-store`, the button will stay inactive until a real checkout URL is configured.
+If a checkout URL still contains `your-`, the button will stay inactive until a real checkout URL is configured.
 
 ## How to run locally
 
@@ -123,6 +121,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 ## Suggested next steps
 
 1. Confirm the configured support email is correct.
-2. Create or confirm Lemon Squeezy products and hosted checkout links for Solo, Team, and Business.
+2. Create or confirm Stripe checkout links for Solo, Team, and Business.
 3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
 4. Confirm the published legal pages match the current commercial terms.
