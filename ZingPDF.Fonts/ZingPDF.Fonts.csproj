@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>ZingPDF.Fonts</PackageId>
-    <Authors>Tom Bowers</Authors>
+    <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>Font metrics and font provider support package for ZingPDF.</Description>
     <PackageTags>pdf;fonts;typography;documents</PackageTags>
