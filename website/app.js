@@ -94,7 +94,7 @@
       return button;
     }
 
-    if (!license.checkoutUrl || license.checkoutUrl.includes("your-store")) {
+    if (!license.checkoutUrl || license.checkoutUrl.includes("your-")) {
       button.classList.remove("button-primary");
       button.classList.add("button-ghost", "button-disabled");
       button.href = "#";
@@ -107,11 +107,9 @@
       return button;
     }
 
-    if (config.provider === "lemonsqueezy") {
-      button.classList.add("lemonsqueezy-button");
-    }
-
     button.href = license.checkoutUrl;
+    button.target = "_blank";
+    button.rel = "noopener";
     return button;
   }
 

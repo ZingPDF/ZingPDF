@@ -2,6 +2,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/ZingPDF.svg)](https://www.nuget.org/packages/ZingPDF/)
 
+[Website](https://zingpdf.dev) · [Docs](https://zingpdf.dev/docs.html) · [Capabilities](https://zingpdf.dev/capabilities.html) · [Performance](https://zingpdf.dev/performance.html)
+
 ZingPDF is a proprietary .NET library for reading, editing, and saving PDF files.
 
 This repository contains the source for the core library, companion packages, website, and test suites. Customer-facing documentation lives in the website docs and generated API reference, including save semantics for incremental updates and history-removal rewrites.
@@ -17,10 +19,11 @@ This repository contains the source for the core library, companion packages, we
 
 ## Documentation
 
-- website docs: `website/docs.html`
-- capability matrix: `website/capabilities.html`
-- performance comparison: `website/performance.html`
-- generated API reference: `website/api/`
+- website: [zingpdf.dev](https://zingpdf.dev)
+- website docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
+- capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)
+- performance comparison: [zingpdf.dev/performance.html](https://zingpdf.dev/performance.html)
+- generated API reference: [zingpdf.dev/api/](https://zingpdf.dev/api/)
 - support and compatibility notes: `SUPPORT.md`
 
 ## Licensing

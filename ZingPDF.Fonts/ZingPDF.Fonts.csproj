@@ -11,7 +11,7 @@
     <Company>ZingPDF</Company>
     <Description>Font metrics and font provider support package for ZingPDF.</Description>
     <PackageTags>pdf;fonts;typography;documents</PackageTags>
-    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.Fonts.md</PackageReadmeFile>
