@@ -1,5 +1,5 @@
 window.ZINGPDF_STORE_CONFIG = {
-  provider: "lemonsqueezy",
+  provider: "stripe",
   supportEmail: "tom@zingpdf.dev",
   licenses: [
     {
@@ -10,7 +10,7 @@ window.ZINGPDF_STORE_CONFIG = {
       subtitle: "For one developer shipping commercial .NET software.",
       description: "A good fit for independent developers, consultants, and single-owner products that need commercial coverage.",
       ctaLabel: "Buy Solo",
-      checkoutUrl: "https://zing.lemonsqueezy.com/checkout/buy/b3a71d99-486d-4ce7-886c-711a489920af?embed=1",
+      checkoutUrl: "https://buy.stripe.com/test_cNicN6cfucdU4N02o9eAg02",
       featured: false,
       bullets: [
         "1 developer seat",
@@ -27,7 +27,7 @@ window.ZINGPDF_STORE_CONFIG = {
       subtitle: "For small product teams that want a straightforward commercial license.",
       description: "The default choice for companies that need multi-seat usage without custom procurement or enterprise overhead.",
       ctaLabel: "Buy Team",
-      checkoutUrl: "https://zing.lemonsqueezy.com/checkout/buy/1b5a5842-91bb-45b0-bd9e-3fe3dd524bd1?embed=1",
+      checkoutUrl: "https://buy.stripe.com/test_4gMaEY5R6guabbo0g1eAg03",
       featured: true,
       badge: "Most Popular",
       bullets: [
@@ -45,7 +45,7 @@ window.ZINGPDF_STORE_CONFIG = {
       subtitle: "For growing companies that need broader team coverage.",
       description: "Best for organizations that want wider internal usage, stronger support expectations, and a simpler path than enterprise procurement.",
       ctaLabel: "Buy Business",
-      checkoutUrl: "https://zing.lemonsqueezy.com/checkout/buy/e546bfe7-c289-4bf7-877e-b1c12cd3e69e?embed=1",
+      checkoutUrl: "https://buy.stripe.com/test_8x23cw93iguadjw5AleAg04",
       featured: false,
       bullets: [
         "Up to 20 developer seats",

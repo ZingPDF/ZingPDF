@@ -11,7 +11,7 @@
     <Company>ZingPDF</Company>
     <Description>HTML-to-PDF conversion helpers for ZingPDF using PuppeteerSharp.</Description>
     <PackageTags>pdf;html;documents;puppeteer</PackageTags>
-    <PackageProjectUrl>https://github.com/tombowers/ZingPDF</PackageProjectUrl>
+    <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.FromHTML.md</PackageReadmeFile>
