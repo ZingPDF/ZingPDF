@@ -123,6 +123,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 ## Suggested next steps
 
 1. Confirm the configured support email is correct.
-2. Create or confirm Lemon Squeezy products and hosted checkout links for Solo, Team, and Unlimited.
-3. Confirm that Solo, Team, and Unlimited pricing and subscription language match the commercial model.
+2. Create or confirm Lemon Squeezy products and hosted checkout links for Solo, Team, and Business.
+3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
 4. Confirm the published legal pages match the current commercial terms.

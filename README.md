@@ -18,6 +18,8 @@ This repository contains the source for the core library, companion packages, we
 ## Documentation
 
 - website docs: `website/docs.html`
+- capability matrix: `website/capabilities.html`
+- performance comparison: `website/performance.html`
 - generated API reference: `website/api/`
 - support and compatibility notes: `SUPPORT.md`
 

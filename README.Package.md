@@ -23,8 +23,10 @@ dotnet add package ZingPDF
 ## Documentation
 
 - repository: [github.com/tombowers/ZingPDF](https://github.com/tombowers/ZingPDF)
-- docs: `website/docs.html`
-- API reference: `website/api/`
+- docs: [zingpdf.com/docs.html](https://zingpdf.com/docs.html)
+- capability matrix: [zingpdf.com/capabilities.html](https://zingpdf.com/capabilities.html)
+- performance: [zingpdf.com/performance.html](https://zingpdf.com/performance.html)
+- API reference: [zingpdf.com/api/](https://zingpdf.com/api/)
 - Google Fonts add-on: `ZingPDF.GoogleFonts`
 
 ## Licensing
