@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZingPDF Performance</title>
+  <meta name="description"
+    content="Benchmark-driven performance comparison for ZingPDF against PDFsharp, PdfPig, and iText on representative .NET PDF workloads.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./index.html#licenses">Licenses</a>
+        <a href="./docs.html">Docs</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./api.html">API Reference</a>
+        <a href="./performance.html">Performance</a>
+        <a href="#methodology">Methodology</a>
+        <a href="#results">Results</a>
+      </nav>
+    </header>
+
+    <main class="performance-main">
+      <section class="docs-hero">
+        <div class="docs-hero-copy">
+          <p class="eyebrow">Benchmark Comparison</p>
+          <h1>ZingPDF performance</h1>
+          <p class="lead">
+            These benchmarks compare ZingPDF with PDFsharp, PdfPig, and iText on in-memory .NET workloads including
+            page access, plain-text extraction, page appends, and document merges.
+          </p>
+        </div>
+        <article class="doc-card benchmark-callout">
+          <h3>Headline</h3>
+          <p>ZingPDF is strongest on access-heavy and extraction-heavy workloads in the current suite, and it is highly
+            competitive on realistic write workflows.</p>
+          <p>The current benchmark set highlights especially strong results for page access, plain-text extraction, and
+            page-append workflows.</p>
+        </article>
+      </section>
+
+      <section class="doc-section" id="methodology">
+        <p class="eyebrow">Methodology</p>
+        <h2>How these numbers were produced</h2>
+        <div class="doc-grid">
+          <article class="doc-card">
+            <h3>Runtime</h3>
+            <p>.NET 8 on Windows 11, measured with BenchmarkDotNet on a 13th Gen Intel Core i7-13700HX.</p>
+          </article>
+          <article class="doc-card">
+            <h3>Input model</h3>
+            <p>Benchmarks use fully buffered <code>MemoryStream</code> inputs, so the results emphasize parser and
+              object-model efficiency rather than disk or network I/O.</p>
+          </article>
+          <article class="doc-card">
+            <h3>Scope</h3>
+            <p>This page focuses on representative workloads: access, extraction, append, and merge. Rendering and
+              remote linearized access are not covered here.</p>
+          </article>
+          <article class="doc-card">
+            <h3>Comparison note</h3>
+            <p>Highlights are based on workloads where the compared libraries are performing equivalent work. Some
+              page-access rows are omitted when a library exposes a materially different execution path on the fixture.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="doc-section benchmark-section" id="results">
+        <p class="eyebrow">Results</p>
+        <h2>Where ZingPDF is strong today</h2>
+
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span class="metric-label">Open, minimal PDF</span>
+            <strong>6.17 &micro;s</strong>
+            <p>Fastest in the current comparison set.</p>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">First-page text extraction</span>
+            <strong>53.39 ms</strong>
+            <p>Faster than PdfPig and far ahead of iText on the text-heavy fixture.</p>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Append 10 pages and save</span>
+            <strong>1.68 ms</strong>
+            <p>Fastest among the current libraries on the mixed-workload write path.</p>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Heavy merge workflow</span>
+            <strong>30.63 ms</strong>
+            <p>Close to the leading result in the current suite on the larger merge path.</p>
+          </article>
+        </div>
+
+        <section class="benchmark-chart-grid" aria-label="Benchmark snapshots">
+          <article class="benchmark-chart-card">
+            <p class="eyebrow">Snapshot</p>
+            <h3>First-page access</h3>
+            <div class="benchmark-bars">
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">ZingPDF</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 2.2%;"></span></div>
+                <span class="benchmark-bar-value">80.48 &micro;s</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">PDFsharp</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 30.3%;"></span></div>
+                <span class="benchmark-bar-value">1.11 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">iText</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 100%;"></span></div>
+                <span class="benchmark-bar-value">3.67 ms</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="benchmark-chart-card">
+            <p class="eyebrow">Snapshot</p>
+            <h3>First-page text extraction</h3>
+            <div class="benchmark-bars">
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">ZingPDF</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 16.1%;"></span></div>
+                <span class="benchmark-bar-value">53.39 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">PdfPig</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 22.0%;"></span></div>
+                <span class="benchmark-bar-value">73.04 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">iText</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 100%;"></span></div>
+                <span class="benchmark-bar-value">332.47 ms</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="benchmark-chart-card">
+            <p class="eyebrow">Snapshot</p>
+            <h3>Append 10 pages and save</h3>
+            <div class="benchmark-bars">
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">ZingPDF</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 20.8%;"></span></div>
+                <span class="benchmark-bar-value">1.68 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">PDFsharp</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 41.4%;"></span></div>
+                <span class="benchmark-bar-value">3.35 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">iText</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 100%;"></span></div>
+                <span class="benchmark-bar-value">8.08 ms</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="benchmark-chart-card">
+            <p class="eyebrow">Snapshot</p>
+            <h3>Heavy merge workflow</h3>
+            <div class="benchmark-bars">
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">iText</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill muted" style="width: 95.1%;"></span></div>
+                <span class="benchmark-bar-value">29.11 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">PDFsharp</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill alt" style="width: 98.4%;"></span></div>
+                <span class="benchmark-bar-value">30.14 ms</span>
+              </div>
+              <div class="benchmark-bar-row">
+                <span class="benchmark-bar-label">ZingPDF</span>
+                <div class="benchmark-bar-track"><span class="benchmark-bar-fill zing" style="width: 100%;"></span></div>
+                <span class="benchmark-bar-value">30.63 ms</span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <div class="support-groups">
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Access</p>
+              <h3>Seekable stream access and page lookup</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table benchmark-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Workload</th>
+                    <th scope="col">ZingPDF</th>
+                    <th scope="col">PDFsharp</th>
+                    <th scope="col">PdfPig</th>
+                    <th scope="col">iText</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Open minimal PDF</td>
+                    <td><span class="benchmark-win">6.17 &micro;s</span></td>
+                    <td>11.33 &micro;s</td>
+                    <td>93.21 &micro;s</td>
+                    <td>58.04 &micro;s</td>
+                  </tr>
+                  <tr>
+                    <td>Open larger real-world PDF</td>
+                    <td><span class="benchmark-win">6.39 &micro;s</span></td>
+                    <td>7.46 ms</td>
+                    <td>285.07 &micro;s</td>
+                    <td>23.45 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Open and count pages, larger real-world PDF</td>
+                    <td><span class="benchmark-win">112.32 &micro;s</span></td>
+                    <td>7.84 ms</td>
+                    <td>299.33 &micro;s</td>
+                    <td>19.30 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Open and get first page, mixed workload</td>
+                    <td><span class="benchmark-win">80.48 &micro;s</span></td>
+                    <td>1.11 ms</td>
+                    <td>Not shown</td>
+                    <td>3.67 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Open and get middle page, mixed workload</td>
+                    <td><span class="benchmark-win">185.58 &micro;s</span></td>
+                    <td>1.08 ms</td>
+                    <td>Not shown</td>
+                    <td>3.89 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Open and get last page, mixed workload</td>
+                    <td><span class="benchmark-win">178.20 &micro;s</span></td>
+                    <td>1.01 ms</td>
+                    <td>Not shown</td>
+                    <td>3.90 ms</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Extraction</p>
+              <h3>Plain-text extraction on a text-heavy fixture</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table benchmark-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Workload</th>
+                    <th scope="col">ZingPDF</th>
+                    <th scope="col">PdfPig</th>
+                    <th scope="col">iText</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Open and extract first-page plain text</td>
+                    <td><span class="benchmark-win">53.39 ms</span></td>
+                    <td>73.04 ms</td>
+                    <td>332.47 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Extract full-document plain text</td>
+                    <td><span class="benchmark-win">475.06 ms</span></td>
+                    <td>608.55 ms</td>
+                    <td>4.37 s</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Writes</p>
+              <h3>Realistic amendment and merge workloads</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table benchmark-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Workload</th>
+                    <th scope="col">ZingPDF</th>
+                    <th scope="col">PDFsharp</th>
+                    <th scope="col">iText</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Append 1 page to mixed-workload PDF and save</td>
+                    <td><span class="benchmark-win">1.64 ms</span></td>
+                    <td>2.87 ms</td>
+                    <td>7.77 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Append 10 pages to mixed-workload PDF and save</td>
+                    <td><span class="benchmark-win">1.68 ms</span></td>
+                    <td>3.35 ms</td>
+                    <td>8.08 ms</td>
+                  </tr>
+                  <tr>
+                    <td>Merge text-heavy PDF into mixed-workload PDF and save</td>
+                    <td>30.63 ms</td>
+                    <td>30.14 ms</td>
+                    <td><span class="benchmark-win">29.11 ms</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="doc-callout">
+        <p class="eyebrow">Summary</p>
+        <h3>What stands out in the current suite</h3>
+        <p>ZingPDF delivers excellent performance on seekable-stream access, plain-text extraction, and realistic
+          page-append workflows, while staying highly competitive on larger merge scenarios.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./license.html">License Notice</a>
+      <a href="./eula.html">EULA</a>
+      <a href="./evaluation.html">Evaluation Terms</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./support-policy.html">Support Policy</a>
+      <p class="footer-meta">Benchmark figures shown here come from the repository benchmark suite and should be
+        interpreted alongside the exact fixture and workload definitions.</p>
+    </footer>
+  </div>
+</body>
+
+</html>

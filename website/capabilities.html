@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZingPDF Capabilities</title>
+  <meta name="description"
+    content="Detailed capability matrix for ZingPDF, including current support across document editing, page content, forms, security, output, packages, and roadmap areas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./index.html">Home</a>
+        <a href="./docs.html">Docs</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API Reference</a>
+        <a href="./index.html#licenses">Pricing</a>
+      </nav>
+    </header>
+
+    <main class="performance-main">
+      <section class="docs-hero">
+        <div class="docs-hero-copy">
+          <p class="eyebrow">Capability Matrix</p>
+          <h1>ZingPDF capabilities</h1>
+          <p class="lead">
+            A detailed view of what ZingPDF already covers today, what depends on deployment context, and which areas
+            are still planned.
+          </p>
+        </div>
+        <article class="doc-card benchmark-callout">
+          <h3>At a glance</h3>
+          <p>ZingPDF already covers the core document editing, form, metadata, extraction, watermarking, encryption,
+            and save workflows most .NET teams evaluate first.</p>
+          <p>Use this page when you want the detailed support matrix rather than the shorter homepage summary.</p>
+        </article>
+      </section>
+
+      <section class="capabilities">
+        <div class="section-copy">
+          <p class="eyebrow">Detailed Scope</p>
+          <h2>Current support and planned work</h2>
+          <p>
+            Capabilities are grouped the way teams usually evaluate a PDF library: document core, page content, forms,
+            security and output, and package-level scope.
+          </p>
+        </div>
+
+        <div class="support-groups">
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Document Core</p>
+              <h3>Open, create, inspect, and restructure documents.</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Capability</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Load existing PDFs from seekable streams</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Load existing documents from seekable streams.</td>
+                  </tr>
+                  <tr>
+                    <td>Create blank PDFs</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Includes page creation APIs.</td>
+                  </tr>
+                  <tr>
+                    <td>Get page counts and retrieve pages</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Page count and page access APIs.</td>
+                  </tr>
+                  <tr>
+                    <td>Append, insert, delete, and merge pages</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Append, insert, delete, and merge operations.</td>
+                  </tr>
+                  <tr>
+                    <td>Rotate pages</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Page-level and document-wide rotation.</td>
+                  </tr>
+                  <tr>
+                    <td>Read and update document metadata</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Title, author, subject, keywords, creator, and dates.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Page Content</p>
+              <h3>Add visible content with page APIs for text, graphics, and media.</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Capability</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Add text and image content</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Text and image placement through the page API.</td>
+                  </tr>
+                  <tr>
+                    <td>Draw vector paths</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Path drawing with stroke and fill options through the page API.</td>
+                  </tr>
+                  <tr>
+                    <td>Text watermarks</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Simple all-pages watermarking.</td>
+                  </tr>
+                  <tr>
+                    <td>Extract text</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Text extraction API.</td>
+                  </tr>
+                  <tr>
+                    <td>Register standard PDF fonts</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Document-level registration API for the standard PDF text fonts.</td>
+                  </tr>
+                  <tr>
+                    <td>Register embedded TrueType fonts</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Document-level registration API for local TrueType font files and streams.</td>
+                  </tr>
+                  <tr>
+                    <td>Google Fonts package</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Package for registering Google Fonts through the Google Fonts Developer API.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Forms</p>
+              <h3>Inspect and update AcroForm content through typed field wrappers.</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Capability</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>AcroForm field enumeration</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Typed wrappers for terminal fields.</td>
+                  </tr>
+                  <tr>
+                    <td>Inspect form field bounds</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Read full field rectangles for placement and layout workflows.</td>
+                  </tr>
+                  <tr>
+                    <td>Text field read/write</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Read, set, and clear text field values.</td>
+                  </tr>
+                  <tr>
+                    <td>Choice, checkbox, and radio selection</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Selection APIs exposed through option wrappers.</td>
+                  </tr>
+                  <tr>
+                    <td>Signature field discovery</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Signature fields can be identified and inspected.</td>
+                  </tr>
+                  <tr>
+                    <td>Inspect signature metadata</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Read signature presence, filter, subfilter, signer name, reason, and signing time.</td>
+                  </tr>
+                  <tr>
+                    <td>Push-button caption and action inspection</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Read button captions, inspect primary action types, inspect URI or named actions, and list additional-action triggers.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Security And Output</p>
+              <h3>Protect documents, rewrite history, and control how output is saved.</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Capability</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Compress and decompress stream content</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Compression and decompression APIs for supported streams.</td>
+                  </tr>
+                  <tr>
+                    <td>Authenticate encrypted PDFs</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Password authentication for encrypted files.</td>
+                  </tr>
+                  <tr>
+                    <td>Apply password protection</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Supports Standard security handler RC4-128, AES-128, and AES-256 output.</td>
+                  </tr>
+                  <tr>
+                    <td>Decrypt to a plain latest revision</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Removes encryption from the latest saved revision.</td>
+                  </tr>
+                  <tr>
+                    <td>Incremental save</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Writes a new revision and preserves prior document history.</td>
+                  </tr>
+                  <tr>
+                    <td>Document history removal</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Rewrites the document so only the latest live objects are saved, removing prior incremental revision history.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="support-group">
+            <div class="support-group-copy">
+              <p class="eyebrow">Packages And Roadmap</p>
+              <h3>What ships today, what depends on deployment environment, and what still needs lower-level work.</h3>
+            </div>
+            <div class="support-table-wrap">
+              <table class="support-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Capability</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Cross-platform core library support</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Windows, Linux, and macOS, subject to runtime dependencies.</td>
+                  </tr>
+                  <tr>
+                    <td>HTML-to-PDF package</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>HTML-to-PDF package with browser automation requirements.</td>
+                  </tr>
+                  <tr>
+                    <td>Execute push-button actions</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Action execution is not exposed through the high-level API yet.</td>
+                  </tr>
+                  <tr>
+                    <td>Digital signatures</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Signature fields are discoverable; signing is not implemented yet.</td>
+                  </tr>
+                  <tr>
+                    <td>Advanced appearance customization</td>
+                    <td><span class="status-pill status-roadmap">Low-level API</span></td>
+                    <td>Advanced or non-standard appearance work may require low-level PDF object access.</td>
+                  </tr>
+                  <tr>
+                    <td>Redaction</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Not implemented in the current release.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

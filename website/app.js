@@ -4,6 +4,8 @@
   const dialog = document.getElementById("contact-dialog");
   const emailText = document.getElementById("contact-email-text");
   const emailLink = document.getElementById("contact-email-link");
+  const contactSalesTriggers = document.querySelectorAll("[data-contact-sales]");
+  const faqDetails = document.querySelectorAll(".faq-list details");
 
   if (pricingGrid && dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
@@ -14,6 +16,24 @@
     for (const license of config.licenses || []) {
       pricingGrid.appendChild(buildCard(license));
     }
+  }
+
+  for (const trigger of contactSalesTriggers) {
+    trigger.addEventListener("click", () => dialog?.showModal());
+  }
+
+  for (const detail of faqDetails) {
+    detail.addEventListener("toggle", () => {
+      if (!detail.open) {
+        return;
+      }
+
+      for (const other of faqDetails) {
+        if (other !== detail) {
+          other.open = false;
+        }
+      }
+    });
   }
 
   highlightCodeBlocks();
