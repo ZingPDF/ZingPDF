@@ -115,8 +115,8 @@ On every push to `main` that changes the website, library, or solution files, Gi
 After the first successful deployment:
 
 1. open the Pages project in Cloudflare
-2. add your custom domain such as `zingpdf.com`
-3. optionally add `www.zingpdf.com` and redirect it to the apex domain
+2. add your custom domain such as `zingpdf.dev`
+3. optionally add `www.zingpdf.dev` and redirect it to the apex domain
 
 Cloudflare will guide you through the required DNS records if your DNS is already on Cloudflare.
 
