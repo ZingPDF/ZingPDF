@@ -229,6 +229,59 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task ExportPagesAsync_SelectedPages_PreserveRequestedOrderAfterSave()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        using var exported = await pdf.ExportPagesAsync([2, 1]);
+        using var output = new MemoryStream();
+
+        await exported.SaveAsync(output);
+        await WriteArtifactAsync("export-pages-generated-text-heavy.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(2);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await reloaded.ExtractTextAsync(2)).Select(x => x.Text));
+
+        firstPageText.Should().Contain("Your Service Summary");
+        firstPageText.Should().NotContain("Tax Invoice");
+        secondPageText.Should().Contain("Tax Invoice");
+        secondPageText.Should().Contain("Thomas Bowers");
+    }
+
+    [Fact]
+    public async Task SplitAsync_ReturnsDocumentsWithRequestedPageCount()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        var parts = await pdf.SplitAsync(10);
+
+        try
+        {
+            parts.Should().HaveCount(2);
+            (await parts[0].GetPageCountAsync()).Should().Be(10);
+            (await parts[1].GetPageCountAsync()).Should().Be(10);
+
+            using var firstOutput = new MemoryStream();
+            using var output = new MemoryStream();
+            await parts[0].SaveAsync(firstOutput);
+            await parts[1].SaveAsync(output);
+
+            firstOutput.Length.Should().BeGreaterThan(0);
+            output.Length.Should().BeGreaterThan(0);
+        }
+        finally
+        {
+            foreach (var part in parts)
+            {
+                part.Dispose();
+            }
+        }
+    }
+
+    [Fact]
     public async Task Page_AddTextAsync_PersistsWrittenContent()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.Test));

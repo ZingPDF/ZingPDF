@@ -27,6 +27,12 @@ internal static class PdfBootstrapper
         return Pdf.Load(stream);
     }
 
+    public static Pdf CreateEmpty()
+    {
+        var stream = CreateEmptyDocumentStream();
+        return Pdf.Load(stream);
+    }
+
     private static MemoryStream CreateDocumentStream(PageDictionary.PageCreationOptions pageOptions)
     {
         var stream = new MemoryStream();
@@ -95,6 +101,67 @@ internal static class PdfBootstrapper
         return stream;
     }
 
+    private static MemoryStream CreateEmptyDocumentStream()
+    {
+        var stream = new MemoryStream();
+        var pdfContext = new BootstrapPdfContext();
+
+        var catalogId = new IndirectObjectId(1, 0);
+        var pageTreeId = new IndirectObjectId(2, 0);
+
+        var rootPageTreeNode = new IndirectObject(
+            pageTreeId,
+            PageTreeNodeDictionary.CreateNew(new ArrayObject([], ObjectContext.UserCreated), pdfContext, 0));
+
+        var documentCatalog = new IndirectObject(
+            catalogId,
+            DocumentCatalogDictionary.FromDictionary(
+                new Dictionary<string, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Catalog,
+                    [Constants.DictionaryKeys.DocumentCatalog.Pages] = rootPageTreeNode.Reference,
+                },
+                pdfContext,
+                ObjectContext.UserCreated));
+
+        new Header(2.0, ObjectContext.UserCreated).WriteAsync(stream).GetAwaiter().GetResult();
+        documentCatalog.WriteAsync(stream).GetAwaiter().GetResult();
+        rootPageTreeNode.WriteAsync(stream).GetAwaiter().GetResult();
+
+        var xref = new CrossReferenceTable(
+            [
+                new CrossReferenceSection(
+                    0,
+                    [
+                        CrossReferenceEntry.RootFreeEntry,
+                        new CrossReferenceEntry(documentCatalog.ByteOffset!.Value, 0, true, false),
+                        new CrossReferenceEntry(rootPageTreeNode.ByteOffset!.Value, 0, true, false),
+                    ],
+                    ObjectContext.UserCreated)
+            ],
+            ObjectContext.UserCreated);
+
+        xref.WriteAsync(stream).GetAwaiter().GetResult();
+
+        var fileId = PdfString.FromBytes(Guid.NewGuid().ToByteArray(), PdfStringSyntax.Hex, ObjectContext.UserCreated);
+        var trailer = new Trailer(
+            TrailerDictionary.CreateNew(
+                3,
+                null,
+                documentCatalog.Reference,
+                null,
+                null,
+                new ArrayObject([fileId, (PdfString)fileId.Clone()], ObjectContext.UserCreated),
+                pdfContext,
+                ObjectContext.UserCreated),
+            xref.ByteOffset!.Value,
+            ObjectContext.UserCreated);
+
+        trailer.WriteAsync(stream).GetAwaiter().GetResult();
+        stream.Position = 0;
+        return stream;
+    }
+
     private sealed class BootstrapPdfContext : IPdf
     {
         public Stream Data => throw new NotSupportedException();
@@ -108,6 +175,8 @@ internal static class PdfBootstrapper
         public Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task DeletePageAsync(int pageNumber) => throw new NotSupportedException();
+        public Task<Pdf> ExportPagesAsync(IEnumerable<int> pageNumbers) => throw new NotSupportedException();
+        public Task<IReadOnlyList<Pdf>> SplitAsync(int pagesPerDocument) => throw new NotSupportedException();
         public Task SetRotationAsync(Rotation rotation) => throw new NotSupportedException();
         public Task<IEnumerable<ExtractedText>> ExtractTextAsync() => throw new NotSupportedException();
         public Task<IEnumerable<ExtractedText>> ExtractTextAsync(int pageNumber) => throw new NotSupportedException();
