@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "ZingPDF/**"
+      - "ZingPDF.Fonts/**"
+      - "ZingPDF.FromHTML/**"
+      - "ZingPDF.GoogleFonts/**"
+      - "ZingPDF.InheritableSourceGenerator/**"
   workflow_dispatch:
     inputs:
       version:
@@ -35,28 +41,65 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect package-affecting changes
+        id: changes
+        shell: pwsh
+        run: |
+          $latestTag = git tag --list "v*" --sort=-v:refname | Select-Object -First 1
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to read git tags."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($latestTag)) {
+            "has_release_changes=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          $changedFiles = @(git diff --name-only "$latestTag..HEAD" -- `
+            ZingPDF `
+            ZingPDF.Fonts `
+            ZingPDF.FromHTML `
+            ZingPDF.GoogleFonts `
+            ZingPDF.InheritableSourceGenerator)
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to inspect changed files since $latestTag."
+          }
+
+          $hasReleaseChanges = $changedFiles.Count -gt 0
+          "has_release_changes=$($hasReleaseChanges.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Stop when no package-affecting changes were found
+        if: ${{ steps.changes.outputs.has_release_changes != 'true' }}
+        shell: pwsh
+        run: |
+          Write-Host "No package-affecting changes found since the latest release tag."
+
       - name: Setup .NET
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' }}
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
       - name: Validate binary fixture checkout
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' }}
         shell: pwsh
         run: ./scripts/assert-binary-fixtures.ps1
 
       - name: Prepare release version and changelog
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' }}
         id: prepare
         shell: pwsh
         run: ./scripts/prepare-release.ps1 -OverrideVersion '${{ github.event.inputs.version }}'
 
       - name: Stop when no releasable changes were found
-        if: ${{ steps.prepare.outputs.should_release != 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release != 'true' }}
         shell: pwsh
         run: |
           Write-Host "No releasable changes found in CHANGELOG.md or commit history."
 
       - name: Commit release metadata
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
@@ -68,11 +111,11 @@ jobs:
           git push origin "${{ steps.prepare.outputs.tag }}"
 
       - name: Restore
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: dotnet restore ZingPDF.sln
 
       - name: Build
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet build ZingPDF.sln
           --configuration Release
@@ -84,11 +127,11 @@ jobs:
           -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Test
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: dotnet test ZingPDF.sln --configuration Release --no-build
 
       - name: Pack core package
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF/ZingPDF.csproj
           --configuration Release
@@ -101,7 +144,7 @@ jobs:
           -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Pack fonts package
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF.Fonts/ZingPDF.Fonts.csproj
           --configuration Release
@@ -114,7 +157,7 @@ jobs:
           -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Pack HTML package
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
           dotnet pack ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
           --configuration Release
@@ -127,69 +170,31 @@ jobs:
           -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
       - name: Upload packages
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: zingpdf-packages-${{ steps.prepare.outputs.version }}
           path: artifacts/packages/*
           if-no-files-found: error
 
-      - name: Extract release notes from changelog
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
-        id: notes
-        shell: pwsh
-        run: |
-          $version = '${{ steps.prepare.outputs.version }}'
-          $lines = Get-Content CHANGELOG.md
-          $pattern = '^## \[' + [regex]::Escape($version) + '\] - '
-          $start = -1
-          for ($i = 0; $i -lt $lines.Length; $i++) {
-            if ($lines[$i] -match $pattern) {
-              $start = $i
-              break
-            }
-          }
-          if ($start -lt 0) {
-            throw "Unable to find changelog section for version $version."
-          }
-
-          $end = $lines.Length
-          for ($i = $start + 1; $i -lt $lines.Length; $i++) {
-            if ($lines[$i] -match '^## \[') {
-              $end = $i
-              break
-            }
-          }
-
-          $body = if ($end -gt ($start + 1)) {
-            $lines[($start + 1)..($end - 1)]
-          }
-          else {
-            @()
-          }
-
-          $path = Join-Path $env:RUNNER_TEMP "release-notes.md"
-          [System.IO.File]::WriteAllLines($path, $body)
-          "path=$path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
       - name: Create GitHub release
-        if: ${{ steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.prepare.outputs.tag }}
           name: ZingPDF ${{ steps.prepare.outputs.tag }}
-          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: true
           files: artifacts/packages/*
 
       - name: NuGet login (OIDC)
-        if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
         uses: NuGet/login@v1
         id: nuget_login
         with:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
-        if: ${{ steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
         shell: pwsh
         run: |
           $packages = Get-ChildItem artifacts/packages -Filter *.nupkg | Where-Object { $_.Name -notlike '*.snupkg' }

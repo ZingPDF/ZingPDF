@@ -840,6 +840,59 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task GetFieldAsync_ByName_ReturnsMatchingField()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var expectedField = (await form!.GetFieldsAsync()).First();
+
+        var field = await form.GetFieldAsync(expectedField.Name);
+
+        field.Should().NotBeNull();
+        field!.Name.Should().Be(expectedField.Name);
+    }
+
+    [Fact]
+    public async Task GetFieldAsync_TypedLookup_ReturnsMatchingType()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var expectedField = (await form!.GetFieldsAsync()).OfType<TextFormField>().First();
+
+        var field = await form.GetFieldAsync<TextFormField>(expectedField.Name);
+
+        field.Should().NotBeNull();
+        field!.Name.Should().Be(expectedField.Name);
+    }
+
+    [Fact]
+    public async Task GetFieldAsync_TypedLookup_ReturnsNull_WhenFieldTypeDoesNotMatch()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+        var textField = (await form!.GetFieldsAsync()).OfType<TextFormField>().First();
+
+        var field = await form.GetFieldAsync<ChoiceFormField>(textField.Name);
+
+        field.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFieldAsync_ReturnsNull_WhenNameDoesNotExist()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+
+        var form = await pdf.GetFormAsync();
+
+        var field = await form!.GetFieldAsync("Does.Not.Exist");
+
+        field.Should().BeNull();
+    }
+
+    [Fact]
     public async Task CheckboxFormField_SelectOption_PersistsAfterSave()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
@@ -879,6 +932,34 @@ public class PdfTests
         await pdf.SaveAsync(output);
         await WriteArtifactAsync("form-choice-select.pdf", output);
         output.Length.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task ChoiceFormField_SelectOptionByTextAsync_ReturnsTrue_WhenOptionExists()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComboboxForm));
+
+        var form = await pdf.GetFormAsync();
+        var choiceField = (await form!.GetFieldsAsync()).OfType<ChoiceFormField>().First();
+        var option = (await choiceField.GetOptionsAsync()).First();
+        var optionText = option.Text.Decode();
+
+        var selected = await choiceField.SelectOptionByTextAsync(optionText);
+
+        selected.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ChoiceFormField_SelectOptionByValueAsync_ReturnsFalse_WhenOptionDoesNotExist()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComboboxForm));
+
+        var form = await pdf.GetFormAsync();
+        var choiceField = (await form!.GetFieldsAsync()).OfType<ChoiceFormField>().First();
+
+        var selected = await choiceField.SelectOptionByValueAsync("DoesNotExist");
+
+        selected.Should().BeFalse();
     }
 
     [Fact]

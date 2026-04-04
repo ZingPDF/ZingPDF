@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Fill PDF Form Fields in C#</title>
+  <meta name="description"
+    content="Fill PDF form fields in C# with ZingPDF, including field discovery, direct lookup by name, and choice-field selection helpers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Get Started</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to fill PDF form fields in C#</h1>
+          <p class="article-dek">
+            If the PDF contains an AcroForm, load the file, get the form, and update fields through wrappers such as
+            <code>TextFormField</code> and <code>ChoiceFormField</code>. If you already know the field names, fetch
+            them directly instead of iterating through the whole form.
+          </p>
+          <p>
+            Most of the work is in finding the right field names, handling text and choice fields, and checking what
+            the document supports before you wire it into a service.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#known-names">Known field names</a>
+          <a href="#discover-fields">How to discover fields</a>
+          <a href="#text-and-choice">Text and choice fields</a>
+          <a href="#what-to-check">What to check before you automate</a>
+          <a href="#limitations">Current limitations</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Start with direct lookup</h2>
+          <p>
+            If you already know the field names you want, fetch them directly by name and expected type.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
+
+using var pdf = Pdf.Load(File.OpenRead("form.pdf"));
+
+var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+var nameField = await form.GetFieldAsync<TextFormField>("Applicant.Name");
+if (nameField is not null)
+{
+    await nameField.SetValueAsync("Taylor Smith");
+}
+
+var stateField = await form.GetFieldAsync<ChoiceFormField>("Applicant.State");
+if (stateField is not null)
+{
+    await stateField.SelectOptionByTextAsync("NSW");
+}
+
+await pdf.SaveAsync(File.Create("form-filled.pdf"));</code></pre>
+
+          <p>
+            That covers many form-filling cases, especially when the document structure is stable and the field
+            names are already known.
+          </p>
+        </section>
+
+        <section class="article-section" id="known-names">
+          <h2>Use direct lookup when the field names are already known</h2>
+          <p>
+            If your mapping already knows that <code>Applicant.Name</code> is a text field and
+            <code>Applicant.State</code> is a choice field, there is no reason to enumerate every field first.
+          </p>
+          <p>
+            Use <code>Form.GetFieldAsync(name)</code> for a non-generic lookup, or
+            <code>Form.GetFieldAsync&lt;TField&gt;(name)</code> when you want the expected field type back directly.
+          </p>
+        </section>
+
+        <section class="article-section" id="discover-fields">
+          <h2>How to discover the fields you actually have</h2>
+          <p>
+            In real PDFs, the hardest part is often not writing values. It is finding the right field names and
+            understanding how the form is structured.
+          </p>
+          <p>
+            ZingPDF exposes terminal fields through <code>Form.GetFieldsAsync()</code>. Nested names are flattened into
+            dot-separated paths, so you may see names like <code>Applicant.Address.Suburb</code> rather than simple
+            single-word identifiers.
+          </p>
+
+          <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+foreach (var field in await form.GetFieldsAsync())
+{
+    Console.WriteLine(field.Name);
+}</code></pre>
+
+          <p>
+            If you are integrating with a new third-party form, this discovery pass is usually the first thing to do
+            before you build the mapping. Once you know the names, switch over to direct lookup in the real write path.
+          </p>
+        </section>
+
+        <section class="article-section" id="text-and-choice">
+          <h2>Text fields and choice fields are the main high-level path</h2>
+          <p>
+            Text fields are the easiest to automate. Once you have a <code>TextFormField</code>, you can read the
+            current value, set a new one, or clear it.
+          </p>
+          <p>
+            Choice fields are still simple, but they depend more on the document because you often need to match the
+            available options to values from your own system.
+          </p>
+          <p>
+            If you already know the option text or export value you want, use
+            <code>SelectOptionByTextAsync(...)</code> or <code>SelectOptionByValueAsync(...)</code>. If you do not,
+            inspect the option list first and then build your mapping.
+          </p>
+        </section>
+
+        <section class="article-section" id="what-to-check">
+          <h2>Checks before you automate form filling</h2>
+          <p>
+            Before you wire this into a service or import job, it helps to verify a few things against real sample
+            files.
+          </p>
+          <ul>
+            <li>Confirm the document actually contains an AcroForm.</li>
+            <li>Inspect the terminal field names instead of guessing them.</li>
+            <li>Check whether your inputs map to text fields, choice fields, or button options.</li>
+            <li>Test the output in the PDF viewers your users actually rely on.</li>
+            <li>Decide whether you want a normal incremental save or a clean rewrite for downstream distribution.</li>
+          </ul>
+          <p>
+            Those checks save time because form automation problems are often problems with the PDF itself, not with the
+            code that writes values into it.
+          </p>
+        </section>
+
+        <section class="article-section" id="limitations">
+          <h2>Current gaps</h2>
+          <p>
+            Two areas still sit outside the current high-level API.
+          </p>
+          <ul>
+            <li>Push-button action details can be inspected, but action execution is not exposed through the high-level API.</li>
+            <li>Signature fields can be inspected, but high-level signing is not implemented.</li>
+          </ul>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Test against one of your real forms</h2>
+          <p>
+            Run field discovery against one of your own PDFs, map the fields you care about, and then verify the saved
+            output in the viewers your users use.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#forms">Open forms docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

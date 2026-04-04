@@ -27,6 +27,7 @@
       <nav class="topnav" aria-label="Primary">
         <a href="./docs.html">Get Started</a>
         <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
         <a href="./capabilities.html">Capabilities</a>
         <a href="./performance.html">Performance</a>
         <a href="./api.html">API</a>
@@ -35,11 +36,11 @@
     </header>
 
     <main>
-      <section class="docs-hero">
+          <section class="docs-hero">
         <div class="docs-hero-copy">
           <p class="eyebrow">Developer Documentation</p>
           <h1>ZingPDF docs</h1>
-          <p class="lead">Reference material and integration guidance for the core API surface.</p>
+          <p class="lead">Reference material and examples for the core API surface.</p>
         </div>
       </section>
 
@@ -134,9 +135,9 @@ await pdf.SaveAsync(output);</code></pre>
 
           <section class="doc-section" id="packages">
             <p class="eyebrow">Packages</p>
-            <h2>NuGet packages and support scope</h2>
-            <p>The ZingPDF solution is split into a small set of packages and support projects with different runtime
-              expectations. If you are choosing what to ship, start here.</p>
+            <h2>NuGet packages</h2>
+            <p>ZingPDF ships as a small set of packages. Use the core package unless you specifically need HTML
+              rendering or Google Fonts.</p>
 
             <div class="doc-grid">
               <article class="doc-card">
@@ -145,23 +146,20 @@ await pdf.SaveAsync(output);</code></pre>
                   metadata, and encryption.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
-                  <li>Intended role: primary package for most users</li>
-                  <li>Compatibility goal: cross-platform on Windows, Linux, and macOS</li>
-                  <li>Current notes: depends on <code>SkiaSharp</code> and <code>ImageSharp</code>, so runtime
-                    validation across operating systems matters</li>
+                  <li>Use for most applications</li>
+                  <li>Runs on Windows, Linux, and macOS</li>
+                  <li>Depends on <code>SkiaSharp</code> and <code>ImageSharp</code>, so test on your target platform</li>
                 </ul>
               </article>
 
               <article class="doc-card">
                 <h3><code>ZingPDF.FromHTML</code></h3>
-                <p>HTML-to-PDF package for Chromium-based rendering workflows.</p>
+                <p>HTML-to-PDF package for Chromium-based rendering.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
-                  <li>Intended role: separate package for HTML-to-PDF workflows</li>
-                  <li>Compatibility goal: cross-platform in principle, but operationally heavier because it relies on
-                    browser automation</li>
-                  <li>Current notes: keep this separate from the core package when documenting deployment requirements
-                  </li>
+                  <li>Use for HTML-to-PDF conversion</li>
+                  <li>Cross-platform in principle, but heavier because it relies on browser automation</li>
+                  <li>Keep its deployment requirements separate from the core package</li>
                 </ul>
               </article>
 
@@ -170,9 +168,9 @@ await pdf.SaveAsync(output);</code></pre>
                 <p>Support package for standard PDF font metadata and TrueType font loading.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
-                  <li>Intended role: companion package used by the core library</li>
-                  <li>Compatibility goal: cross-platform, subject to <code>SkiaSharp</code> runtime support</li>
-                  <li>Current notes: used by the core registration APIs for standard and embedded TrueType fonts</li>
+                  <li>Companion package used by the core library</li>
+                  <li>Cross-platform, subject to <code>SkiaSharp</code> runtime support</li>
+                  <li>Used by the core registration APIs for standard and embedded TrueType fonts</li>
                 </ul>
               </article>
 
@@ -181,25 +179,25 @@ await pdf.SaveAsync(output);</code></pre>
                 <p>Google Fonts integration package for registering Google Fonts in a PDF document.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
-                  <li>Intended role: package for Google Fonts workflows</li>
-                  <li>Compatibility goal: cross-platform with outbound HTTPS access</li>
-                  <li>Current notes: requires a Google Fonts Developer API key at registration time</li>
+                  <li>Use for fetching Google Fonts at document build time</li>
+                  <li>Cross-platform with outbound HTTPS access</li>
+                  <li>Requires a Google Fonts Developer API key at registration time</li>
                 </ul>
               </article>
             </div>
 
-            <h3>Support recommendations</h3>
+            <h3>Package selection notes</h3>
             <ul>
               <li>For application integrations, prefer <code>ZingPDF</code> unless you specifically need HTML
                 conversion.</li>
-              <li>Use <code>ZingPDF.GoogleFonts</code> when you want to register Google Fonts directly from the Google
+              <li>Use <code>ZingPDF.GoogleFonts</code> if you need to register Google Fonts directly from the Google
                 Fonts catalog.</li>
-              <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own operational
+              <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own runtime
                 requirements.</li>
               <li>Expect the core library to remain <code>net8.0</code>-first until the dependency surface is slimmed
                 enough to justify broader multi-targeting.</li>
-              <li>Validate your exact deployment platform if your workflow depends on image handling, font metrics, or
-                browser automation.</li>
+              <li>Validate your exact deployment platform if you depend on image handling, font metrics, or browser
+                automation.</li>
             </ul>
           </section>
 
@@ -257,7 +255,7 @@ await page.AddTextAsync(
 
             <h3>Font notes</h3>
             <ul>
-              <li>The current high-level registration path targets WinAnsi / Windows-1252 text workflows.</li>
+              <li>The current high-level registration path targets WinAnsi / Windows-1252 text.</li>
               <li>Symbol and ZapfDingbats are not yet exposed through the high-level registration API.</li>
               <li><code>ZingPDF.GoogleFonts</code> requires a Google Fonts Developer API key and network access.</li>
             </ul>
@@ -347,7 +345,30 @@ await pdf.SaveAsync(output);</code></pre>
               <li>Shared field metadata includes name, description, field flags, field bounds, and field dimensions.</li>
             </ul>
 
-            <h3>Recommended typed pattern</h3>
+            <h3>Known field names</h3>
+            <p>If you already know the fully qualified field name, fetch the field directly instead of enumerating the
+              whole form.</p>
+            <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+var nameField = await form.GetFieldAsync<TextFormField>("Applicant.Name");
+if (nameField is not null)
+{
+    await nameField.SetValueAsync("Taylor Smith");
+}
+
+var stateField = await form.GetFieldAsync<ChoiceFormField>("Applicant.State");
+if (stateField is not null)
+{
+    await stateField.SelectOptionByTextAsync("NSW");
+}</code></pre>
+
+            <h3>Discovery-first pattern</h3>
+            <p>When you do not know the field names yet, enumerate the terminal fields first and inspect them before
+              building your mapping logic.</p>
             <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
 if (form is null)
 {
@@ -356,23 +377,7 @@ if (form is null)
 
 foreach (var field in await form.GetFieldsAsync())
 {
-    switch (field)
-    {
-        case TextFormField textField when textField.Name == "Applicant.Name":
-            await textField.SetValueAsync("Taylor Smith");
-            break;
-
-        case ChoiceFormField choiceField when choiceField.Name == "Applicant.State":
-            foreach (var option in await choiceField.GetOptionsAsync())
-            {
-                if (option.Text.AsText().DecodeText() == "NSW")
-                {
-                    await option.SelectAsync();
-                    break;
-                }
-            }
-            break;
-    }
+    Console.WriteLine(field.Name);
 }</code></pre>
 
             <div class="doc-grid">
@@ -383,6 +388,7 @@ foreach (var field in await form.GetFieldsAsync())
                   <li><code>GetValueAsync()</code></li>
                   <li><code>SetValueAsync(string?)</code></li>
                   <li><code>ClearAsync()</code></li>
+                  <li><code>Form.GetFieldAsync&lt;TextFormField&gt;(name)</code></li>
                 </ul>
               </article>
               <article class="doc-card">
@@ -390,22 +396,26 @@ foreach (var field in await form.GetFieldsAsync())
                 <p>Choice items and selectable button options can be read and toggled through option wrappers like
                   <code>ChoiceItem</code> and <code>SelectableOption</code>.
                 </p>
+                <p>When you already know the fully qualified field name, use
+                  <code>Form.GetFieldAsync&lt;ChoiceFormField&gt;(name)</code> or the non-generic
+                  <code>Form.GetFieldAsync(name)</code> lookup path.</p>
+                <p>When you already know the option you want, use <code>SelectOptionByTextAsync(...)</code> or
+                  <code>SelectOptionByValueAsync(...)</code> to skip enumerating the full option list.</p>
                 <p><code>PushButtonFormField</code> supports caption lookup, primary action-type inspection, URI and named-action inspection, and additional-action trigger discovery.</p>
                 <p><code>SignatureFormField</code> supports signed-state and signature metadata inspection, including filter, subfilter, signer name, reason, and signing time.</p>
               </article>
             </div>
 
-            <h3>Current scope notes</h3>
+            <h3>Current gaps</h3>
             <ul>
               <li>Push-button action details can be inspected, but action execution is not yet exposed through the high-level API.</li>
               <li>Signature fields can be inspected, but high-level signing is not yet implemented.</li>
-              <li>Unusual viewer-specific appearance behavior may still require lower-level object work.</li>
             </ul>
           </section>
 
           <section class="doc-section" id="encryption">
             <p class="eyebrow">Encryption</p>
-            <h2>Password-protected workflows</h2>
+            <h2>Passwords and encryption</h2>
             <p>ZingPDF supports authenticating encrypted PDFs, applying password protection to plain PDFs, and saving
               decrypted output from encrypted input. New encrypted output can use legacy RC4-128 for compatibility or
               AES-128 and AES-256 through the Standard security handler.</p>
@@ -456,8 +466,8 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
           <section class="doc-section" id="save">
             <p class="eyebrow">Save Behavior</p>
             <h2>Understand the save model</h2>
-            <p>By default, ZingPDF saves by writing an incremental update. That gives you a predictable editing model,
-              with a few stream requirements worth knowing before production use.</p>
+            <p>By default, ZingPDF saves by writing an incremental update. That preserves the document history and comes
+              with a few stream requirements.</p>
 
             <ol>
               <li>The input stream passed to <code>Pdf.Load(...)</code> must be seekable.</li>
@@ -475,8 +485,8 @@ await pdf.AddWatermarkAsync("INTERNAL");
 await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
 
             <h3>History removal when you need a clean rewrite</h3>
-            <p>Call <code>RemoveHistoryAsync()</code> before saving when you want a fresh rewrite that keeps only the
-              latest live objects instead of preserving previous incremental revisions.</p>
+            <p>Call <code>RemoveHistoryAsync()</code> before saving if you want the file rewritten with only the latest
+              live objects instead of preserving earlier incremental revisions.</p>
 
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
 
@@ -486,7 +496,7 @@ await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
 
           <section class="doc-section" id="notes">
             <p class="eyebrow">Implementation Notes</p>
-            <h2>The details most likely to affect production usage</h2>
+            <h2>Details that affect production behavior</h2>
             <ul>
               <li><code>EncryptAsync(...)</code> supports Standard security handler RC4-128 (<code>V=2</code>,
                 <code>R=3</code>), AES-128 (<code>V=4</code>, <code>R=4</code>), and AES-256
