@@ -44,6 +44,64 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             return options.AsReadOnly();
         }
 
+        /// <summary>
+        /// Gets an option by its display text.
+        /// </summary>
+        /// <remarks>
+        /// Returns <see langword="null"/> when no option with the supplied display text exists.
+        /// Matching is case-sensitive.
+        /// </remarks>
+        public async Task<ChoiceItem?> GetOptionByTextAsync(string text)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(text, nameof(text));
+
+            return (await GetOptionsAsync()).FirstOrDefault(x => ZingPDF.Extensions.PdfStringExtensions.Decode(x.Text) == text);
+        }
+
+        /// <summary>
+        /// Gets an option by its stored export value.
+        /// </summary>
+        /// <remarks>
+        /// Returns <see langword="null"/> when no option with the supplied export value exists.
+        /// Matching is case-sensitive.
+        /// </remarks>
+        public async Task<ChoiceItem?> GetOptionByValueAsync(string value)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(value, nameof(value));
+
+            return (await GetOptionsAsync()).FirstOrDefault(x => ZingPDF.Extensions.PdfStringExtensions.Decode(x.Value) == value);
+        }
+
+        /// <summary>
+        /// Selects an option by its display text.
+        /// </summary>
+        public async Task<bool> SelectOptionByTextAsync(string text)
+        {
+            var option = await GetOptionByTextAsync(text);
+            if (option is null)
+            {
+                return false;
+            }
+
+            await option.SelectAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Selects an option by its stored export value.
+        /// </summary>
+        public async Task<bool> SelectOptionByValueAsync(string value)
+        {
+            var option = await GetOptionByValueAsync(value);
+            if (option is null)
+            {
+                return false;
+            }
+
+            await option.SelectAsync();
+            return true;
+        }
+
         protected async Task SelectOptionAsync(PdfString value)
         {
             var selectedOptions = await GetSelectedOptionsAsync();
