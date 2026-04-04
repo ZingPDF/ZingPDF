@@ -25,7 +25,7 @@
         </span>
       </a>
       <nav class="topnav" aria-label="Primary">
-        <a href="./docs.html">Get Started</a>
+        <a href="./docs.html">Docs</a>
         <a href="./index.html#licenses">Pricing</a>
         <a href="./guides.html">Guides</a>
         <a href="./capabilities.html">Capabilities</a>
@@ -38,9 +38,9 @@
     <main>
           <section class="docs-hero">
         <div class="docs-hero-copy">
-          <p class="eyebrow">Developer Documentation</p>
+          <p class="eyebrow">Docs</p>
           <h1>ZingPDF docs</h1>
-          <p class="lead">Reference material and examples for the core API surface.</p>
+          <p class="lead">Curated documentation for the main API surface, package choices, and PDF behavior.</p>
         </div>
       </section>
 
@@ -123,12 +123,17 @@ foreach (var item in textItems)
 }</code></pre>
               </article>
               <article class="doc-card">
-                <h3>Watermarking and compression</h3>
+                <h3>Watermarks and compression</h3>
                 <pre><code class="language-csharp">using var output = File.Create("watermarked.pdf");
+
+var firstPage = await pdf.GetPageAsync(1);
+await firstPage.AddWatermarkAsync("DRAFT");
 
 await pdf.AddWatermarkAsync("CONFIDENTIAL");
 pdf.Compress(dpi: 72, quality: 75);
 await pdf.SaveAsync(output);</code></pre>
+                <p><code>Page.AddWatermarkAsync(...)</code> targets one page. <code>Pdf.AddWatermarkAsync(...)</code>
+                  applies the same text across the whole document.</p>
               </article>
             </div>
           </section>
