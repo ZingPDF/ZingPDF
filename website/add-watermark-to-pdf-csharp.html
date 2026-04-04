@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Add Watermarks to PDFs in C#</title>
+  <meta name="description"
+    content="Add text watermarks to PDFs in C# with ZingPDF, either on one page or across the whole document.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to add watermarks to PDFs in C#</h1>
+          <p class="article-dek">
+            Use <code>Page.AddWatermarkAsync(...)</code> when you want to mark one page, or
+            <code>Pdf.AddWatermarkAsync(...)</code> when you want the same text applied across the whole document.
+          </p>
+          <p>
+            This is the right path when you need a simple text mark such as <code>CONFIDENTIAL</code>,
+            <code>DRAFT</code>, or <code>PAID</code>.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#single-page">Single-page watermark</a>
+          <a href="#every-page">Whole-document watermark</a>
+          <a href="#when-this-fits">When the high-level watermark fits</a>
+          <a href="#combine-edits">Combining it with other edits</a>
+          <a href="#save-behavior">Save behavior</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="single-page">
+          <h2>Watermark one page</h2>
+          <p>
+            Get the page you want, add the watermark, then save the document.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var input = File.OpenRead("report.pdf");
+using var output = File.Create("report-watermarked.pdf");
+using var pdf = Pdf.Load(input);
+
+var firstPage = await pdf.GetPageAsync(1);
+await firstPage.AddWatermarkAsync("DRAFT");
+await pdf.SaveAsync(output);</code></pre>
+
+          <p>
+            That writes the watermark to the selected page and leaves the rest of the document alone.
+          </p>
+        </section>
+
+        <section class="article-section" id="every-page">
+          <h2>Watermark every page</h2>
+          <p>
+            If you want the same text repeated across the document, call the document-level helper instead.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var input = File.OpenRead("report.pdf");
+using var output = File.Create("report-watermarked.pdf");
+using var pdf = Pdf.Load(input);
+
+await pdf.AddWatermarkAsync("CONFIDENTIAL");
+await pdf.SaveAsync(output);</code></pre>
+
+          <p>
+            That applies the watermark across the whole document and writes the result to
+            <code>report-watermarked.pdf</code>.
+          </p>
+        </section>
+
+        <section class="article-section" id="when-this-fits">
+          <h2>When the high-level watermark helper fits</h2>
+          <p>
+            The document-level helper is for one repeated text watermark across the pages of the PDF.
+          </p>
+          <p>
+            If you want a single status mark added to the whole file, this is the simplest path. If you need
+            to mark one page only, call <code>Page.AddWatermarkAsync(...)</code>. If you need custom placement logic or
+            mixed drawing operations, move down to the page APIs.
+          </p>
+        </section>
+
+        <section class="article-section" id="combine-edits">
+          <h2>Combining it with other document edits</h2>
+          <p>
+            Watermarking is often one step in a larger write path. You can update metadata, merge pages, or compress
+            streams before the final save.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("invoice-pack.pdf"));
+
+var metadata = await pdf.GetMetadataAsync();
+metadata.Title = "Invoice Pack";
+
+await pdf.AddWatermarkAsync("PAID");
+pdf.Compress(dpi: 72, quality: 75);
+await pdf.SaveAsync(File.Create("invoice-pack-final.pdf"));</code></pre>
+
+          <p>
+            The watermark is just another document change in the save pipeline, so it can sit alongside other updates.
+          </p>
+        </section>
+
+        <section class="article-section" id="save-behavior">
+          <h2>Save behavior</h2>
+          <p>
+            By default, the updated file is saved as a new incremental revision. If you need a rewritten file with only
+            the latest live objects, call <code>RemoveHistoryAsync()</code> before saving.
+          </p>
+          <ul>
+            <li>The output stream for <code>SaveAsync(...)</code> must be writable and seekable.</li>
+            <li>If you save to a different stream, it must be empty.</li>
+            <li>If you save back to the original stream, ZingPDF appends a new revision.</li>
+          </ul>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Add protection before you save the final copy</h2>
+          <p>
+            A common follow-on step is watermarking the file and then writing encrypted output.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./encrypt-pdf-with-aes-csharp.html">How to encrypt a PDF with AES in
+              C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#save">Open save docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

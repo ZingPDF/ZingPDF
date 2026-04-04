@@ -766,8 +766,10 @@ public class Pdf : IPdf, IDisposable
 
     private async Task AddWatermarkInternalAsync(string text)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+
         var watermarkFont = new Type1FontDictionary(this, ObjectContext.UserCreated);
-        watermarkFont.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)"Helvetica");
+        watermarkFont.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)StandardPdfFonts.Helvetica);
         watermarkFont.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
 
         var fontObject = await Objects.AddAsync(watermarkFont);
@@ -776,41 +778,7 @@ public class Pdf : IPdf, IDisposable
         await foreach (var pageObject in Objects.PageTree.EnumeratePagesAsync())
         {
             var page = new Page(pageObject, this);
-            var mediaBox = await page.Dictionary.MediaBox.GetAsync();
-            var resources = ResourceDictionary.FromDictionary(await page.Dictionary.Resources.GetAsync());
-            await resources.AddFontAsync(fontResourceName, fontObject.Reference, this);
-            page.Dictionary.SetResources(resources);
-
-            var pageWidth = mediaBox.UpperRight.X - mediaBox.LowerLeft.X;
-            var pageHeight = mediaBox.UpperRight.Y - mediaBox.LowerLeft.Y;
-            var fontSize = 42;
-            var x = mediaBox.LowerLeft.X + (pageWidth * 0.2);
-            var y = mediaBox.LowerLeft.Y + (pageHeight * 0.5);
-
-            var watermarkContent = new ContentStream()
-                .SaveGraphicsState()
-                .SetColour(new RGBColour(0.8, 0.8, 0.8))
-                .BeginTextObject()
-                .SetTextState(fontResourceName, fontSize)
-                .SetTextMatrix(
-                    1,
-                    0,
-                    0,
-                    1,
-                    x,
-                    y)
-                .ShowText(PdfString.FromTextAuto(text, ObjectContext.UserCreated))
-                .EndTextObject()
-                .RestoreGraphicsState();
-
-            var watermarkStream = await new ContentStreamFactory([watermarkContent])
-                .CreateAsync(new StreamDictionary(this, ObjectContext.UserCreated), ObjectContext.UserCreated);
-
-            var watermarkIndirectObject = await Objects.AddAsync(watermarkStream);
-
-            await page.Dictionary.AddContentAsync(watermarkIndirectObject.Reference);
-
-            Objects.Update(pageObject);
+            await page.AddWatermarkAsync(text, fontObject.Reference, fontResourceName);
         }
     }
 
