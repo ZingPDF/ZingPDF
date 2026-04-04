@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Guides</title>
   <meta name="description"
-    content="Articles for specific .NET PDF tasks with ZingPDF, including password handling and form filling.">
+    content="Articles for specific .NET PDF tasks with ZingPDF, including password handling, form filling, merging, watermarking, and AES encryption.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -25,7 +25,7 @@
         </span>
       </a>
       <nav class="topnav" aria-label="Primary">
-        <a href="./docs.html">Get Started</a>
+        <a href="./docs.html">Docs</a>
         <a href="./index.html#licenses">Pricing</a>
         <a href="./guides.html">Guides</a>
         <a href="./capabilities.html">Capabilities</a>
@@ -41,19 +41,13 @@
           <p class="eyebrow">Guides</p>
           <h1>ZingPDF guides</h1>
           <p class="lead">
-            Articles for specific PDF operations in C#.
+            Task-based articles for common PDF operations in C#.
           </p>
         </div>
-        <article class="doc-card benchmark-callout">
-          <h3>Task-focused articles</h3>
-          <p>Each article covers one PDF operation in C#, shows the code, and explains the PDF details that affect the
-            result.</p>
-        </article>
       </section>
 
       <section class="doc-section">
         <p class="eyebrow">Current Guides</p>
-        <h2>Start with a task</h2>
         <div class="guide-list">
           <article class="guide-card">
             <p class="guide-kicker">Security and output</p>
@@ -78,6 +72,43 @@
             <div class="guide-card-footer">
               <span class="guide-meta">Field lookup and choice selection</span>
               <a class="button button-secondary" href="./fill-pdf-form-fields-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card">
+            <p class="guide-kicker">Document assembly</p>
+            <h3>How to merge PDFs in C#</h3>
+            <p>
+              Append pages from one or more PDF streams, control the final page order, and save the combined output.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Append streams and save</span>
+              <a class="button button-secondary" href="./merge-pdfs-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card">
+            <p class="guide-kicker">Page content</p>
+            <h3>How to add watermarks to PDFs in C#</h3>
+            <p>
+              Add a text watermark to one page or the whole document, then save or combine it with other document
+              updates.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Single-page or all-pages</span>
+              <a class="button button-secondary" href="./add-watermark-to-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card">
+            <p class="guide-kicker">Security and output</p>
+            <h3>How to encrypt a PDF with AES in C#</h3>
+            <p>
+              Write AES-128 or AES-256 protected output, choose user and owner passwords, and save the encrypted file.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">AES-128 and AES-256</span>
+              <a class="button button-secondary" href="./encrypt-pdf-with-aes-csharp.html">Open guide</a>
             </div>
           </article>
         </div>

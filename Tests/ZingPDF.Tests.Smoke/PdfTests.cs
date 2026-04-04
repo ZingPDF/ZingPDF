@@ -935,6 +935,28 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task Page_AddWatermarkAsync_AffectsOnlyTheSelectedPage()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        using var output = new MemoryStream();
+
+        var firstPage = await pdf.GetPageAsync(1);
+
+        await firstPage.AddWatermarkAsync("PAGE ONE ONLY");
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("watermark-first-page-only.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await reloaded.ExtractTextAsync(2)).Select(x => x.Text));
+
+        firstPageText.Should().Contain("PAGE ONE ONLY");
+        secondPageText.Should().NotContain("PAGE ONE ONLY");
+    }
+
+    [Fact]
     public async Task ChoiceFormField_SelectOptionByTextAsync_ReturnsTrue_WhenOptionExists()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComboboxForm));

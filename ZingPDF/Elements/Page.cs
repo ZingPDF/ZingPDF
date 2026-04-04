@@ -1,6 +1,7 @@
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
+using ZingPDF.Graphics;
 using ZingPDF.Graphics.Images;
 using ZingPDF.Extensions;
 using ZingPDF.Syntax;
@@ -10,7 +11,9 @@ using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
+using ZingPDF.Text.SimpleFonts;
 
 namespace ZingPDF.Elements
 {
@@ -75,6 +78,21 @@ namespace ZingPDF.Elements
 
             await EnsureFontResourceAsync(font);
             await AddTextAsync(text, boundingBox, font.CreateOptions(size, colour), layoutOptions);
+        }
+
+        /// <summary>
+        /// Adds a simple text watermark to the page.
+        /// </summary>
+        public async Task AddWatermarkAsync(string text)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(text);
+
+            var watermarkFont = new Type1FontDictionary(_pdf, ObjectContext.UserCreated);
+            watermarkFont.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)StandardPdfFonts.Helvetica);
+            watermarkFont.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
+
+            var fontObject = await _pdf.Objects.AddAsync(watermarkFont);
+            await AddWatermarkAsync(text, fontObject.Reference, (Name)UniqueStringGenerator.Generate());
         }
 
         /// <summary>
@@ -210,6 +228,42 @@ namespace ZingPDF.Elements
             await Dictionary.AddContentAsync(contentStreamIndirectObject.Reference);
 
             _pdf.Objects.Update(IndirectObject);
+        }
+
+        internal async Task AddWatermarkAsync(string text, IndirectObjectReference fontReference, Name fontResourceName)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(text);
+            ArgumentNullException.ThrowIfNull(fontReference);
+            ArgumentNullException.ThrowIfNull(fontResourceName);
+
+            var mediaBox = await Dictionary.MediaBox.GetAsync();
+            var resources = ResourceDictionary.FromDictionary(await Dictionary.Resources.GetAsync());
+            await resources.AddFontAsync(fontResourceName, fontReference, _pdf);
+            Dictionary.SetResources(resources);
+
+            var pageWidth = mediaBox.UpperRight.X - mediaBox.LowerLeft.X;
+            var pageHeight = mediaBox.UpperRight.Y - mediaBox.LowerLeft.Y;
+            var fontSize = 42;
+            var x = mediaBox.LowerLeft.X + (pageWidth * 0.2);
+            var y = mediaBox.LowerLeft.Y + (pageHeight * 0.5);
+
+            var watermarkContent = new ContentStream()
+                .SaveGraphicsState()
+                .SetColour(new RGBColour(0.8, 0.8, 0.8))
+                .BeginTextObject()
+                .SetTextState(fontResourceName, fontSize)
+                .SetTextMatrix(
+                    1,
+                    0,
+                    0,
+                    1,
+                    x,
+                    y)
+                .ShowText(PdfString.FromTextAuto(text, ObjectContext.UserCreated))
+                .EndTextObject()
+                .RestoreGraphicsState();
+
+            await AddContentStreamAsync(watermarkContent);
         }
 
         private ImageDictionary CreateImageDictionary(PreparedImageXObject preparedImage)
