@@ -236,6 +236,40 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task<Pdf> ExportPagesAsync(IEnumerable<int> pageNumbers)
+    {
+        var selectedPageNumbers = await NormalizeSelectedPageNumbersAsync(pageNumbers);
+        var exportedPdf = PdfBootstrapper.CreateEmpty();
+
+        var copier = new PdfObjectGraphCopier(exportedPdf, this);
+
+        foreach (var pageNumber in selectedPageNumbers)
+        {
+            var sourcePage = await GetPageAsync(pageNumber);
+            await exportedPdf.AppendCopiedPageAsync(sourcePage.IndirectObject, copier);
+        }
+
+        return exportedPdf;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Pdf>> SplitAsync(int pagesPerDocument)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pagesPerDocument, 1, nameof(pagesPerDocument));
+
+        var pageCount = await GetPageCountAsync();
+        var documents = new List<Pdf>((pageCount + pagesPerDocument - 1) / pagesPerDocument);
+
+        for (var startPage = 1; startPage <= pageCount; startPage += pagesPerDocument)
+        {
+            var count = Math.Min(pagesPerDocument, pageCount - startPage + 1);
+            documents.Add(await ExportPagesAsync(Enumerable.Range(startPage, count)));
+        }
+
+        return documents;
+    }
+
+    /// <inheritdoc />
     public async Task SetRotationAsync(Rotation rotation)
     {
         ArgumentNullException.ThrowIfNull(rotation);
@@ -509,6 +543,105 @@ public class Pdf : IPdf, IDisposable
     /// </summary>
     public static Pdf Create(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
         => PdfBootstrapper.Create(configureOptions);
+
+    private async Task<IReadOnlyList<int>> NormalizeSelectedPageNumbersAsync(IEnumerable<int> pageNumbers)
+    {
+        ArgumentNullException.ThrowIfNull(pageNumbers);
+
+        var selectedPageNumbers = pageNumbers.ToList();
+        if (selectedPageNumbers.Count == 0)
+        {
+            throw new ArgumentException("At least one page number must be provided.", nameof(pageNumbers));
+        }
+
+        if (selectedPageNumbers.Count != selectedPageNumbers.Distinct().Count())
+        {
+            throw new ArgumentException("Page numbers must be unique.", nameof(pageNumbers));
+        }
+
+        var pageCount = await GetPageCountAsync();
+        foreach (var pageNumber in selectedPageNumbers)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumbers));
+            if (pageNumber > pageCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumbers), $"Page number {pageNumber} must be less than or equal to the total number of pages.");
+            }
+        }
+
+        return selectedPageNumbers;
+    }
+
+    private async Task<Page> AppendCopiedPageAsync(IndirectObject sourcePageIndirectObject, PdfObjectGraphCopier copier)
+    {
+        ArgumentNullException.ThrowIfNull(sourcePageIndirectObject);
+        ArgumentNullException.ThrowIfNull(copier);
+
+        var appendParentIndirectObject = await EnsureAppendLeafAsync();
+        var standalonePage = await CreateStandalonePageDictionaryAsync(
+            (PageDictionary)sourcePageIndirectObject.Object,
+            appendParentIndirectObject.Reference);
+
+        var pageIndirectObject = await Objects.AddAsync(standalonePage);
+        copier.RegisterMapping(sourcePageIndirectObject.Reference, pageIndirectObject.Reference);
+        pageIndirectObject.Object = await copier.CopyAsync(standalonePage);
+
+        var appendParent = (PageTreeNodeDictionary)appendParentIndirectObject.Object;
+        await appendParent.AddChildAsync(pageIndirectObject.Reference);
+        Objects.Update(appendParentIndirectObject);
+        _appendLeafHint = appendParentIndirectObject.Reference;
+
+        if (await appendParent.Parent.GetRawValueAsync() is IndirectObjectReference)
+        {
+            await IncrementPageCountAsync(appendParent);
+        }
+
+        Objects.PageTree.Reset();
+
+        return new Page(pageIndirectObject, this);
+    }
+
+    private static async Task<PageDictionary> CreateStandalonePageDictionaryAsync(
+        PageDictionary sourcePage,
+        IndirectObjectReference parentReference)
+    {
+        ArgumentNullException.ThrowIfNull(sourcePage);
+        ArgumentNullException.ThrowIfNull(parentReference);
+
+        var standalonePage = new PageDictionary((Syntax.Objects.Dictionaries.Dictionary)sourcePage.Clone());
+        standalonePage.SetParent(parentReference);
+
+        standalonePage.Set(
+            Constants.DictionaryKeys.PageTree.Resources,
+            (Syntax.Objects.Dictionaries.Dictionary)((await sourcePage.Resources.GetAsync())
+                ?? throw new InvalidOperationException("Unable to resolve the source page resources.")).Clone());
+        standalonePage.Set(
+            Constants.DictionaryKeys.PageTree.MediaBox,
+            (Syntax.CommonDataStructures.Rectangle)((await sourcePage.MediaBox.GetAsync())
+                ?? throw new InvalidOperationException("Unable to resolve the source page media box.")).Clone());
+
+        if (await sourcePage.CropBox.GetAsync() is Syntax.CommonDataStructures.Rectangle cropBox)
+        {
+            standalonePage.Set(Constants.DictionaryKeys.PageTree.CropBox, (Syntax.CommonDataStructures.Rectangle)cropBox.Clone());
+        }
+        else
+        {
+            standalonePage.Unset(Constants.DictionaryKeys.PageTree.CropBox);
+        }
+
+        if (await sourcePage.Rotate.GetAsync() is Number rotation)
+        {
+            standalonePage.Set(Constants.DictionaryKeys.PageTree.Rotate, (Number)rotation.Clone());
+        }
+        else
+        {
+            standalonePage.Unset(Constants.DictionaryKeys.PageTree.Rotate);
+        }
+
+        standalonePage.Unset(Constants.DictionaryKeys.PageTree.Page.StructParents);
+
+        return standalonePage;
+    }
 
     // TODO: move to testable class?
     /// <summary>
