@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Export Selected Pages or Split a PDF in C#</title>
+  <meta name="description"
+    content="Export selected PDF pages or split a larger PDF into smaller files in C# with ZingPDF.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to export selected pages or split a PDF in C#</h1>
+          <p class="article-dek">
+            Use <code>ExportPagesAsync(...)</code> when you need a new PDF containing specific 1-based page numbers in
+            a specific order. Use <code>SplitAsync(...)</code> when you want fixed-size chunks from the full document.
+          </p>
+          <p>
+            Both APIs return new <code>Pdf</code> instances, so save or continue editing those outputs just like any
+            other document.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#export-selected-pages">Export selected pages</a>
+          <a href="#split-document">Split a larger document</a>
+          <a href="#page-order">Page numbers and order</a>
+          <a href="#limitations">Current limitations</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="export-selected-pages">
+          <h2>Export selected pages into a new PDF</h2>
+          <p>
+            Pass the 1-based page numbers you want, save the returned PDF, and dispose it when you are done.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+using var selectedPages = await pdf.ExportPagesAsync([1, 3, 5]);
+using var output = File.Create("selected-pages.pdf");
+
+await selectedPages.SaveAsync(output);</code></pre>
+
+          <p>
+            The exported document keeps the order you asked for, so <code>[5, 1, 3]</code> produces a PDF in that same
+            order.
+          </p>
+        </section>
+
+        <section class="article-section" id="split-document">
+          <h2>Split a document into fixed-size parts</h2>
+          <p>
+            <code>SplitAsync(pagesPerDocument)</code> creates a list of new PDFs, each with up to the requested number
+            of pages.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+var parts = await pdf.SplitAsync(10);
+
+try
+{
+    for (var index = 0; index < parts.Count; index++)
+    {
+        using var output = File.Create($"part-{index + 1}.pdf");
+        await parts[index].SaveAsync(output);
+    }
+}
+finally
+{
+    foreach (var part in parts)
+    {
+        part.Dispose();
+    }
+}</code></pre>
+
+          <p>
+            The last part may contain fewer pages than the others if the input page count is not an exact multiple of
+            the split size.
+          </p>
+        </section>
+
+        <section class="article-section" id="page-order">
+          <h2>Page numbers are 1-based and must be unique</h2>
+          <p>
+            <code>ExportPagesAsync(...)</code> uses the same 1-based page numbering as the rest of the API.
+          </p>
+          <p>
+            If you are selecting pages manually, validate that the numbers are within the current document page count
+            before building the export list.
+          </p>
+        </section>
+
+        <section class="article-section" id="limitations">
+          <h2>Current limitations</h2>
+          <p>
+            This is designed for page export and document splitting. If you are working with interactive forms, flatten
+            the form first when you need a clean non-interactive output.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need to assemble pages before you split them?</h2>
+          <p>
+            Reordering, inserting, and removing pages often comes right before export.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./insert-append-delete-pdf-pages-csharp.html">How to insert, append, and
+              delete PDF pages in C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#quick-start">Open docs</a>
+            <a class="button button-secondary" href="./guides.html">All guides</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
