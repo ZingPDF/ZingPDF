@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Syntax.CommonDataStructures;
 
 namespace ZingPDF.Performance;
@@ -176,6 +177,39 @@ public class PdfBenchmarks
         await pdf.SaveAsync(output);
     }
 
+    [Benchmark(Description = "Export selected pages from a mixed-workload PDF and save")]
+    public async Task ExportPages_AndSave_MixedWorkloadPdf()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+        using var exported = await pdf.ExportPagesAsync([1, _mixedWorkloadMiddlePageNumber, _mixedWorkloadLastPageNumber]);
+
+        await exported.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "Split a mixed-workload PDF into 10-page parts and save")]
+    public async Task Split_AndSave_MixedWorkloadPdf()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        var parts = await pdf.SplitAsync(10);
+
+        try
+        {
+            foreach (var part in parts)
+            {
+                using var output = new MemoryStream();
+                await part.SaveAsync(output);
+            }
+        }
+        finally
+        {
+            foreach (var part in parts)
+            {
+                part.Dispose();
+            }
+        }
+    }
+
     [Benchmark(Description = "Create a PDF and append 80 pages")]
     public async Task CreateAndAppend80Pages()
     {
@@ -204,6 +238,21 @@ public class PdfBenchmarks
         using var output = new MemoryStream();
 
         pdf.Compress(144, 75);
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "Fill and flatten a complex form, then save")]
+    public async Task FillAndFlattenForm_AndSave()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.ComplexForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync() ?? throw new InvalidOperationException("Expected a form in the benchmark fixture.");
+        var nameField = (await form.GetFieldsAsync()).OfType<TextFormField>().FirstOrDefault()
+            ?? throw new InvalidOperationException("Expected at least one text field in the benchmark fixture.");
+
+        await nameField.SetValueAsync("Benchmark Runner");
+        await form.FlattenAsync();
         await pdf.SaveAsync(output);
     }
 }
