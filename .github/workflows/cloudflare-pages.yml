@@ -4,12 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - ".github/workflows/cloudflare-pages.yml"
-      - "website/**"
-      - "ZingPDF/**"
-      - "Directory.Build.props"
-      - "ZingPDF.sln"
   workflow_dispatch:
 
 permissions:

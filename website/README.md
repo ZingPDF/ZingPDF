@@ -43,6 +43,18 @@ You can also use the helper script:
 powershell -ExecutionPolicy Bypass -File .\serve-local.ps1
 ```
 
+## Editorial guardrails
+
+Public-facing copy should follow [`STYLE_GUIDE.md`](./STYLE_GUIDE.md).
+
+Before deploying copy changes, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\check-copy.ps1
+```
+
+The script flags owner-facing copy, audience-observer phrasing, meta-writing filler, and a small set of weak marketing adjectives.
+
 ## API reference generation
 
 The developer guide in `docs.html` is curated by hand.
@@ -102,7 +114,7 @@ If you pick a different Pages project name, update `.github/workflows/cloudflare
 
 ### How deployment works
 
-On every push to `main` that changes the website, library, or solution files, GitHub Actions will:
+On every push to `main`, GitHub Actions will:
 
 1. set up .NET 8
 2. run `pwsh ./website/generate-api-reference.ps1`
