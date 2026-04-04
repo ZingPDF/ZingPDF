@@ -58,6 +58,7 @@
           <a href="#discover-fields">How to discover fields</a>
           <a href="#text-and-choice">Text and choice fields</a>
           <a href="#what-to-check">What to check before you automate</a>
+          <a href="#flatten-output">Flatten after filling</a>
           <a href="#limitations">Current limitations</a>
           <a href="#next-step">Next step</a>
         </nav>
@@ -177,6 +178,28 @@ foreach (var field in await form.GetFieldsAsync())
           </p>
         </section>
 
+        <section class="article-section" id="flatten-output">
+          <h2>Flatten the form when you need a non-interactive output</h2>
+          <p>
+            If the file is going out to another system or to end users and it no longer needs to behave like a form,
+            flatten it before you save.
+          </p>
+
+          <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+await form.FlattenAsync();
+await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
+
+          <p>
+            That places the current widget appearances onto the page as normal content and removes the interactive form
+            structure from the saved document.
+          </p>
+        </section>
+
         <section class="article-section" id="limitations">
           <h2>Current gaps</h2>
           <p>
@@ -192,7 +215,8 @@ foreach (var field in await form.GetFieldsAsync())
           <h2>Test against one of your real forms</h2>
           <p>
             Run field discovery against one of your own PDFs, map the fields you care about, and then verify the saved
-            output in the viewers your users use.
+            output in the viewers your users use. If the result is meant for distribution rather than further editing,
+            flatten it before you save.
           </p>
           <p class="article-actions">
             <a class="button button-primary" href="./docs.html#forms">Open forms docs</a>
