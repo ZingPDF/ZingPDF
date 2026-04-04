@@ -23,7 +23,8 @@ namespace ZingPDF.Elements.Forms
     /// Call <see cref="GetFieldsAsync()"/> to discover fields, then pattern match the returned values to
     /// the public field types such as <see cref="FieldTypes.Text.TextFormField"/>,
     /// <see cref="FieldTypes.Choice.ChoiceFormField"/>, <see cref="FieldTypes.Button.ButtonOptionsFormField"/>,
-    /// or <see cref="FieldTypes.Signature.SignatureFormField"/>.
+    /// or <see cref="FieldTypes.Signature.SignatureFormField"/>. If you already know the fully qualified
+    /// field name, use <see cref="GetFieldAsync(string)"/> or <see cref="GetFieldAsync{TField}(string)"/>.
     /// </remarks>
     public class Form
     {
@@ -31,6 +32,7 @@ namespace ZingPDF.Elements.Forms
 
         private readonly AsyncLazy<IndirectObject> _acroForm;
         private readonly AsyncLazy<InteractiveFormDictionary> _acroFormDictionary;
+        private readonly AsyncLazy<IReadOnlyList<IFormField>> _fields;
         private readonly IPdf _pdf;
         private readonly IParser<ContentStream> _contentStreamParser;
 
@@ -54,6 +56,8 @@ namespace ZingPDF.Elements.Forms
 
             _acroFormDictionary = new AsyncLazy<InteractiveFormDictionary>(async ()
                 => (InteractiveFormDictionary)(await _acroForm).Object);
+
+            _fields = new AsyncLazy<IReadOnlyList<IFormField>>(LoadFieldsAsync);
 
             _fontProviders = new AsyncLazy<IEnumerable<IFontMetricsProvider>>(async() =>
             {
@@ -81,7 +85,35 @@ namespace ZingPDF.Elements.Forms
         /// <remarks>
         /// Field names are returned as fully qualified names using dot notation for nested fields.
         /// </remarks>
-        public async Task<IEnumerable<IFormField>> GetFieldsAsync()
+        public async Task<IEnumerable<IFormField>> GetFieldsAsync() => await _fields;
+
+        /// <summary>
+        /// Gets a terminal form field by its fully qualified field name.
+        /// </summary>
+        /// <remarks>
+        /// Returns <see langword="null"/> when no terminal field with the supplied name exists.
+        /// Field name matching is case-sensitive.
+        /// </remarks>
+        public async Task<IFormField?> GetFieldAsync(string fieldName)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName, nameof(fieldName));
+
+            return (await _fields).FirstOrDefault(x => x.Name == fieldName);
+        }
+
+        /// <summary>
+        /// Gets a terminal form field by its fully qualified field name and expected field type.
+        /// </summary>
+        /// <typeparam name="TField">The expected public field wrapper type.</typeparam>
+        /// <remarks>
+        /// Returns <see langword="null"/> when the field does not exist or is not of the requested type.
+        /// </remarks>
+        public async Task<TField?> GetFieldAsync<TField>(string fieldName) where TField : class, IFormField
+        {
+            return await GetFieldAsync(fieldName) as TField;
+        }
+
+        private async Task<IReadOnlyList<IFormField>> LoadFieldsAsync()
         {
             var formDict = await _acroFormDictionary;
 
@@ -93,12 +125,7 @@ namespace ZingPDF.Elements.Forms
                 kids.Add(await _pdf.Objects.GetAsync(kid));
             }
 
-            //var repFullNameField = kids.FirstOrDefault(x => x.Object is FieldDictionary fieldDict && fieldDict.T.GetAsync().Result == "RepFullName");
-            //var repRegoField = kids.FirstOrDefault(x => x.Object is FieldDictionary fieldDict && fieldDict.T.GetAsync().Result == "RepRego");
-            //var fieldsWithKids = kids.Where(x => x.Object is FieldDictionary fieldDict && fieldDict.Kids.GetAsync().Result != null);
-            //var notFieldDictionaries = kids.Where(x => x.Object is not FieldDictionary);
-
-            return await GetFieldsAsync(kids, null);
+            return (await GetFieldsAsync(kids, null)).ToList();
         }
 
         private async Task<IEnumerable<IFormField>> GetFieldsAsync(IEnumerable<IndirectObject> fields, string? prefix)

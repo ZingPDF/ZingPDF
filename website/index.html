@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF for .NET</title>
   <meta name="description"
-    content="ZingPDF is a commercial .NET PDF library for editing, fonts, forms, encryption, metadata, text extraction, and save workflows. Evaluate freely and subscribe when commercial use begins.">
+    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, extracting, filling forms, encrypting, and saving PDFs. Evaluate it freely and subscribe when commercial use begins.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -27,6 +27,7 @@
       <nav class="topnav" aria-label="Primary">
         <a href="./docs.html">Get Started</a>
         <a href="#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
         <a href="./capabilities.html">Capabilities</a>
         <a href="./performance.html">Performance</a>
         <a href="./api.html">API</a>
@@ -41,8 +42,8 @@
           <h1>PDF editing and extraction for .NET.</h1>
           <p class="lead">
             Load, edit, create, extract, protect, and save PDFs with one library built for .NET applications and
-            services. ZingPDF combines broad document coverage, strong read performance, public documentation, and
-            straightforward commercial licensing.
+            services. Work with forms, metadata, text extraction, encryption, watermarks, page changes, and save
+            behavior without stitching together multiple PDF tools.
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="./docs.html">Get Started</a>
@@ -52,7 +53,7 @@
           <p class="hero-subnote">Evaluate freely. Subscribe when commercial use begins.</p>
         </div>
 
-        <div class="hero-panel">
+          <div class="hero-panel">
           <div class="code-card">
             <div class="code-card-header">
               <span class="traffic">
@@ -70,7 +71,7 @@ await pdf.AddWatermarkAsync("PAID");
 await pdf.SaveAsync(output);</code></pre>
           </div>
           <p class="panel-note">
-            Start with the docs, test against your own files, and move into production with the same core API.
+            Start with the docs, test against your own files, and keep the same API in production.
           </p>
         </div>
       </section>
@@ -99,7 +100,7 @@ await pdf.SaveAsync(output);</code></pre>
           </span>
           <div>
             <strong>Fast reads</strong>
-            <p>Strong page access and plain-text extraction performance.</p>
+            <p>Fast page access and plain-text extraction when your code opens lots of existing PDFs.</p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -133,10 +134,10 @@ await pdf.SaveAsync(output);</code></pre>
         <div class="homepage-performance-shell">
           <div class="section-copy">
             <p class="eyebrow">Performance</p>
-            <h2 id="performance-summary-title">Strong performance where teams feel it.</h2>
+            <h2 id="performance-summary-title">Fast on page access, text extraction, and append-heavy edits.</h2>
             <p>
-              Current benchmarks show strong results for page access, plain-text extraction, and realistic append
-              workflows on in-memory .NET streams.
+              Benchmarks on this site show the best numbers for page access, plain-text extraction, and append-heavy
+              edits on in-memory .NET streams.
             </p>
           </div>
 
@@ -192,15 +193,16 @@ await pdf.SaveAsync(output);</code></pre>
       <section class="why" id="why">
         <div class="why-layout">
           <div class="why-copy">
-            <p class="eyebrow">Why teams buy</p>
-            <h2>Wide PDF coverage with a smaller integration surface.</h2>
+            <p class="eyebrow">Why ZingPDF</p>
+            <h2>One library instead of a stack of PDF workarounds.</h2>
             <p>
-              ZingPDF is built for teams that want one serious PDF library instead of a mix of partial tools, wrappers,
-              and one-off workarounds.
+              ZingPDF is for applications that need to open existing PDFs, change them, and save them again without
+              mixing multiple libraries.
             </p>
             <p>
-              The core value is not just feature count. It is being able to evaluate, ship, and support one .NET PDF
-              library with clear docs, clear licensing, and strong performance in the workflows teams care about most.
+              It covers the PDF operations that usually force awkward compromises: reading existing files, changing
+              pages, filling forms, extracting text, encrypting output, and deciding whether save history is preserved
+              or rewritten.
             </p>
           </div>
 
@@ -226,8 +228,8 @@ await pdf.SaveAsync(output);</code></pre>
                 </svg>
               </span>
               <div>
-                <h3>Easy to evaluate</h3>
-                <p>Public docs, public packages, and useful benchmark coverage make fit easier to judge early.</p>
+                <h3>Easy to test</h3>
+                <p>Public docs, packages, and benchmarks let you try it against your own files before you commit.</p>
               </div>
             </article>
             <article class="why-point">
@@ -240,8 +242,8 @@ await pdf.SaveAsync(output);</code></pre>
                 </svg>
               </span>
               <div>
-                <h3>Fast on read-heavy workflows</h3>
-                <p>Page access and plain-text extraction are especially strong for document-heavy services.</p>
+                <h3>Fast on reads</h3>
+                <p>Page access and plain-text extraction benchmark well for services that open lots of existing PDFs.</p>
               </div>
             </article>
             <article class="why-point">
@@ -252,8 +254,8 @@ await pdf.SaveAsync(output);</code></pre>
                 </svg>
               </span>
               <div>
-                <h3>Commercially straightforward</h3>
-                <p>Use a clear subscription model without layering on enterprise-style friction too early.</p>
+                <h3>Seat-based licensing</h3>
+                <p>Buy online by developer seat, or contact ZingPDF for procurement or custom terms.</p>
               </div>
             </article>
           </div>
@@ -263,8 +265,8 @@ await pdf.SaveAsync(output);</code></pre>
       <section class="licenses" id="licenses">
         <div class="section-copy">
           <p class="eyebrow">Licensing</p>
-          <h2>Choose a license that fits your team.</h2>
-          <p>Simple commercial pricing for individuals, product teams, and growing companies.</p>
+          <h2>Choose the plan that matches your team size.</h2>
+          <p>Monthly commercial pricing by developer seat.</p>
         </div>
 
         <div class="pricing-context-grid">
@@ -297,13 +299,13 @@ await pdf.SaveAsync(output);</code></pre>
                   <path d="M14.5 4.4a3.2 3.2 0 0 1 0 5.2"></path>
                 </svg>
               </span>
-              <h3>How licensing works</h3>
+              <h3>Seat-based licensing</h3>
             </div>
             <ul class="pricing-context-list">
               <li>Evaluation and non-commercial use are free</li>
               <li>A seat covers one developer using ZingPDF commercially</li>
               <li>Choose the plan that matches how many developers use the library</li>
-              <li>Custom arrangements are available when needed</li>
+              <li>Custom terms and invoicing are available on request</li>
             </ul>
           </article>
         </div>
@@ -311,19 +313,18 @@ await pdf.SaveAsync(output);</code></pre>
         <div class="pricing-grid" id="pricing-grid"></div>
 
         <p class="pricing-enterprise-note">
-          Need procurement, invoicing, or broader team coverage? <button type="button" class="pricing-inline-button"
-            data-contact-sales>Contact ZingPDF directly</button> for a tailored commercial arrangement.
+          Need procurement, invoicing, or more seats? <button type="button" class="pricing-inline-button"
+            data-contact-sales>Contact ZingPDF directly</button>.
         </p>
       </section>
 
       <section class="platform-band" aria-label="Platform support">
         <div class="platform-copy">
           <p class="eyebrow">Platform Support</p>
-          <h2>Built for .NET 8 across common application and service environments.</h2>
+          <h2>Built for .NET 8 on Windows, Linux, and macOS.</h2>
           <p>
             The core package targets <code>net8.0</code> and is intended for Windows, Linux, and macOS deployments.
-            Related packages are available when your workflow needs browser-based HTML rendering or extra runtime
-            integrations.
+            Related packages cover HTML rendering and Google Fonts when you need them.
           </p>
         </div>
         <div class="platform-grid">
@@ -349,10 +350,9 @@ await pdf.SaveAsync(output);</code></pre>
       <section class="capabilities" id="capabilities">
         <div class="section-copy">
           <p class="eyebrow">Capabilities</p>
-          <h2>Core workflows already covered.</h2>
+          <h2>What ZingPDF covers today.</h2>
           <p>
-            A quick view of the PDF work most teams care about first. Public documentation covers the API surface in
-            more detail.
+            This is the short version. The docs and capability table have the API detail and the remaining gaps.
           </p>
         </div>
 
@@ -404,10 +404,48 @@ await pdf.SaveAsync(output);</code></pre>
         </div>
       </section>
 
+      <section class="guides-preview" id="guides">
+        <div class="section-copy">
+          <p class="eyebrow">Guides</p>
+          <h2>Examples for common PDF tasks in C#.</h2>
+          <p>
+            Short examples for password handling, form filling, and other PDF operations in .NET.
+          </p>
+        </div>
+
+        <div class="guide-list">
+          <article class="guide-card">
+            <p class="guide-kicker">Security and output</p>
+            <h3>How to remove a password from a PDF in C# without leaving old encrypted revisions behind</h3>
+            <p>
+              Open the file with the password, save a plain copy, and decide whether you also need to strip older
+              encrypted revision history from the output.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Decrypt, save, and rewrite history</span>
+              <a class="button button-secondary" href="./remove-password-from-pdf-csharp.html">Read guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card">
+            <p class="guide-kicker">Forms and data capture</p>
+            <h3>How to fill PDF form fields in C#</h3>
+            <p>
+              Find field names, set text fields, select choice options, and verify the output in the PDF viewers your
+              users rely on.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Field lookup and choice selection</span>
+              <a class="button button-secondary" href="./fill-pdf-form-fields-csharp.html">Read guide</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section class="faq" id="faq">
         <div class="section-copy">
           <p class="eyebrow">FAQ</p>
-          <h2>What buyers usually ask first.</h2>
+          <h2>Common licensing and product questions.</h2>
         </div>
 
         <div class="faq-list">
@@ -428,8 +466,8 @@ await pdf.SaveAsync(output);</code></pre>
           </details>
           <details>
             <summary>What if my company needs procurement, invoicing, or custom terms?</summary>
-            <p>You can contact ZingPDF directly for procurement, invoicing, or custom terms. Larger organizations do
-              not need to force themselves into the self-serve plans if a tailored commercial arrangement makes more sense.</p>
+            <p>Contact ZingPDF directly. Procurement, invoicing, and custom terms can be handled outside the standard
+              online plans.</p>
           </details>
           <details>
             <summary>Who handles checkout, billing, tax, and customer payment details?</summary>
@@ -438,9 +476,9 @@ await pdf.SaveAsync(output);</code></pre>
               information needed to manage subscriptions, licensing, and support.</p>
           </details>
           <details>
-            <summary>How mature is the library today?</summary>
-            <p>ZingPDF already covers the core editing, form, metadata, extraction, watermarking, compression, and
-              password workflows listed above, including optional history removal. The capability table shows current support and the smaller set of areas
+            <summary>What is already implemented?</summary>
+            <p>ZingPDF already covers document editing, forms, metadata, text extraction, watermarking, compression,
+              encryption, and save-history rewriting. The capability table lists what is available now and what is
               still planned.</p>
           </details>
         </div>
@@ -463,7 +501,7 @@ await pdf.SaveAsync(output);</code></pre>
     <form method="dialog" class="contact-dialog-card">
       <button class="dialog-close" value="close" aria-label="Close">x</button>
       <p class="eyebrow">Commercial licensing</p>
-      <h2>Work through special purchasing needs directly.</h2>
+      <h2>Need procurement or invoicing?</h2>
       <p id="contact-email-text"></p>
       <a id="contact-email-link" class="button button-primary" href="#">Email sales</a>
     </form>
