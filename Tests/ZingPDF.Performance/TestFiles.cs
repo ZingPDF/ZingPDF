@@ -7,6 +7,7 @@ internal static class TestFiles
     private const string PdfBasePath = "TestFiles/pdf";
     private static readonly ConcurrentDictionary<string, byte[]> Cache = [];
 
+    public const string ComplexForm = $"{PdfBasePath}/complex-form.pdf";
     public const string ImageHeavy = $"{PdfBasePath}/generated-image-heavy.pdf";
     public const string IncrementalHistory = $"{PdfBasePath}/generated-incremental-history.pdf";
     public const string Minimal = $"{PdfBasePath}/minimal.pdf";
