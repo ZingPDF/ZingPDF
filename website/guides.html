@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Guides</title>
   <meta name="description"
-    content="Articles for specific .NET PDF tasks with ZingPDF, including password handling, form filling, merging, watermarking, and AES encryption.">
+    content="Articles for specific .NET PDF tasks with ZingPDF, including blank PDFs, page editing, text, fonts, metadata, extraction, merging, watermarking, compression, rotation, encryption, and save behavior.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -48,8 +48,78 @@
 
       <section class="doc-section">
         <p class="eyebrow">Current Guides</p>
+        <div class="guides-toolbar">
+          <label class="guides-search" for="guides-search">
+            <span class="guides-search-label">Search guides</span>
+            <input id="guides-search" type="search" placeholder="Search by task, topic, or keyword" autocomplete="off"
+              data-guides-search>
+          </label>
+          <p class="guides-count" data-guides-count>15 guides</p>
+        </div>
         <div class="guide-list">
-          <article class="guide-card">
+          <article class="guide-card" data-guide-card data-guide-search-text="create blank pdf new document media box page size save">
+            <p class="guide-kicker">Document creation</p>
+            <h3>How to create a blank PDF in C#</h3>
+            <p>
+              Start a new PDF, choose the page size up front, add more pages if needed, and save the result.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Create and save a new document</span>
+              <a class="button button-secondary" href="./create-blank-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="insert append delete pages page order media box new page 1-based">
+            <p class="guide-kicker">Page structure</p>
+            <h3>How to insert, append, and delete PDF pages in C#</h3>
+            <p>
+              Add pages to the end, insert them at a specific position, remove existing pages, and keep the order
+              straight.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Append, insert, and delete pages</span>
+              <a class="button button-secondary" href="./insert-append-delete-pdf-pages-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="add text page bounding box font options layout overflow shrink to fit">
+            <p class="guide-kicker">Page content</p>
+            <h3>How to add text to a PDF page in C#</h3>
+            <p>
+              Write text into a page rectangle, choose font settings, and decide what should happen when the text does
+              not fit.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Text bounds and layout</span>
+              <a class="button button-secondary" href="./add-text-to-pdf-page-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="standard pdf fonts helvetica times courier register font built-in">
+            <p class="guide-kicker">Fonts and text</p>
+            <h3>How to use standard PDF fonts in C#</h3>
+            <p>
+              Register built-in PDF fonts such as Helvetica, Times, and Courier and use them for page text.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Standard font registration</span>
+              <a class="button button-secondary" href="./use-standard-pdf-fonts-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="truetype ttf embed custom font register stream path">
+            <p class="guide-kicker">Fonts and text</p>
+            <h3>How to embed a TrueType font in a PDF in C#</h3>
+            <p>
+              Register a font from disk or a stream and use it when the output needs a specific typeface.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Embedded font registration</span>
+              <a class="button button-secondary" href="./embed-truetype-font-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="remove password decrypt encrypted revision history clean rewrite security output">
             <p class="guide-kicker">Security and output</p>
             <h3>How to remove a password from a PDF in C# without leaving old encrypted revisions behind</h3>
             <p>
@@ -62,7 +132,7 @@
             </div>
           </article>
 
-          <article class="guide-card">
+          <article class="guide-card" data-guide-card data-guide-search-text="fill form fields acroform text choice select options names data capture">
             <p class="guide-kicker">Forms and data capture</p>
             <h3>How to fill PDF form fields in C#</h3>
             <p>
@@ -75,7 +145,7 @@
             </div>
           </article>
 
-          <article class="guide-card">
+          <article class="guide-card" data-guide-card data-guide-search-text="merge append pages streams document assembly combine output">
             <p class="guide-kicker">Document assembly</p>
             <h3>How to merge PDFs in C#</h3>
             <p>
@@ -87,7 +157,7 @@
             </div>
           </article>
 
-          <article class="guide-card">
+          <article class="guide-card" data-guide-card data-guide-search-text="watermark page all pages document content draft confidential paid">
             <p class="guide-kicker">Page content</p>
             <h3>How to add watermarks to PDFs in C#</h3>
             <p>
@@ -100,7 +170,7 @@
             </div>
           </article>
 
-          <article class="guide-card">
+          <article class="guide-card" data-guide-card data-guide-search-text="encrypt aes aes128 aes256 password security output owner user">
             <p class="guide-kicker">Security and output</p>
             <h3>How to encrypt a PDF with AES in C#</h3>
             <p>
@@ -111,7 +181,70 @@
               <a class="button button-secondary" href="./encrypt-pdf-with-aes-csharp.html">Open guide</a>
             </div>
           </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="extract text plain text page segments whole document content reading">
+            <p class="guide-kicker">Text and content</p>
+            <h3>How to extract text from a PDF in C#</h3>
+            <p>
+              Read text from the whole document or a single page, and choose between extracted segments and plain text
+              output.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Whole document or one page</span>
+              <a class="button button-secondary" href="./extract-text-from-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="metadata title author subject keywords creator creation date info dictionary">
+            <p class="guide-kicker">Document info</p>
+            <h3>How to update PDF metadata in C#</h3>
+            <p>
+              Set title, author, subject, keywords, creator, and creation date through the high-level metadata wrapper.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Info dictionary updates</span>
+              <a class="button button-secondary" href="./update-pdf-metadata-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="rotate pages rotation degrees90 degrees180 degrees270 set rotation page document">
+            <p class="guide-kicker">Page structure</p>
+            <h3>How to rotate PDF pages in C#</h3>
+            <p>
+              Rotate one page or the whole document with the built-in rotation helpers and save the updated file.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Page or document rotation</span>
+              <a class="button button-secondary" href="./rotate-pdf-pages-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="compress compression image jpeg quality size output save">
+            <p class="guide-kicker">Output and size</p>
+            <h3>How to compress a PDF in C#</h3>
+            <p>
+              Recompress eligible streams, tune JPEG quality, and save a smaller output file from the high-level API.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Compression and save</span>
+              <a class="button button-secondary" href="./compress-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="remove history incremental history rewrite clean save prev trailer revisions">
+            <p class="guide-kicker">Output and save</p>
+            <h3>How to rewrite a PDF without incremental history in C#</h3>
+            <p>
+              Remove the previous incremental revision chain before saving when the output should only reflect the
+              current document state.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Clean rewrite before save</span>
+              <a class="button button-secondary" href="./rewrite-pdf-without-incremental-history-csharp.html">Open guide</a>
+            </div>
+          </article>
         </div>
+        <p class="guides-empty" data-guides-empty hidden>No guides match that search yet.</p>
       </section>
     </main>
 
@@ -125,6 +258,7 @@
       <a href="./support-policy.html">Support Policy</a>
     </footer>
   </div>
+  <script src="./app.js"></script>
 </body>
 
 </html>

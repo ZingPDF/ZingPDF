@@ -6,6 +6,10 @@
   const emailLink = document.getElementById("contact-email-link");
   const contactSalesTriggers = document.querySelectorAll("[data-contact-sales]");
   const faqDetails = document.querySelectorAll(".faq-list details");
+  const guidesSearch = document.querySelector("[data-guides-search]");
+  const guideCards = Array.from(document.querySelectorAll("[data-guide-card]"));
+  const guidesCount = document.querySelector("[data-guides-count]");
+  const guidesEmpty = document.querySelector("[data-guides-empty]");
 
   if (pricingGrid && dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
@@ -34,6 +38,35 @@
         }
       }
     });
+  }
+
+  if (guidesSearch && guideCards.length > 0) {
+    const applyGuideFilter = () => {
+      const query = normalizeText(guidesSearch.value);
+      let visibleCount = 0;
+
+      for (const card of guideCards) {
+        const haystack = normalizeText(
+          `${card.getAttribute("data-guide-search-text") || ""} ${card.textContent || ""}`
+        );
+        const isVisible = query === "" || haystack.includes(query);
+        card.hidden = !isVisible;
+        if (isVisible) {
+          visibleCount += 1;
+        }
+      }
+
+      if (guidesCount) {
+        guidesCount.textContent = `${visibleCount} guide${visibleCount === 1 ? "" : "s"}`;
+      }
+
+      if (guidesEmpty) {
+        guidesEmpty.hidden = visibleCount !== 0;
+      }
+    };
+
+    guidesSearch.addEventListener("input", applyGuideFilter);
+    applyGuideFilter();
   }
 
   highlightCodeBlocks();
@@ -122,9 +155,16 @@
       .replaceAll("'", "&#39;");
   }
 
+  function normalizeText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function highlightCodeBlocks() {
     const blocks = document.querySelectorAll("pre code");
-    const pattern = /"(?:[^"\\]|\\.)*"|\/\/.*|\b(?:using|var|await|async|new|return|if|foreach|switch|case|break|class|public|private|internal|void|string|int|bool|null|is|not)\b|\b(?:Task|File|Rectangle|DateTimeOffset|TimeSpan|Console|Stream|MemoryStream|Pdf|Page|Form|ExtractedText|TextFormField|ChoiceFormField|SignatureFormField|CheckboxFormField|RadioButtonFormField|PushButtonFormField|ChoiceItem|SelectableOption)\b|\b(?:GetMetadataAsync|GetFormAsync|GetFieldsAsync|GetPageCountAsync|GetPageAsync|GetOptionsAsync|GetValueAsync|SetValueAsync|ClearAsync|SelectAsync|DeselectAsync|AddWatermarkAsync|EncryptAsync|SaveAsync|Load|Create|AppendPageAsync|InsertPageAsync|DeletePageAsync|AppendPdfAsync|ExtractTextAsync|Compress|AuthenticateAsync|DecryptAsync|WriteLine|OpenRead|Create|FromDimensions|FirstOrDefault|Single|OfType)\b|\b\d+\b/g;
+    const pattern = /"(?:[^"\\]|\\.)*"|\/\/.*|\b(?:using|var|await|async|new|return|if|foreach|switch|case|break|class|public|private|internal|void|string|int|bool|null|is|not)\b|\b(?:Task|File|Rectangle|Coordinate|DateTimeOffset|TimeSpan|Console|Stream|MemoryStream|Pdf|Page|Form|PdfFont|FontOptions|TextLayoutOptions|TextExtractionOptions|TextObject|TextFormField|ChoiceFormField|SignatureFormField|CheckboxFormField|RadioButtonFormField|PushButtonFormField|ChoiceItem|SelectableOption|StandardPdfFonts|RGBColour|TextOverflowMode|TextExtractionOutputKind)\b|\b(?:GetMetadataAsync|GetFormAsync|GetFieldsAsync|GetFieldAsync|GetPageCountAsync|GetPageAsync|GetOptionsAsync|GetValueAsync|SetValueAsync|ClearAsync|SelectAsync|DeselectAsync|SelectOptionByTextAsync|SelectOptionByValueAsync|AddWatermarkAsync|AddTextAsync|EncryptAsync|SaveAsync|Load|Create|AppendPageAsync|InsertPageAsync|DeletePageAsync|AppendPdfAsync|ExtractTextAsync|Compress|AuthenticateAsync|DecryptAsync|RegisterStandardFontAsync|RegisterTrueTypeFontAsync|RemoveHistoryAsync|WriteLine|OpenRead|FromDimensions|FromCoordinates|FirstOrDefault|Single|OfType)\b|\b\d+\b/g;
 
     for (const block of blocks) {
       const text = block.textContent || "";
@@ -168,7 +208,7 @@
       return `<span class="token builtin">${escaped}</span>`;
     }
 
-    if (/^(Task|File|Rectangle|DateTimeOffset|TimeSpan|Console|Stream|MemoryStream|Pdf|Page|Form|ExtractedText|TextFormField|ChoiceFormField|SignatureFormField|CheckboxFormField|RadioButtonFormField|PushButtonFormField|ChoiceItem|SelectableOption)$/.test(token)) {
+    if (/^(Task|File|Rectangle|Coordinate|DateTimeOffset|TimeSpan|Console|Stream|MemoryStream|Pdf|Page|Form|PdfFont|FontOptions|TextLayoutOptions|TextExtractionOptions|TextObject|TextFormField|ChoiceFormField|SignatureFormField|CheckboxFormField|RadioButtonFormField|PushButtonFormField|ChoiceItem|SelectableOption|StandardPdfFonts|RGBColour|TextOverflowMode|TextExtractionOutputKind)$/.test(token)) {
       return `<span class="token type">${escaped}</span>`;
     }
 
