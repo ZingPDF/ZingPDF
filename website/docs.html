@@ -413,6 +413,17 @@ foreach (var field in await form.GetFieldsAsync())
     Console.WriteLine(field.Name);
 }</code></pre>
 
+            <h3>Flatten after filling when you need a non-interactive output</h3>
+            <p>If the next step is distribution rather than further form editing, flatten the form before you save.</p>
+            <pre><code class="language-csharp">var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+await form.FlattenAsync();
+await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
+
             <div class="doc-grid">
               <article class="doc-card">
                 <h3>Text fields</h3>
