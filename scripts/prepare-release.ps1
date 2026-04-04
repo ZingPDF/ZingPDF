@@ -13,12 +13,7 @@ Push-Location $repoRoot
 function Get-LatestVersion {
     param([string]$FallbackVersion)
 
-    $tags = @(git tag --list "v*" --sort=-v:refname)
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to read git tags."
-    }
-
-    $tag = $tags | Select-Object -First 1
+    $tag = Get-LatestTag
 
     if ([string]::IsNullOrWhiteSpace($tag)) {
         return $FallbackVersion
@@ -33,12 +28,32 @@ function Get-LatestVersion {
 }
 
 function Get-LatestTag {
-    $tags = @(git tag --list "v*" --sort=-v:refname)
+    $tags = @(git tag --list "v*")
     if ($LASTEXITCODE -ne 0) {
         throw "Unable to read git tags."
     }
 
-    return $tags | Select-Object -First 1
+    $versionedTags = @()
+    foreach ($tag in $tags) {
+        if ([string]::IsNullOrWhiteSpace($tag)) {
+            continue
+        }
+
+        $trimmed = $tag.Trim()
+        $versionText = $trimmed.TrimStart("v")
+        if ($versionText -notmatch '^\d+\.\d+\.\d+$') {
+            continue
+        }
+
+        $versionedTags += [PSCustomObject]@{
+            Tag = $trimmed
+            Version = [version]$versionText
+        }
+    }
+
+    return $versionedTags |
+        Sort-Object Version -Descending |
+        Select-Object -ExpandProperty Tag -First 1
 }
 
 function Get-NextPatchVersion {
