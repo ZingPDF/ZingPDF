@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Extract Text From a PDF in C#</title>
+  <meta name="description"
+    content="Extract text from a PDF in C# with ZingPDF, including whole-document text, single-page text, and plain-text output.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to extract text from a PDF in C#</h1>
+          <p class="article-dek">
+            Use <code>ExtractTextAsync()</code> for the whole document, <code>ExtractTextAsync(pageNumber)</code> for a
+            single page, or the overloads with <code>TextExtractionOptions</code> when you want plain text output.
+          </p>
+          <p>
+            The main decision is whether you want extracted segments back or one plain text string. ZingPDF supports
+            both shapes.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#whole-document">Whole document</a>
+          <a href="#single-page">Single page</a>
+          <a href="#plain-text">Plain text output</a>
+          <a href="#shape-choice">Choosing the output shape</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="whole-document">
+          <h2>Extract text from the whole document</h2>
+          <p>
+            If you want the extracted text segments from every page, call the parameterless overload.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var items = await pdf.ExtractTextAsync();
+
+foreach (var item in items)
+{
+    Console.WriteLine(item.Text);
+}</code></pre>
+        </section>
+
+        <section class="article-section" id="single-page">
+          <h2>Extract text from one page</h2>
+          <p>
+            If you only need one page, pass the 1-based page number.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var firstPageItems = await pdf.ExtractTextAsync(1);
+var firstPageText = string.Join("\n", firstPageItems.Select(x => x.Text));</code></pre>
+
+          <p>
+            That keeps the read path focused on the page you care about instead of iterating through the whole file.
+          </p>
+        </section>
+
+        <section class="article-section" id="plain-text">
+          <h2>Get plain text output</h2>
+          <p>
+            If you want one plain text string instead of extracted segments, use
+            <code>TextExtractionOptions</code> and request <code>PlainText</code>.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Drawing.Text.Extraction;
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var result = await pdf.ExtractTextAsync(1, new TextExtractionOptions
+{
+    OutputKind = TextExtractionOutputKind.PlainText
+});
+
+Console.WriteLine(result.PlainText);</code></pre>
+        </section>
+
+        <section class="article-section" id="shape-choice">
+          <h2>Choose the output shape up front</h2>
+          <p>
+            If your next step is indexing, search, or full-text comparison, plain text is usually the easier shape to
+            work with.
+          </p>
+          <p>
+            If you need to keep the extracted pieces separate or inspect them one by one, use the segment-returning
+            overloads instead.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need the file metadata as well?</h2>
+          <p>
+            Text extraction and metadata updates often sit in the same import or archival path.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./update-pdf-metadata-csharp.html">How to update PDF metadata in C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#quick-start">Open docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

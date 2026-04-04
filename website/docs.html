@@ -136,6 +136,15 @@ await pdf.SaveAsync(output);</code></pre>
                   applies the same text across the whole document.</p>
               </article>
             </div>
+
+            <p>
+              Related guides:
+              <a class="inline-link" href="./create-blank-pdf-csharp.html">Create a blank PDF</a>,
+              <a class="inline-link" href="./insert-append-delete-pdf-pages-csharp.html">Insert, append, and delete pages</a>,
+              <a class="inline-link" href="./extract-text-from-pdf-csharp.html">Extract text</a>,
+              <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Add watermarks</a>, and
+              <a class="inline-link" href="./compress-pdf-csharp.html">Compress output</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="packages">
@@ -264,6 +273,13 @@ await page.AddTextAsync(
               <li>Symbol and ZapfDingbats are not yet exposed through the high-level registration API.</li>
               <li><code>ZingPDF.GoogleFonts</code> requires a Google Fonts Developer API key and network access.</li>
             </ul>
+
+            <p>
+              Related guides:
+              <a class="inline-link" href="./use-standard-pdf-fonts-csharp.html">Use standard PDF fonts</a>,
+              <a class="inline-link" href="./embed-truetype-font-pdf-csharp.html">Embed a TrueType font</a>, and
+              <a class="inline-link" href="./add-text-to-pdf-page-csharp.html">Add text to a page</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="drawing">
@@ -297,6 +313,13 @@ await page.AddPathAsync(new Path(
         new Coordinate(90, 80),
         new Coordinate(110, 20)
     ]));</code></pre>
+
+            <p>
+              Related guides:
+              <a class="inline-link" href="./add-text-to-pdf-page-csharp.html">Add text to a page</a>,
+              <a class="inline-link" href="./use-standard-pdf-fonts-csharp.html">Use standard PDF fonts</a>, and
+              <a class="inline-link" href="./embed-truetype-font-pdf-csharp.html">Embed a TrueType font</a>.
+            </p>
 
           </section>
 
@@ -335,6 +358,11 @@ metadata.Creator = "Back Office Importer";
 metadata.CreationDate = new DateTimeOffset(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
 
 await pdf.SaveAsync(output);</code></pre>
+
+            <p>
+              Related guide:
+              <a class="inline-link" href="./update-pdf-metadata-csharp.html">How to update PDF metadata in C#</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="forms">
@@ -416,6 +444,11 @@ foreach (var field in await form.GetFieldsAsync())
               <li>Push-button action details can be inspected, but action execution is not yet exposed through the high-level API.</li>
               <li>Signature fields can be inspected, but high-level signing is not yet implemented.</li>
             </ul>
+
+            <p>
+              Related guide:
+              <a class="inline-link" href="./fill-pdf-form-fields-csharp.html">How to fill PDF form fields in C#</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="encryption">
@@ -466,6 +499,12 @@ await aes256Pdf.SaveAsync(File.Create("protected-aes256.pdf"));</code></pre>
 
 await pdf.DecryptAsync("password");
 await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
+
+            <p>
+              Related guides:
+              <a class="inline-link" href="./encrypt-pdf-with-aes-csharp.html">Encrypt a PDF with AES</a> and
+              <a class="inline-link" href="./remove-password-from-pdf-csharp.html">Remove a password from a PDF</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="save">
@@ -497,6 +536,13 @@ await pdf.SaveAsync(File.Create("output.pdf"));</code></pre>
 
 await pdf.RemoveHistoryAsync();
 await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
+
+            <p>
+              Related guides:
+              <a class="inline-link" href="./rewrite-pdf-without-incremental-history-csharp.html">Rewrite a PDF without incremental history</a>,
+              <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Add watermarks</a>, and
+              <a class="inline-link" href="./compress-pdf-csharp.html">Compress output</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="notes">
