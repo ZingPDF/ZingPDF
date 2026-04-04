@@ -72,6 +72,23 @@ public interface IPdf
     Task DeletePageAsync(int pageNumber);
 
     /// <summary>
+    /// Exports a new PDF containing the selected 1-based page numbers in the requested order.
+    /// </summary>
+    /// <remarks>
+    /// The returned <see cref="Pdf"/> should be disposed after saving or further editing.
+    /// Page numbers must be unique.
+    /// </remarks>
+    Task<Pdf> ExportPagesAsync(IEnumerable<int> pageNumbers);
+
+    /// <summary>
+    /// Splits the document into multiple PDFs with up to the requested number of pages each.
+    /// </summary>
+    /// <remarks>
+    /// The returned <see cref="Pdf"/> instances should be disposed after saving or further editing.
+    /// </remarks>
+    Task<IReadOnlyList<Pdf>> SplitAsync(int pagesPerDocument);
+
+    /// <summary>
     /// Sets the rotation for every page in the document.
     /// </summary>
     Task SetRotationAsync(Rotation rotation);
