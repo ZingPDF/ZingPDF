@@ -777,6 +777,56 @@ code {
   line-height: 1.7;
 }
 
+.guides-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0 22px;
+}
+
+.guides-search {
+  display: grid;
+  gap: 8px;
+  min-width: min(100%, 420px);
+}
+
+.guides-search-label {
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guides-search input {
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid rgba(14, 116, 144, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font: inherit;
+  box-shadow: var(--shadow);
+}
+
+.guides-search input:focus {
+  outline: 2px solid rgba(14, 116, 144, 0.2);
+  outline-offset: 2px;
+  border-color: rgba(14, 116, 144, 0.34);
+}
+
+.guides-count,
+.guides-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.guides-empty {
+  margin-top: 16px;
+}
+
 .guide-card-footer,
 .article-actions {
   display: flex;
