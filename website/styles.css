@@ -448,15 +448,28 @@ code {
 
 .platform-card {
   display: grid;
-  gap: 6px;
+  gap: 10px;
   padding: 18px;
   border: 1px solid rgba(14, 116, 144, 0.16);
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.82);
 }
 
+.platform-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .platform-card strong {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+
+.platform-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .platform-label {
