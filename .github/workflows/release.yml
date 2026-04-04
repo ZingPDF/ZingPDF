@@ -40,15 +40,27 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Detect package-affecting changes
         id: changes
         shell: pwsh
         run: |
-          $latestTag = git tag --list "v*" --sort=-v:refname | Select-Object -First 1
+          $tags = @(git tag --list "v*")
           if ($LASTEXITCODE -ne 0) {
             throw "Unable to read git tags."
           }
+
+          $latestTag = $tags |
+            Where-Object { $_ -and $_.Trim().TrimStart('v') -match '^\d+\.\d+\.\d+$' } |
+            ForEach-Object {
+              [PSCustomObject]@{
+                Tag = $_.Trim()
+                Version = [version]$_.Trim().TrimStart('v')
+              }
+            } |
+            Sort-Object Version -Descending |
+            Select-Object -ExpandProperty Tag -First 1
 
           if ([string]::IsNullOrWhiteSpace($latestTag)) {
             "has_release_changes=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
