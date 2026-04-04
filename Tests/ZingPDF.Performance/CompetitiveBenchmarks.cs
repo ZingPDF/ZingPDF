@@ -646,4 +646,41 @@ public class CompetitiveBenchmarks
         merger.Merge(source, 1, source.GetNumberOfPages());
     }
 
+    [Benchmark(Description = "ZingPDF: Export selected pages from a mixed-workload PDF and save")]
+    public async Task ZingPdf_ExportPages_AndSave_MixedWorkloadPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+        using var exported = await pdf.ExportPagesAsync([1, _mixedWorkloadMiddlePageNumber, _mixedWorkloadLastPageNumber]);
+
+        await exported.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "PDFsharp: Export selected pages from a mixed-workload PDF and save")]
+    public void PdfSharp_ExportPages_AndSave_MixedWorkloadPdf()
+    {
+        using var sourceStream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var source = PdfReader.Open(sourceStream, PdfDocumentOpenMode.Import);
+        using var output = new MemoryStream();
+        using var destination = new PdfSharp.Pdf.PdfDocument();
+
+        destination.AddPage(source.Pages[0]);
+        destination.AddPage(source.Pages[_mixedWorkloadMiddlePageIndex]);
+        destination.AddPage(source.Pages[_mixedWorkloadLastPageIndex]);
+        destination.Save(output, false);
+    }
+
+    [Benchmark(Description = "iText: Export selected pages from a mixed-workload PDF and save")]
+    public void IText_ExportPages_AndSave_MixedWorkloadPdf()
+    {
+        using var sourceStream = TestFiles.OpenStream(TestFiles.MixedWorkload);
+        using var output = new MemoryStream();
+        using var sourceReader = new ITextPdfReader(sourceStream);
+        using var source = new ITextPdfDocument(sourceReader);
+        using var writer = new ITextPdfWriter(output);
+        using var destination = new ITextPdfDocument(writer);
+
+        source.CopyPagesTo([1, _mixedWorkloadMiddlePageNumber, _mixedWorkloadLastPageNumber], destination);
+    }
+
 }
