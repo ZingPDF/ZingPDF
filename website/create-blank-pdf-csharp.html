@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Create a Blank PDF in C#</title>
+  <meta name="description"
+    content="Create a blank PDF in C# with ZingPDF, choose the page size, add more pages, and save the result.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to create a blank PDF in C#</h1>
+          <p class="article-dek">
+            Use <code>Pdf.Create(...)</code> to start a new document, choose the page size up front, and save the
+            output stream.
+          </p>
+          <p>
+            A new PDF starts with one page. From there you can keep the default page, set a specific media box, or add
+            more pages before you save.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#page-size">Choose the page size</a>
+          <a href="#more-pages">Add more pages</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>The shortest working example</h2>
+          <p>
+            If you just need a blank PDF with the default first page, create it and save it.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Create();
+using var output = File.Create("blank.pdf");
+
+await pdf.SaveAsync(output);</code></pre>
+        </section>
+
+        <section class="article-section" id="page-size">
+          <h2>Set the page size when you create the document</h2>
+          <p>
+            If you already know the page size you want, set the media box during creation.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Syntax.CommonDataStructures;
+
+using var pdf = Pdf.Create(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.SaveAsync(File.Create("a4-blank.pdf"));</code></pre>
+
+          <p>
+            That keeps the first page aligned with the output you want instead of creating a default page and changing
+            it later.
+          </p>
+        </section>
+
+        <section class="article-section" id="more-pages">
+          <h2>Add more pages before you save</h2>
+          <p>
+            A new document starts with one page, so call <code>AppendPageAsync(...)</code> when you need more.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Create(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.AppendPageAsync();
+await pdf.AppendPageAsync();
+
+await pdf.SaveAsync(File.Create("three-pages.pdf"));</code></pre>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Ready to put content on the page?</h2>
+          <p>
+            The next step is usually drawing text, paths, or images onto the new document.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./add-text-to-pdf-page-csharp.html">How to add text to a PDF page in
+              C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#quick-start">Open docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

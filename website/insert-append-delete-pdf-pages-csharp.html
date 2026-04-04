@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Insert, Append, and Delete PDF Pages in C#</title>
+  <meta name="description"
+    content="Insert, append, and delete PDF pages in C# with ZingPDF, including page sizing and 1-based page positions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to insert, append, and delete PDF pages in C#</h1>
+          <p class="article-dek">
+            Use <code>AppendPageAsync(...)</code> to add pages to the end, <code>InsertPageAsync(...)</code> to place a
+            page at a specific 1-based position, and <code>DeletePageAsync(...)</code> to remove one.
+          </p>
+          <p>
+            The main thing to remember is that page positions are 1-based, and insert/delete operations shift the page
+            numbers that come after them.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#append-vs-insert">Append vs insert</a>
+          <a href="#delete-pages">Delete a page</a>
+          <a href="#page-sizing">Set the size of new pages</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Append, insert, then delete</h2>
+          <p>
+            The three methods can be mixed in the same edit path before you save.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Syntax.CommonDataStructures;
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.InsertPageAsync(1, options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.DeletePageAsync(2);
+await pdf.SaveAsync(File.Create("pages-updated.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="append-vs-insert">
+          <h2>Append adds to the end, insert uses a 1-based page number</h2>
+          <p>
+            Use <code>AppendPageAsync(...)</code> when page order is simple and the new page belongs at the end of the
+            document.
+          </p>
+          <p>
+            Use <code>InsertPageAsync(pageNumber, ...)</code> when you need a cover page, separator page, or a new page
+            in the middle of an existing document.
+          </p>
+          <p>
+            Both methods return the new <code>Page</code>, so you can write content to it before saving.
+          </p>
+        </section>
+
+        <section class="article-section" id="delete-pages">
+          <h2>Delete a page after the document is in the right order</h2>
+          <p>
+            <code>DeletePageAsync(pageNumber)</code> removes the requested page and shifts later page numbers down.
+          </p>
+          <p>
+            If you are doing several structure edits at once, it is usually easier to get the insert/append order right
+            first and then delete anything you no longer want.
+          </p>
+        </section>
+
+        <section class="article-section" id="page-sizing">
+          <h2>Choose the size of the new page when you create it</h2>
+          <p>
+            Both append and insert accept page creation options, so set the media box as you create the page instead of
+            fixing it afterward.
+          </p>
+          <p>
+            That is useful when the document mixes cover pages, inserts, and imported content with different page sizes.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need to write onto the new page?</h2>
+          <p>
+            New pages are often followed by page text, labels, or other generated content.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./add-text-to-pdf-page-csharp.html">How to add text to a PDF page in
+              C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#quick-start">Open docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

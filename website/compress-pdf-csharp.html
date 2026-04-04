@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Compress a PDF in C#</title>
+  <meta name="description"
+    content="Compress a PDF in C# with ZingPDF by recompressing eligible streams and saving the result.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to compress a PDF in C#</h1>
+          <p class="article-dek">
+            Call <code>Compress(dpi, quality)</code> on the loaded document, then save the result.
+          </p>
+          <p>
+            This recompresses eligible streams in the PDF. The main setting you will usually care about is the JPEG
+            quality value.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#arguments">Arguments</a>
+          <a href="#what-it-does">What compression does here</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>The shortest working example</h2>
+          <p>
+            Load the PDF, call <code>Compress(...)</code>, then save.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+using var output = File.Create("compressed.pdf");
+
+pdf.Compress(dpi: 144, quality: 75);
+await pdf.SaveAsync(output);</code></pre>
+        </section>
+
+        <section class="article-section" id="arguments">
+          <h2>Arguments</h2>
+          <p>
+            The method takes two values:
+          </p>
+          <ul>
+            <li><code>dpi</code>: reserved for future image downsampling behavior and must be greater than zero</li>
+            <li><code>quality</code>: JPEG recompression quality from 1 to 100</li>
+          </ul>
+          <p>
+            In practice, the quality setting is the one that matters most today.
+          </p>
+        </section>
+
+        <section class="article-section" id="what-it-does">
+          <h2>What compression does here</h2>
+          <p>
+            Compression works on eligible streams in the document and can recompress JPEG image streams.
+          </p>
+          <p>
+            If your file is image-heavy, this is the high-level path to try before moving into lower-level PDF stream
+            work.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need to watermark before the final save?</h2>
+          <p>
+            Compression often sits near watermarking or metadata updates in the same output path.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">How to add watermarks to PDFs in
+              C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#save">Open save docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
