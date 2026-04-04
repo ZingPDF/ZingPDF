@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Merge PDFs in C#</title>
+  <meta name="description"
+    content="Merge PDFs in C# with ZingPDF by appending pages from other PDF streams and saving the result.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to merge PDFs in C#</h1>
+          <p class="article-dek">
+            Load the destination PDF, append pages from one or more source streams with
+            <code>AppendPdfAsync(...)</code>, and save the result.
+          </p>
+          <p>
+            The main thing to get right is page order and stream handling. The pages are appended in the order you call
+            the method, and the final save follows the same stream rules as the rest of the API.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#multiple-inputs">Merging more than two PDFs</a>
+          <a href="#page-order">Page order and destination choice</a>
+          <a href="#stream-requirements">Stream requirements</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>The shortest working example</h2>
+          <p>
+            Start with the PDF you want to keep as the base document, append the other file, then save.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var baseStream = File.OpenRead("base.pdf");
+using var appendStream = File.OpenRead("appendix.pdf");
+using var pdf = Pdf.Load(baseStream);
+
+await pdf.AppendPdfAsync(appendStream);
+await pdf.SaveAsync(File.Create("merged.pdf"));</code></pre>
+
+          <p>
+            That produces a new file containing the original pages from <code>base.pdf</code> followed by the pages
+            from <code>appendix.pdf</code>.
+          </p>
+        </section>
+
+        <section class="article-section" id="multiple-inputs">
+          <h2>Merging more than two PDFs</h2>
+          <p>
+            If you need to combine several PDFs, keep the destination document open and append each source in sequence.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var output = File.Create("combined.pdf");
+using var pdf = Pdf.Load(File.OpenRead("part-1.pdf"));
+
+foreach (var path in new[] { "part-2.pdf", "part-3.pdf", "part-4.pdf" })
+{
+    using var stream = File.OpenRead(path);
+    await pdf.AppendPdfAsync(stream);
+}
+
+await pdf.SaveAsync(output);</code></pre>
+
+          <p>
+            The order in that loop is the order of the final document. If your input list comes from a database,
+            queue, or API, sort it before you append.
+          </p>
+        </section>
+
+        <section class="article-section" id="page-order">
+          <h2>Page order and destination choice</h2>
+          <p>
+            <code>AppendPdfAsync(...)</code> appends pages onto the current document. It does not insert them into the
+            middle of the page tree.
+          </p>
+          <p>
+            That means the simplest rule is to load the document whose metadata and starting pages you want to keep,
+            then append everything else to it.
+          </p>
+          <p>
+            If you need to merge files and then add a final document-level mark, do the merge first and call
+            <code>AddWatermarkAsync(...)</code> afterward.
+          </p>
+        </section>
+
+        <section class="article-section" id="stream-requirements">
+          <h2>Stream requirements</h2>
+          <p>
+            The source streams you load or append need to be readable as PDFs, and the output stream for
+            <code>SaveAsync(...)</code> still needs to be writable and seekable.
+          </p>
+          <ul>
+            <li>The base document stream passed to <code>Pdf.Load(...)</code> must be seekable.</li>
+            <li>Each appended PDF stream should be opened as its own readable stream.</li>
+            <li>The output stream passed to <code>SaveAsync(...)</code> must be writable and seekable.</li>
+            <li>If you save to a different stream, it must be empty.</li>
+          </ul>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Combine the merge with another document update</h2>
+          <p>
+            After the merge, a common next step is adding a document-wide watermark before saving the output.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">How to add watermarks to PDFs in
+              C#</a>.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#quick-start">Open docs</a>
+            <a class="button button-secondary" href="./index.html#licenses">View pricing</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
