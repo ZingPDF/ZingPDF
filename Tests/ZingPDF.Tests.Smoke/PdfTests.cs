@@ -10,6 +10,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements;
 using ZingPDF.Graphics;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -1003,6 +1004,39 @@ public class PdfTests
         var reloadedTextField = (await reloadedForm!.GetFieldsAsync()).OfType<TextFormField>().First(x => x.Name == textField.Name);
 
         (await reloadedTextField.GetValueAsync()).Should().Be("test");
+    }
+
+    [Fact]
+    public async Task Form_FlattenAsync_RemovesInteractiveFormStructure()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetFormAsync();
+        var textField = (await form!.GetFieldsAsync()).OfType<TextFormField>().First();
+
+        await textField.SetValueAsync("flattened");
+        await form.FlattenAsync();
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-flattened.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetFormAsync()).Should().BeNull();
+
+        var pageCount = await reloaded.GetPageCountAsync();
+        for (var pageNumber = 1; pageNumber <= pageCount; pageNumber++)
+        {
+            var page = await reloaded.GetPageAsync(pageNumber);
+            var annotations = await page.Dictionary.Annots.GetAsync();
+
+            foreach (var annotationRef in annotations?.OfType<IndirectObjectReference>() ?? [])
+            {
+                var annotationObject = await reloaded.Objects.GetAsync(annotationRef);
+                annotationObject.Object.Should().NotBeOfType<WidgetAnnotationDictionary>();
+            }
+        }
     }
 
     [Fact]
