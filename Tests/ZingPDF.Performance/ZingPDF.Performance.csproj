@@ -23,6 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\TestFiles\pdf\complex-form.pdf" Link="TestFiles\pdf\complex-form.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\..\TestFiles\pdf\generated-image-heavy.pdf" Link="TestFiles\pdf\generated-image-heavy.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
