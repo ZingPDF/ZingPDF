@@ -79,7 +79,7 @@ using IOPath = System.IO.Path;
 //await RotateWholeDocument();
 //await Watermark("testfiles/pdf/test.pdf", "output.pdf", "CONFIDENTIAL");
 //await SanitizeComplexFormFixtureAsync();
-await ProfileAppendSavePathForProfilerAsync();
+//await ProfileAppendSavePathForProfilerAsync();
 
 //await CompleteForm("testfiles/pdf/complex-form.pdf", "output.pdf");
 //await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
@@ -98,6 +98,21 @@ await ProfileAppendSavePathForProfilerAsync();
 //await ExtractText("testfiles/pdf/combobox-form.pdf");
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
+
+await FlattenForm();
+
+static async Task FlattenForm()
+{
+    await CompleteForm("testfiles/pdf/combobox-form.pdf", "output.pdf");
+
+    using var inputFileStream = new FileStream("output.pdf", FileMode.Open);
+    using var outputFileStream = new FileStream("flattened.pdf", FileMode.Create);
+
+    var pdf = Pdf.Load(inputFileStream);
+    var form = await pdf.GetFormAsync();
+    await form.FlattenAsync();
+    await pdf.SaveAsync(outputFileStream);
+}
 
 static async Task RunRecentFeatureManualTestsAsync()
 {

@@ -98,7 +98,7 @@ public class Pdf : IPdf, IDisposable
     {
         var documentCatalog = await Objects.GetDocumentCatalogAsync();
 
-        if (documentCatalog.AcroForm is null)
+        if (await documentCatalog.AcroForm.GetAsync() is null)
         {
             return null;
         }

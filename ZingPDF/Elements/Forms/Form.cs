@@ -6,13 +6,20 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
+using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
+using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.Dictionaries.PropertyWrappers;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Elements.Forms
 {
@@ -29,6 +36,7 @@ namespace ZingPDF.Elements.Forms
     public class Form
     {
         private bool _dirty;
+        private bool _flattened;
 
         private readonly AsyncLazy<IndirectObject> _acroForm;
         private readonly AsyncLazy<InteractiveFormDictionary> _acroFormDictionary;
@@ -111,6 +119,53 @@ namespace ZingPDF.Elements.Forms
         public async Task<TField?> GetFieldAsync<TField>(string fieldName) where TField : class, IFormField
         {
             return await GetFieldAsync(fieldName) as TField;
+        }
+
+        /// <summary>
+        /// Flattens the AcroForm into normal page content and removes the interactive form structure.
+        /// </summary>
+        /// <remarks>
+        /// Flattening preserves the current widget appearance streams by placing them onto their pages as normal
+        /// XObject content. After flattening, <see cref="IPdf.GetFormAsync"/> will no longer return a form for the
+        /// saved document.
+        /// </remarks>
+        public async Task FlattenAsync()
+        {
+            if (_flattened)
+            {
+                return;
+            }
+
+            var acroFormObject = await _acroForm;
+            var acroFormDictionary = await _acroFormDictionary;
+            var rootFieldRefs = await acroFormDictionary.Fields.GetAsync() ?? [];
+
+            await FlattenWidgetAnnotationsAsync();
+
+            var fieldHierarchyObjectIds = new Dictionary<int, ushort>();
+            foreach (var fieldRef in rootFieldRefs.OfType<IndirectObjectReference>())
+            {
+                await CollectFieldHierarchyObjectIdsAsync(fieldRef, fieldHierarchyObjectIds);
+            }
+
+            foreach (var (index, generationNumber) in fieldHierarchyObjectIds)
+            {
+                _pdf.Objects.Delete(new IndirectObjectId(index, generationNumber));
+            }
+
+            var latestTrailer = await _pdf.Objects.GetLatestTrailerDictionaryAsync();
+            var catalogReference = latestTrailer.Root
+                ?? throw new InvalidPdfException("Missing Root entry");
+            var catalogObject = await _pdf.Objects.GetAsync(catalogReference);
+            var documentCatalog = catalogObject.Object as DocumentCatalogDictionary
+                ?? throw new InvalidPdfException("Unable to resolve document catalog");
+
+            documentCatalog.Unset(Constants.DictionaryKeys.DocumentCatalog.AcroForm);
+            _pdf.Objects.Update(catalogObject);
+            _pdf.Objects.Delete(new IndirectObjectId(acroFormObject.Id.Index, acroFormObject.Id.GenerationNumber));
+
+            _dirty = false;
+            _flattened = true;
         }
 
         private async Task<IReadOnlyList<IFormField>> LoadFieldsAsync()
@@ -196,7 +251,7 @@ namespace ZingPDF.Elements.Forms
 
         internal async Task UpdateAsync()
         {
-            if (!_dirty)
+            if (_flattened || !_dirty)
             {
                 return;
             }
@@ -372,6 +427,197 @@ namespace ZingPDF.Elements.Forms
                     _pdf,
                     kids
                 );
+            }
+        }
+
+        private async Task FlattenWidgetAnnotationsAsync()
+        {
+            var pageCount = await _pdf.GetPageCountAsync();
+
+            for (var pageNumber = 1; pageNumber <= pageCount; pageNumber++)
+            {
+                var page = await _pdf.GetPageAsync(pageNumber);
+                var annotations = await page.Dictionary.Annots.GetAsync();
+                if (annotations is null)
+                {
+                    continue;
+                }
+
+                var retainedAnnotations = new List<IPdfObject>();
+                var pageUpdated = false;
+
+                foreach (var annotationRef in annotations.OfType<IndirectObjectReference>())
+                {
+                    var annotationObject = await _pdf.Objects.GetAsync(annotationRef);
+                    if (annotationObject.Object is not WidgetAnnotationDictionary widgetAnnotation)
+                    {
+                        retainedAnnotations.Add(annotationRef);
+                        continue;
+                    }
+
+                    var flattened = await TryFlattenWidgetAnnotationAsync(page, widgetAnnotation);
+                    if (!flattened)
+                    {
+                        retainedAnnotations.Add(annotationRef);
+                        continue;
+                    }
+
+                    _pdf.Objects.Delete(new IndirectObjectId(annotationObject.Id.Index, annotationObject.Id.GenerationNumber));
+                    pageUpdated = true;
+                }
+
+                if (!pageUpdated)
+                {
+                    continue;
+                }
+
+                page.Dictionary.Set(
+                    Constants.DictionaryKeys.PageTree.Page.Annots,
+                    retainedAnnotations.Count == 0
+                        ? null
+                        : new ArrayObject(retainedAnnotations, ObjectContext.UserCreated));
+
+                _pdf.Objects.Update(page.IndirectObject);
+            }
+        }
+
+        private async Task<bool> TryFlattenWidgetAnnotationAsync(Page page, WidgetAnnotationDictionary widgetAnnotation)
+        {
+            var appearance = await TryResolveAppearanceAsync(widgetAnnotation);
+            if (appearance is null)
+            {
+                return true;
+            }
+
+            var (appearanceReference, appearanceBounds) = appearance.Value;
+            var resourceName = (Name)UniqueStringGenerator.Generate();
+
+            await page.Dictionary.AddXObjectResourceAsync(resourceName.Value, appearanceReference, _pdf);
+
+            var fieldBounds = await widgetAnnotation.Rect.GetAsync();
+            var contentStream = new FormXObjectContentStream(
+                resourceName,
+                fieldBounds,
+                appearanceBounds,
+                ObjectContext.UserCreated);
+
+            await AddPageContentStreamAsync(page, contentStream);
+
+            return true;
+        }
+
+        private async Task AddPageContentStreamAsync(Page page, ContentStream contentStream)
+        {
+            var contentStreamObject = await new ContentStreamFactory([contentStream])
+                .CreateAsync(new StreamDictionary(_pdf, ObjectContext.UserCreated), ObjectContext.UserCreated);
+
+            var contentStreamIndirectObject = await _pdf.Objects.AddAsync(contentStreamObject);
+
+            await page.Dictionary.AddContentAsync(contentStreamIndirectObject.Reference);
+            _pdf.Objects.Update(page.IndirectObject);
+        }
+
+        private async Task<(IndirectObjectReference Reference, Rectangle Bounds)?> TryResolveAppearanceAsync(
+            WidgetAnnotationDictionary widgetAnnotation)
+        {
+            var appearanceDictionary = await widgetAnnotation.AP.GetAsync();
+            if (appearanceDictionary is null)
+            {
+                return null;
+            }
+
+            var normalAppearance = await appearanceDictionary.N.GetAsync();
+            if (normalAppearance is null)
+            {
+                return null;
+            }
+
+            var selectedAppearance = await ResolveSelectedAppearanceEntryAsync(widgetAnnotation, normalAppearance);
+            if (selectedAppearance is null)
+            {
+                return null;
+            }
+
+            IStreamObject appearanceStream;
+            IndirectObjectReference appearanceReference;
+
+            switch (selectedAppearance)
+            {
+                case IndirectObjectReference reference:
+                    appearanceReference = reference;
+                    appearanceStream = await _pdf.Objects.GetAsync<IStreamObject>(reference);
+                    break;
+                case IStreamObject stream:
+                    appearanceStream = stream;
+                    appearanceReference = (await _pdf.Objects.AddAsync(stream)).Reference;
+                    break;
+                default:
+                    return null;
+            }
+
+            var appearanceBounds = await appearanceStream.Dictionary
+                .GetOptionalProperty<Rectangle>(Constants.DictionaryKeys.Form.Type1.BBox)
+                .GetAsync()
+                ?? await widgetAnnotation.Rect.GetAsync();
+
+            return (appearanceReference, appearanceBounds);
+        }
+
+        private async Task<IPdfObject?> ResolveSelectedAppearanceEntryAsync(
+            WidgetAnnotationDictionary widgetAnnotation,
+            Either<IStreamObject, Dictionary> normalAppearance)
+        {
+            if (normalAppearance.Value is IStreamObject streamObject)
+            {
+                return streamObject;
+            }
+
+            if (normalAppearance.Value is not Dictionary appearanceStates)
+            {
+                return null;
+            }
+
+            var appearanceState = await widgetAnnotation.AS.GetAsync();
+            if (appearanceState is not null && appearanceStates.InnerDictionary.TryGetValue(appearanceState.Value, out var selectedByState))
+            {
+                return selectedByState;
+            }
+
+            if (appearanceStates.InnerDictionary.TryGetValue(Constants.ButtonStates.Off, out var offState))
+            {
+                return offState;
+            }
+
+            return appearanceStates.FirstOrDefault().Value;
+        }
+
+        private async Task CollectFieldHierarchyObjectIdsAsync(
+            IndirectObjectReference fieldReference,
+            IDictionary<int, ushort> objectIds)
+        {
+            var fieldObject = await _pdf.Objects.GetAsync(fieldReference);
+            objectIds[fieldObject.Id.Index] = fieldObject.Id.GenerationNumber;
+
+            if (fieldObject.Object is not FieldDictionary fieldDictionary)
+            {
+                return;
+            }
+
+            var kids = await fieldDictionary.Kids.GetAsync();
+            if (kids is null)
+            {
+                return;
+            }
+
+            foreach (var kidReference in kids.OfType<IndirectObjectReference>())
+            {
+                var kidObject = await _pdf.Objects.GetAsync(kidReference);
+                objectIds[kidObject.Id.Index] = kidObject.Id.GenerationNumber;
+
+                if (kidObject.Object is FieldDictionary)
+                {
+                    await CollectFieldHierarchyObjectIdsAsync(kidReference, objectIds);
+                }
             }
         }
     }
