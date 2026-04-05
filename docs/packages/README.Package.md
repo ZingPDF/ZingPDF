@@ -76,13 +76,13 @@ await selectedPages.SaveAsync(output);
 
 ## Documentation
 
-- repository: [github.com/tombowers/ZingPDF](https://github.com/tombowers/ZingPDF)
+- repository: [github.com/ZingPDF/ZingPDF](https://github.com/ZingPDF/ZingPDF)
 - docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
 - guides: [zingpdf.dev/guides.html](https://zingpdf.dev/guides.html)
 - capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)
 - performance: [zingpdf.dev/performance.html](https://zingpdf.dev/performance.html)
 - API reference: [zingpdf.dev/api/](https://zingpdf.dev/api/)
-- examples folder: [github.com/tombowers/ZingPDF/tree/main/examples](https://github.com/tombowers/ZingPDF/tree/main/examples)
+- examples folder: [github.com/ZingPDF/ZingPDF/tree/main/examples](https://github.com/ZingPDF/ZingPDF/tree/main/examples)
 
 ## Package split
 
@@ -97,4 +97,4 @@ ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an act
 
 ## Support and compatibility
 
-See `SUPPORT.md` in the package root or the repository for the current support stance and release-readiness notes.
+See `SUPPORT.md` in the package root or [docs/project/SUPPORT.md](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md) in the repository for the current support stance and release-readiness notes.

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,15 +6,15 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <PackageId>ZingPDF.FromHTML</PackageId>
+    <PackageId>ZingPDF.GoogleFonts</PackageId>
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
-    <Description>HTML-to-PDF conversion helpers for ZingPDF using PuppeteerSharp.</Description>
-    <PackageTags>pdf;html-to-pdf;html;puppeteer;chromium;documents</PackageTags>
+    <Description>Google Fonts integration package for ZingPDF.</Description>
+    <PackageTags>pdf;fonts;google-fonts;typography;truetype;documents</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.FromHTML.md</PackageReadmeFile>
+    <PackageReadmeFile>README.GoogleFonts.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -23,17 +23,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PuppeteerSharp" Version="20.2.2" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.FromHTML.md" Pack="true" PackagePath="/" />
-    <None Include="..\SUPPORT.md" Pack="true" PackagePath="/" />
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\packages\README.GoogleFonts.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

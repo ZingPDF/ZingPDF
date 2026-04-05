@@ -81,7 +81,7 @@ These limits should be treated as part of the current product contract unless ex
 Commercial licensing and support terms are defined in:
 
 - `LICENSE.txt`
-- `EULA.md`
-- `EVALUATION_TERMS.md`
-- `COMMERCIAL_TERMS.md`
+- `../legal/EULA.md`
+- `../legal/EVALUATION_TERMS.md`
+- `../legal/COMMERCIAL_TERMS.md`
 - `SUPPORT_POLICY.md`

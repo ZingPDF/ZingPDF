@@ -73,7 +73,7 @@ No perpetual right to continue Commercial Use after subscription expiry is grant
 
 ## 8. Updates And Support
 
-If purchased, support and maintenance are provided in accordance with `SUPPORT_POLICY.md` and any support commitments stated in the applicable order.
+If purchased, support and maintenance are provided in accordance with `../project/SUPPORT_POLICY.md` and any support commitments stated in the applicable order.
 
 Licensor is not obligated to provide support, updates, fixes, or enhancements except as expressly stated in writing.
 

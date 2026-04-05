@@ -13,7 +13,7 @@
     <Description>.NET 8 PDF library for loading, creating, editing, merging, watermarking, compressing, extracting text, filling and flattening forms, and encrypting PDF documents.</Description>
     <PackageTags>pdf;dotnet-pdf;csharp;forms;acroform;text-extraction;encryption;compression;watermark;merge-pdf;split-pdf</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.Package.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -46,9 +46,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.Package.md" Pack="true" PackagePath="/" />
-    <None Include="..\SUPPORT.md" Pack="true" PackagePath="/" />
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\packages\README.Package.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

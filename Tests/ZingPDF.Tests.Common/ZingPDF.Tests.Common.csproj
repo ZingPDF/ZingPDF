@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ZingPDF\ZingPDF.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
 
 </Project>
