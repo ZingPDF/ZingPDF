@@ -6,7 +6,6 @@ This document records the current support expectations for ZingPDF ahead of publ
 
 - `ZingPDF`: `net8.0`
 - `ZingPDF.FromHTML`: `net8.0`
-- `ZingPDF.Fonts`: `net8.0`
 - `ZingPDF.GoogleFonts`: `net8.0`
 
 ## Operating systems

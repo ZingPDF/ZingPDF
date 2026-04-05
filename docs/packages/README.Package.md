@@ -89,7 +89,6 @@ await selectedPages.SaveAsync(output);
 - `ZingPDF`: core PDF load, edit, save, page, text, form, metadata, and encryption APIs
 - `ZingPDF.GoogleFonts`: download and register Google Fonts
 - `ZingPDF.FromHTML`: render HTML to PDF through PuppeteerSharp
-- `ZingPDF.Fonts`: supporting font package used by the main library
 
 ## Licensing
 
