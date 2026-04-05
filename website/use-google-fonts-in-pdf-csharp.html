@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Use Google Fonts in a PDF in C#</title>
+  <meta name="description"
+    content="Use Google Fonts in a PDF in C# with ZingPDF.GoogleFonts by downloading a font family and registering it into the document.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to use Google Fonts in a PDF in C#</h1>
+          <p class="article-dek">
+            Reference <code>ZingPDF.GoogleFonts</code>, create a <code>GoogleFontsClient</code>, register the requested
+            family, and then use that font like any other embedded TrueType font.
+          </p>
+          <p>
+            This is a good fit when you want a specific web font family without bundling the font file into your own
+            application up front.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#package">Add the package</a>
+          <a href="#request">Choose family and variant</a>
+          <a href="#when-to-use">When Google Fonts is a good fit</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Register the font and write text</h2>
+          <p>
+            Once the font is registered, the rest of the write path looks like any other embedded font workflow.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.GoogleFonts;
+using ZingPDF.Graphics;
+using ZingPDF.Syntax.CommonDataStructures;
+
+using var pdf = Pdf.Create();
+var page = await pdf.GetPageAsync(1);
+
+var client = new GoogleFontsClient("&lt;google-fonts-api-key&gt;");
+var font = await pdf.RegisterGoogleFontAsync(
+    client,
+    new GoogleFontRequest
+    {
+        Family = "Inter",
+        Variant = "regular"
+    });
+
+await page.AddTextAsync(
+    "Hello from Google Fonts",
+    Rectangle.FromDimensions(320, 80),
+    font,
+    18,
+    RGBColour.Black);
+
+await pdf.SaveAsync(File.Create("google-fonts.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="package">
+          <h2>Add the Google Fonts package alongside the core package</h2>
+          <p>
+            The download and registration helpers live in <code>ZingPDF.GoogleFonts</code>. Most applications still use
+            that package together with the main <code>ZingPDF</code> package rather than instead of it.
+          </p>
+        </section>
+
+        <section class="article-section" id="request">
+          <h2>Choose the family and variant you actually want</h2>
+          <p>
+            The <code>GoogleFontRequest</code> tells the client which family and variant to download. That keeps the
+            registration call explicit and makes it easier to control typography in generated documents.
+          </p>
+        </section>
+
+        <section class="article-section" id="when-to-use">
+          <h2>Use it when fetching fonts at build time is acceptable</h2>
+          <p>
+            If your application already ships with a local font file, plain TrueType registration is simpler. The
+            Google Fonts path is more useful when you want a remote source for a known family and have an API key in
+            the runtime environment.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need a local font file instead?</h2>
+          <p>
+            The embedded TrueType guide covers the offline path.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./embed-truetype-font-pdf-csharp.html">Open TrueType guide</a>
+            <a class="button button-secondary" href="./docs.html#fonts">Open fonts docs</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

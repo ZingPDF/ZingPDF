@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Flatten a PDF Form in C#</title>
+  <meta name="description"
+    content="Flatten an AcroForm PDF in C# with ZingPDF so the saved output no longer behaves like an interactive form.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to flatten a PDF form in C#</h1>
+          <p class="article-dek">
+            Load the PDF, get the form, call <code>FlattenAsync()</code>, and save the result when the output should
+            no longer behave like an interactive form.
+          </p>
+          <p>
+            Flattening is usually the last step after filling fields. It keeps the visible form content on the page and
+            removes the interactive form structure from the saved document.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#when-to-flatten">When to flatten</a>
+          <a href="#after-filling">Flatten after filling</a>
+          <a href="#what-it-does">What flattening changes</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>The shortest working example</h2>
+          <p>
+            If the PDF contains an AcroForm, flatten it before the final save.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("form.pdf"));
+
+var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+await form.FlattenAsync();
+await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="when-to-flatten">
+          <h2>Flatten when the output should stop behaving like a form</h2>
+          <p>
+            Flattening makes sense when the completed file is going to another system, to a customer, or into an
+            archive and nobody needs to edit the fields any further.
+          </p>
+          <p>
+            If the next step still needs field values to remain editable, keep the form interactive and save without
+            flattening.
+          </p>
+        </section>
+
+        <section class="article-section" id="after-filling">
+          <h2>Flatten after you set the field values</h2>
+          <p>
+            The usual sequence is fill first, flatten second, save last.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Forms.FieldTypes.Text;
+
+using var pdf = Pdf.Load(File.OpenRead("form.pdf"));
+
+var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+var nameField = await form.GetFieldAsync<TextFormField>("Applicant.Name");
+if (nameField is not null)
+{
+    await nameField.SetValueAsync("Taylor Smith");
+}
+
+await form.FlattenAsync();
+await pdf.SaveAsync(File.Create("form-completed.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="what-it-does">
+          <h2>What flattening changes</h2>
+          <p>
+            ZingPDF writes the current widget appearances onto the page as normal content, removes widget annotations,
+            and removes the form structure from the saved document.
+          </p>
+          <p>
+            That means the result looks like the completed form, but no longer exposes those fields as editable
+            AcroForm controls.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need to fill fields before you flatten?</h2>
+          <p>
+            Start with the field lookup and choice-selection path, then flatten as the final step.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./fill-pdf-form-fields-csharp.html">Open form-filling guide</a>
+            <a class="button button-secondary" href="./docs.html#forms">Open forms docs</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
