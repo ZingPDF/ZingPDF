@@ -5,11 +5,11 @@ on:
     branches:
       - main
     paths:
-      - "ZingPDF/**"
-      - "ZingPDF.Fonts/**"
-      - "ZingPDF.FromHTML/**"
-      - "ZingPDF.GoogleFonts/**"
-      - "ZingPDF.InheritableSourceGenerator/**"
+      - "src/ZingPDF/**"
+      - "src/ZingPDF.Fonts/**"
+      - "src/ZingPDF.FromHTML/**"
+      - "src/ZingPDF.GoogleFonts/**"
+      - "src/ZingPDF.InheritableSourceGenerator/**"
   workflow_dispatch:
     inputs:
       version:
@@ -68,11 +68,11 @@ jobs:
           }
 
           $changedFiles = @(git diff --name-only "$latestTag..HEAD" -- `
-            ZingPDF `
-            ZingPDF.Fonts `
-            ZingPDF.FromHTML `
-            ZingPDF.GoogleFonts `
-            ZingPDF.InheritableSourceGenerator)
+            src/ZingPDF `
+            src/ZingPDF.Fonts `
+            src/ZingPDF.FromHTML `
+            src/ZingPDF.GoogleFonts `
+            src/ZingPDF.InheritableSourceGenerator)
 
           if ($LASTEXITCODE -ne 0) {
             throw "Unable to inspect changed files since $latestTag."
@@ -145,7 +145,7 @@ jobs:
       - name: Pack core package
         if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
-          dotnet pack ZingPDF/ZingPDF.csproj
+          dotnet pack src/ZingPDF/ZingPDF.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
@@ -158,7 +158,7 @@ jobs:
       - name: Pack fonts package
         if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
-          dotnet pack ZingPDF.Fonts/ZingPDF.Fonts.csproj
+          dotnet pack src/ZingPDF.Fonts/ZingPDF.Fonts.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
@@ -171,7 +171,20 @@ jobs:
       - name: Pack HTML package
         if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >
-          dotnet pack ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
+          dotnet pack src/ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+
+      - name: Pack Google Fonts package
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        run: >
+          dotnet pack src/ZingPDF.GoogleFonts/ZingPDF.GoogleFonts.csproj
           --configuration Release
           --no-build
           --output artifacts/packages

@@ -8,10 +8,10 @@
     <NoWarn>$(NoWarn);4014;8321;8602</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
-    <ProjectReference Include="..\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
-    <ProjectReference Include="..\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
-    <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
+    <ProjectReference Include="..\src\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
+    <ProjectReference Include="..\src\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
+    <ProjectReference Include="..\src\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
+    <ProjectReference Include="..\src\ZingPDF\ZingPDF.csproj" />
   </ItemGroup>
 
   <ItemGroup>

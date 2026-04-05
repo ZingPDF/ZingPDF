@@ -51,7 +51,7 @@ ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an act
 
 ## Support and compatibility
 
-See `SUPPORT.md` in the package root or the repository for the current support stance and release-readiness notes.
+See `SUPPORT.md` in the package root or [docs/project/SUPPORT.md](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md) in the repository for the current support stance and release-readiness notes.
 
 ## More information
 
