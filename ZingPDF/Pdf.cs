@@ -1016,19 +1016,27 @@ public class Pdf : IPdf, IDisposable
         await new Header(pdfVersion, ObjectContext.UserCreated).WriteAsync(outputStream);
 
         var latestTrailer = await Objects.GetLatestTrailerDictionaryAsync();
-        var allObjects = new List<IndirectObject>();
+        var objectsByIndex = new List<IndirectObject?> { null };
         await foreach (var obj in Objects)
         {
-            allObjects.Add(obj);
+            EnsureObjectSlotCapacity(objectsByIndex, obj.Id.Index);
+            objectsByIndex[obj.Id.Index] = obj;
         }
 
-        allObjects.Sort(static (left, right) => left.Id.Index.CompareTo(right.Id.Index));
+        var section = new CrossReferenceSection(0, ObjectContext.UserCreated);
+        section.Add(CrossReferenceEntry.RootFreeEntry);
+        var encryptionObjectId = encryptionWritePlan?.EncryptReference?.Id;
 
-        var writtenObjects = new List<IndirectObject>(allObjects.Count);
-        foreach (var entry in allObjects)
+        for (var index = 1; index < objectsByIndex.Count; index++)
         {
+            var entry = objectsByIndex[index];
+            if (entry is null)
+            {
+                section.Add(CreateFreeCrossReferenceEntry());
+                continue;
+            }
+
             IndirectObject objectToWrite = entry;
-            var encryptionObjectId = encryptionWritePlan?.EncryptReference?.Id;
             if (encryptionWritePlan != null && (encryptionObjectId is null || encryptionObjectId != entry.Id))
             {
                 objectToWrite = _removeEncryptionOnSave
@@ -1037,10 +1045,15 @@ public class Pdf : IPdf, IDisposable
             }
 
             await objectToWrite.WriteAsync(outputStream);
-            writtenObjects.Add(objectToWrite);
+            section.Add(new CrossReferenceEntry(
+                objectToWrite.ByteOffset!.Value,
+                objectToWrite.Id.GenerationNumber,
+                inUse: true,
+                compressed: false,
+                ObjectContext.UserCreated));
         }
 
-        var xrefTable = new CrossReferenceTable(BuildFreshCrossReferenceSections(writtenObjects), ObjectContext.UserCreated);
+        var xrefTable = new CrossReferenceTable([section], ObjectContext.UserCreated);
         await xrefTable.WriteAsync(outputStream);
 
         var originalId = (IPdfObject?)encryptionWritePlan?.OriginalFileId
@@ -1057,7 +1070,7 @@ public class Pdf : IPdf, IDisposable
 
         var trailer = new Trailer(
             TrailerDictionary.CreateNew(
-                GetFreshXrefSize(writtenObjects),
+                section.Index.Count,
                 null,
                 rootReference,
                 encryptReference,
@@ -1071,40 +1084,21 @@ public class Pdf : IPdf, IDisposable
         await trailer.WriteAsync(outputStream);
     }
 
-    private static List<CrossReferenceSection> BuildFreshCrossReferenceSections(IEnumerable<IndirectObject> writtenObjects)
+    private static void EnsureObjectSlotCapacity(List<IndirectObject?> objectsByIndex, int index)
     {
-        var objectsByIndex = writtenObjects.ToDictionary(x => x.Id.Index);
-        var maxIndex = objectsByIndex.Count == 0 ? 0 : objectsByIndex.Keys.Max();
-        var section = new CrossReferenceSection(0, ObjectContext.UserCreated);
-        section.Add(CrossReferenceEntry.RootFreeEntry);
-
-        for (var index = 1; index <= maxIndex; index++)
+        while (objectsByIndex.Count <= index)
         {
-            if (objectsByIndex.TryGetValue(index, out var obj))
-            {
-                section.Add(new CrossReferenceEntry(
-                    obj.ByteOffset!.Value,
-                    obj.Id.GenerationNumber,
-                    inUse: true,
-                    compressed: false,
-                    ObjectContext.UserCreated));
-            }
-            else
-            {
-                section.Add(new CrossReferenceEntry(
-                    0,
-                    0,
-                    inUse: false,
-                    compressed: false,
-                    ObjectContext.UserCreated));
-            }
+            objectsByIndex.Add(null);
         }
-
-        return [section];
     }
 
-    private static int GetFreshXrefSize(IEnumerable<IndirectObject> writtenObjects)
-        => writtenObjects.Any() ? writtenObjects.Max(x => x.Id.Index) + 1 : 1;
+    private static CrossReferenceEntry CreateFreeCrossReferenceEntry()
+        => new(
+            0,
+            0,
+            inUse: false,
+            compressed: false,
+            ObjectContext.UserCreated);
 
     private async Task<double> GetPdfVersionAsync()
     {
