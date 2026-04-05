@@ -10,6 +10,16 @@ on:
       - "src/ZingPDF.FromHTML/**"
       - "src/ZingPDF.GoogleFonts/**"
       - "src/ZingPDF.InheritableSourceGenerator/**"
+      - "tests/**"
+      - "scripts/**"
+      - ".github/workflows/release.yml"
+      - ".github/release.yml"
+      - "ZingPDF.sln"
+      - "Directory.Build.props"
+      - "CHANGELOG.md"
+      - "LICENSE.txt"
+      - "docs/packages/**"
+      - "docs/project/SUPPORT.md"
   workflow_dispatch:
     inputs:
       version:
@@ -42,7 +52,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Detect package-affecting changes
+      - name: Detect release-affecting changes
         id: changes
         shell: pwsh
         run: |
@@ -72,7 +82,17 @@ jobs:
             src/ZingPDF.Fonts `
             src/ZingPDF.FromHTML `
             src/ZingPDF.GoogleFonts `
-            src/ZingPDF.InheritableSourceGenerator)
+            src/ZingPDF.InheritableSourceGenerator `
+            tests `
+            scripts `
+            .github/workflows/release.yml `
+            .github/release.yml `
+            ZingPDF.sln `
+            Directory.Build.props `
+            CHANGELOG.md `
+            LICENSE.txt `
+            docs/packages `
+            docs/project/SUPPORT.md)
 
           if ($LASTEXITCODE -ne 0) {
             throw "Unable to inspect changed files since $latestTag."
@@ -81,11 +101,11 @@ jobs:
           $hasReleaseChanges = $changedFiles.Count -gt 0
           "has_release_changes=$($hasReleaseChanges.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Stop when no package-affecting changes were found
+      - name: Stop when no release-affecting changes were found
         if: ${{ steps.changes.outputs.has_release_changes != 'true' }}
         shell: pwsh
         run: |
-          Write-Host "No package-affecting changes found since the latest release tag."
+          Write-Host "No release-affecting changes found since the latest release tag."
 
       - name: Setup .NET
         if: ${{ steps.changes.outputs.has_release_changes == 'true' }}
