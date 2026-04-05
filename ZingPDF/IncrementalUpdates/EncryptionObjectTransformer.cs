@@ -86,10 +86,7 @@ internal static class EncryptionObjectTransformer
         var transformedDictionary = StreamDictionary.FromDictionary(
             (Dictionary)await TransformDictionaryAsync((Dictionary)source.Dictionary, objectId, handler, encryptStrings, decryptParsedStreams));
 
-        var output = new MemoryStream();
-        source.Data.Position = 0;
-        await source.Data.CopyToAsync(output);
-        var bytes = output.ToArray();
+        var bytes = await ReadStreamBytesAsync(source.Data);
 
         if (encryptStrings && handler.ShouldDecrypt(objectId, transformedDictionary))
         {
@@ -101,5 +98,27 @@ internal static class EncryptionObjectTransformer
         }
 
         return new StreamObject<IStreamDictionary>(new MemoryStream(bytes), transformedDictionary);
+    }
+
+    private static async Task<byte[]> ReadStreamBytesAsync(Stream source)
+    {
+        source.Position = 0;
+
+        if (source.CanSeek && source.Length <= int.MaxValue)
+        {
+            var length = (int)source.Length;
+            if (length == 0)
+            {
+                return [];
+            }
+
+            var bytes = new byte[length];
+            await source.ReadExactlyAsync(bytes, 0, length);
+            return bytes;
+        }
+
+        using var output = new MemoryStream();
+        await source.CopyToAsync(output);
+        return output.ToArray();
     }
 }

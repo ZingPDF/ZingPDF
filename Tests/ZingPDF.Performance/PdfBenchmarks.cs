@@ -152,6 +152,17 @@ public class PdfBenchmarks
         await pdf.SaveAsync(output);
     }
 
+    [Benchmark(Description = "Append a page to a mixed-workload PDF, rewrite, and save")]
+    public async Task AppendPage_RewriteAndSave_MixedWorkloadPdf()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        await pdf.RemoveHistoryAsync();
+        await pdf.SaveAsync(output);
+    }
+
     [Benchmark(Description = "Append 10 pages to a mixed-workload PDF and save")]
     public async Task Append10Pages_AndSave_MixedWorkloadPdf()
     {
@@ -166,6 +177,21 @@ public class PdfBenchmarks
         await pdf.SaveAsync(output);
     }
 
+    [Benchmark(Description = "Append 10 pages to a mixed-workload PDF, rewrite, and save")]
+    public async Task Append10Pages_RewriteAndSave_MixedWorkloadPdf()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        for (var i = 0; i < 10; i++)
+        {
+            _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        }
+
+        await pdf.RemoveHistoryAsync();
+        await pdf.SaveAsync(output);
+    }
+
     [Benchmark(Description = "Append a text-heavy PDF to a mixed-workload PDF and save")]
     public async Task AppendPdf_AndSave_MixedPlusTextHeavy()
     {
@@ -174,6 +200,18 @@ public class PdfBenchmarks
         using var appendStream = TestFiles.OpenStream(TestFiles.TextHeavy);
 
         await pdf.AppendPdfAsync(appendStream);
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "Append a text-heavy PDF to a mixed-workload PDF, rewrite, and save")]
+    public async Task AppendPdf_RewriteAndSave_MixedPlusTextHeavy()
+    {
+        using var pdf = Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+        using var appendStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+
+        await pdf.AppendPdfAsync(appendStream);
+        await pdf.RemoveHistoryAsync();
         await pdf.SaveAsync(output);
     }
 
