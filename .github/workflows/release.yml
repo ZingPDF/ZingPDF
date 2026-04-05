@@ -155,19 +155,6 @@ jobs:
           -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
           -p:InformationalVersion=${{ steps.prepare.outputs.version }}
 
-      - name: Pack fonts package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
-        run: >
-          dotnet pack src/ZingPDF.Fonts/ZingPDF.Fonts.csproj
-          --configuration Release
-          --no-build
-          --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
-
       - name: Pack HTML package
         if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
         run: >

@@ -6,7 +6,7 @@ This ZingPDF Commercial End User License Agreement ("Agreement") is between Thom
 
 ## 2. Definitions
 
-- "Software" means ZingPDF, including the `ZingPDF`, `ZingPDF.Fonts`, and `ZingPDF.FromHTML` packages, related binaries, documentation, updates, and any materials expressly supplied by Licensor under this Agreement.
+- "Software" means ZingPDF, including the `ZingPDF`, `ZingPDF.GoogleFonts`, and `ZingPDF.FromHTML` packages, related binaries, documentation, updates, and any materials expressly supplied by Licensor under this Agreement.
 - "Application" means a software product developed by or for Customer that incorporates or depends on the unmodified Software.
 - "Commercial Use" means any use for commercial gain, internal business operations, customer-facing use, revenue-generating use, or other use outside non-commercial or evaluation use.
 - "Authorized Developer" means an individual permitted by Customer to develop, build, test, or maintain an Application using the Software.
