@@ -36,7 +36,6 @@ It covers the PDF jobs many applications need first: page editing, document asse
 ## Packages
 
 - `src/ZingPDF`: core PDF APIs
-- `src/ZingPDF.Fonts`: standard font metadata and TrueType font loading helpers
 - `src/ZingPDF.GoogleFonts`: optional Google Fonts integration package
 - `src/ZingPDF.FromHTML`: HTML-to-PDF helpers
 

@@ -37,7 +37,7 @@ Unless Licensor states otherwise in writing, all paid subscriptions include acce
 This includes:
 
 - `ZingPDF`
-- `ZingPDF.Fonts`
+- `ZingPDF.GoogleFonts`
 - `ZingPDF.FromHTML`
 
 ## 5. Bundling

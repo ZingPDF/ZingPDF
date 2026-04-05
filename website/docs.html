@@ -179,6 +179,13 @@ await pdf.SaveAsync(output);</code></pre>
             <p>ZingPDF ships as a small set of packages. Use the core package unless you specifically need HTML
               rendering or Google Fonts.</p>
 
+            <h3>Which package should I install?</h3>
+            <ul>
+              <li>Install <code>ZingPDF</code> if you need to load, edit, create, extract, merge, fill forms, flatten forms, watermark, encrypt, or save PDFs.</li>
+              <li>Add <code>ZingPDF.FromHTML</code> if you need HTML-to-PDF through Chromium.</li>
+              <li>Add <code>ZingPDF.GoogleFonts</code> if you want to download and register Google Fonts at document-build time.</li>
+            </ul>
+
             <div class="doc-grid">
               <article class="doc-card">
                 <h3><code>ZingPDF</code></h3>
@@ -204,17 +211,6 @@ await pdf.SaveAsync(output);</code></pre>
               </article>
 
               <article class="doc-card">
-                <h3><code>ZingPDF.Fonts</code></h3>
-                <p>Support package for standard PDF font metadata and TrueType font loading.</p>
-                <ul>
-                  <li>Target framework: <code>net8.0</code></li>
-                  <li>Companion package used by the core library</li>
-                  <li>Cross-platform, subject to <code>SkiaSharp</code> runtime support</li>
-                  <li>Used by the core registration APIs for standard and embedded TrueType fonts</li>
-                </ul>
-              </article>
-
-              <article class="doc-card">
                 <h3><code>ZingPDF.GoogleFonts</code></h3>
                 <p>Google Fonts integration package for registering Google Fonts in a PDF document.</p>
                 <ul>
@@ -230,6 +226,7 @@ await pdf.SaveAsync(output);</code></pre>
             <ul>
               <li>For application integrations, prefer <code>ZingPDF</code> unless you specifically need HTML
                 conversion.</li>
+              <li>The core package already covers standard PDF fonts and embedded TrueType font registration.</li>
               <li>Use <code>ZingPDF.GoogleFonts</code> if you need to register Google Fonts directly from the Google
                 Fonts catalog.</li>
               <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own runtime
