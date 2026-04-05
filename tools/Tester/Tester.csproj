@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);4014;8321;8602</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF\ZingPDF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\\..\\tests\\TestFiles\\font\\NotoSans-Regular.ttf" Link="testfiles\\font\\NotoSans-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tests\TestFiles\image\cat.jpg" Link="testfiles\image\cat.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tests\TestFiles\pdf\combobox-form.pdf" Link="testfiles\pdf\combobox-form.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\complex-form.pdf" Link="testfiles\pdf\complex-form.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\html\form-test.html" Link="testfiles\html\form-test.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\form.pdf" Link="testfiles\pdf\form.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\generated-image-heavy.pdf" Link="testfiles\pdf\generated-image-heavy.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\generated-incremental-history.pdf" Link="testfiles\pdf\generated-incremental-history.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\generated-mixed-workload.pdf" Link="testfiles\pdf\generated-mixed-workload.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\generated-text-heavy.pdf" Link="testfiles\pdf\generated-text-heavy.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\test.pdf" Link="testfiles\pdf\test.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\minimal.pdf" Link="testfiles\pdf\minimal.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tests\TestFiles\pdf\minimal2.pdf" Link="testfiles\pdf\minimal2.pdf">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Include="..\..\tests\TestFiles\pdf\minimal3.pdf" Link="testfiles\pdf\minimal3.pdf">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	<None Include="..\..\tests\TestFiles\pdf\encrypted.pdf" Link="testfiles\pdf\encrypted.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="test.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
