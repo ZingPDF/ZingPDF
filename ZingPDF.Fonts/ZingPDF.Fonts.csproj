@@ -10,7 +10,7 @@
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>Font metrics and font provider support package for ZingPDF.</Description>
-    <PackageTags>pdf;fonts;typography;documents</PackageTags>
+    <PackageTags>pdf;fonts;typography;truetype;standard-pdf-fonts;documents</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

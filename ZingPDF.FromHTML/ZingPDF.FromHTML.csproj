@@ -10,7 +10,7 @@
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>HTML-to-PDF conversion helpers for ZingPDF using PuppeteerSharp.</Description>
-    <PackageTags>pdf;html;documents;puppeteer</PackageTags>
+    <PackageTags>pdf;html-to-pdf;html;puppeteer;chromium;documents</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
