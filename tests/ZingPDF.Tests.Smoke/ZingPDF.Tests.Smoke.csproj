@@ -24,49 +24,49 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\..\testfiles\font\NotoSans-Regular.ttf" Link="TestFiles\font\NotoSans-Regular.ttf">
+	  <None Include="..\TestFiles\font\NotoSans-Regular.ttf" Link="TestFiles\font\NotoSans-Regular.ttf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\html\form-test.html" Link="TestFiles\html\form-test.html">
+	  <None Include="..\TestFiles\html\form-test.html" Link="TestFiles\html\form-test.html">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\image\cat.jpg" Link="TestFiles\image\cat.jpg">
+	  <None Include="..\TestFiles\image\cat.jpg" Link="TestFiles\image\cat.jpg">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\combobox-form.pdf" Link="TestFiles\pdf\combobox-form.pdf">
+	  <None Include="..\TestFiles\pdf\combobox-form.pdf" Link="TestFiles\pdf\combobox-form.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\complex-form.pdf" Link="TestFiles\pdf\complex-form.pdf">
+	  <None Include="..\TestFiles\pdf\complex-form.pdf" Link="TestFiles\pdf\complex-form.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\encrypted.pdf" Link="TestFiles\pdf\encrypted.pdf">
+	  <None Include="..\TestFiles\pdf\encrypted.pdf" Link="TestFiles\pdf\encrypted.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\form.pdf" Link="TestFiles\pdf\form.pdf">
+	  <None Include="..\TestFiles\pdf\form.pdf" Link="TestFiles\pdf\form.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\generated-image-heavy.pdf" Link="TestFiles\pdf\generated-image-heavy.pdf">
+	  <None Include="..\TestFiles\pdf\generated-image-heavy.pdf" Link="TestFiles\pdf\generated-image-heavy.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\generated-incremental-history.pdf" Link="TestFiles\pdf\generated-incremental-history.pdf">
+	  <None Include="..\TestFiles\pdf\generated-incremental-history.pdf" Link="TestFiles\pdf\generated-incremental-history.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\generated-mixed-workload.pdf" Link="TestFiles\pdf\generated-mixed-workload.pdf">
+	  <None Include="..\TestFiles\pdf\generated-mixed-workload.pdf" Link="TestFiles\pdf\generated-mixed-workload.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\generated-text-heavy.pdf" Link="TestFiles\pdf\generated-text-heavy.pdf">
+	  <None Include="..\TestFiles\pdf\generated-text-heavy.pdf" Link="TestFiles\pdf\generated-text-heavy.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\minimal.pdf" Link="TestFiles\pdf\minimal.pdf">
+	  <None Include="..\TestFiles\pdf\minimal.pdf" Link="TestFiles\pdf\minimal.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\minimal2.pdf" Link="TestFiles\pdf\minimal2.pdf">
+	  <None Include="..\TestFiles\pdf\minimal2.pdf" Link="TestFiles\pdf\minimal2.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\minimal3.pdf" Link="TestFiles\pdf\minimal3.pdf">
+	  <None Include="..\TestFiles\pdf\minimal3.pdf" Link="TestFiles\pdf\minimal3.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Include="..\..\testfiles\pdf\test.pdf" Link="TestFiles\pdf\test.pdf">
+	  <None Include="..\TestFiles\pdf\test.pdf" Link="TestFiles\pdf\test.pdf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

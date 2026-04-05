@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\testfiles\pdf\generated-mixed-workload.pdf" Link="testfiles\pdf\generated-mixed-workload.pdf">
+    <None Include="..\..\tests\TestFiles\pdf\generated-mixed-workload.pdf" Link="testfiles\pdf\generated-mixed-workload.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
