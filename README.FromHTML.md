@@ -8,6 +8,37 @@
 dotnet add package ZingPDF.FromHTML
 ```
 
+## Quick start
+
+Render an HTML string to a PDF stream:
+
+```csharp
+using ZingPDF.FromHTML;
+
+await using var pdfStream = await Converter.ToPdfAsync("""
+<!doctype html>
+<html>
+  <body>
+    <h1>Invoice</h1>
+    <p>Rendered through Chromium.</p>
+  </body>
+</html>
+""");
+
+await using var output = File.Create("invoice.pdf");
+await pdfStream.CopyToAsync(output);
+```
+
+Render a URL to PDF:
+
+```csharp
+using ZingPDF.FromHTML;
+
+await using var pdfStream = await Converter.ToPdfAsync(new Uri("https://example.com/report"));
+await using var output = File.Create("report.pdf");
+await pdfStream.CopyToAsync(output);
+```
+
 ## Notes
 
 - This package depends on `ZingPDF`.
@@ -25,4 +56,5 @@ See `SUPPORT.md` in the package root or the repository for the current support s
 ## More information
 
 - core docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
+- guides: [zingpdf.dev/guides.html](https://zingpdf.dev/guides.html)
 - capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Delete PDF Pages in C#</title>
+  <meta name="description"
+    content="Delete pages from a PDF in C# with ZingPDF using 1-based page numbers and save the updated document.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to delete PDF pages in C#</h1>
+          <p class="article-dek">
+            Call <code>DeletePageAsync(pageNumber)</code> with a 1-based page number, then save the updated document.
+          </p>
+          <p>
+            This is the direct path when you need to remove a cover page, a trailing appendix, or a known page from
+            the middle of a document.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#numbering">Use 1-based numbering</a>
+          <a href="#after-delete">Page numbers shift after deletion</a>
+          <a href="#multiple-pages">Delete multiple pages carefully</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Delete the page and save</h2>
+          <p>
+            If you know which page needs to go, call the delete method and save the result.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("packet.pdf"));
+
+await pdf.DeletePageAsync(2);
+await pdf.SaveAsync(File.Create("page-deleted.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="numbering">
+          <h2>Page numbers are 1-based</h2>
+          <p>
+            ZingPDF uses the same 1-based page numbering across the rest of the page API, so the first page is
+            <code>1</code>, not <code>0</code>.
+          </p>
+        </section>
+
+        <section class="article-section" id="after-delete">
+          <h2>Later page numbers move down after a deletion</h2>
+          <p>
+            Once a page is removed, later pages shift down. If you delete page 2 from a 5-page PDF, the old page 3
+            becomes the new page 2.
+          </p>
+        </section>
+
+        <section class="article-section" id="multiple-pages">
+          <h2>Delete multiple pages from highest to lowest</h2>
+          <p>
+            If you need to remove more than one page, work from the highest page number down to the lowest so you do
+            not accidentally target the wrong page after the first deletion.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need insert and append as well?</h2>
+          <p>
+            The page-management guide covers all three page-editing paths together.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./insert-append-delete-pdf-pages-csharp.html">Open page guide</a>
+            <a class="button button-secondary" href="./docs.html#quick-start">Open docs</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

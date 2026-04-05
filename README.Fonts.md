@@ -12,7 +12,7 @@ To reference it explicitly:
 dotnet add package ZingPDF.Fonts
 ```
 
-## Purpose
+## What it contains
 
 This package provides:
 
@@ -40,6 +40,8 @@ var custom = await pdf.RegisterTrueTypeFontAsync("MyFont.ttf");
 
 High-level text registration currently targets WinAnsi / Windows-1252 text workflows.
 
+If you are choosing packages for an application, most projects should reference `ZingPDF` rather than `ZingPDF.Fonts` directly.
+
 ## Licensing
 
 ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an active paid subscription with sufficient seats, or another applicable commercial agreement, before commercial use or commercial bundling.
@@ -51,4 +53,5 @@ See `SUPPORT.md` in the package root or the repository for the current support s
 ## More information
 
 - core docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
+- guides: [zingpdf.dev/guides.html](https://zingpdf.dev/guides.html)
 - capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)

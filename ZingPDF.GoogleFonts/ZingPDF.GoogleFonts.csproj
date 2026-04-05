@@ -10,7 +10,7 @@
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
     <Description>Google Fonts integration package for ZingPDF.</Description>
-    <PackageTags>pdf;fonts;google-fonts;typography;documents</PackageTags>
+    <PackageTags>pdf;fonts;google-fonts;typography;truetype;documents</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

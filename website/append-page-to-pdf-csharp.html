@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Append a Page to a PDF in C#</title>
+  <meta name="description"
+    content="Append a new page to the end of a PDF in C# with ZingPDF and set the page size before adding content.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to append a page to a PDF in C#</h1>
+          <p class="article-dek">
+            Call <code>AppendPageAsync(...)</code> to add a page to the end of the document, then write content to that
+            returned page.
+          </p>
+          <p>
+            Appending is the simplest page-editing path when the new content belongs at the end of the PDF.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#page-size">Set the page size up front</a>
+          <a href="#write-content">Use the returned page</a>
+          <a href="#insert-vs-append">When to insert instead</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Append a page and save the result</h2>
+          <p>
+            The new page is appended at the end and returned so you can use it immediately.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Syntax.CommonDataStructures;
+
+using var pdf = Pdf.Load(File.OpenRead("existing.pdf"));
+
+var page = await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await pdf.SaveAsync(File.Create("page-appended.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="page-size">
+          <h2>Set the page size before you start writing to it</h2>
+          <p>
+            If the new page should match A4, Letter, or a custom size, pass that through the page creation options
+            when you append it.
+          </p>
+          <p>
+            That is usually cleaner than appending first and then treating page geometry as a separate concern.
+          </p>
+        </section>
+
+        <section class="article-section" id="write-content">
+          <h2>The returned page is ready for content APIs</h2>
+          <p>
+            <code>AppendPageAsync(...)</code> returns the newly created page, so you can add text, images, or other
+            page content before the final save.
+          </p>
+        </section>
+
+        <section class="article-section" id="insert-vs-append">
+          <h2>Append when the page belongs at the end</h2>
+          <p>
+            If the new page needs to land in the middle of the document, use <code>InsertPageAsync(...)</code>
+            instead. Append is the right choice when page order is simple.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need more than one kind of page edit?</h2>
+          <p>
+            The page-management guide covers append, insert, and delete together.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./insert-append-delete-pdf-pages-csharp.html">Open page guide</a>
+            <a class="button button-secondary" href="./docs.html#quick-start">Open docs</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
