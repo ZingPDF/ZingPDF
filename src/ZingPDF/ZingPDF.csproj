@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeInternalProjectOutputs</TargetsForTfmSpecificBuildOutput>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -32,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
+    <ProjectReference Include="..\ZingPDF.Fonts\ZingPDF.Fonts.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,5 +51,16 @@
     <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" />
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
+
+  <Target Name="IncludeInternalProjectOutputs">
+    <ItemGroup>
+      <BuildOutputInPackage Include="..\ZingPDF.Fonts\bin\$(Configuration)\$(TargetFramework)\ZingPDF.Fonts.dll" Condition="Exists('..\ZingPDF.Fonts\bin\$(Configuration)\$(TargetFramework)\ZingPDF.Fonts.dll')">
+        <TargetPath>ZingPDF.Fonts.dll</TargetPath>
+      </BuildOutputInPackage>
+      <BuildOutputInPackage Include="..\ZingPDF.Fonts\bin\$(Configuration)\$(TargetFramework)\ZingPDF.Fonts.xml" Condition="Exists('..\ZingPDF.Fonts\bin\$(Configuration)\$(TargetFramework)\ZingPDF.Fonts.xml')">
+        <TargetPath>ZingPDF.Fonts.xml</TargetPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
 
 </Project>
