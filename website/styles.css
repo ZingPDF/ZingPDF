@@ -335,9 +335,14 @@ a {
 
 pre {
   margin: 0;
+  display: block;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
   padding: 18px;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   font-size: 0.98rem;
   line-height: 1.6;
 }
@@ -1220,6 +1225,7 @@ code {
 
 .article-page {
   width: min(760px, 100%);
+  min-width: 0;
 }
 
 .article-header h1 {
@@ -1274,6 +1280,7 @@ code {
 
 .article-section,
 .article-cta {
+  min-width: 0;
   padding: 0;
   margin-top: 40px;
   border: none;
@@ -1681,6 +1688,11 @@ code {
     width: min(100% - 20px, 1180px);
   }
 
+  .docs-shell,
+  .docs-shell.api-page {
+    width: min(100% - 20px, 1380px);
+  }
+
   .landing-main {
     gap: 56px;
     padding-top: 18px;
@@ -1706,6 +1718,13 @@ code {
 
   .hero-panel pre {
     padding: 16px;
+    font-size: 0.88rem;
+  }
+
+  .article-page pre,
+  .doc-section pre,
+  .doc-card pre {
+    padding: 14px;
     font-size: 0.88rem;
   }
 

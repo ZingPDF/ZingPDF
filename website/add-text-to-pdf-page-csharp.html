@@ -56,6 +56,7 @@
           <a href="#bounding-box">Choose the text bounds</a>
           <a href="#overflow">Handle overflow</a>
           <a href="#registered-fonts">Use registered fonts</a>
+          <a href="#font-sources">Choose a font source</a>
           <a href="#next-step">Next step</a>
         </nav>
 
@@ -139,6 +140,20 @@ await page.AddTextAsync(
           </p>
         </section>
 
+        <section class="article-section" id="font-sources">
+          <h2>Choose the font source that fits the document</h2>
+          <p>
+            If Helvetica, Times, or Courier are enough, the standard font helpers keep the setup short.
+          </p>
+          <p>
+            If the output needs a specific local font file, register a TrueType font and use that instead.
+          </p>
+          <p>
+            If you want to pull a font from Google Fonts at document-build time, use the
+            <code>ZingPDF.GoogleFonts</code> package and register the font before writing text.
+          </p>
+        </section>
+
         <section class="article-cta" id="next-step">
           <h2>Need a real font instead of a raw resource name?</h2>
           <p>
@@ -147,7 +162,8 @@ await page.AddTextAsync(
           <p>
             Read <a class="inline-link" href="./use-standard-pdf-fonts-csharp.html">How to use standard PDF fonts in
               C#</a> or <a class="inline-link" href="./embed-truetype-font-pdf-csharp.html">How to embed a TrueType
-              font in a PDF in C#</a>.
+              font in a PDF in C#</a>. The package and API examples for Google Fonts are in
+            <a class="inline-link" href="./docs.html#fonts">the fonts section of the docs</a>.
           </p>
           <p class="article-actions">
             <a class="button button-primary" href="./docs.html#drawing">Open docs</a>
