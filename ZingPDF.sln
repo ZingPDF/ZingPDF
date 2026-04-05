@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "Tester\Tester.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF.Tests.Unit", "Tests\ZingPDF.Tests.Unit\ZingPDF.Tests.Unit.csproj", "{E4FA0A42-D460-4758-8CE9-7ADE49A39372}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF", "ZingPDF\ZingPDF.csproj", "{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZingPDF", "src\ZingPDF\ZingPDF.csproj", "{7E4755CB-F4BC-46B6-A024-6E8CDD8EB547}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.FromHTML", "ZingPDF.FromHTML\ZingPDF.FromHTML.csproj", "{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.FromHTML", "src\ZingPDF.FromHTML\ZingPDF.FromHTML.csproj", "{FD2B7F11-73BE-49F3-8AFC-45CBBEDDC648}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Fonts", "ZingPDF.Fonts\ZingPDF.Fonts.csproj", "{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Fonts", "src\ZingPDF.Fonts\ZingPDF.Fonts.csproj", "{574A8ECB-716C-42D2-B7F8-A85AE1BF6275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.InheritableSourceGenerator", "ZingPDF.InheritableSourceGenerator\ZingPDF.InheritableSourceGenerator.csproj", "{F12B618D-149D-4428-9728-D636DA52EB94}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.InheritableSourceGenerator", "src\ZingPDF.InheritableSourceGenerator\ZingPDF.InheritableSourceGenerator.csproj", "{F12B618D-149D-4428-9728-D636DA52EB94}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Tests.Common", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.Performance", "Tests\ZingPDF.Performance\ZingPDF.Performance.csproj", "{B024DF69-2B9D-41B5-8D57-DF602799F5B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.GoogleFonts", "ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj", "{35BEB2E3-F87A-43DC-A298-7936F167AB28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZingPDF.GoogleFonts", "src\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj", "{35BEB2E3-F87A-43DC-A298-7936F167AB28}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

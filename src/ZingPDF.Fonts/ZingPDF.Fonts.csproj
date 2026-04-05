@@ -12,7 +12,7 @@
     <Description>Font metrics and font provider support package for ZingPDF.</Description>
     <PackageTags>pdf;fonts;typography;truetype;standard-pdf-fonts;documents</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/tombowers/ZingPDF</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.Fonts.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -61,9 +61,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.Fonts.md" Pack="true" PackagePath="/" />
-    <None Include="..\SUPPORT.md" Pack="true" PackagePath="/" />
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\packages\README.Fonts.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>
