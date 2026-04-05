@@ -8,14 +8,6 @@
 dotnet add package ZingPDF.GoogleFonts
 ```
 
-## Purpose
-
-This package provides:
-
-- a small client for the Google Fonts Developer API
-- helpers for downloading a requested family/variant as a font file
-- extension methods that register the downloaded font through `ZingPDF`
-
 ## Typical usage
 
 ```csharp
@@ -43,6 +35,7 @@ await page.AddTextAsync("Hello from Google Fonts", Rectangle.FromDimensions(300,
 
 - This package requires a Google Fonts Developer API key.
 - High-level text registration currently targets WinAnsi / Windows-1252 text workflows.
+- Most applications should reference this package alongside `ZingPDF`, not instead of it.
 
 ## Licensing
 
@@ -55,4 +48,5 @@ See `SUPPORT.md` in the package root or the repository for the current support s
 ## More information
 
 - core docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
+- guides: [zingpdf.dev/guides.html](https://zingpdf.dev/guides.html)
 - capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)
