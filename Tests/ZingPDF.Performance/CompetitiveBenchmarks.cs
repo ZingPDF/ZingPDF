@@ -491,6 +491,17 @@ public class CompetitiveBenchmarks
         await pdf.SaveAsync(output);
     }
 
+    [Benchmark(Description = "ZingPDF: Append a page to a mixed-workload PDF, rewrite, and save")]
+    public async Task ZingPdf_AppendPage_RewriteAndSave_MixedWorkloadPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        await pdf.RemoveHistoryAsync();
+        await pdf.SaveAsync(output);
+    }
+
     [Benchmark(Description = "PDFsharp: Append a page to a mixed-workload PDF and save")]
     public void PdfSharp_AppendPage_AndSave_MixedWorkloadPdf()
     {
@@ -525,6 +536,21 @@ public class CompetitiveBenchmarks
             _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
         }
 
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "ZingPDF: Append 10 pages to a mixed-workload PDF, rewrite, and save")]
+    public async Task ZingPdf_Append10Pages_RewriteAndSave_MixedWorkloadPdf()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+
+        for (var i = 0; i < 10; i++)
+        {
+            _ = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        }
+
+        await pdf.RemoveHistoryAsync();
         await pdf.SaveAsync(output);
     }
 
@@ -610,6 +636,18 @@ public class CompetitiveBenchmarks
         using var appendStream = TestFiles.OpenStream(TestFiles.TextHeavy);
 
         await pdf.AppendPdfAsync(appendStream);
+        await pdf.SaveAsync(output);
+    }
+
+    [Benchmark(Description = "ZingPDF: Merge a text-heavy PDF into a mixed-workload PDF, rewrite, and save")]
+    public async Task ZingPdf_AppendPdf_RewriteAndSave_MixedPlusTextHeavy()
+    {
+        using var pdf = ZingPDF.Pdf.Load(TestFiles.OpenStream(TestFiles.MixedWorkload));
+        using var output = new MemoryStream();
+        using var appendStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+
+        await pdf.AppendPdfAsync(appendStream);
+        await pdf.RemoveHistoryAsync();
         await pdf.SaveAsync(output);
     }
 

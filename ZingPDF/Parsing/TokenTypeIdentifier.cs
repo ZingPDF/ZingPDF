@@ -1,3 +1,4 @@
+using System.Buffers;
 using ZingPDF.Diagnostics;
 using ZingPDF.Logging;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -16,76 +17,133 @@ namespace ZingPDF.Parsing
     {
         private const int BufferSize = 128;
 
-        public async Task<Type?> TryIdentifyAsync(Stream stream)
+        public Task<Type?> TryIdentifyAsync(Stream stream)
         {
             using var trace = PerformanceTrace.Measure("TokenTypeIdentifier.TryIdentifyAsync");
-            long originalPosition = stream.Position;
+            var originalPosition = stream.Position;
+            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+            var bufferReturned = false;
 
             try
             {
-                byte[] buffer = new byte[BufferSize];
-                int read = await stream.ReadAsync(buffer.AsMemory(0, BufferSize));
-                int index = 0;
-
-                while (index < read && IsWhite(buffer[index]))
+                if (CanUseSynchronousRead(stream))
                 {
-                    index++;
+                    var read = stream.Read(buffer, 0, BufferSize);
+                    var identifiedType = IdentifyFromBuffer(buffer.AsSpan(0, read));
+                    RestoreStreamAndReturnBuffer(stream, originalPosition, buffer);
+                    bufferReturned = true;
+                    return Task.FromResult(identifiedType);
                 }
 
-                if (index >= read)
+                var readTask = stream.ReadAsync(buffer.AsMemory(0, BufferSize));
+                if (readTask.IsCompletedSuccessfully)
                 {
-                    return null;
+                    var identifiedType = IdentifyFromBuffer(buffer.AsSpan(0, readTask.Result));
+                    RestoreStreamAndReturnBuffer(stream, originalPosition, buffer);
+                    bufferReturned = true;
+                    return Task.FromResult(identifiedType);
                 }
 
-                var identifiedType = IdentifyToken(buffer, index, read);
-                Logger.Log(LogLevel.Trace, $"Identified as: {identifiedType?.Name ?? "null"}");
-                return identifiedType;
+                return AwaitAndIdentifyAsync(stream, originalPosition, buffer, readTask);
             }
-            finally
+            catch
             {
-                stream.Position = originalPosition;
+                if (!bufferReturned)
+                {
+                    RestoreStreamAndReturnBuffer(stream, originalPosition, buffer);
+                }
+
+                throw;
             }
         }
 
-        private static Type IdentifyToken(byte[] buffer, int index, int read)
+        private static bool CanUseSynchronousRead(Stream stream)
+            => stream is MemoryStream or SubStream;
+
+        private static Type? IdentifyFromBuffer(ReadOnlySpan<byte> content)
         {
-            byte current = buffer[index];
+            var index = SkipWhitespace(content);
+
+            Type? identifiedType = null;
+            if (index < content.Length)
+            {
+                identifiedType = IdentifyToken(content[index..]);
+            }
+
+            if (Logger.LogLevel <= LogLevel.Trace)
+            {
+                Logger.Log(LogLevel.Trace, $"Identified as: {identifiedType?.Name ?? "null"}");
+            }
+
+            return identifiedType;
+        }
+
+        private static void RestoreStreamAndReturnBuffer(Stream stream, long originalPosition, byte[] buffer)
+        {
+            if (stream.Position != originalPosition)
+            {
+                stream.Position = originalPosition;
+            }
+
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+
+        private static async Task<Type?> AwaitAndIdentifyAsync(
+            Stream stream,
+            long originalPosition,
+            byte[] buffer,
+            ValueTask<int> readTask)
+        {
+            try
+            {
+                var read = await readTask.ConfigureAwait(false);
+                return IdentifyFromBuffer(buffer.AsSpan(0, read));
+            }
+            finally
+            {
+                RestoreStreamAndReturnBuffer(stream, originalPosition, buffer);
+            }
+        }
+
+        private static Type IdentifyToken(ReadOnlySpan<byte> token)
+        {
+            var current = token[0];
 
             return current switch
             {
-                (byte)'%' => StartsWith(buffer, index, read, "%PDF-") ? typeof(Header) : typeof(Comment),
+                (byte)'%' => StartsWith(token, "%PDF-"u8) ? typeof(Header) : typeof(Comment),
                 (byte)'/' => typeof(Name),
                 (byte)'[' => typeof(ArrayObject),
-                (byte)'<' => index + 1 < read && buffer[index + 1] == (byte)'<' ? typeof(Dictionary) : typeof(PdfString),
-                (byte)'(' => LooksLikeParsableDateLiteral(buffer, index, read) ? typeof(Date) : typeof(PdfString),
-                (byte)'t' when StartsWith(buffer, index, read, "true") => typeof(BooleanObject),
-                (byte)'f' when StartsWith(buffer, index, read, "false") => typeof(BooleanObject),
-                (byte)'t' when StartsWith(buffer, index, read, Constants.Trailer) => typeof(Trailer),
-                (byte)'x' when StartsWith(buffer, index, read, Constants.Xref) => typeof(Keyword),
-                (byte)'s' when StartsWith(buffer, index, read, Constants.StartXref) => typeof(Keyword),
-                (byte)'s' when StartsWith(buffer, index, read, Constants.StreamStart) => typeof(StreamObject<>),
-                (byte)'e' when StartsWith(buffer, index, read, Constants.StreamEnd) => typeof(Keyword),
-                (byte)'e' when StartsWith(buffer, index, read, Constants.ObjEnd) => typeof(Keyword),
-                (byte)'n' when StartsWith(buffer, index, read, Constants.Null) => typeof(Keyword),
-                _ when IsNumberStart(current) => IdentifyNumericToken(buffer, index, read),
+                (byte)'<' => token.Length > 1 && token[1] == (byte)'<' ? typeof(Dictionary) : typeof(PdfString),
+                (byte)'(' => LooksLikeParsableDateLiteral(token) ? typeof(Date) : typeof(PdfString),
+                (byte)'t' when StartsWith(token, "true"u8) => typeof(BooleanObject),
+                (byte)'f' when StartsWith(token, "false"u8) => typeof(BooleanObject),
+                (byte)'t' when StartsWith(token, "trailer"u8) => typeof(Trailer),
+                (byte)'x' when StartsWith(token, "xref"u8) => typeof(Keyword),
+                (byte)'s' when StartsWith(token, "startxref"u8) => typeof(Keyword),
+                (byte)'s' when StartsWith(token, "stream"u8) => typeof(StreamObject<>),
+                (byte)'e' when StartsWith(token, "endstream"u8) => typeof(Keyword),
+                (byte)'e' when StartsWith(token, "endobj"u8) => typeof(Keyword),
+                (byte)'n' when StartsWith(token, "null"u8) => typeof(Keyword),
+                _ when IsNumberStart(current) => IdentifyNumericToken(token),
                 _ => typeof(Keyword),
             };
         }
 
-        private static Type IdentifyNumericToken(byte[] buffer, int index, int read)
+        private static Type IdentifyNumericToken(ReadOnlySpan<byte> token)
         {
-            int cursor = index;
+            var cursor = 0;
             bool hasDigit = false;
             bool hasDecimal = false;
 
-            if (cursor < read && (buffer[cursor] == (byte)'+' || buffer[cursor] == (byte)'-'))
+            if (cursor < token.Length && (token[cursor] == (byte)'+' || token[cursor] == (byte)'-'))
             {
                 cursor++;
             }
 
-            while (cursor < read)
+            while (cursor < token.Length)
             {
-                byte current = buffer[cursor];
+                var current = token[cursor];
                 if (current is >= (byte)'0' and <= (byte)'9')
                 {
                     hasDigit = true;
@@ -113,10 +171,10 @@ namespace ZingPDF.Parsing
                 return typeof(Number);
             }
 
-            cursor = SkipWhitespace(buffer, cursor, read);
-            int secondNumberStart = cursor;
+            cursor = SkipWhitespace(token, cursor);
+            var secondNumberStart = cursor;
 
-            while (cursor < read && buffer[cursor] is >= (byte)'0' and <= (byte)'9')
+            while (cursor < token.Length && token[cursor] is >= (byte)'0' and <= (byte)'9')
             {
                 cursor++;
             }
@@ -126,24 +184,24 @@ namespace ZingPDF.Parsing
                 return typeof(Number);
             }
 
-            cursor = SkipWhitespace(buffer, cursor, read);
-            if (cursor >= read)
+            cursor = SkipWhitespace(token, cursor);
+            if (cursor >= token.Length)
             {
                 return typeof(Number);
             }
 
-            return buffer[cursor] switch
+            return token[cursor] switch
             {
                 (byte)'R' => typeof(IndirectObjectReference),
-                (byte)'o' when StartsWith(buffer, cursor, read, "obj") => typeof(IndirectObject),
+                (byte)'o' when StartsWith(token[cursor..], "obj"u8) => typeof(IndirectObject),
                 (byte)'f' or (byte)'n' => typeof(CrossReferenceEntry),
                 _ => typeof(Number),
             };
         }
 
-        private static int SkipWhitespace(byte[] buffer, int index, int read)
+        private static int SkipWhitespace(ReadOnlySpan<byte> buffer, int index = 0)
         {
-            while (index < read && IsWhite(buffer[index]))
+            while (index < buffer.Length && IsWhite(buffer[index]))
             {
                 index++;
             }
@@ -151,44 +209,31 @@ namespace ZingPDF.Parsing
             return index;
         }
 
-        private static bool StartsWith(byte[] buffer, int index, int read, string value)
+        private static bool StartsWith(ReadOnlySpan<byte> buffer, ReadOnlySpan<byte> value)
         {
-            if (read - index < value.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (buffer[index + i] != (byte)value[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return buffer.Length >= value.Length && buffer[..value.Length].SequenceEqual(value);
         }
 
-        private static bool LooksLikeParsableDateLiteral(byte[] buffer, int index, int read)
+        private static bool LooksLikeParsableDateLiteral(ReadOnlySpan<byte> buffer)
         {
-            if (read - index < 5
-                || buffer[index] != (byte)'('
-                || buffer[index + 1] != (byte)'D'
-                || buffer[index + 2] != (byte)':')
+            if (buffer.Length < 5
+                || buffer[0] != (byte)'('
+                || buffer[1] != (byte)'D'
+                || buffer[2] != (byte)':')
             {
                 return false;
             }
 
-            int cursor = index + 3;
-            int digitCount = 0;
+            var cursor = 3;
+            var digitCount = 0;
 
-            while (cursor < read && digitCount < 14 && buffer[cursor] is >= (byte)'0' and <= (byte)'9')
+            while (cursor < buffer.Length && digitCount < 14 && buffer[cursor] is >= (byte)'0' and <= (byte)'9')
             {
                 cursor++;
                 digitCount++;
             }
 
-            if (digitCount < 4 || cursor >= read)
+            if (digitCount < 4 || cursor >= buffer.Length)
             {
                 return false;
             }
@@ -205,36 +250,36 @@ namespace ZingPDF.Parsing
 
             cursor++;
 
-            if (!HasDigits(buffer, cursor, read, 2))
+            if (!HasDigits(buffer, cursor, 2))
             {
                 return false;
             }
 
             cursor += 2;
 
-            if (cursor < read && buffer[cursor] == (byte)'\'')
+            if (cursor < buffer.Length && buffer[cursor] == (byte)'\'')
             {
                 cursor++;
             }
 
-            if (!HasDigits(buffer, cursor, read, 2))
+            if (!HasDigits(buffer, cursor, 2))
             {
                 return false;
             }
 
             cursor += 2;
 
-            if (cursor < read && buffer[cursor] == (byte)'\'')
+            if (cursor < buffer.Length && buffer[cursor] == (byte)'\'')
             {
                 cursor++;
             }
 
-            return cursor < read && buffer[cursor] == (byte)')';
+            return cursor < buffer.Length && buffer[cursor] == (byte)')';
         }
 
-        private static bool HasDigits(byte[] buffer, int index, int read, int count)
+        private static bool HasDigits(ReadOnlySpan<byte> buffer, int index, int count)
         {
-            if (index + count > read)
+            if (index + count > buffer.Length)
             {
                 return false;
             }
