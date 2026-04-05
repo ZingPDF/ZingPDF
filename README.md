@@ -17,7 +17,7 @@ It covers the PDF jobs many applications need first: page editing, document asse
 ## Repository layout
 
 - `src/`: core library and companion packages
-- `Tests/`: unit, integration, smoke, and performance coverage
+- `tests/`: unit, integration, smoke, and performance coverage
 - `examples/`: small runnable examples for common tasks
 - `website/`: product site, docs, guides, and generated API reference
 - `scripts/`: release and maintenance scripts

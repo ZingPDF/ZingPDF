@@ -2,8 +2,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $targets = @(
-    "TestFiles/pdf/*.pdf",
-    "TestFiles/image/*"
+    "tests/TestFiles/pdf/*.pdf",
+    "tests/TestFiles/image/*"
 )
 
 $files = @(git ls-files -- $targets)

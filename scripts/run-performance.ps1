@@ -1,5 +1,5 @@
 param(
-    [string]$Project = "Tests/ZingPDF.Performance/ZingPDF.Performance.csproj",
+    [string]$Project = "tests/ZingPDF.Performance/ZingPDF.Performance.csproj",
     [string]$OutputRoot = "artifacts/performance",
     [string]$Filter = "*PdfBenchmarks*",
     [string]$ThresholdPercent = "10",
