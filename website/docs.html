@@ -263,6 +263,22 @@ await page.AddTextAsync(
     18,
     RGBColour.Black);</code></pre>
 
+            <h3>Usable standard PDF fonts</h3>
+            <ul>
+              <li><code>StandardPdfFonts.Helvetica</code></li>
+              <li><code>StandardPdfFonts.HelveticaBold</code></li>
+              <li><code>StandardPdfFonts.HelveticaOblique</code></li>
+              <li><code>StandardPdfFonts.HelveticaBoldOblique</code></li>
+              <li><code>StandardPdfFonts.TimesRoman</code></li>
+              <li><code>StandardPdfFonts.TimesBold</code></li>
+              <li><code>StandardPdfFonts.TimesItalic</code></li>
+              <li><code>StandardPdfFonts.TimesBoldItalic</code></li>
+              <li><code>StandardPdfFonts.Courier</code></li>
+              <li><code>StandardPdfFonts.CourierBold</code></li>
+              <li><code>StandardPdfFonts.CourierOblique</code></li>
+              <li><code>StandardPdfFonts.CourierBoldOblique</code></li>
+            </ul>
+
             <h3>Register an embedded TrueType font from disk</h3>
             <pre><code class="language-csharp">var font = await pdf.RegisterTrueTypeFontAsync(
     "MyFont-Regular.ttf");
