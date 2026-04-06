@@ -1,24 +1,32 @@
 using FluentAssertions;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 using ZingPDF.Elements.Forms.FieldTypes.Button;
 using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Elements.Forms.FieldTypes.Signature;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements;
 using ZingPDF.Graphics;
 using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
+using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
+using ZingPDF.Syntax.DocumentStructure;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Text;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Tests.Smoke.TestFiles;
 using ZingPDF.OCR;
 using DrawingCoordinate = ZingPDF.Elements.Drawing.Coordinate;
@@ -957,6 +965,80 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task SignatureFormField_SignAsync_WritesDetachedSignatureDictionary()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        using var certificate = CreateSigningCertificate();
+
+        await AddSignatureFieldAsync(pdf, "ApprovalSignature");
+
+        var form = await pdf.GetFormAsync();
+        var signatureField = (await form!.GetFieldsAsync()).OfType<SignatureFormField>().First();
+
+        await signatureField.SignAsync(certificate, new PdfSignatureOptions
+        {
+            SignerName = "Taylor Smith",
+            Reason = "Approval",
+            Location = "Sydney"
+        });
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-signed.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/ByteRange [");
+        writtenPdf.Should().Contain("/SubFilter /adbe.pkcs7.detached");
+        writtenPdf.Should().Contain("/AP <<");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedSignatureField = (await reloadedForm!.GetFieldsAsync()).OfType<SignatureFormField>().First();
+
+        (await reloadedSignatureField.HasSignatureValueAsync()).Should().BeTrue();
+        (await reloadedSignatureField.GetFilterAsync()).Should().Be("Adobe.PPKLite");
+        (await reloadedSignatureField.GetSubFilterAsync()).Should().Be("adbe.pkcs7.detached");
+        (await reloadedSignatureField.GetSignerNameAsync()).Should().Be("Taylor Smith");
+        (await reloadedSignatureField.GetReasonAsync()).Should().Be("Approval");
+    }
+
+    [Fact]
+    public async Task SignInvisibleAsync_AddsHiddenSignatureField_WhenDocumentHasNoExistingField()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        using var certificate = CreateSigningCertificate();
+
+        await pdf.SignInvisibleAsync(certificate, new PdfSignatureOptions
+        {
+            FieldName = "ServerSignature",
+            SignerName = "Taylor Smith",
+            Reason = "Integrity check"
+        });
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("signature-hidden-field.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/FT /Sig");
+        writtenPdf.Should().Contain("/ByteRange [");
+        writtenPdf.Should().Contain("/Rect [0.000 0.000 0.000 0.000]");
+        writtenPdf.Should().Contain("/F 34");
+        writtenPdf.Should().NotContain("/AP <<");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedSignatureField = (await reloadedForm!.GetFieldsAsync()).OfType<SignatureFormField>().Single();
+
+        reloadedSignatureField.Name.Should().Be("ServerSignature");
+        (await reloadedSignatureField.HasSignatureValueAsync()).Should().BeTrue();
+        (await reloadedSignatureField.GetSignerNameAsync()).Should().Be("Taylor Smith");
+        (await reloadedSignatureField.GetReasonAsync()).Should().Be("Integrity check");
+    }
+
+    [Fact]
     public async Task GetFormAsync_ExposesPublicButtonFieldTypes()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
@@ -1386,6 +1468,58 @@ public class PdfTests
         using var memory = new MemoryStream();
         await stream.CopyToAsync(memory);
         return memory.ToArray();
+    }
+
+    private static X509Certificate2 CreateSigningCertificate()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=ZingPDF Smoke Test Signer",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+
+        request.CertificateExtensions.Add(
+            new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
+
+        return request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddDays(-1),
+            DateTimeOffset.UtcNow.AddDays(30));
+    }
+
+    private static async Task AddSignatureFieldAsync(Pdf pdf, string fieldName)
+    {
+        var trailer = await pdf.Objects.GetLatestTrailerDictionaryAsync();
+        var catalogObject = await pdf.Objects.GetAsync(trailer.Root!);
+        var catalog = (DocumentCatalogDictionary)catalogObject.Object;
+
+        var formDictionary = InteractiveFormDictionary.FromDictionary(new Dictionary<string, IPdfObject>
+        {
+            ["Fields"] = new ArrayObject([], ObjectContext.UserCreated)
+        }, pdf, ObjectContext.UserCreated);
+        var formObject = await pdf.Objects.AddAsync(formDictionary);
+        catalog.Set("AcroForm", formObject.Reference);
+        pdf.Objects.Update(catalogObject);
+
+        var page = await pdf.GetPageAsync(1);
+        var fieldDictionary = FieldDictionary.FromDictionary(new Dictionary<string, IPdfObject>
+        {
+            ["Type"] = (Name)"Annot",
+            ["Subtype"] = (Name)AnnotationDictionary.Subtypes.Widget,
+            ["FT"] = (Name)"Sig",
+            ["T"] = PdfString.FromTextAuto(fieldName, ObjectContext.UserCreated),
+            ["Rect"] = Rectangle.FromDimensions(200, 60),
+            ["P"] = page.Dictionary,
+        }, pdf, ObjectContext.UserCreated);
+
+        var fieldObject = await pdf.Objects.AddAsync(fieldDictionary);
+        (await formDictionary.Fields.GetAsync()).Add(fieldObject.Reference);
+
+        var annotations = await page.Dictionary.Annots.GetAsync() ?? new ArrayObject([], ObjectContext.UserCreated);
+        annotations.Add(fieldObject.Reference);
+        page.Dictionary.Set("Annots", annotations);
+        pdf.Objects.Update(page.IndirectObject);
+        pdf.Objects.Update(formObject);
     }
 
     private static int ToStandardPermissionValue(PdfEncryptionPermissions permissions)

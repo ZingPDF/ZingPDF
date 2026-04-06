@@ -500,19 +500,21 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
                   <code>SelectOptionByValueAsync(...)</code> to skip enumerating the full option list.</p>
                 <p><code>PushButtonFormField</code> supports caption lookup, primary action-type inspection, URI and named-action inspection, and additional-action trigger discovery.</p>
                 <p><code>SignatureFormField</code> supports signed-state and signature metadata inspection, including filter, subfilter, signer name, reason, and signing time.</p>
+                <p>Use <code>SignAsync(X509Certificate2, PdfSignatureOptions?)</code> to sign an existing signature field, or <code>Pdf.SignInvisibleAsync(...)</code> to add a hidden validation-only signature field on an unencrypted PDF.</p>
               </article>
             </div>
 
             <h3>Current gaps</h3>
             <ul>
               <li>Push-button action details can be inspected, but action execution is not yet exposed through the high-level API.</li>
-              <li>Signature fields can be inspected, but high-level signing is not yet implemented.</li>
+              <li>High-level signing supports existing visible signature fields and hidden validation-only fields on unencrypted PDFs. It does not sign encrypted PDFs yet, and it does not support custom signature images yet.</li>
             </ul>
 
             <p>
               Related guides:
               <a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Fill PDF form fields</a> and
-              <a class="inline-link" href="./flatten-pdf-form-csharp.html">Flatten a PDF form</a>.
+              <a class="inline-link" href="./flatten-pdf-form-csharp.html">Flatten a PDF form</a> and
+              <a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign a PDF form field</a>.
             </p>
           </section>
 

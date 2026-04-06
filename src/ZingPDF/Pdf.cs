@@ -1,6 +1,9 @@
 ﻿using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
@@ -9,10 +12,16 @@ using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
 using ZingPDF.Graphics;
+using ZingPDF.Graphics.FormXObjects;
 using ZingPDF.Graphics.Images;
 using ZingPDF.IncrementalUpdates;
+using ZingPDF.InteractiveFeatures.Annotations;
+using ZingPDF.InteractiveFeatures.Forms;
+using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Signing;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.DocumentStructure;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
@@ -28,6 +37,7 @@ using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 using ZingPDF.Text.Encoding.PDFDocEncoding;
 using ZingPDF.Text.SimpleFonts;
+using static ZingPDF.Syntax.ContentStreamsAndResources.ContentStream.Operators;
 
 namespace ZingPDF;
 
@@ -63,6 +73,7 @@ public class Pdf : IPdf, IDisposable
     private bool _removeEncryptionOnSave;
     private bool _removeHistoryOnSave;
     private PdfEncryptionOptions? _pendingEncryptionOptions;
+    private PendingPdfSignature? _pendingSignature;
 
     private Pdf(Stream data)
     {
@@ -481,6 +492,17 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task SignInvisibleAsync(X509Certificate2 certificate, PdfSignatureOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(certificate);
+
+        var resolvedOptions = CreateInvisibleSignatureOptions(options);
+        var signatureField = await EnsureHiddenSignatureFieldAsync(resolvedOptions.FieldName);
+
+        await QueueSignatureAsync(signatureField, certificate, resolvedOptions);
+    }
+
+    /// <inheritdoc />
     public async Task SaveAsync(Stream outputStream)
     {
         ArgumentNullException.ThrowIfNull(outputStream);
@@ -500,15 +522,322 @@ public class Pdf : IPdf, IDisposable
         await metadata.UpdateAsync();
 
         var encryptionWritePlan = await _encryptionProvider.CreateWritePlanAsync(_pendingEncryptionOptions);
-        if (_removeHistoryOnSave)
+        if (_pendingSignature is not null)
         {
-            await SaveWithoutHistoryAsync(outputStream, metadata, encryptionWritePlan);
+            if (encryptionWritePlan is not null || _removeEncryptionOnSave || _pendingEncryptionOptions is not null)
+            {
+                throw new NotSupportedException("Signing encrypted output is not implemented yet.");
+            }
+
+            using var stagedOutput = new MemoryStream();
+            await WriteDocumentAsync(stagedOutput, metadata, encryptionWritePlan);
+            FinalizePendingSignature(stagedOutput, _pendingSignature);
+
+            stagedOutput.Position = 0;
+            outputStream.Position = 0;
+            outputStream.SetLength(0);
+            await stagedOutput.CopyToAsync(outputStream);
             await outputStream.FlushAsync();
             Dispose();
             return;
         }
 
-        // Copy original PDF to output if required.
+        await WriteDocumentAsync(outputStream, metadata, encryptionWritePlan);
+        await outputStream.FlushAsync();
+
+        Dispose();
+    }
+
+    internal async Task QueueSignatureAsync(
+        IndirectObject signatureFieldIndirectObject,
+        X509Certificate2 certificate,
+        PdfSignatureOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(signatureFieldIndirectObject);
+        ArgumentNullException.ThrowIfNull(certificate);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (!certificate.HasPrivateKey)
+        {
+            throw new ArgumentException("The signing certificate must include a private key.", nameof(certificate));
+        }
+
+        if (_pendingSignature is not null)
+        {
+            throw new NotSupportedException("Only one pending signature is supported per save operation.");
+        }
+
+        if (options.EstimatedSignatureSizeBytes < 2048)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options.EstimatedSignatureSizeBytes), "EstimatedSignatureSizeBytes must be at least 2048.");
+        }
+
+        var latestTrailer = await Objects.GetLatestTrailerDictionaryAsync();
+        if (await latestTrailer.Encrypt.GetAsync() is not null)
+        {
+            throw new NotSupportedException("Signing encrypted PDFs is not implemented yet.");
+        }
+
+        var fieldDictionary = (FieldDictionary)signatureFieldIndirectObject.Object;
+        if (await fieldDictionary.V.GetAsync() is not null)
+        {
+            throw new InvalidOperationException("The signature field already contains a value.");
+        }
+
+        var signingDate = options.SigningDate ?? DateTimeOffset.UtcNow;
+        var signatureDictionary = new Syntax.Objects.Dictionaries.Dictionary(new Dictionary<string, IPdfObject>
+        {
+            [Constants.DictionaryKeys.Type] = (Name)"Sig",
+            ["Filter"] = (Name)"Adobe.PPKLite",
+            [Constants.DictionaryKeys.Encryption.SubFilter] = (Name)"adbe.pkcs7.detached",
+            ["ByteRange"] = new RawPdfSyntaxObject("[0000000000 0000000000 0000000000 0000000000]", ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Annotation.Contents] = PdfString.FromBytes(new byte[options.EstimatedSignatureSizeBytes], PdfStringSyntax.Hex, ObjectContext.UserCreated),
+            ["M"] = new Date(signingDate),
+        }, this, ObjectContext.UserCreated);
+
+        if (!string.IsNullOrWhiteSpace(options.SignerName))
+        {
+            signatureDictionary.Set("Name", PdfString.FromTextAuto(options.SignerName, ObjectContext.UserCreated));
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Reason))
+        {
+            signatureDictionary.Set("Reason", PdfString.FromTextAuto(options.Reason, ObjectContext.UserCreated));
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Location))
+        {
+            signatureDictionary.Set("Location", PdfString.FromTextAuto(options.Location, ObjectContext.UserCreated));
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.ContactInfo))
+        {
+            signatureDictionary.Set("ContactInfo", PdfString.FromTextAuto(options.ContactInfo, ObjectContext.UserCreated));
+        }
+
+        var signatureObject = await Objects.AddAsync(signatureDictionary);
+        fieldDictionary.SetValue(signatureObject.Reference);
+        Objects.Update(signatureFieldIndirectObject);
+
+        if (options.VisibleAppearance)
+        {
+            await EnsureVisibleSignatureAppearanceAsync(signatureFieldIndirectObject, fieldDictionary, signingDate, options);
+        }
+
+        var documentCatalog = await Objects.GetDocumentCatalogAsync();
+        if (await documentCatalog.AcroForm.GetAsync() is InteractiveFormDictionary acroForm)
+        {
+            acroForm.Set(Constants.DictionaryKeys.InteractiveForm.SigFlags, (Number)3);
+            if (documentCatalog.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.AcroForm) is IndirectObjectReference acroFormReference)
+            {
+                var acroFormObject = await Objects.GetAsync(acroFormReference);
+                Objects.Update(acroFormObject);
+            }
+        }
+
+        _pendingSignature = new PendingPdfSignature(signatureObject, certificate, options);
+        _rewriteAllObjects = false;
+    }
+
+    private async Task<IndirectObject> EnsureHiddenSignatureFieldAsync(string? fieldName)
+    {
+        if (await GetPageCountAsync() == 0)
+        {
+            await AppendPageAsync();
+        }
+
+        var trailer = await Objects.GetLatestTrailerDictionaryAsync();
+        var catalogObject = await Objects.GetAsync(trailer.Root!);
+        var documentCatalog = (DocumentCatalogDictionary)catalogObject.Object;
+        var acroFormObject = await EnsureAcroFormObjectAsync(documentCatalog, catalogObject);
+        var acroForm = (InteractiveFormDictionary)acroFormObject.Object;
+
+        var page = await GetPageAsync(1);
+        var annotations = await page.Dictionary.Annots.GetAsync() ?? new ArrayObject([], ObjectContext.UserCreated);
+        var hiddenField = FieldDictionary.FromDictionary(new Dictionary<string, IPdfObject>
+        {
+            [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.Annot,
+            [Constants.DictionaryKeys.Subtype] = (Name)AnnotationDictionary.Subtypes.Widget,
+            [Constants.DictionaryKeys.Field.FT] = (Name)"Sig",
+            [Constants.DictionaryKeys.Field.T] = PdfString.FromTextAuto(
+                string.IsNullOrWhiteSpace(fieldName) ? UniqueStringGenerator.Generate() : fieldName,
+                ObjectContext.UserCreated),
+            [Constants.DictionaryKeys.Annotation.Rect] = Rectangle.FromDimensions(0, 0),
+            [Constants.DictionaryKeys.Annotation.P] = page.IndirectObject.Reference,
+            [Constants.DictionaryKeys.Annotation.F] = (Number)34
+        }, this, ObjectContext.UserCreated);
+
+        var hiddenFieldObject = await Objects.AddAsync(hiddenField);
+        (await acroForm.Fields.GetAsync()).Add(hiddenFieldObject.Reference);
+        annotations.Add(hiddenFieldObject.Reference);
+        page.Dictionary.Set("Annots", annotations);
+
+        Objects.Update(page.IndirectObject);
+        Objects.Update(acroFormObject);
+
+        return hiddenFieldObject;
+    }
+
+    private async Task<IndirectObject> EnsureAcroFormObjectAsync(
+        DocumentCatalogDictionary documentCatalog,
+        IndirectObject documentCatalogObject)
+    {
+        var acroFormReference = documentCatalog.GetAs<IndirectObjectReference>(Constants.DictionaryKeys.DocumentCatalog.AcroForm);
+        if (acroFormReference is not null)
+        {
+            return await Objects.GetAsync(acroFormReference);
+        }
+
+        var acroForm = await documentCatalog.AcroForm.GetAsync()
+            ?? InteractiveFormDictionary.FromDictionary(
+                new Dictionary<string, IPdfObject>
+                {
+                    [Constants.DictionaryKeys.InteractiveForm.Fields] = new ArrayObject([], ObjectContext.UserCreated)
+                },
+                this,
+                ObjectContext.UserCreated);
+
+        var acroFormObject = await Objects.AddAsync(acroForm);
+        documentCatalog.Set(Constants.DictionaryKeys.DocumentCatalog.AcroForm, acroFormObject.Reference);
+        Objects.Update(documentCatalogObject);
+
+        return acroFormObject;
+    }
+
+    private static PdfSignatureOptions CreateInvisibleSignatureOptions(PdfSignatureOptions? options)
+    {
+        options ??= new PdfSignatureOptions();
+
+        return new PdfSignatureOptions
+        {
+            FieldName = options.FieldName,
+            VisibleAppearance = false,
+            SignerName = options.SignerName,
+            Reason = options.Reason,
+            Location = options.Location,
+            ContactInfo = options.ContactInfo,
+            SigningDate = options.SigningDate,
+            EstimatedSignatureSizeBytes = options.EstimatedSignatureSizeBytes,
+            DigestAlgorithm = options.DigestAlgorithm
+        };
+    }
+
+    private async Task EnsureVisibleSignatureAppearanceAsync(
+        IndirectObject fieldIndirectObject,
+        FieldDictionary fieldDictionary,
+        DateTimeOffset signingDate,
+        PdfSignatureOptions options)
+    {
+        var fieldBounds = await fieldDictionary.Rect.GetAsync();
+        var boundingBox = Rectangle.FromDimensions(fieldBounds.Size.Width, fieldBounds.Size.Height);
+
+        var fontDictionary = new Type1FontDictionary(this, ObjectContext.UserCreated);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)StandardPdfFonts.Helvetica);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.Encoding, (Name)Text.Encoding.PDFEncoding.WinAnsi);
+        var fontObject = await Objects.AddAsync(fontDictionary);
+        var fontResourceName = (Name)"SigFont";
+
+        var resources = new ResourceDictionary(this, ObjectContext.UserCreated);
+        await resources.AddFontAsync(fontResourceName, fontObject.Reference, this);
+
+        var contentStream = BuildSignatureAppearanceContentStream(
+            boundingBox,
+            fontResourceName,
+            options,
+            signingDate);
+
+        var formDictionary = new Type1FormDictionary(
+            this,
+            ObjectContext.UserCreated,
+            boundingBox,
+            resources);
+
+        var appearanceStream = await new ContentStreamFactory([contentStream]).CreateAsync(formDictionary, ObjectContext.UserCreated);
+        var appearanceObject = await Objects.AddAsync(appearanceStream);
+
+        fieldDictionary.SetAppearanceDictionary(
+            AppearanceDictionary.Create(
+                this,
+                ObjectContext.UserCreated,
+                appearanceObject.Reference));
+        Objects.Update(fieldIndirectObject);
+    }
+
+    private static ContentStream BuildSignatureAppearanceContentStream(
+        Rectangle boundingBox,
+        Name fontResourceName,
+        PdfSignatureOptions options,
+        DateTimeOffset signingDate)
+    {
+        var width = (double)boundingBox.Width;
+        var height = (double)boundingBox.Height;
+        var inset = 6d;
+
+        var lines = new List<string>
+        {
+            "Digitally signed",
+            string.IsNullOrWhiteSpace(options.SignerName) ? "Signer unavailable" : options.SignerName!,
+            signingDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz")
+        };
+
+        if (!string.IsNullOrWhiteSpace(options.Reason))
+        {
+            lines.Add(options.Reason!);
+        }
+
+        var stream = new ContentStream();
+
+        stream.SetColour(RGBColour.White);
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = PathConstruction.re,
+            Operands = [(Number)0, (Number)0, (Number)width, (Number)height]
+        });
+        stream.Operations.Add(new ContentStreamOperation { Operator = PathPainting.f });
+
+        stream.SetStrokeColour(new RGBColour(0.75, 0.75, 0.75));
+        stream.SetLineWidth(1);
+        stream.Operations.Add(new ContentStreamOperation
+        {
+            Operator = PathConstruction.re,
+            Operands = [(Number)0.5, (Number)0.5, (Number)(width - 1), (Number)(height - 1)]
+        });
+        stream.Operations.Add(new ContentStreamOperation { Operator = PathPainting.S });
+
+        stream.BeginTextObject()
+            .SetColour(RGBColour.Black)
+            .SetTextState(fontResourceName, 9);
+
+        var currentY = height - inset - 10;
+        foreach (var line in lines.Where(static x => !string.IsNullOrWhiteSpace(x)))
+        {
+            if (currentY < inset)
+            {
+                break;
+            }
+
+            stream.SetTextMatrix(1, 0, 0, 1, (Number)inset, (Number)currentY)
+                .ShowText(PdfString.FromTextAuto(line, ObjectContext.UserCreated));
+
+            currentY -= 11;
+        }
+
+        stream.EndTextObject();
+
+        return stream;
+    }
+
+    private async Task WriteDocumentAsync(
+        Stream outputStream,
+        PdfMetadata metadata,
+        EncryptionWritePlan? encryptionWritePlan)
+    {
+        if (_removeHistoryOnSave)
+        {
+            await SaveWithoutHistoryAsync(outputStream, metadata, encryptionWritePlan);
+            return;
+        }
+
         if (outputStream.Length == 0)
         {
             Data.Position = 0;
@@ -524,10 +853,6 @@ public class Pdf : IPdf, IDisposable
 
             await incrementalUpdate.WriteAsync(outputStream);
         }
-
-        await outputStream.FlushAsync();
-
-        Dispose();
     }
 
     /// <summary>
@@ -1087,6 +1412,119 @@ public class Pdf : IPdf, IDisposable
             ObjectContext.UserCreated);
 
         await trailer.WriteAsync(outputStream);
+    }
+
+    private static void FinalizePendingSignature(MemoryStream stagedOutput, PendingPdfSignature pendingSignature)
+    {
+        var pdfBytes = stagedOutput.ToArray();
+        var (signatureOffset, signatureLength) = LocateSignatureObject(pdfBytes, pendingSignature.SignatureObject.Id);
+        var signatureSection = pdfBytes.AsSpan(signatureOffset, signatureLength);
+
+        var contentsMarker = "/Contents <"u8;
+        var contentsMarkerIndex = signatureSection.IndexOf(contentsMarker);
+        if (contentsMarkerIndex < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the signature contents placeholder.");
+        }
+
+        var contentsHexStart = signatureOffset + contentsMarkerIndex + contentsMarker.Length;
+        var contentsHexEndRelative = pdfBytes.AsSpan(contentsHexStart).IndexOf((byte)'>');
+        if (contentsHexEndRelative < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the end of the signature contents placeholder.");
+        }
+
+        var contentsHexEnd = contentsHexStart + contentsHexEndRelative;
+        var contentsValueStart = contentsHexStart - 1;
+        var contentsValueEnd = contentsHexEnd + 1;
+
+        var byteRangeMarker = "/ByteRange "u8;
+        var byteRangeMarkerIndex = signatureSection.IndexOf(byteRangeMarker);
+        if (byteRangeMarkerIndex < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the signature ByteRange placeholder.");
+        }
+
+        var byteRangeStart = signatureOffset + byteRangeMarkerIndex + byteRangeMarker.Length;
+        var byteRangeEndRelative = pdfBytes.AsSpan(byteRangeStart).IndexOf((byte)']');
+        if (byteRangeEndRelative < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the end of the signature ByteRange placeholder.");
+        }
+
+        var byteRangeEnd = byteRangeStart + byteRangeEndRelative;
+        var range1Length = contentsValueStart;
+        var range2Start = contentsValueEnd;
+        var range2Length = pdfBytes.Length - range2Start;
+
+        var byteRangeText = $"[{0:D10} {range1Length:D10} {range2Start:D10} {range2Length:D10}]";
+        Encoding.ASCII.GetBytes(byteRangeText, pdfBytes.AsSpan(byteRangeStart, byteRangeEnd - byteRangeStart + 1));
+
+        var signedContent = new byte[range1Length + range2Length];
+        Buffer.BlockCopy(pdfBytes, 0, signedContent, 0, range1Length);
+        Buffer.BlockCopy(pdfBytes, range2Start, signedContent, range1Length, range2Length);
+
+        var cms = new SignedCms(new ContentInfo(signedContent), detached: true);
+        var signer = new CmsSigner(SubjectIdentifierType.IssuerAndSerialNumber, pendingSignature.Certificate)
+        {
+            DigestAlgorithm = ResolveDigestOid(pendingSignature.Options.DigestAlgorithm)
+        };
+        cms.ComputeSignature(signer, silent: true);
+        var signatureBytes = cms.Encode();
+
+        var placeholderHexLength = contentsHexEnd - contentsHexStart;
+        var signatureHexLength = signatureBytes.Length * 2;
+        if (signatureHexLength > placeholderHexLength)
+        {
+            throw new InvalidOperationException(
+                $"The generated signature requires {signatureBytes.Length} bytes, which exceeds the reserved buffer of {placeholderHexLength / 2} bytes.");
+        }
+
+        var hexBuffer = pdfBytes.AsSpan(contentsHexStart, placeholderHexLength);
+        WriteHex(signatureBytes, hexBuffer);
+        hexBuffer[signatureHexLength..].Fill((byte)'0');
+
+        stagedOutput.Position = 0;
+        stagedOutput.SetLength(0);
+        stagedOutput.Write(pdfBytes);
+        stagedOutput.Position = 0;
+    }
+
+    private static (int Offset, int Length) LocateSignatureObject(byte[] pdfBytes, IndirectObjectId id)
+    {
+        var header = Encoding.ASCII.GetBytes($"{id.Index} {id.GenerationNumber} obj");
+        var objectStart = pdfBytes.AsSpan().IndexOf(header);
+        if (objectStart < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the signature object in the saved PDF.");
+        }
+
+        var objectEndRelative = pdfBytes.AsSpan(objectStart).IndexOf("endobj"u8);
+        if (objectEndRelative < 0)
+        {
+            throw new InvalidOperationException("Unable to locate the end of the signature object in the saved PDF.");
+        }
+
+        return (objectStart, objectEndRelative);
+    }
+
+    private static Oid ResolveDigestOid(HashAlgorithmName digestAlgorithm)
+        => digestAlgorithm.Name switch
+        {
+            "SHA384" => new Oid("2.16.840.1.101.3.4.2.2"),
+            "SHA512" => new Oid("2.16.840.1.101.3.4.2.3"),
+            _ => new Oid("2.16.840.1.101.3.4.2.1"),
+        };
+
+    private static void WriteHex(ReadOnlySpan<byte> input, Span<byte> destination)
+    {
+        const string hex = "0123456789ABCDEF";
+        for (var i = 0; i < input.Length; i++)
+        {
+            var value = input[i];
+            destination[i * 2] = (byte)hex[value >> 4];
+            destination[i * 2 + 1] = (byte)hex[value & 0x0F];
+        }
     }
 
     private static void EnsureObjectSlotCapacity(List<IndirectObject?> objectsByIndex, int index)
