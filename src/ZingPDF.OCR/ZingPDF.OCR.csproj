@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>ZingPDF.OCR</PackageId>
+    <Authors>Thomas Bowers</Authors>
+    <Company>ZingPDF</Company>
+    <Description>OCR companion package for image-based PDF pages in ZingPDF.</Description>
+    <PackageTags>pdf;ocr;dotnet-pdf;csharp;scanned-pdf;text-extraction;tesseract</PackageTags>
+    <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.OCR.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZingPDF\ZingPDF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\packages\README.OCR.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

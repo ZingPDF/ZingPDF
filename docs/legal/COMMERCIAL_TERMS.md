@@ -38,6 +38,7 @@ This includes:
 
 - `ZingPDF`
 - `ZingPDF.GoogleFonts`
+- `ZingPDF.OCR`
 - `ZingPDF.FromHTML`
 
 ## 5. Bundling

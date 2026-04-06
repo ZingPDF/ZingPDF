@@ -7,6 +7,7 @@ This document records the current support expectations for ZingPDF ahead of publ
 - `ZingPDF`: `net8.0`
 - `ZingPDF.FromHTML`: `net8.0`
 - `ZingPDF.GoogleFonts`: `net8.0`
+- `ZingPDF.OCR`: `net8.0`
 
 ## Operating systems
 
@@ -38,6 +39,7 @@ Notes:
 - add images including PNG support
 - draw vector paths with stroke and fill options
 - extract text
+- OCR image-based pages through the `ZingPDF.OCR` package
 - add simple text watermarks
 
 ### Fonts and packages
@@ -63,6 +65,7 @@ These limits should be treated as part of the current product contract unless ex
 - high-level custom font registration currently targets WinAnsi / Windows-1252 text workflows
 - high-level registration does not yet cover Symbol or ZapfDingbats usage
 - `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
+- `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
 - text fields currently have the richest form write support
 - signature fields are discoverable but digital signing is not implemented through the high-level API
 - push-button actions are not yet exposed through the high-level API
