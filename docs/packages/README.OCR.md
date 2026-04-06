@@ -1,12 +1,12 @@
 # ZingPDF.OCR
 
-`ZingPDF.OCR` adds OCR fallback for image-based PDF pages.
+`ZingPDF.OCR` adds OCR support for scanned and image-based PDF pages.
 
 Use it when:
 
 - a PDF page has little or no embedded text
 - the page is primarily a scanned image
-- you want OCR as a fallback after normal text extraction
+- you want OCR as part of the main extraction workflow
 
 ## Installation
 
@@ -31,8 +31,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 
 ## What it does
 
-- returns embedded PDF text first by default
-- falls back to OCR when a page has no usable embedded text
+- can prefer embedded PDF text or OCR depending on the selected options
 - works best on image-based pages
 - picks the largest image XObject on a page as the OCR candidate
 
