@@ -36,6 +36,18 @@ $rules = @(
     Pattern = "the useful part is|worth knowing|what this means is|the nice thing is|the point is"
   },
   @{
+    Name = "Abstract section framing"
+    Pattern = "implementation notes|details that affect production behavior|when you need a clean rewrite"
+  },
+  @{
+    Name = "Intent-framed headings"
+    Pattern = "<h[1-6][^>]*>[^<]*(when you need|Drop into the object model when|Inspect and update document info safely|Default behavior:)[^<]*</h[1-6]>"
+  },
+  @{
+    Name = "Intent-presuming OCR framing"
+    Pattern = "OCR fallback"
+  },
+  @{
     Name = "Weak marketing adjectives"
     Pattern = "\b(practical|straightforward|robust|powerful|flexible|helpful|seamless|focused)\b"
   }
