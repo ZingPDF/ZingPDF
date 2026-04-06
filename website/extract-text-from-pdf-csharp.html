@@ -56,6 +56,7 @@
           <a href="#single-page">Single page</a>
           <a href="#plain-text">Plain text output</a>
           <a href="#shape-choice">Choosing the output shape</a>
+          <a href="#scanned-pdfs">Scanned PDFs</a>
           <a href="#next-step">Next step</a>
         </nav>
 
@@ -122,6 +123,18 @@ Console.WriteLine(result.PlainText);</code></pre>
           <p>
             If you need to keep the extracted pieces separate or inspect them one by one, use the segment-returning
             overloads instead.
+          </p>
+        </section>
+
+        <section class="article-section" id="scanned-pdfs">
+          <h2>Scanned PDFs need OCR instead</h2>
+          <p>
+            The extraction methods on <code>Pdf</code> read the PDF text layer. If the file is a scan and the page
+            content is really just an image, use <code>ZingPDF.OCR</code> instead of expecting normal extraction to
+            find text that is not there.
+          </p>
+          <p>
+            Read <a class="inline-link" href="./extract-text-from-scanned-pdf-csharp.html">How to extract text from a scanned PDF in C#</a>.
           </p>
         </section>
 

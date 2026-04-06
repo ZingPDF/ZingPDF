@@ -37,6 +37,7 @@ It covers the PDF jobs many applications need first: page editing, document asse
 
 - `src/ZingPDF`: core PDF APIs
 - `src/ZingPDF.GoogleFonts`: optional Google Fonts integration package
+- `src/ZingPDF.OCR`: OCR fallback for image-based PDF pages
 - `src/ZingPDF.FromHTML`: HTML-to-PDF helpers
 
 ## Licensing
