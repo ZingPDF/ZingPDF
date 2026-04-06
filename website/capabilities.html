@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Capabilities</title>
   <meta name="description"
-    content="Support matrix for ZingPDF covering document editing, page content, forms, encryption, save behavior, packages, and planned features.">
+    content="Support matrix for ZingPDF covering document editing, text and OCR extraction, forms, encryption, save behavior, packages, and planned features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -133,6 +133,11 @@
                     <td>Extract text</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Text extraction API.</td>
+                  </tr>
+                  <tr>
+                    <td>OCR for scanned or image-based pages</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>ZingPDF.OCR</code> adds OCR fallback for pages that do not contain an embedded text layer.</td>
                   </tr>
                   <tr>
                     <td>Register standard PDF fonts</td>
@@ -290,6 +295,11 @@
                     <td>HTML-to-PDF package</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>HTML-to-PDF package with browser automation requirements.</td>
+                  </tr>
+                  <tr>
+                    <td>OCR package</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>OCR companion package for scanned or image-based PDFs using a pluggable engine model.</td>
                   </tr>
                   <tr>
                     <td>Execute push-button actions</td>
