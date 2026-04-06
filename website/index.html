@@ -137,7 +137,7 @@ await pdf.SaveAsync(output);</code></pre>
             <h2 id="package-start-title">Start with the core package.</h2>
             <p>
               Most teams only need <code>ZingPDF</code>. Add the companion packages when your application needs
-              Chromium-based HTML rendering or Google Fonts.
+              Chromium-based HTML rendering, Google Fonts, or OCR fallback for image-based pages.
             </p>
           </div>
 
@@ -158,6 +158,12 @@ await pdf.SaveAsync(output);</code></pre>
               <div>
                 <h3><code>ZingPDF.GoogleFonts</code></h3>
                 <p>Add this when you want to fetch and register Google Fonts at document-build time.</p>
+              </div>
+            </article>
+            <article class="why-point">
+              <div>
+                <h3><code>ZingPDF.OCR</code></h3>
+                <p>Add this when you need OCR fallback for scanned or image-based PDF pages.</p>
               </div>
             </article>
           </div>
@@ -317,7 +323,7 @@ await pdf.SaveAsync(output);</code></pre>
             </div>
             <ul class="pricing-context-list">
               <li>Commercial use</li>
-              <li>Core, GoogleFonts, and FromHTML packages</li>
+              <li>Core, GoogleFonts, OCR, and FromHTML packages</li>
               <li>Ongoing updates</li>
               <li>Email support</li>
               <li>Free evaluation before you subscribe</li>
@@ -412,8 +418,8 @@ await pdf.SaveAsync(output);</code></pre>
               </span>
               <span class="platform-label">Related Packages</span>
             </div>
-            <strong><code>ZingPDF.FromHTML</code>, <code>ZingPDF.GoogleFonts</code></strong>
-            <p>Add browser-based HTML rendering or Google Fonts support when your application needs them.</p>
+            <strong><code>ZingPDF.FromHTML</code>, <code>ZingPDF.GoogleFonts</code>, <code>ZingPDF.OCR</code></strong>
+            <p>Add browser-based HTML rendering, Google Fonts support, or OCR fallback when your application needs them.</p>
           </article>
         </div>
       </section>
@@ -448,7 +454,7 @@ await pdf.SaveAsync(output);</code></pre>
               </svg>
             </span>
             <h3>Add visible content and pull text back out.</h3>
-            <p>Add text, images, vector paths, watermarks, and fonts, and extract plain text from existing files.</p>
+            <p>Add text, images, vector paths, watermarks, and fonts, extract plain text from existing files, and use OCR fallback for image-based pages.</p>
           </article>
           <article class="capability-summary-row">
             <span class="mini-icon" aria-hidden="true">

@@ -52,6 +52,7 @@
             <a href="#packages">Packages</a>
             <a href="#fonts">Fonts</a>
             <a href="#drawing">Drawing</a>
+            <a href="#ocr">OCR</a>
             <a href="./api.html">API Reference</a>
             <a href="#metadata">Metadata</a>
             <a href="#forms">Forms</a>
@@ -177,13 +178,14 @@ await pdf.SaveAsync(output);</code></pre>
             <p class="eyebrow">Packages</p>
             <h2>NuGet packages</h2>
             <p>ZingPDF ships as a small set of packages. Use the core package unless you specifically need HTML
-              rendering or Google Fonts.</p>
+              rendering, Google Fonts, or OCR fallback for image-based pages.</p>
 
             <h3>Which package should I install?</h3>
             <ul>
               <li>Install <code>ZingPDF</code> if you need to load, edit, create, extract, merge, fill forms, flatten forms, watermark, encrypt, or save PDFs.</li>
               <li>Add <code>ZingPDF.FromHTML</code> if you need HTML-to-PDF through Chromium.</li>
               <li>Add <code>ZingPDF.GoogleFonts</code> if you want to download and register Google Fonts at document-build time.</li>
+              <li>Add <code>ZingPDF.OCR</code> if you need OCR fallback for scanned or image-based PDF pages.</li>
             </ul>
 
             <div class="doc-grid">
@@ -220,6 +222,16 @@ await pdf.SaveAsync(output);</code></pre>
                   <li>Requires a Google Fonts Developer API key at registration time</li>
                 </ul>
               </article>
+              <article class="doc-card">
+                <h3><code>ZingPDF.OCR</code></h3>
+                <p>OCR companion package for scanned and image-based pages when embedded PDF text is missing.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Use for OCR fallback after normal text extraction</li>
+                  <li>Best fit for image-based pages and supported image XObjects</li>
+                  <li>Ships with a Tesseract-backed engine option</li>
+                </ul>
+              </article>
             </div>
 
             <h3>Package selection notes</h3>
@@ -229,6 +241,7 @@ await pdf.SaveAsync(output);</code></pre>
               <li>The core package already covers standard PDF fonts and embedded TrueType font registration.</li>
               <li>Use <code>ZingPDF.GoogleFonts</code> if you need to register Google Fonts directly from the Google
                 Fonts catalog.</li>
+              <li>Use <code>ZingPDF.OCR</code> when the page is primarily an image and normal text extraction returns little or no text.</li>
               <li>Treat <code>ZingPDF.FromHTML</code> as a separate deployment concern with its own runtime
                 requirements.</li>
               <li>Expect the core library to remain <code>net8.0</code>-first until the dependency surface is slimmed
@@ -595,6 +608,25 @@ await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
               <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Add watermarks</a>, and
               <a class="inline-link" href="./compress-pdf-csharp.html">Compress output</a>.
             </p>
+          </section>
+
+          <section class="doc-section" id="ocr">
+            <p class="eyebrow">OCR</p>
+            <h2>OCR fallback for scanned and image-based pages</h2>
+            <p>The core package extracts embedded PDF text. Add <code>ZingPDF.OCR</code> when the page is primarily an image and you need OCR fallback instead.</p>
+
+            <pre><code class="language-csharp">using ZingPDF.OCR;
+
+using var pdf = Pdf.Load(File.OpenRead("scanned.pdf"));
+var engine = new TesseractOcrEngine("./tessdata", "eng");
+
+var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
+
+            <ul>
+              <li><code>ExtractTextWithOcrAsync(...)</code> prefers embedded text first by default.</li>
+              <li><code>ExtractPlainTextWithOcrAsync(...)</code> returns a joined plain-text view across pages.</li>
+              <li>The current OCR path works best on image-based pages and supported image XObjects.</li>
+            </ul>
           </section>
 
           <section class="doc-section" id="notes">

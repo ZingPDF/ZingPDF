@@ -20,6 +20,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Tests.Smoke.TestFiles;
+using ZingPDF.OCR;
 using DrawingCoordinate = ZingPDF.Elements.Drawing.Coordinate;
 using DrawingPath = ZingPDF.Elements.Drawing.Path;
 using DrawingPathType = ZingPDF.Elements.Drawing.PathType;
@@ -767,6 +768,55 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task ExtractTextWithOcrAsync_PrefersEmbeddedText_WhenAvailable()
+    {
+        using var pdf = Pdf.Load(Files.AsStream(Files.GeneratedTextHeavy));
+        var engine = new DelegateOcrEngine(_ => throw new InvalidOperationException("OCR should not be called when embedded text exists."));
+
+        var result = await pdf.ExtractTextWithOcrAsync(1, engine);
+
+        result.UsedEmbeddedText.Should().BeTrue();
+        result.UsedOcr.Should().BeFalse();
+        result.Text.Should().Contain("Tax Invoice");
+    }
+
+    [Fact]
+    public async Task ExtractTextWithOcrAsync_UsesLargestPageImage_WhenNoEmbeddedTextExists()
+    {
+        using var pdf = Pdf.Create();
+        var page = await pdf.GetPageAsync(1);
+        using var output = new MemoryStream();
+
+        await page.AddImageAsync(Files.CatImage, Rectangle.FromDimensions(200, 200));
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        OcrInputImage? seenImage = null;
+        var engine = new DelegateOcrEngine(image =>
+        {
+            seenImage = image;
+            return $"ocr:{image.Width}x{image.Height}:{image.MimeType}";
+        });
+
+        var result = await reloaded.ExtractTextWithOcrAsync(1, engine, new PdfOcrOptions
+        {
+            PreferEmbeddedText = false,
+            ThrowWhenNoOcrCandidate = true
+        });
+
+        result.UsedEmbeddedText.Should().BeFalse();
+        result.UsedOcr.Should().BeTrue();
+        result.Text.Should().StartWith("ocr:");
+        seenImage.Should().NotBeNull();
+        seenImage!.PageNumber.Should().Be(1);
+        seenImage.Data.Should().NotBeEmpty();
+        result.SourceImageWidth.Should().Be(seenImage.Width);
+        result.SourceImageHeight.Should().Be(seenImage.Height);
+    }
+
+    [Fact]
     public async Task ExtractTextAsync_TestPdf_Type0ToUnicodeFixture_DecodesExpectedCompositeFontText()
     {
         var rawPdf = Encoding.ASCII.GetString(Files.ConcurrentRead(Files.Test));
@@ -799,6 +849,15 @@ public class PdfTests
             "15 Sep 2023 - 5 Oct 2023",
             "-$62.30",
             "Powered by TCPDF (www.tcpdf.org)");
+    }
+
+    private sealed class DelegateOcrEngine(Func<OcrInputImage, string> handler) : IOcrEngine
+    {
+        public Task<string> RecognizeAsync(OcrInputImage image, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(handler(image));
+        }
     }
 
     [Fact]
