@@ -50,7 +50,7 @@
             <a class="button button-secondary" href="#licenses">View Pricing</a>
             <a class="button button-ghost" href="./performance.html">See Performance</a>
           </div>
-          <p class="hero-subnote">Evaluate freely. Subscribe when commercial use begins.</p>
+          <p class="hero-subnote"><strong>Evaluate freely.</strong> Subscription is only required when commercial use begins.</p>
         </div>
 
           <div class="hero-panel">
@@ -137,7 +137,7 @@ await pdf.SaveAsync(output);</code></pre>
             <h2 id="package-start-title">Start with the core package.</h2>
             <p>
               Most teams only need <code>ZingPDF</code>. Add the companion packages when your application needs
-              Chromium-based HTML rendering, Google Fonts, or OCR fallback for image-based pages.
+              Chromium-based HTML rendering, Google Fonts, or OCR support for scanned or image-based pages.
             </p>
           </div>
 
@@ -163,7 +163,7 @@ await pdf.SaveAsync(output);</code></pre>
             <article class="why-point">
               <div>
                 <h3><code>ZingPDF.OCR</code></h3>
-                <p>Add this when you need OCR fallback for scanned or image-based PDF pages.</p>
+                <p>Add this when you need OCR for scanned or image-based PDF pages.</p>
               </div>
             </article>
           </div>
@@ -306,8 +306,15 @@ await pdf.SaveAsync(output);</code></pre>
         <div class="section-copy">
           <p class="eyebrow">Licensing</p>
           <h2>Choose the plan that matches your team size.</h2>
-          <p>Monthly commercial pricing by developer seat.</p>
+          <p>Commercial pricing is monthly by developer seat. Evaluation and other non-commercial use stay free.</p>
         </div>
+
+        <div class="pricing-free-callout">
+          <strong>Free to evaluate</strong>
+          <p>Use ZingPDF for trial, evaluation, and other non-commercial work without a time-limited trial. You only need a paid plan when commercial use begins.</p>
+        </div>
+
+        <div class="pricing-grid" id="pricing-grid"></div>
 
         <div class="pricing-context-grid">
           <article class="doc-card pricing-context-card">
@@ -349,8 +356,6 @@ await pdf.SaveAsync(output);</code></pre>
             </ul>
           </article>
         </div>
-
-        <div class="pricing-grid" id="pricing-grid"></div>
 
         <p class="pricing-enterprise-note">
           Need procurement, invoicing, or more seats? <button type="button" class="pricing-inline-button"
@@ -419,7 +424,7 @@ await pdf.SaveAsync(output);</code></pre>
               <span class="platform-label">Related Packages</span>
             </div>
             <strong><code>ZingPDF.FromHTML</code>, <code>ZingPDF.GoogleFonts</code>, <code>ZingPDF.OCR</code></strong>
-            <p>Add browser-based HTML rendering, Google Fonts support, or OCR fallback when your application needs them.</p>
+            <p>Add browser-based HTML rendering, Google Fonts support, or OCR for scanned and image-based pages when your application needs them.</p>
           </article>
         </div>
       </section>
@@ -454,7 +459,7 @@ await pdf.SaveAsync(output);</code></pre>
               </svg>
             </span>
             <h3>Add visible content and pull text back out.</h3>
-            <p>Add text, images, vector paths, watermarks, and fonts, extract plain text from existing files, and use OCR fallback for image-based pages.</p>
+            <p>Add text, images, vector paths, watermarks, and fonts, extract plain text from existing files, and run OCR on scanned or image-based pages.</p>
           </article>
           <article class="capability-summary-row">
             <span class="mini-icon" aria-hidden="true">

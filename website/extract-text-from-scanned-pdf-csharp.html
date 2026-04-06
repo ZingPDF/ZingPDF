@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>How to Extract Text From a Scanned PDF in C#</title>
   <meta name="description"
-    content="Extract text from scanned or image-based PDFs in C# with ZingPDF.OCR and Tesseract, with OCR fallback when embedded PDF text is not available.">
+    content="Extract text from scanned or image-based PDFs in C# with ZingPDF.OCR and Tesseract, including OCR-first and embedded-text-first workflows.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -42,12 +42,12 @@
           <h1>How to extract text from a scanned PDF in C#</h1>
           <p class="article-dek">
             Use <code>ZingPDF.OCR</code> when the page text is baked into scanned images instead of embedded in the PDF
-            text layer. The built-in Tesseract engine lets you keep normal extraction for digital PDFs and use OCR for
-            image-based pages.
+            text layer. The built-in Tesseract engine supports OCR-first workflows as well as workflows that keep
+            embedded text when it is already present.
           </p>
           <p>
             This is a separate package because OCR has different runtime needs from normal PDF parsing. The core
-            <code>ZingPDF</code> package is still the right choice for PDFs that already contain selectable text.
+            <code>ZingPDF</code> package still handles PDFs that already contain selectable text.
           </p>
         </header>
 
@@ -55,7 +55,7 @@
           <strong>On this page</strong>
           <a href="#add-package">Add the OCR package</a>
           <a href="#minimal-example">Minimal example</a>
-          <a href="#fallback-behavior">How fallback works</a>
+          <a href="#embedded-text">Embedded text preference</a>
           <a href="#limits">Current limits</a>
           <a href="#next-step">Next step</a>
         </nav>
@@ -73,9 +73,9 @@
         </section>
 
         <section class="article-section" id="minimal-example">
-          <h2>Extract text with OCR fallback</h2>
+          <h2>Extract text with OCR</h2>
           <p>
-            This example uses the normal PDF text layer when it exists and falls back to OCR for scanned pages.
+            This example extracts plain text from a scanned or image-based PDF with the built-in Tesseract engine.
           </p>
 
           <pre><code class="language-csharp">using ZingPDF;
@@ -90,15 +90,15 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 Console.WriteLine(text);</code></pre>
         </section>
 
-        <section class="article-section" id="fallback-behavior">
+        <section class="article-section" id="embedded-text">
           <h2>Keep embedded text when it already exists</h2>
           <p>
-            Most OCR workflows should prefer the real PDF text layer when it is present. That avoids OCR noise on files
-            that were generated digitally.
+            Some workflows want OCR only for image-based pages, while others want OCR to be the main extraction path.
+            <code>PdfOcrOptions</code> lets you choose how embedded text is treated.
           </p>
           <p>
-            The default options already do that, but you can pass options explicitly if you want the behavior to be
-            obvious in code.
+            The default options prefer embedded text when it is present, but you can pass options explicitly if you
+            want that behavior to be obvious in code.
           </p>
 
           <pre><code class="language-csharp">using ZingPDF;
@@ -131,7 +131,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(
         <section class="article-cta" id="next-step">
           <h2>Working with PDFs that already contain text?</h2>
           <p>
-            Use the normal extraction API first. It is simpler and avoids OCR entirely.
+            Use the normal extraction API when the document already contains a reliable PDF text layer.
           </p>
           <p class="article-actions">
             <a class="button button-primary" href="./extract-text-from-pdf-csharp.html">Open text extraction guide</a>

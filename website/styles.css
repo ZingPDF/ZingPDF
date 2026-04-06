@@ -49,7 +49,7 @@ a {
 
 .landing-main {
   display: grid;
-  gap: 84px;
+  gap: 72px;
   padding-top: 24px;
 }
 
@@ -169,6 +169,11 @@ a {
   margin: 14px 0 0;
   color: var(--muted);
   font-size: 0.98rem;
+}
+
+.hero-subnote strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
 .mini-icon {
@@ -381,7 +386,7 @@ code {
 
 .section-copy {
   max-width: 720px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .homepage-performance-band {
@@ -643,7 +648,7 @@ code {
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
+  gap: 16px;
   align-items: center;
 }
 
@@ -651,7 +656,32 @@ code {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 18px;
+  margin-top: 18px;
   margin-bottom: 24px;
+}
+
+.pricing-free-callout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px 16px;
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  border: 1px solid rgba(14, 116, 144, 0.2);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.06), rgba(255, 255, 255, 0.92));
+  box-shadow: 0 8px 18px rgba(20, 32, 51, 0.04);
+}
+
+.pricing-free-callout strong {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.pricing-free-callout p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .pricing-context-card {
@@ -883,7 +913,7 @@ code {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 26px 24px 24px;
+  padding: 24px 22px 22px;
 }
 
 .pricing-card.featured {
@@ -938,7 +968,7 @@ code {
 }
 
 .pricing-description {
-  min-height: 5.4em;
+  min-height: 4.8em;
 }
 
 .pricing-list {
@@ -1177,43 +1207,53 @@ code {
 
 .docs-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 24px;
-  margin-top: 20px;
+  grid-template-columns: 228px minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 18px;
 }
 
 .docs-sidebar {
   position: sticky;
-  top: 18px;
+  top: 22px;
   align-self: start;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.06);
 }
 
 .docs-sidebar h2 {
-  margin: 0 0 12px;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .docs-sidebar nav {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .docs-sidebar a {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 10px;
   color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
 .docs-sidebar a:hover {
+  background: rgba(14, 116, 144, 0.08);
   color: var(--accent-strong);
 }
 
 .docs-main {
   display: grid;
-  gap: 22px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -1315,11 +1355,11 @@ code {
 .doc-card {
   min-width: 0;
   max-width: 100%;
-  padding: 24px;
+  padding: 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.06);
 }
 
 .doc-section p,
@@ -1327,18 +1367,22 @@ code {
 .doc-callout p,
 .doc-card p {
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.66;
 }
 
 .doc-section h2 {
-  font-size: 2rem;
+  font-size: 1.9rem;
   margin-bottom: 8px;
 }
 
 .doc-section h3,
 .doc-card h3 {
-  margin: 24px 0 10px;
+  margin: 20px 0 10px;
   font-size: 1.18rem;
+}
+
+.doc-card > h3:first-child {
+  margin-top: 0;
 }
 
 .doc-section ul,
@@ -1357,17 +1401,40 @@ code {
 .doc-section pre,
 .doc-card pre {
   max-width: 100%;
-  margin-top: 14px;
-  padding: 18px;
+  margin-top: 12px;
+  padding: 16px;
   border-radius: var(--radius-lg);
   background: #111827;
   color: #e8f1ff;
 }
 
+.doc-card pre:last-child,
+.doc-card p:last-child {
+  margin-bottom: 0;
+}
+
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
+  align-items: start;
+}
+
+.doc-section pre + .doc-grid,
+.doc-section p + .doc-grid {
+  margin-top: 8px;
+}
+
+.doc-package-intro {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(14, 116, 144, 0.28);
+  background: rgba(244, 251, 255, 0.88);
+  border-radius: 0 12px 12px 0;
+}
+
+.doc-section {
+  scroll-margin-top: 24px;
 }
 
 .doc-callout {
@@ -1676,6 +1743,15 @@ code {
 
   .pricing-card.featured {
     transform: none;
+  }
+
+  .pricing-free-callout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .pricing-free-callout strong {
+    white-space: normal;
   }
 
   .docs-sidebar {
