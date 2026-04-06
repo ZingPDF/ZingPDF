@@ -923,6 +923,40 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task EncryptAsync_WritesRequestedPermissionsToEncryptionDictionary()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var permissions = PdfEncryptionPermissions.Print | PdfEncryptionPermissions.Copy;
+
+        await pdf.EncryptAsync(
+            "secret-password",
+            algorithm: PdfEncryptionAlgorithm.Aes256,
+            permissions: permissions);
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain($"/P {ToStandardPermissionValue(permissions)}");
+    }
+
+    [Fact]
+    public async Task EncryptAsync_PrintHighQuality_AlsoSetsPrintPermission()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        await pdf.EncryptAsync(
+            "secret-password",
+            algorithm: PdfEncryptionAlgorithm.Aes256,
+            permissions: PdfEncryptionPermissions.PrintHighQuality);
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain($"/P {ToStandardPermissionValue(PdfEncryptionPermissions.PrintHighQuality)}");
+    }
+
+    [Fact]
     public async Task GetFormAsync_ExposesPublicButtonFieldTypes()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.ComplexForm));
@@ -1352,6 +1386,16 @@ public class PdfTests
         using var memory = new MemoryStream();
         await stream.CopyToAsync(memory);
         return memory.ToArray();
+    }
+
+    private static int ToStandardPermissionValue(PdfEncryptionPermissions permissions)
+    {
+        if ((permissions & PdfEncryptionPermissions.PrintHighQuality) != 0)
+        {
+            permissions |= PdfEncryptionPermissions.Print;
+        }
+
+        return unchecked((int)0xFFFFF0C0) | (int)permissions;
     }
 
     private static void AssertContainsInOrder(string value, params string[] fragments)
