@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>How to Encrypt a PDF With AES in C#</title>
   <meta name="description"
-    content="Encrypt a PDF with AES-128 or AES-256 in C# with ZingPDF and save the protected output.">
+    content="Encrypt a PDF with AES-128 or AES-256 in C# with ZingPDF, choose user permissions, and save the protected output.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -55,6 +55,7 @@
           <a href="#minimal-example">Minimal example</a>
           <a href="#aes128-vs-aes256">AES-128 vs AES-256</a>
           <a href="#user-and-owner-passwords">User and owner passwords</a>
+          <a href="#permissions">User permissions</a>
           <a href="#encrypt-existing-file">Encrypting an existing PDF</a>
           <a href="#next-step">Next step</a>
         </nav>
@@ -113,6 +114,29 @@ await pdf.SaveAsync(output);</code></pre>
           <pre><code class="language-csharp">await pdf.EncryptAsync(
     "shared-password",
     algorithm: PdfEncryptionAlgorithm.Aes256);</code></pre>
+        </section>
+
+        <section class="article-section" id="permissions">
+          <h2>Choose what the user can still do</h2>
+          <p>
+            You can also set the permission flags written into the encryption dictionary. That is useful when you want
+            the document to open normally but still restrict copying, editing, or printing.
+          </p>
+
+          <pre><code class="language-csharp">await pdf.EncryptAsync(
+    "user-password",
+    "owner-password",
+    PdfEncryptionAlgorithm.Aes256,
+    PdfEncryptionPermissions.Print | PdfEncryptionPermissions.FillForms);</code></pre>
+
+          <p>
+            <code>PdfEncryptionPermissions.All</code> is the default. If you allow
+            <code>PrintHighQuality</code>, ZingPDF also enables normal printing automatically.
+          </p>
+          <p>
+            For a guide focused just on permission flags, read
+            <a class="inline-link" href="./restrict-pdf-permissions-csharp.html">How to restrict PDF permissions in C#</a>.
+          </p>
         </section>
 
         <section class="article-section" id="encrypt-existing-file">

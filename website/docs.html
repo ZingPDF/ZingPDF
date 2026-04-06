@@ -519,9 +519,9 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
           <section class="doc-section" id="encryption">
             <p class="eyebrow">Encryption</p>
             <h2>Passwords and encryption</h2>
-            <p>ZingPDF supports authenticating encrypted PDFs, applying password protection to plain PDFs, and saving
-              decrypted output from encrypted input. New encrypted output can use legacy RC4-128 for compatibility or
-              AES-128 and AES-256 through the Standard security handler.</p>
+            <p>ZingPDF supports authenticating encrypted PDFs, applying password protection to plain PDFs, controlling
+              user permissions, and saving decrypted output from encrypted input. New encrypted output can use legacy
+              RC4-128 for compatibility or AES-128 and AES-256 through the Standard security handler.</p>
 
             <h3>Open an encrypted PDF</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));
@@ -558,6 +558,19 @@ await aes256Pdf.EncryptAsync(
     PdfEncryptionAlgorithm.Aes256);
 
 await aes256Pdf.SaveAsync(File.Create("protected-aes256.pdf"));</code></pre>
+
+            <h3>Restrict copy, edit, or print access</h3>
+            <p>Pass <code>PdfEncryptionPermissions</code> when the file should open with a password but still limit what
+              the user can do afterward.</p>
+            <pre><code class="language-csharp">using var restrictedPdf = Pdf.Create();
+
+await restrictedPdf.EncryptAsync(
+    "user-password",
+    "owner-password",
+    PdfEncryptionAlgorithm.Aes256,
+    PdfEncryptionPermissions.Print | PdfEncryptionPermissions.FillForms);
+
+await restrictedPdf.SaveAsync(File.Create("restricted.pdf"));</code></pre>
 
             <h3>Decrypt an encrypted PDF</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("encrypted.pdf"));

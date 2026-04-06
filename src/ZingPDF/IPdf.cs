@@ -169,7 +169,8 @@ public interface IPdf
     Task EncryptAsync(
         string userPassword,
         string? ownerPassword = null,
-        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128);
+        PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128,
+        PdfEncryptionPermissions permissions = PdfEncryptionPermissions.All);
 
     /// <summary>
     /// Authenticates with the supplied password and saves the PDF without encryption.

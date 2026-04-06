@@ -192,7 +192,8 @@ internal static class PdfBootstrapper
         public Task EncryptAsync(
             string userPassword,
             string? ownerPassword = null,
-            PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128) => throw new NotSupportedException();
+            PdfEncryptionAlgorithm algorithm = PdfEncryptionAlgorithm.Rc4_128,
+            PdfEncryptionPermissions permissions = PdfEncryptionPermissions.All) => throw new NotSupportedException();
         public Task DecryptAsync(string password) => throw new NotSupportedException();
         public Task AppendPdfAsync(Stream stream) => throw new NotSupportedException();
         public Task SaveAsync(Stream outputStream) => throw new NotSupportedException();
