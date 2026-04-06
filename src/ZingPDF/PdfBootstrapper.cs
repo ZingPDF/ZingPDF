@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
@@ -196,6 +197,7 @@ internal static class PdfBootstrapper
             PdfEncryptionPermissions permissions = PdfEncryptionPermissions.All) => throw new NotSupportedException();
         public Task DecryptAsync(string password) => throw new NotSupportedException();
         public Task AppendPdfAsync(Stream stream) => throw new NotSupportedException();
+        public Task SignInvisibleAsync(X509Certificate2 certificate, PdfSignatureOptions? options = null) => throw new NotSupportedException();
         public Task SaveAsync(Stream outputStream) => throw new NotSupportedException();
     }
 }

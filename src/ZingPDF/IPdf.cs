@@ -1,6 +1,7 @@
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
+using System.Security.Cryptography.X509Certificates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Text;
@@ -181,6 +182,11 @@ public interface IPdf
     /// Appends the pages from another PDF stream to the current document.
     /// </summary>
     Task AppendPdfAsync(Stream stream);
+
+    /// <summary>
+    /// Signs the document by creating a hidden signature field and writing a detached CMS signature.
+    /// </summary>
+    Task SignInvisibleAsync(X509Certificate2 certificate, PdfSignatureOptions? options = null);
 
     /// <summary>
     /// Saves the document by writing an incremental update.
