@@ -189,10 +189,14 @@ public interface IPdf
     Task SignInvisibleAsync(X509Certificate2 certificate, PdfSignatureOptions? options = null);
 
     /// <summary>
-    /// Saves the document by writing an incremental update.
+    /// Saves the document.
     /// </summary>
     /// <remarks>
-    /// When saving to a different stream, the output stream must be empty, writable, and seekable.
+    /// By default this writes an incremental update. If <see cref="RemoveHistoryAsync"/> has been called,
+    /// the document is rewritten with only the latest live objects.
+    /// The current save pipeline requires a writable, seekable output stream because it inspects stream length
+    /// and, in some save paths, resets and truncates the stream before writing.
+    /// When saving to a different stream, that output stream must also be empty.
     /// </remarks>
     Task SaveAsync(Stream outputStream);
 }

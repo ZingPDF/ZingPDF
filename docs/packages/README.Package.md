@@ -88,7 +88,7 @@ await selectedPages.SaveAsync(output);
 
 - `ZingPDF`: core PDF load, edit, save, page, text, form, metadata, and encryption APIs
 - `ZingPDF.GoogleFonts`: download and register Google Fonts
-- `ZingPDF.OCR`: OCR fallback for image-based PDF pages
+- `ZingPDF.OCR`: OCR support for scanned and image-based PDF pages
 - `ZingPDF.FromHTML`: render HTML to PDF through PuppeteerSharp
 
 ## Licensing
