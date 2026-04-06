@@ -14,6 +14,8 @@ They will notice vague, padded, or synthetic copy quickly.
 
 The goal of the site is not to sound polished. The goal is to be clear, specific, and credible.
 
+Do not presume the user's workflow unless the API itself enforces it.
+
 ## Core Rule
 
 Write about:
@@ -48,6 +50,8 @@ Prefer:
 - "Read and update AcroForm fields by name."
 - "Call `RemoveHistoryAsync()` before saving if you need a rewritten file."
 - "The output stream must be writable and seekable."
+- "Remove file history"
+- "This removes earlier incremental revisions, helping with file size and document security."
 
 Avoid:
 
@@ -77,6 +81,19 @@ Good copy answers those questions directly.
 
 Bad copy describes the reader instead of answering the question.
 
+It is also weak when it assumes the reader's intent without evidence.
+
+Prefer:
+
+- "Add `ZingPDF.OCR` for scanned or image-based pages."
+- "`ExtractTextWithOcrAsync(...)` prefers embedded text first by default."
+
+Avoid:
+
+- "OCR fallback" as the main description of the package
+- "Use OCR only when normal extraction fails"
+- phrasing that treats one valid workflow as the default user intent unless that behavior is a literal API default that matters
+
 ## Banned Patterns
 
 Do not use owner-facing or process-facing lines like:
@@ -103,6 +120,15 @@ Do not use filler framing like:
 - "what this means is"
 - "the nice thing is"
 - "the point is"
+- "details that affect production behavior"
+- "implementation notes"
+- "when you need a clean rewrite"
+
+Do not use intent-presuming feature framing like:
+
+- "OCR fallback" as the main product description
+- "only when normal extraction fails"
+- "the right path when you need" unless the constraint is genuinely exclusive
 
 ## Specificity Rules
 
@@ -111,6 +137,8 @@ Prefer this:
 - "Fast page access and plain-text extraction when your code opens lots of existing PDFs."
 - "Supports RC4-128, AES-128, and AES-256 output."
 - "Push-button action execution is not exposed through the high-level API."
+- "Remove file history"
+- "This removes earlier incremental revisions, helping with file size and document security."
 
 Not this:
 
@@ -118,8 +146,51 @@ Not this:
 - "Broad document coverage."
 - "Practical examples."
 - "Useful benchmark coverage."
+- "Details that affect production behavior."
+- "History removal when you need a clean rewrite."
 
 If you can replace an abstract phrase with a PDF operation, API name, benchmark number, or runtime fact, do that.
+
+## Heading And Explanation Rules
+
+Headings should name:
+
+- the task
+- the API operation
+- the document result
+- the feature or document surface itself
+
+Prefer headings like:
+
+- "Remove file history"
+- "Incremental save"
+- "Form flattening"
+- "Low-level object access"
+- "Restrict copy, edit, or print access"
+- "Sign without an existing field"
+
+Avoid headings like:
+
+- "Implementation Notes"
+- "Details that affect production behavior"
+- "History removal when you need a clean rewrite"
+- "Flatten after filling when you need a non-interactive output"
+- "Drop into the object model when the high-level API is not enough"
+- "Inspect and update document info safely"
+
+The first sentence under a heading should explain the concrete effect.
+
+Prefer:
+
+- "Call `RemoveHistoryAsync()` before saving if you want the file rewritten with only the latest live objects."
+- "This removes earlier incremental revisions, helping with file size and document security."
+
+Avoid:
+
+- headings that describe the explanation instead of the task
+- headings that describe a reader scenario instead of naming the thing
+- sentences that restate the API in softer words without saying what changes in the file
+- conditional filler like "when you need" when a direct task name would be clearer
 
 ## Page-Type Guidance
 
@@ -212,8 +283,11 @@ Before publishing copy, check:
 4. Can any adjective be removed without losing meaning?
 5. If a benchmark or capability claim is made, is it measured or explicit?
 6. Would a technical reader say this naturally?
+7. Does each heading name the task or result directly?
+8. Does the first sentence after the heading explain the concrete effect, not just the category?
 
 If the answer to 2 or 3 is yes, rewrite it.
+If the answer to 7 or 8 is no, rewrite it.
 
 ## Enforcement
 
@@ -242,4 +316,3 @@ Always do a human pass that removes:
 At minimum, run the copy check script before deploy.
 
 If you want stricter enforcement later, add `pwsh ./website/check-copy.ps1` to the website deploy workflow so flagged phrases fail the build.
-
