@@ -6,6 +6,7 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ZingPDF.Elements;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
@@ -712,6 +713,7 @@ public class Pdf : IPdf, IDisposable
         {
             FieldName = options.FieldName,
             VisibleAppearance = false,
+            SignatureImageBytes = options.SignatureImageBytes,
             SignerName = options.SignerName,
             Reason = options.Reason,
             Location = options.Location,
@@ -740,11 +742,25 @@ public class Pdf : IPdf, IDisposable
         var resources = new ResourceDictionary(this, ObjectContext.UserCreated);
         await resources.AddFontAsync(fontResourceName, fontObject.Reference, this);
 
-        var contentStream = BuildSignatureAppearanceContentStream(
-            boundingBox,
-            fontResourceName,
-            options,
-            signingDate);
+        Rectangle? imageBounds = null;
+        var contentStreams = new List<ContentStream>
+        {
+            BuildSignatureAppearanceBackgroundContentStream(boundingBox)
+        };
+
+        if (await TryCreateSignatureAppearanceImageAsync(options, resources, boundingBox) is { } imageAppearance)
+        {
+            imageBounds = imageAppearance.Bounds;
+            contentStreams.Add(new ImageXObjectContentStream(imageAppearance.ResourceName, imageAppearance.Bounds, ObjectContext.UserCreated));
+        }
+
+        contentStreams.Add(
+            BuildSignatureAppearanceTextContentStream(
+                boundingBox,
+                fontResourceName,
+                options,
+                signingDate,
+                imageBounds));
 
         var formDictionary = new Type1FormDictionary(
             this,
@@ -752,7 +768,7 @@ public class Pdf : IPdf, IDisposable
             boundingBox,
             resources);
 
-        var appearanceStream = await new ContentStreamFactory([contentStream]).CreateAsync(formDictionary, ObjectContext.UserCreated);
+        var appearanceStream = await new ContentStreamFactory(contentStreams).CreateAsync(formDictionary, ObjectContext.UserCreated);
         var appearanceObject = await Objects.AddAsync(appearanceStream);
 
         fieldDictionary.SetAppearanceDictionary(
@@ -763,27 +779,76 @@ public class Pdf : IPdf, IDisposable
         Objects.Update(fieldIndirectObject);
     }
 
-    private static ContentStream BuildSignatureAppearanceContentStream(
-        Rectangle boundingBox,
-        Name fontResourceName,
+    private async Task<SignatureAppearanceImage?> TryCreateSignatureAppearanceImageAsync(
         PdfSignatureOptions options,
-        DateTimeOffset signingDate)
+        ResourceDictionary resources,
+        Rectangle boundingBox)
+    {
+        if (options.SignatureImageBytes is not { Length: > 0 })
+        {
+            return null;
+        }
+
+        const double inset = 6d;
+        var maxImageSide = Math.Min((double)boundingBox.Height - (inset * 2d), (double)boundingBox.Width * 0.3d);
+        if (maxImageSide < 24d)
+        {
+            return null;
+        }
+
+        using var imageData = new MemoryStream(options.SignatureImageBytes, writable: false);
+        var preparedImage = await ImageXObjectBuilder.CreateAsync(imageData);
+        var imageDictionary = CreateImageDictionary(preparedImage);
+
+        if (preparedImage.SoftMask is not null)
+        {
+            var softMaskDictionary = CreateImageDictionary(preparedImage.SoftMask);
+            var softMaskObject = new StreamObject<ImageDictionary>(
+                preparedImage.SoftMask.Data,
+                softMaskDictionary,
+                ObjectContext.UserCreated);
+            var softMaskIndirectObject = await Objects.AddAsync(softMaskObject);
+
+            imageDictionary.Set(Constants.DictionaryKeys.Image.SMask, softMaskIndirectObject.Reference);
+        }
+
+        var imageXObject = new StreamObject<ImageDictionary>(
+            preparedImage.Data,
+            imageDictionary,
+            ObjectContext.UserCreated);
+        var imageObject = await Objects.AddAsync(imageXObject);
+        var resourceName = (Name)"SigImage";
+        await resources.AddXObjectAsync(resourceName, imageObject.Reference, this);
+
+        var scale = Math.Min(maxImageSide / preparedImage.Width, maxImageSide / preparedImage.Height);
+        var renderedWidth = preparedImage.Width * scale;
+        var renderedHeight = preparedImage.Height * scale;
+        var lowerLeftY = ((double)boundingBox.Height - renderedHeight) / 2d;
+        var imageBounds = Rectangle.FromCoordinates(
+            new Coordinate(inset, lowerLeftY),
+            new Coordinate(inset + renderedWidth, lowerLeftY + renderedHeight));
+
+        return new SignatureAppearanceImage(resourceName, imageBounds);
+    }
+
+    private ImageDictionary CreateImageDictionary(PreparedImageXObject preparedImage)
+    {
+        var filter = preparedImage.FilterName;
+        return new ImageDictionary(
+            this,
+            ObjectContext.UserCreated,
+            preparedImage.Width,
+            preparedImage.Height,
+            preparedImage.ColorSpace,
+            preparedImage.BitsPerComponent,
+            string.IsNullOrWhiteSpace(filter) ? null : new ShorthandArrayObject([(Name)filter], ObjectContext.UserCreated),
+            null);
+    }
+
+    private static ContentStream BuildSignatureAppearanceBackgroundContentStream(Rectangle boundingBox)
     {
         var width = (double)boundingBox.Width;
         var height = (double)boundingBox.Height;
-        var inset = 6d;
-
-        var lines = new List<string>
-        {
-            "Digitally signed",
-            string.IsNullOrWhiteSpace(options.SignerName) ? "Signer unavailable" : options.SignerName!,
-            signingDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz")
-        };
-
-        if (!string.IsNullOrWhiteSpace(options.Reason))
-        {
-            lines.Add(options.Reason!);
-        }
 
         var stream = new ContentStream();
 
@@ -804,6 +869,37 @@ public class Pdf : IPdf, IDisposable
         });
         stream.Operations.Add(new ContentStreamOperation { Operator = PathPainting.S });
 
+        return stream;
+    }
+
+    private static ContentStream BuildSignatureAppearanceTextContentStream(
+        Rectangle boundingBox,
+        Name fontResourceName,
+        PdfSignatureOptions options,
+        DateTimeOffset signingDate,
+        Rectangle? imageBounds)
+    {
+        var width = (double)boundingBox.Width;
+        var height = (double)boundingBox.Height;
+        var inset = 6d;
+
+        var lines = new List<string>
+        {
+            "Digitally signed",
+            string.IsNullOrWhiteSpace(options.SignerName) ? "Signer unavailable" : options.SignerName!,
+            signingDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz")
+        };
+
+        if (!string.IsNullOrWhiteSpace(options.Reason))
+        {
+            lines.Add(options.Reason!);
+        }
+
+        var stream = new ContentStream();
+        var textLeft = imageBounds is null
+            ? inset
+            : Math.Min(width - inset, (double)imageBounds.UpperRight.X + inset);
+
         stream.BeginTextObject()
             .SetColour(RGBColour.Black)
             .SetTextState(fontResourceName, 9);
@@ -816,7 +912,7 @@ public class Pdf : IPdf, IDisposable
                 break;
             }
 
-            stream.SetTextMatrix(1, 0, 0, 1, (Number)inset, (Number)currentY)
+            stream.SetTextMatrix(1, 0, 0, 1, (Number)textLeft, (Number)currentY)
                 .ShowText(PdfString.FromTextAuto(line, ObjectContext.UserCreated));
 
             currentY -= 11;
@@ -826,6 +922,8 @@ public class Pdf : IPdf, IDisposable
 
         return stream;
     }
+
+    private sealed record SignatureAppearanceImage(Name ResourceName, Rectangle Bounds);
 
     private async Task WriteDocumentAsync(
         Stream outputStream,
