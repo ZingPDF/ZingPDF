@@ -1004,6 +1004,34 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task SignatureFormField_SignAsync_WithSignatureImage_WritesImageIntoVisibleAppearance()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        using var certificate = CreateSigningCertificate();
+
+        await AddSignatureFieldAsync(pdf, "ApprovalSignature");
+
+        var form = await pdf.GetFormAsync();
+        var signatureField = (await form!.GetFieldsAsync()).OfType<SignatureFormField>().First();
+
+        await signatureField.SignAsync(certificate, new PdfSignatureOptions
+        {
+            SignerName = "Taylor Smith",
+            Reason = "Approval",
+            SignatureImageBytes = Files.ConcurrentRead(Files.CatImage)
+        });
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("form-signed-with-image.pdf", output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/AP <<");
+        writtenPdf.Should().Contain("/Subtype /Image");
+        writtenPdf.Should().Contain("/SigImage");
+    }
+
+    [Fact]
     public async Task SignInvisibleAsync_AddsHiddenSignatureField_WhenDocumentHasNoExistingField()
     {
         using var pdf = Pdf.Create();
