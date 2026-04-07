@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>How to Sign a PDF Form Field in C#</title>
   <meta name="description"
-    content="Sign an existing PDF signature field in C#, or add a hidden signature field for invisible signing, with ZingPDF and detached CMS output.">
+    content="Sign an existing PDF signature field in C#, add a visible signature image, or add a hidden signature field for invisible signing with ZingPDF.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -54,6 +54,7 @@
         <nav class="article-toc" aria-label="On this page">
           <strong>On this page</strong>
           <a href="#minimal-example">Minimal example</a>
+          <a href="#signature-image">Signature image</a>
           <a href="#invisible-signing">Invisible signing</a>
           <a href="#certificate">Certificate requirements</a>
           <a href="#options">Signature metadata</a>
@@ -84,6 +85,21 @@ await signatureField!.SignAsync(certificate, new PdfSignatureOptions
 });
 
 await pdf.SaveAsync(File.Create("signed.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="signature-image">
+          <h2>Add a signature image</h2>
+          <p>
+            Set <code>SignatureImageBytes</code> when the visible appearance should include a logo, stamp, or scanned
+            signature image alongside the signature text.
+          </p>
+
+          <pre><code class="language-csharp">await signatureField!.SignAsync(certificate, new PdfSignatureOptions
+{
+    SignerName = "Taylor Smith",
+    Reason = "Approved",
+    SignatureImageBytes = File.ReadAllBytes("signature-stamp.png")
+});</code></pre>
         </section>
 
         <section class="article-section" id="invisible-signing">
@@ -133,7 +149,7 @@ await pdf.SaveAsync(File.Create("statement-signed.pdf"));</code></pre>
           <h2>Current limits</h2>
           <p>
             High-level signing supports existing signature fields and hidden validation-only fields on unencrypted PDFs.
-            It does not sign encrypted PDFs yet, and it does not support custom signature images yet.
+            It does not sign encrypted PDFs yet, and it does not create visible signature fields automatically.
           </p>
         </section>
 
