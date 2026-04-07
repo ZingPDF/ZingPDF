@@ -58,6 +58,8 @@
             <a href="#save">Save Behavior</a>
             <a href="#ocr">OCR</a>
             <a href="#low-level">Low-Level Access</a>
+            <a href="#technical-faq">Technical FAQ</a>
+            <a href="#evaluation-faq">Evaluation FAQ</a>
             <a href="./api.html">API Reference</a>
           </nav>
         </aside>
@@ -527,11 +529,11 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
 
             <h3>Current gaps</h3>
             <ul>
-              <li>Push-button action details can be inspected, but action execution is not yet exposed through the
-                high-level API.</li>
+                <li>Push-button action details can be inspected, but action execution is not yet exposed through the
+                  high-level API.</li>
               <li>High-level signing supports existing visible signature fields and hidden validation-only fields on
-                unencrypted PDFs. It does not sign encrypted PDFs yet, and it does not support custom signature images
-                yet.</li>
+                unencrypted PDFs. It does not sign encrypted PDFs yet, and it does not create visible signature fields
+                automatically.</li>
             </ul>
 
             <p>
@@ -695,6 +697,84 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
               For exact member signatures and the generated type reference, go straight to the
               <a class="inline-link" href="./api.html">API docs</a>.
             </p>
+          </section>
+
+          <section class="doc-section" id="technical-faq">
+            <p class="eyebrow">Technical FAQ</p>
+            <h2>Technical FAQ</h2>
+
+            <h3>Memory model</h3>
+            <p>ZingPDF keeps the input stream open and resolves PDF objects on demand. It does not materialize the whole
+              file into a full in-memory document model at load time.</p>
+            <ul>
+              <li><code>Pdf.Load(...)</code> holds a seekable input stream for the lifetime of the <code>Pdf</code> instance.</li>
+              <li>Document versions, trailers, the catalog, and indirect objects are parsed lazily as code touches them.</li>
+              <li>Parsed objects are cached after resolution.</li>
+              <li>Compressed object streams use a bounded cache rather than staying permanently expanded in memory.</li>
+              <li>Some save paths still stage full output in memory, including signing and rewriting back to the source stream.</li>
+            </ul>
+
+            <h3>Thread safety</h3>
+            <p><code>Pdf</code> instances should be treated as not thread-safe. The document model is mutable, the
+              object collection keeps mutable caches and update state, and parsing operates against a shared underlying
+              stream. That model keeps single-document workflows fast and predictable.</p>
+            <ul>
+              <li>Do not share a single <code>Pdf</code> instance across concurrent operations.</li>
+              <li>Use one document instance per logical request or workflow.</li>
+              <li>If you need parallel work, open separate <code>Pdf</code> instances on separate streams.</li>
+            </ul>
+
+            <h3>Malformed PDFs</h3>
+            <p>ZingPDF tolerates some malformed content and common cross-reference defects, but it does not try to
+              repair every damaged file structure.</p>
+            <ul>
+              <li>Content stream parsing returns the successfully parsed prefix when unsupported or malformed sections appear later in the stream.</li>
+              <li>Cross-reference stream parsing repairs the common case where the xref stream does not include a reference to itself.</li>
+              <li>The loader can recover when <code>startxref</code> is missing or out of range and a classic xref table still exists near the end of the file.</li>
+              <li>ZingPDF does not yet rebuild a full xref graph by scanning every indirect object in the file.</li>
+            </ul>
+          </section>
+
+          <section class="doc-section" id="evaluation-faq">
+            <p class="eyebrow">Evaluation FAQ</p>
+            <h2>Evaluation FAQ</h2>
+
+            <h3>Package selection</h3>
+            <p><code>ZingPDF</code> is the default package for loading, creating, editing, forms, encryption, and save
+              workflows. Add companion packages only for the extra capability they provide.</p>
+            <ul>
+              <li>Add <code>ZingPDF.FromHTML</code> for Chromium-based HTML-to-PDF.</li>
+              <li>Add <code>ZingPDF.GoogleFonts</code> for Google Fonts registration.</li>
+              <li>Add <code>ZingPDF.OCR</code> for OCR on scanned or image-based pages.</li>
+            </ul>
+
+            <h3>Licensing</h3>
+            <p>Evaluation and other non-commercial use stay free. Paid seats are required when the library is used for
+              commercial work or internal business operations outside genuine evaluation.</p>
+            <ul>
+              <li>Seats are licensed per developer.</li>
+              <li>Contractors can use seats licensed to the same customer legal entity.</li>
+              <li>See the pricing section and legal terms for the exact commercial contract.</li>
+            </ul>
+
+            <h3>Deployment environments</h3>
+            <p>ZingPDF targets <code>net8.0</code> and is intended for Windows, Linux, and macOS deployments that support
+              .NET 8.</p>
+            <ul>
+              <li>The core library fits desktop apps, background jobs, services, workers, and CLI tools.</li>
+              <li><code>ZingPDF.FromHTML</code> has additional browser-runtime requirements.</li>
+              <li>Input streams passed to <code>Pdf.Load(...)</code> must be seekable.</li>
+            </ul>
+
+            <h3>Current limits</h3>
+            <p>ZingPDF covers the main document-editing path, but some PDF features are still outside the current
+              high-level API.</p>
+            <ul>
+              <li>Signing does not yet support encrypted PDFs or create visible signature fields automatically.</li>
+              <li>OCR works best on image-based pages and supported image XObjects rather than arbitrary rendered page content.</li>
+              <li>Push-button actions can be inspected but are not executed through the high-level API.</li>
+              <li>Malformed file repair is limited to a few common recovery paths rather than full document reconstruction.</li>
+            </ul>
           </section>
         </div>
       </div>

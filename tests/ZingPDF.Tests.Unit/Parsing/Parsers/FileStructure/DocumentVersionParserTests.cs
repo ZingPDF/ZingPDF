@@ -21,6 +21,76 @@ namespace ZingPDF.Tests.Unit.Parsing.Parsers.FileStructure;
 public class DocumentVersionParserTests
 {
     [Fact]
+    public async Task ParseLatestAsync_WhenStartXrefIsMissing_FallsBackToLastXrefTable()
+    {
+        using var stream = "xref\n5 1\n0000000000 00000 n\ntrailer\n<</Size 6>>\n%%EOF".ToStream();
+        var tableParser = A.Fake<IParser<CrossReferenceTable>>();
+        var trailerParser = A.Fake<IParser<Trailer>>();
+        var xrefStreamParser = A.Fake<IParser<StreamObject<CrossReferenceStreamDictionary>>>();
+
+        var context = ObjectContext.WithOrigin(ObjectOrigin.None);
+        var table = new CrossReferenceTable([new CrossReferenceSection(5, [new CrossReferenceEntry(0, 0, true, false, context)], context)], context);
+        var trailerDictionary = new TrailerDictionary(new Dictionary(
+            [
+                new KeyValuePair<string, IPdfObject>(Constants.DictionaryKeys.Trailer.Size, (Number)6)
+            ],
+            A.Dummy<IPdf>(),
+            context));
+        var trailer = new Trailer(trailerDictionary, 0, context);
+
+        A.CallTo(() => tableParser.ParseAsync(A<Stream>._, A<ObjectContext>._)).Returns(Task.FromResult(table).AsITask());
+        A.CallTo(() => trailerParser.ParseAsync(A<Stream>._, A<ObjectContext>._)).Returns(Task.FromResult(trailer).AsITask());
+
+        var parser = new DocumentVersionParser(
+            new KeywordParser(),
+            new NumberParser(),
+            tableParser,
+            trailerParser,
+            xrefStreamParser);
+
+        VersionInformation version = await parser.ParseLatestAsync(stream);
+
+        version.CrossReferenceTable.Should().BeSameAs(table);
+        version.Trailer.Should().BeSameAs(trailer);
+        version.CrossReferenceStream.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ParseLatestAsync_WhenStartXrefOffsetIsOutOfRange_FallsBackToLastXrefTable()
+    {
+        using var stream = "xref\n5 1\n0000000000 00000 n\ntrailer\n<</Size 6>>\nstartxref\n999999\n%%EOF".ToStream();
+        var tableParser = A.Fake<IParser<CrossReferenceTable>>();
+        var trailerParser = A.Fake<IParser<Trailer>>();
+        var xrefStreamParser = A.Fake<IParser<StreamObject<CrossReferenceStreamDictionary>>>();
+
+        var context = ObjectContext.WithOrigin(ObjectOrigin.None);
+        var table = new CrossReferenceTable([new CrossReferenceSection(5, [new CrossReferenceEntry(0, 0, true, false, context)], context)], context);
+        var trailerDictionary = new TrailerDictionary(new Dictionary(
+            [
+                new KeyValuePair<string, IPdfObject>(Constants.DictionaryKeys.Trailer.Size, (Number)6)
+            ],
+            A.Dummy<IPdf>(),
+            context));
+        var trailer = new Trailer(trailerDictionary, 0, context);
+
+        A.CallTo(() => tableParser.ParseAsync(A<Stream>._, A<ObjectContext>._)).Returns(Task.FromResult(table).AsITask());
+        A.CallTo(() => trailerParser.ParseAsync(A<Stream>._, A<ObjectContext>._)).Returns(Task.FromResult(trailer).AsITask());
+
+        var parser = new DocumentVersionParser(
+            new KeywordParser(),
+            new NumberParser(),
+            tableParser,
+            trailerParser,
+            xrefStreamParser);
+
+        VersionInformation version = await parser.ParseLatestAsync(stream);
+
+        version.CrossReferenceTable.Should().BeSameAs(table);
+        version.Trailer.Should().BeSameAs(trailer);
+        version.CrossReferenceStream.Should().BeNull();
+    }
+
+    [Fact]
     public async Task ParseAtAsync_WhenOffsetPointsInsideXrefSubsection_FallsBackToNearbyXrefTable()
     {
         using var stream = "xref\n5 1\n0000000000 00000 n\ntrailer\n<</Size 6>>\nstartxref\n0\n%%EOF".ToStream();

@@ -11,6 +11,8 @@ public sealed class PdfSignatureOptions
 
     public bool VisibleAppearance { get; set; } = true;
 
+    public byte[]? SignatureImageBytes { get; set; }
+
     public string? SignerName { get; set; }
 
     public string? Reason { get; set; }

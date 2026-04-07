@@ -110,7 +110,7 @@ internal class DocumentVersionParser : IDocumentVersionParser
     private async Task<VersionInformation> ParseDocumentVersionAsync(Stream pdfInputStream, int xrefOffset)
     {
         using var trace = ZingPDF.Diagnostics.PerformanceTrace.Measure("DocumentVersionParser.ParseDocumentVersionAsync");
-        VersionInformation version;
+        VersionInformation? version = null;
 
         pdfInputStream.Position = xrefOffset;
 
@@ -133,12 +133,12 @@ internal class DocumentVersionParser : IDocumentVersionParser
                 ?? await ParseNearbyCrossReferenceTableAsync(pdfInputStream, xrefOffset)
                 ?? throw new InvalidOperationException($"No valid xref stream or nearby xref table found at offset {xrefOffset}.");
         }
-        else
+        else if (TryFindLastCrossReferenceTableOffset(pdfInputStream, out var recoveredTableOffset))
         {
-            throw new InvalidOperationException("No xrefs found at offset");
+            version = await ParseCrossReferenceTableAtAsync(pdfInputStream, recoveredTableOffset!.Value);
         }
 
-        return version;
+        return version ?? throw new InvalidOperationException("No xrefs found at offset");
     }
 
     private async ValueTask<VersionInformation> ParseAndCacheVersionAsync(Stream pdfInputStream, int xrefOffset, ParseCache cache)
@@ -234,6 +234,15 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         if (offset is null)
         {
+            var recoveredTableOffset = TryFindLastCrossReferenceTableOffset(pdfStream, out var fallbackOffset)
+                ? fallbackOffset
+                : null;
+
+            if (recoveredTableOffset is not null)
+            {
+                return recoveredTableOffset.Value;
+            }
+
             throw new InvalidOperationException($"{Constants.StartXref} not found.");
         }
 
@@ -241,7 +250,21 @@ internal class DocumentVersionParser : IDocumentVersionParser
 
         _ = await _keywordParser.ParseAsync(pdfStream, _objectContext);
 
-        return await _numberParser.ParseAsync(pdfStream, _objectContext);
+        var parsedOffset = await _numberParser.ParseAsync(pdfStream, _objectContext);
+
+        if (parsedOffset < 0 || parsedOffset >= pdfStream.Length)
+        {
+            var recoveredTableOffset = TryFindLastCrossReferenceTableOffset(pdfStream, out var fallbackOffset)
+                ? fallbackOffset
+                : null;
+
+            if (recoveredTableOffset is not null)
+            {
+                return recoveredTableOffset.Value;
+            }
+        }
+
+        return parsedOffset;
     }
 
     private static int PeekNextNonWhitespaceByte(Stream stream)
@@ -312,6 +335,84 @@ internal class DocumentVersionParser : IDocumentVersionParser
             }
 
             return null;
+        }
+        finally
+        {
+            stream.Position = originalPosition;
+        }
+    }
+
+    private async Task<VersionInformation> ParseCrossReferenceTableAtAsync(Stream pdfInputStream, int xrefOffset)
+    {
+        long originalPosition = pdfInputStream.Position;
+
+        try
+        {
+            pdfInputStream.Position = xrefOffset;
+            var xrefTable = await _crossReferenceTableParser.ParseAsync(pdfInputStream, _objectContext);
+
+            return new VersionInformation
+            {
+                CrossReferenceTable = xrefTable,
+                Trailer = await _trailerParser.ParseAsync(pdfInputStream, _objectContext),
+                IndirectObjects = ProcessXrefTable(xrefTable)
+            };
+        }
+        finally
+        {
+            pdfInputStream.Position = originalPosition;
+        }
+    }
+
+    private static bool TryFindLastCrossReferenceTableOffset(Stream stream, out int? offset)
+    {
+        const int searchBack = 65536;
+
+        long originalPosition = stream.Position;
+
+        try
+        {
+            int windowStart = (int)Math.Max(0, stream.Length - searchBack);
+            int windowEnd = (int)stream.Length;
+            int length = windowEnd - windowStart;
+
+            if (length <= 0)
+            {
+                offset = null;
+                return false;
+            }
+
+            byte[] buffer = new byte[length];
+            stream.Position = windowStart;
+            int read = stream.Read(buffer, 0, length);
+            if (read < Constants.Xref.Length)
+            {
+                offset = null;
+                return false;
+            }
+
+            byte[] xrefBytes = Encoding.ASCII.GetBytes(Constants.Xref);
+
+            for (int i = read - xrefBytes.Length; i >= 0; i--)
+            {
+                if (!buffer.AsSpan(i, xrefBytes.Length).SequenceEqual(xrefBytes))
+                {
+                    continue;
+                }
+
+                bool validPrefix = i == 0 || char.IsWhiteSpace((char)buffer[i - 1]);
+                int suffixIndex = i + xrefBytes.Length;
+                bool validSuffix = suffixIndex >= read || char.IsWhiteSpace((char)buffer[suffixIndex]);
+
+                if (validPrefix && validSuffix)
+                {
+                    offset = windowStart + i;
+                    return true;
+                }
+            }
+
+            offset = null;
+            return false;
         }
         finally
         {
