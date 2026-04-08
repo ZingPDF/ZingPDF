@@ -1374,6 +1374,33 @@ code {
   color: #e8f1ff;
 }
 
+.api-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.api-compare-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.06);
+}
+
+.api-compare-card h3 {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.api-compare-card pre {
+  margin-top: 0;
+}
+
 .doc-section,
 .doc-callout,
 .doc-card {
@@ -1826,6 +1853,14 @@ code {
   .doc-card pre {
     padding: 14px;
     font-size: 0.88rem;
+  }
+
+  .api-compare {
+    grid-template-columns: 1fr;
+  }
+
+  .api-compare-card {
+    padding: 14px;
   }
 
   .hero-strip {

@@ -14,6 +14,7 @@ using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 using ZingPDF.Text.SimpleFonts;
+using System.Text.RegularExpressions;
 
 namespace ZingPDF.Elements
 {
@@ -22,6 +23,9 @@ namespace ZingPDF.Elements
     /// </summary>
     public class Page
     {
+        private const double MultilineLineHeightMultiplier = 1.2d;
+        private static readonly Regex LineTokenRegex = new(@"\S+\s*", RegexOptions.Compiled);
+
         private readonly IPdf _pdf;
 
         internal Page(IndirectObject pageObject, IPdf pdf)
@@ -63,7 +67,11 @@ namespace ZingPDF.Elements
             ArgumentNullException.ThrowIfNull(fontOptions);
 
             var layout = await ResolveTextLayoutAsync(text, boundingBox, fontOptions, layoutOptions ?? new TextLayoutOptions());
-            await AddTextAsync(new TextObject(text, layout.TextOrigin, layout.FontOptions, layout.ClipBounds));
+
+            foreach (var segment in layout.Segments)
+            {
+                await AddTextAsync(new TextObject(segment.Text, segment.TextOrigin, layout.FontOptions, layout.ClipBounds));
+            }
         }
 
         /// <summary>
@@ -307,17 +315,44 @@ namespace ZingPDF.Elements
                 fontSize = ShrinkToFit(text, metrics, fontSize, contentBounds, layoutOptions.MinFontSize);
             }
 
-            var textWidth = MeasureTextWidth(text, metrics, fontSize);
-            var ascent = ScaleMetric(metrics?.Ascent ?? 800, fontSize);
-            var descent = ScaleMetric(metrics?.Descent ?? -200, fontSize);
-            var textHeight = ascent + descent;
-
             var contentLeft = (double)contentBounds.LowerLeft.X;
             var contentRight = (double)contentBounds.UpperRight.X;
             var contentBottom = (double)contentBounds.LowerLeft.Y;
             var contentTop = (double)contentBounds.UpperRight.Y;
             var availableWidth = Math.Max(0, contentRight - contentLeft);
             var availableHeight = Math.Max(0, contentTop - contentBottom);
+
+            var wrapText = layoutOptions.Wrap || text.Contains('\n') || text.Contains('\r');
+
+            if (wrapText)
+            {
+                var wrappedLayout = ResolveWrappedTextLayout(
+                    text,
+                    layoutOptions,
+                    fontOptions,
+                    metrics,
+                    contentLeft,
+                    contentRight,
+                    contentBottom,
+                    contentTop,
+                    availableWidth,
+                    availableHeight,
+                    fontSize);
+
+                Rectangle? wrappedClipBounds = layoutOptions.Overflow == TextOverflowMode.Clip && availableWidth > 0 && availableHeight > 0
+                    ? contentBounds
+                    : null;
+
+                return new ResolvedTextLayout(
+                    fontOptions with { Size = (Number)wrappedLayout.FontSize },
+                    wrappedLayout.Segments,
+                    wrappedClipBounds);
+            }
+
+            var textWidth = MeasureTextWidth(text, metrics, fontSize);
+            var ascent = ScaleMetric(metrics?.Ascent ?? 800, fontSize);
+            var descent = ScaleMetric(metrics?.Descent ?? -200, fontSize);
+            var textHeight = ascent + descent;
 
             var originX = CalculateHorizontalOrigin(
                 layoutOptions.HorizontalAlignment,
@@ -341,8 +376,84 @@ namespace ZingPDF.Elements
 
             return new ResolvedTextLayout(
                 resolvedFontOptions,
-                new Coordinate(originX, originY),
+                [new ResolvedTextSegment(text, new Coordinate(originX, originY))],
                 clipBounds);
+        }
+
+        private static WrappedTextLayout ResolveWrappedTextLayout(
+            string text,
+            TextLayoutOptions layoutOptions,
+            FontOptions fontOptions,
+            FontMetrics? metrics,
+            double contentLeft,
+            double contentRight,
+            double contentBottom,
+            double contentTop,
+            double availableWidth,
+            double availableHeight,
+            double requestedFontSize)
+        {
+            var fontSize = requestedFontSize;
+            var minimum = Math.Max(0.1d, layoutOptions.MinFontSize);
+            List<string> lines;
+            double ascent;
+            double descent;
+            double lineAdvance;
+            double contentHeight;
+
+            while (true)
+            {
+                lines = WrapTextIntoLines(text, metrics, fontSize, availableWidth);
+                ascent = ScaleMetric(metrics?.Ascent ?? 800, fontSize);
+                descent = ScaleMetric(metrics?.Descent ?? -200, fontSize);
+                lineAdvance = fontSize * MultilineLineHeightMultiplier;
+                contentHeight = ascent + descent + ((Math.Max(lines.Count, 1) - 1) * lineAdvance);
+
+                var widestLine = lines.Count == 0 ? 0d : lines.Max(line => MeasureTextWidth(line, metrics, fontSize));
+                var fitsWidth = widestLine <= availableWidth;
+                var fitsHeight = contentHeight <= availableHeight;
+
+                if (layoutOptions.Overflow != TextOverflowMode.ShrinkToFit || (fitsWidth && fitsHeight) || fontSize <= minimum)
+                {
+                    break;
+                }
+
+                fontSize = Math.Max(minimum, fontSize - 0.25d);
+            }
+
+            var firstBaseline = CalculateWrappedFirstBaseline(
+                layoutOptions.VerticalAlignment,
+                contentBottom,
+                contentTop,
+                contentHeight,
+                ascent,
+                descent,
+                lineAdvance,
+                Math.Max(lines.Count, 1));
+
+            var segments = new List<ResolvedTextSegment>(lines.Count);
+            for (var index = 0; index < lines.Count; index++)
+            {
+                var line = lines[index];
+                var lineWidth = MeasureTextWidth(line, metrics, fontSize);
+                var lineOriginX = CalculateHorizontalOrigin(
+                    layoutOptions.HorizontalAlignment,
+                    ResolveReadingDirection(line, layoutOptions.ReadingDirection),
+                    contentLeft,
+                    contentRight,
+                    lineWidth);
+
+                segments.Add(new ResolvedTextSegment(
+                    line,
+                    new Coordinate(lineOriginX, firstBaseline - (index * lineAdvance))));
+            }
+
+            if (segments.Count == 0)
+            {
+                segments.Add(new ResolvedTextSegment(string.Empty, new Coordinate(contentLeft, firstBaseline)));
+            }
+
+            return new WrappedTextLayout(fontSize, segments);
         }
 
         private async Task<FontMetrics?> ResolveFontMetricsAsync(Name resourceName)
@@ -467,6 +578,65 @@ namespace ZingPDF.Elements
             return text.Sum(ch => char.IsWhiteSpace(ch) ? fontSize * 0.33d : fontSize * 0.55d);
         }
 
+        private static List<string> WrapTextIntoLines(string text, FontMetrics? metrics, double fontSize, double availableWidth)
+        {
+            var normalizedText = text.Replace("\r\n", "\n").Replace('\r', '\n');
+            var paragraphs = normalizedText.Split('\n');
+            var lines = new List<string>();
+
+            foreach (var paragraph in paragraphs)
+            {
+                if (paragraph.Length == 0)
+                {
+                    lines.Add(string.Empty);
+                    continue;
+                }
+
+                var currentLine = string.Empty;
+                foreach (Match tokenMatch in LineTokenRegex.Matches(paragraph))
+                {
+                    var token = tokenMatch.Value;
+                    var candidateLine = currentLine + token;
+
+                    if (currentLine.Length == 0 || MeasureTextWidth(candidateLine, metrics, fontSize) <= availableWidth)
+                    {
+                        currentLine = candidateLine;
+                        continue;
+                    }
+
+                    lines.Add(currentLine.TrimEnd());
+                    currentLine = token.TrimStart();
+
+                    while (currentLine.Length > 0 && MeasureTextWidth(currentLine, metrics, fontSize) > availableWidth)
+                    {
+                        var splitIndex = FindLargestPrefixThatFits(currentLine, metrics, fontSize, availableWidth);
+                        lines.Add(currentLine[..splitIndex]);
+                        currentLine = currentLine[splitIndex..].TrimStart();
+                    }
+                }
+
+                if (currentLine.Length > 0)
+                {
+                    lines.Add(currentLine.TrimEnd());
+                }
+            }
+
+            return lines.Count == 0 ? [string.Empty] : lines;
+        }
+
+        private static int FindLargestPrefixThatFits(string text, FontMetrics? metrics, double fontSize, double availableWidth)
+        {
+            for (var length = text.Length; length > 1; length--)
+            {
+                if (MeasureTextWidth(text[..length], metrics, fontSize) <= availableWidth)
+                {
+                    return length;
+                }
+            }
+
+            return 1;
+        }
+
         private static double ScaleMetric(int metric, double fontSize)
             => Math.Abs(metric) / 1000d * fontSize;
 
@@ -500,6 +670,24 @@ namespace ZingPDF.Elements
                 TextVerticalAlignment.Top => top - ascent,
                 TextVerticalAlignment.Bottom => bottom + descent,
                 _ => bottom + ((top - bottom - textHeight) / 2d) + descent
+            };
+        }
+
+        private static double CalculateWrappedFirstBaseline(
+            TextVerticalAlignment alignment,
+            double bottom,
+            double top,
+            double contentHeight,
+            double ascent,
+            double descent,
+            double lineAdvance,
+            int lineCount)
+        {
+            return alignment switch
+            {
+                TextVerticalAlignment.Top => top - ascent,
+                TextVerticalAlignment.Bottom => bottom + descent + ((lineCount - 1) * lineAdvance),
+                _ => bottom + ((top - bottom - contentHeight) / 2d) + descent + ((lineCount - 1) * lineAdvance)
             };
         }
 
@@ -539,6 +727,8 @@ namespace ZingPDF.Elements
                 >= 0xFE70 and <= 0xFEFF;
         }
 
-        private sealed record ResolvedTextLayout(FontOptions FontOptions, Coordinate TextOrigin, Rectangle? ClipBounds);
+        private sealed record ResolvedTextSegment(string Text, Coordinate TextOrigin);
+        private sealed record WrappedTextLayout(double FontSize, IReadOnlyList<ResolvedTextSegment> Segments);
+        private sealed record ResolvedTextLayout(FontOptions FontOptions, IReadOnlyList<ResolvedTextSegment> Segments, Rectangle? ClipBounds);
     }
 }

@@ -403,6 +403,211 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task PdfNew_FluentBuilder_CreatesPdfWithTextAndRectangle()
+    {
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Text(text => text
+                    .Value("hello from fluent")
+                    .Font(StandardPdfFonts.Helvetica)
+                    .FontSize(18)
+                    .At(20, 140))
+                .Rectangle(box => box
+                    .At(20, 40)
+                    .Size(80, 30)
+                    .Stroke(RGBColour.PrimaryBlue, 2)
+                    .Fill(new RGBColour(0.9, 0.97, 1))))
+            .SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(1);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        firstPageText.Should().Contain("hello from fluent");
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain(" 20 40 m ");
+        writtenPdf.Should().Contain(" B ");
+    }
+
+    [Fact]
+    public async Task PdfNew_FluentBuilder_SupportsLinePathImageWatermarkAndTrueTypeFont()
+    {
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(240, 240)
+                .Text(text => text
+                    .Value("fluent coverage")
+                    .WithTrueTypeFont(Files.NotoSansRegular, fontName: "NotoSans-Regular")
+                    .FontSize(16)
+                    .At(20, 200))
+                .Line(line => line
+                    .From(20, 190)
+                    .To(120, 190)
+                    .Stroke(RGBColour.PrimaryRed, 2))
+                .Path(path => path
+                    .Linear()
+                    .Point(20, 40)
+                    .Point(80, 40)
+                    .Point(50, 90)
+                    .Point(20, 40)
+                    .Stroke(RGBColour.PrimaryBlue, 2)
+                    .Fill(new RGBColour(0.85, 0.93, 1)))
+                .Image(image => image
+                    .FromFile(Files.CatImage)
+                    .At(130, 30)
+                    .Size(70, 70))
+                .Watermark("DRAFT"))
+            .SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("/FontFile2 ");
+        writtenPdf.Should().Contain("/Subtype /Image");
+        writtenPdf.Should().Contain("(DRAFT)");
+        writtenPdf.Should().Contain(" 20 190 m ");
+        writtenPdf.Should().Contain(" 120 190 l ");
+        writtenPdf.Should().Contain(" 50 90 l ");
+    }
+
+    [Fact]
+    public async Task PdfNew_FluentBuilder_SupportsBoundedTextLayout()
+    {
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(240, 180)
+                .Rectangle(box => box
+                    .At(20, 40)
+                    .Size(140, 48)
+                    .Stroke(RGBColour.Black, 1))
+                .Text(text => text
+                    .Value("bounded text")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .InBox(20, 40, 140, 48)
+                    .AlignCenter()
+                    .AlignMiddle()
+                    .Padding(0)
+                    .ClipOverflow()))
+            .SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        var pageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        pageText.Should().Contain("bounded text");
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain(" re W n");
+    }
+
+    [Fact]
+    public async Task PdfPages_FluentEditingBuilder_CanModifyExistingPagesAndAppendPages()
+    {
+        using var source = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(240, 180)
+                .Text(text => text
+                    .Value("first page")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 140)))
+            .Page(page => page
+                .Size(240, 180)
+                .Text(text => text
+                    .Value("second page")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 140)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var loaded = Pdf.Load(source);
+        using var output = new MemoryStream();
+
+        await loaded.Pages(pages => pages
+                .Page(1, page => page
+                    .Text(text => text
+                        .Value("edited")
+                        .Helvetica()
+                        .FontSize(12)
+                        .At(20, 100)))
+                .Append(page => page
+                    .Size(240, 180)
+                    .Text(text => text
+                        .Value("appended page")
+                        .HelveticaBold()
+                        .FontSize(18)
+                        .At(20, 140))))
+            .SaveAsync(output);
+
+        await WriteArtifactAsync("pages-fluent-editing.pdf", output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(3);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await reloaded.ExtractTextAsync(2)).Select(x => x.Text));
+        var thirdPageText = string.Join("\n", (await reloaded.ExtractTextAsync(3)).Select(x => x.Text));
+
+        firstPageText.Should().Contain("first page");
+        firstPageText.Should().Contain("edited");
+        secondPageText.Should().Contain("second page");
+        thirdPageText.Should().Contain("appended page");
+    }
+
+    [Fact]
+    public async Task PdfPages_FluentEditingBuilder_CanRemovePages()
+    {
+        using var source = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(240, 180)
+                .Text(text => text
+                    .Value("first page")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 140)))
+            .Page(page => page
+                .Size(240, 180)
+                .Text(text => text
+                    .Value("second page")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 140)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var loaded = Pdf.Load(source);
+        using var output = new MemoryStream();
+
+        await loaded.Pages(pages => pages
+                .Remove(2))
+            .SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(1);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        firstPageText.Should().Contain("first page");
+    }
+
+    [Fact]
     public async Task Page_AddTextAsync_DefaultLayout_DoesNotClipByDefault()
     {
         using var pdf = Pdf.Create();

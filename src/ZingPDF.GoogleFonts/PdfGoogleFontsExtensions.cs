@@ -29,4 +29,38 @@ public static class PdfGoogleFontsExtensions
             resourceName,
             fontName);
     }
+
+    /// <summary>
+    /// Configures a fluent authoring text builder to use a Google Font.
+    /// </summary>
+    public static PdfAuthoringBuilder.PdfTextAuthoringBuilder WithGoogleFont(
+        this PdfAuthoringBuilder.PdfTextAuthoringBuilder text,
+        GoogleFontsClient client,
+        GoogleFontRequest request,
+        string? resourceName = null,
+        string? fontName = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var cacheKey = string.Join(
+            "|",
+            "google-font",
+            request.Family,
+            request.Variant,
+            request.PreferVariableFont,
+            resourceName ?? string.Empty,
+            fontName ?? string.Empty);
+
+        return text.Font(
+            pdf => pdf.RegisterGoogleFontAsync(
+                client,
+                request,
+                resourceName,
+                fontName,
+                cancellationToken),
+            cacheKey);
+    }
 }
