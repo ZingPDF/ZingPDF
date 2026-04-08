@@ -129,6 +129,10 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
+    public Task<PdfRedactionPlan> RedactionAsync()
+        => Task.FromResult(new PdfRedactionPlan(this));
+
+    /// <inheritdoc />
     public async Task<Page> GetPageAsync(int pageNumber)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1, nameof(pageNumber));

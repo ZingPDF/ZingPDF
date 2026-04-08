@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Capabilities</title>
   <meta name="description"
-    content="Support matrix for ZingPDF covering document editing, text and OCR extraction, forms, encryption, save behavior, packages, and planned features.">
+    content="Support matrix for ZingPDF covering document editing, fluent authoring and page editing, text extraction, OCR, redaction, forms, signing, encryption, save behavior, packages, and planned features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -85,6 +85,11 @@
                     <td>Append, insert, delete, and merge operations.</td>
                   </tr>
                   <tr>
+                    <td>Export selected pages and split documents</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Create a new PDF from selected page numbers or split a document into multiple PDFs.</td>
+                  </tr>
+                  <tr>
                     <td>Rotate pages</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Page-level and document-wide rotation.</td>
@@ -93,6 +98,11 @@
                     <td>Read and update document metadata</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Title, author, subject, keywords, creator, and dates.</td>
+                  </tr>
+                  <tr>
+                    <td>Recover from some malformed file-structure defects</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Includes some broken <code>startxref</code> recovery and common xref-stream repair paths. Not a full repair engine.</td>
                   </tr>
                 </tbody>
               </table>
@@ -114,6 +124,16 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr>
+                    <td>Fluent authoring for new PDFs</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>Pdf.New()</code> covers pages, text, shapes, paths, images, watermarks, boxed layout, wrapping, and fonts.</td>
+                  </tr>
+                  <tr>
+                    <td>Fluent page editing for existing PDFs</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>pdf.Pages(...)</code> applies page-level fluent operations to existing documents.</td>
+                  </tr>
                   <tr>
                     <td>Add text and image content</td>
                     <td><span class="status-pill status-live">Available</span></td>
@@ -210,6 +230,11 @@
                       <td>Signs existing signature fields with a visible appearance that can include a signature image, or adds a hidden field for validation-only signing on unencrypted PDFs.</td>
                     </tr>
                   <tr>
+                    <td>Visible and invisible signing workflows</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Supports visible field signing with a basic appearance, optional signature image, and hidden-field signing for cryptographic validation-only workflows.</td>
+                  </tr>
+                  <tr>
                     <td>Push-button caption and action inspection</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read button captions, inspect primary action types, inspect URI or named actions, and list
@@ -256,6 +281,11 @@
                     <td>Supports Standard security handler RC4-128, AES-128, and AES-256 output, including user permission flags.</td>
                   </tr>
                   <tr>
+                    <td>Restrict print, copy, edit, and form permissions</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>User permission flags are exposed through the high-level encryption API.</td>
+                  </tr>
+                  <tr>
                     <td>Decrypt to a plain latest revision</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Removes encryption from the latest saved revision.</td>
@@ -270,6 +300,11 @@
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Rewrites the document so only the latest live objects are saved, removing prior incremental
                       revision history.</td>
+                  </tr>
+                  <tr>
+                    <td>Apply redaction overlays with rewritten-file save behavior</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Marks exact extracted-text matches or explicit page regions, applies overlays, and rewrites file history by default.</td>
                   </tr>
                 </tbody>
               </table>
@@ -307,6 +342,11 @@
                     <td>OCR companion package for scanned or image-based PDFs using a pluggable engine model.</td>
                   </tr>
                   <tr>
+                    <td>Full malformed-PDF repair and xref rebuild</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Current recovery covers a few common defects. Full object-graph reconstruction is not implemented yet.</td>
+                  </tr>
+                  <tr>
                     <td>Execute push-button actions</td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>Action execution is not exposed through the high-level API yet.</td>
@@ -317,14 +357,19 @@
                       <td>High-level signing does not yet create visible signature fields automatically or sign encrypted output.</td>
                     </tr>
                   <tr>
-                    <td>Advanced appearance customization</td>
-                    <td><span class="status-pill status-roadmap">Low-level API</span></td>
-                    <td>Advanced or non-standard appearance work may require low-level PDF object access.</td>
+                    <td>Structural redaction of arbitrary painted operators</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>The current redaction API applies overlays and rewritten-file save behavior. Full operator-level removal is not exposed yet.</td>
                   </tr>
                   <tr>
-                    <td>Redaction</td>
+                    <td>OCR-driven and raster image redaction</td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>Not implemented.</td>
+                    <td>OCR result bounds and image-content redaction are not exposed through the high-level API yet.</td>
+                  </tr>
+                  <tr>
+                    <td>High-level annotation APIs</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Review annotations and comment workflows are not exposed as a friendly high-level surface yet.</td>
                   </tr>
                 </tbody>
               </table>
