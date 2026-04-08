@@ -69,6 +69,30 @@ foreach ($file in $files) {
   }
 }
 
+$pairedExampleFiles = @(
+  (Join-Path $root "docs.html"),
+  (Join-Path $root "fluent-pdf-authoring-csharp.html")
+)
+
+foreach ($path in $pairedExampleFiles) {
+  if (-not (Test-Path $path)) {
+    continue
+  }
+
+  $content = Get-Content -Path $path -Raw
+  $hasFluent = $content -match "Fluent API:"
+  $hasStandard = $content -match "Standard API:"
+
+  if ($hasFluent -and -not $hasStandard) {
+    $findings += [PSCustomObject]@{
+      Rule = "Paired standard/fluent examples"
+      Path = $path
+      Line = 1
+      Text = "This page shows fluent examples without also showing standard API examples."
+    }
+  }
+}
+
 if ($findings.Count -gt 0) {
   Write-Host "Copy check failed:`n" -ForegroundColor Red
   foreach ($finding in $findings) {

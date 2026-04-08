@@ -94,6 +94,14 @@ Avoid:
 - "Use OCR only when normal extraction fails"
 - phrasing that treats one valid workflow as the default user intent unless that behavior is a literal API default that matters
 
+When documentation covers a feature that is available through both the standard API and the fluent authoring API:
+
+- show both approaches together
+- label them clearly as `Standard API` and `Fluent API`
+- explain when to reach for each surface if the distinction is not obvious
+
+Do not leave readers wondering whether one example replaces the other.
+
 ## Banned Patterns
 
 Do not use owner-facing or process-facing lines like:

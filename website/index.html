@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF for .NET</title>
   <meta name="description"
-    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, extracting, filling and flattening forms, signing, encrypting, and saving PDFs. Evaluate it freely and subscribe when commercial use begins.">
+    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, extracting, filling and flattening forms, signing, encrypting, and saving PDFs, with a fluent authoring API for new documents. Evaluate it freely and subscribe when commercial use begins.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -53,8 +53,8 @@
           <h1>Fast PDF editing and authoring for .NET.</h1>
           <p class="lead">
             Load, edit, create, extract, sign, protect, and save PDFs in .NET applications and services. Work with
-            AcroForms, form flattening, metadata, text extraction, OCR, encryption, page export and merging, and
-            incremental or rewritten saves through one API.
+            AcroForms, form flattening, metadata, text extraction, OCR, encryption, page export and merging, authored
+            page content through <code>Pdf.New()</code>, and incremental or rewritten saves through one API.
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="./docs.html">Docs</a>
@@ -80,18 +80,25 @@
               <span class="traffic">
                 <span></span><span></span><span></span>
               </span>
-              <span>Simple API</span>
+              <span>Fluent authoring API</span>
             </div>
-            <pre><code>using var pdf = Pdf.Load(input);
-
-var form = await pdf.GetFormAsync();
-var customerName =
-  await form.GetFieldAsync&lt;TextFormField&gt;("Customer.Name");
-
-await customerName.SetValueAsync("Ada Lovelace");
-await form.FlattenAsync();
-await pdf.RemoveHistoryAsync();
-await pdf.SaveAsync(output);</code></pre>
+            <pre><code>await Pdf.New()
+  .Page(page => page
+    .Size(595, 842)
+    .Text(text => text
+      .Value("Monthly delivery report")
+      .HelveticaBold()
+      .FontSize(24)
+      .At(48, 780))
+    .Rectangle(box => box
+      .At(48, 720)
+      .Size(220, 40)
+      .Fill(new RGBColour(0.9, 0.97, 1)))
+    .Text(text => text
+      .Value("Generated with Pdf.New()")
+      .InBox(60, 730, 196, 20)
+      .Wrap()))
+  .SaveToFileAsync("report.pdf");</code></pre>
           </div>
         </div>
       </section>
@@ -107,7 +114,7 @@ await pdf.SaveAsync(output);</code></pre>
           </span>
           <div>
             <strong>One API</strong>
-            <p>Edit, create, extract, protect, and save PDFs.</p>
+            <p>Edit existing PDFs and author new ones through the same library.</p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -148,8 +155,8 @@ await pdf.SaveAsync(output);</code></pre>
             </svg>
           </span>
           <div>
-            <strong>Public docs</strong>
-            <p>Check the docs, benchmarks, API reference, NuGet package, and source before you commit.</p>
+            <strong>Public docs and guides</strong>
+            <p>Check the docs, guides, benchmarks, API reference, NuGet package, and source before you commit.</p>
           </div>
         </article>
       </section>
@@ -169,8 +176,7 @@ await pdf.SaveAsync(output);</code></pre>
             <article class="why-point">
               <div>
                 <h3><code>ZingPDF</code></h3>
-                <p>Load, edit, create, extract, merge, fill forms, flatten forms, sign PDFs, watermark, encrypt, and
-                  save PDFs.</p>
+                <p>Load, edit, create, extract, merge, fill forms, flatten forms, sign PDFs, author pages with <code>Pdf.New()</code>, watermark, encrypt, and save PDFs.</p>
               </div>
             </article>
             <article class="why-point">
@@ -288,7 +294,7 @@ await pdf.SaveAsync(output);</code></pre>
               </span>
               <div>
                 <h3>One library for everyday PDF work</h3>
-                <p>Create, inspect, edit, merge, watermark, encrypt, and update PDFs through one API.</p>
+                <p>Create new documents, inspect existing ones, edit pages, merge, watermark, encrypt, and update PDFs through one API.</p>
               </div>
             </article>
             <article class="why-point">
@@ -302,7 +308,7 @@ await pdf.SaveAsync(output);</code></pre>
               </span>
               <div>
                 <h3>Easy to test</h3>
-                <p>Public docs, packages, and benchmarks let you try it against your own files before you commit.</p>
+                <p>Public docs, guides, examples, packages, and benchmarks let you try it against your own files before you commit.</p>
               </div>
             </article>
             <article class="why-point">
@@ -441,8 +447,7 @@ await pdf.SaveAsync(output);</code></pre>
               </svg>
             </span>
             <h3>Add visible content and pull text back out.</h3>
-            <p>Add text, images, vector paths, watermarks, and fonts, extract plain text from existing files, and run
-              OCR on scanned or image-based pages.</p>
+            <p>Add text, images, vector paths, watermarks, and fonts, author new documents with <code>Pdf.New()</code>, extract plain text from existing files, and run OCR on scanned or image-based pages.</p>
           </article>
           <article class="capability-summary-row">
             <span class="mini-icon" aria-hidden="true">

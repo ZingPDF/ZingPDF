@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to create and edit PDFs with the fluent API in C#</title>
+  <meta name="description"
+    content="Use ZingPDF Pdf.New() and pdf.Pages(...) to create and edit PDFs in C# with pages, text, shapes, images, boxed text, wrapping, and saved output.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to create and edit PDFs with the fluent API in C#</h1>
+          <p class="article-dek">
+            Use <code>Pdf.New()</code> to author a new document and <code>pdf.Pages(...)</code> to edit an existing
+            one with the same page-level fluent builders for text, shapes, images, and watermarks.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#which-api">Which API?</a>
+          <a href="#start-with-pdf-new">Start with Pdf.New()</a>
+          <a href="#edit-existing-pdfs">Edit existing PDFs</a>
+          <a href="#text-shapes-and-layout">Text, shapes, and layout</a>
+          <a href="#bounded-text">Bounded text</a>
+          <a href="#fonts">Fonts</a>
+          <a href="#multi-page-output">Multi-page output</a>
+          <a href="#examples">Examples</a>
+        </nav>
+
+        <section class="article-section" id="which-api">
+          <h2>Which API should you use?</h2>
+          <p>Use <code>Pdf.New()</code> when you are authoring a new document from scratch and want the page content to
+            read top to bottom. Use <code>pdf.Pages(...)</code> when you want the same fluent page operations on a
+            loaded or already-created PDF. Use the standard API when you need to work directly with
+            <code>Pdf.Create(...)</code>, <code>GetPageAsync(...)</code>, and <code>AddTextAsync(...)</code>.
+          </p>
+        </section>
+
+        <section class="article-section" id="start-with-pdf-new">
+          <h2>Start with <code>Pdf.New()</code></h2>
+          <p><code>Pdf.New()</code> creates a fluent builder. Add one or more pages, configure the page content, then save the result.</p>
+          <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Size(595, 842)
+        .Text(text => text
+            .Value("Monthly delivery report")
+            .HelveticaBold()
+            .FontSize(24)
+            .At(48, 780)))
+    .SaveToFileAsync("report.pdf");</code></pre>
+        </section>
+
+        <section class="article-section" id="edit-existing-pdfs">
+          <h2>Edit an existing PDF with <code>pdf.Pages(...)</code></h2>
+          <p><code>pdf.Pages(...)</code> applies fluent page mutations to an existing document. You can select a page,
+            insert one, append one, or remove one, then save through the same fluent chain.</p>
+          <div class="api-compare">
+            <article class="api-compare-card">
+              <h3>Standard API</h3>
+              <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var firstPage = await pdf.GetPageAsync(1);
+var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+
+await firstPage.AddTextAsync(
+    "Approved",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 780),
+        new Coordinate(168, 804)),
+    font,
+    18,
+    RGBColour.Black);
+
+await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+var summaryPage = await pdf.GetPageAsync(2);
+await summaryPage.AddTextAsync(
+    "Summary",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 780),
+        new Coordinate(220, 808)),
+    font,
+    24,
+    RGBColour.Black);
+
+await pdf.SaveAsync(File.Create("edited.pdf"));</code></pre>
+            </article>
+            <article class="api-compare-card">
+              <h3>Fluent API</h3>
+              <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.Pages(pages => pages
+        .Page(1, page => page
+            .Text(text => text
+                .Value("Approved")
+                .HelveticaBold()
+                .FontSize(18)
+                .At(48, 780)))
+        .Append(page => page
+            .Size(595, 842)
+            .Text(text => text
+                .Value("Summary")
+                .HelveticaBold()
+                .FontSize(24)
+                .At(48, 780))))
+    .SaveAsync(File.Create("edited.pdf"));</code></pre>
+            </article>
+          </div>
+          <p>Use <code>Remove(...)</code> or <code>Delete(...)</code> when you want to drop existing pages from the document.</p>
+        </section>
+
+        <section class="article-section" id="text-shapes-and-layout">
+          <h2>Add text, shapes, and layout boxes</h2>
+          <p>The fluent page builder covers the same authored page primitives as the core page API: text, rectangles, lines, paths, images, and watermarks.</p>
+          <div class="api-compare">
+            <article class="api-compare-card">
+              <h3>Standard API</h3>
+              <pre><code class="language-csharp">using var pdf = Pdf.Create();
+var page = await pdf.GetPageAsync(1);
+var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+
+await page.AddPathAsync(new Path(
+    new StrokeOptions(RGBColour.PrimaryBlue, 1),
+    new FillOptions(new RGBColour(0.9, 0.97, 1)),
+    PathType.Linear,
+    [
+        new Coordinate(48, 700),
+        new Coordinate(268, 700),
+        new Coordinate(268, 752),
+        new Coordinate(48, 752),
+        new Coordinate(48, 700)
+    ]));
+
+await page.AddTextAsync(
+    "Northwind ERP Modernisation",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 780),
+        new Coordinate(288, 804)),
+    font,
+    24,
+    RGBColour.Black);</code></pre>
+            </article>
+            <article class="api-compare-card">
+              <h3>Fluent API</h3>
+              <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Size(595, 842)
+        .Rectangle(box => box
+            .At(48, 700)
+            .Size(220, 52)
+            .Stroke(RGBColour.PrimaryBlue, 1)
+            .Fill(new RGBColour(0.9, 0.97, 1)))
+        .Text(text => text
+            .Value("Northwind ERP Modernisation")
+            .HelveticaBold()
+            .FontSize(24)
+            .At(48, 780))
+        .Text(text => text
+            .Value("Generated with Pdf.New()")
+            .Helvetica()
+            .FontSize(11)
+            .InBox(60, 714, 196, 20)
+            .AlignStart()
+            .AlignMiddle()
+            .Padding(0)))
+    .SaveToFileAsync("report.pdf");</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="article-section" id="bounded-text">
+          <h2>Wrap text inside a bounded box</h2>
+          <p>Use <code>InBox(...)</code> when text should stay inside a rectangle. Add <code>Wrap()</code> for multiline content, or <code>ShrinkToFit(...)</code> when it should remain a single line and reduce size as needed.</p>
+          <div class="api-compare">
+            <article class="api-compare-card">
+              <h3>Standard API</h3>
+              <pre><code class="language-csharp">var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+await page.AddTextAsync(
+    "Run the warehouse pilot readiness review and confirm rollout communications with business leads.",
+    Rectangle.FromCoordinates(
+        new Coordinate(378, 500),
+        new Coordinate(519, 528)),
+    font,
+    10,
+    RGBColour.Black,
+    new TextLayoutOptions
+    {
+        Wrap = true,
+        Overflow = TextOverflowMode.Clip,
+        HorizontalAlignment = TextHorizontalAlignment.Start,
+        VerticalAlignment = TextVerticalAlignment.Top,
+        Padding = TextPadding.None
+    });</code></pre>
+            </article>
+            <article class="api-compare-card">
+              <h3>Fluent API</h3>
+              <pre><code class="language-csharp">page.Text(text => text
+    .Value("Run the warehouse pilot readiness review and confirm rollout communications with business leads.")
+    .Helvetica()
+    .FontSize(10)
+    .InBox(378, 500, 141, 28)
+    .AlignStart()
+    .AlignTop()
+    .Padding(0)
+    .Wrap()
+    .ClipOverflow());</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="article-section" id="fonts">
+          <h2>Choose fonts</h2>
+          <p>You can use the built-in standard font helpers, register a TrueType font, or plug in <code>ZingPDF.GoogleFonts</code> through the same text builder.</p>
+          <div class="api-compare">
+            <article class="api-compare-card">
+              <h3>Standard API</h3>
+<pre><code class="language-csharp">var headingFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.TimesBold);
+var brandFont = await pdf.RegisterTrueTypeFontAsync("MyFont-Regular.ttf", fontName: "MyFont-Regular");
+
+await page.AddTextAsync(
+    "Executive summary",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 320),
+        new Coordinate(248, 340)),
+    headingFont,
+    14,
+    RGBColour.Black);
+
+await page.AddTextAsync(
+    "Brand heading",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 280),
+        new Coordinate(248, 304)),
+    brandFont,
+    20,
+    RGBColour.Black);</code></pre>
+            </article>
+            <article class="api-compare-card">
+              <h3>Fluent API</h3>
+              <pre><code class="language-csharp">page.Text(text => text
+    .Value("Executive summary")
+    .TimesBold()
+    .FontSize(14)
+    .At(48, 320));
+
+page.Text(text => text
+    .Value("Brand heading")
+    .WithTrueTypeFont("MyFont-Regular.ttf", fontName: "MyFont-Regular")
+    .FontSize(20)
+    .At(48, 280));</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="article-section" id="multi-page-output">
+          <h2>Build multi-page output</h2>
+          <p>Add more pages by calling <code>Page(...)</code> again. Each callback receives a fresh page builder.</p>
+          <div class="api-compare">
+            <article class="api-compare-card">
+              <h3>Standard API</h3>
+              <pre><code class="language-csharp">using var pdf = Pdf.Create(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+var firstPage = await pdf.GetPageAsync(1);
+var secondPage = await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});</code></pre>
+            </article>
+            <article class="api-compare-card">
+              <h3>Fluent API</h3>
+              <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Size(595, 842)
+        .Text(text => text.Value("Page 1").HelveticaBold().FontSize(18).At(48, 780)))
+    .Page(page => page
+        .Size(595, 842)
+        .Text(text => text.Value("Page 2").HelveticaBold().FontSize(18).At(48, 780)))
+    .SaveToFileAsync("two-pages.pdf");</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="article-section" id="examples">
+          <h2>Runnable examples</h2>
+          <p>The examples folder includes a minimal starter, an existing-PDF editing example, and a larger report
+            layout built with the fluent API.</p>
+          <ul>
+            <li><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/CreateBlankPdf">CreateBlankPdf</a></li>
+            <li><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/EditExistingPdfFluently">EditExistingPdfFluently</a></li>
+            <li><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/CreateProjectStatusReport">CreateProjectStatusReport</a></li>
+          </ul>
+        </section>
+      </article>
+    </main>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
