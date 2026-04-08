@@ -972,6 +972,20 @@ public class Pdf : IPdf, IDisposable
     public static Pdf Create(Action<PageDictionary.PageCreationOptions>? configureOptions = null)
         => PdfBootstrapper.Create(configureOptions);
 
+    /// <summary>
+    /// Starts a fluent authoring workflow for creating a new PDF with page, text, drawing, image, and watermark operations.
+    /// </summary>
+    public static PdfAuthoringBuilder New() => new();
+
+    /// <summary>
+    /// Starts a fluent page-editing workflow for an existing or newly created PDF.
+    /// </summary>
+    public PdfPageEditingBuilder Pages(Action<PdfPagesBuilder> configurePages)
+    {
+        var builder = new PdfPageEditingBuilder(this);
+        return builder.Pages(configurePages);
+    }
+
     private async Task<IReadOnlyList<int>> NormalizeSelectedPageNumbersAsync(IEnumerable<int> pageNumbers)
     {
         ArgumentNullException.ThrowIfNull(pageNumbers);

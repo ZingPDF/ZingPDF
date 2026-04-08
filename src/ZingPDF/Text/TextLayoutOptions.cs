@@ -6,6 +6,11 @@ namespace ZingPDF.Text;
 public sealed record TextLayoutOptions
 {
     /// <summary>
+    /// Wrap text across multiple lines inside the padded layout box.
+    /// </summary>
+    public bool Wrap { get; init; }
+
+    /// <summary>
     /// The padding applied inside the supplied bounding box before layout is calculated.
     /// </summary>
     public TextPadding Padding { get; init; } = TextPadding.Default;
