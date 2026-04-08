@@ -58,6 +58,11 @@ public interface IPdf
     Task<PdfMetadata> GetMetadataAsync();
 
     /// <summary>
+    /// Starts a redaction plan for marking text or regions and then applying redaction overlays.
+    /// </summary>
+    Task<PdfRedactionPlan> RedactionAsync();
+
+    /// <summary>
     /// Appends a new page to the end of the document.
     /// </summary>
     Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null);

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Guides</title>
   <meta name="description"
-    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, blank PDFs, page editing, text, fonts, metadata, extraction, merging, watermarking, compression, rotation, encryption, and save behavior.">
+    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, blank PDFs, page editing, text, fonts, metadata, extraction, redaction, merging, watermarking, compression, rotation, encryption, and save behavior.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -54,9 +54,21 @@
             <input id="guides-search" type="search" placeholder="Search by task, topic, or keyword" autocomplete="off"
               data-guides-search>
           </label>
-          <p class="guides-count" data-guides-count>25 guides</p>
+          <p class="guides-count" data-guides-count>26 guides</p>
         </div>
         <div class="guide-list">
+          <article class="guide-card" data-guide-card data-guide-search-text="redact pdf content exact text regex region rewritten save overlay document security">
+            <p class="guide-kicker">Security and output</p>
+            <h3>How to redact PDF content in C#</h3>
+            <p>
+              Mark exact extracted-text matches or explicit regions, apply redaction overlays, and save a rewritten output file.
+            </p>
+            <div class="guide-card-footer">
+              <span class="guide-meta">Exact text and region redaction</span>
+              <a class="button button-secondary" href="./redact-pdf-csharp.html">Open guide</a>
+            </div>
+          </article>
+
           <article class="guide-card" data-guide-card data-guide-search-text="fluent authoring pdf.new create pdf page text rectangle line path image wrap layout boxed text">
             <p class="guide-kicker">Document creation</p>
             <h3>How to create PDFs with the fluent authoring API in C#</h3>

@@ -608,6 +608,74 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task PdfRedactionPlan_CanMarkExactTextAndApplyOverlay()
+    {
+        using var source = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(240, 180)
+                .Text(text => text
+                    .Value("Account number: 12345")
+                    .HelveticaBold()
+                    .FontSize(16)
+                    .At(20, 120)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
+        using var output = new MemoryStream();
+
+        var plan = await pdf.RedactionAsync();
+        var markCount = await plan.MarkTextAsync("12345");
+        var report = await plan.ApplyAsync(new PdfRedactionOptions
+        {
+            OverlayText = "REDACTED"
+        });
+
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("redaction-text-overlay.pdf", output);
+
+        markCount.Should().Be(1);
+        report.AppliedMarkCount.Should().Be(1);
+        report.PagesTouched.Should().ContainSingle().Which.Should().Be(1);
+        report.Warnings.Should().NotBeEmpty();
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("REDACTED");
+    }
+
+    [Fact]
+    public async Task PdfRedactionPlan_CanMarkRegionAndRequireRewrittenSaveByDefault()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var plan = await pdf.RedactionAsync();
+        plan.MarkRegion(
+            1,
+            Rectangle.FromCoordinates(
+                new DrawingCoordinate(20, 20),
+                new DrawingCoordinate(80, 40)));
+
+        var act = async () => await plan.ApplyAsync(new PdfRedactionOptions
+        {
+            RewriteFile = false
+        });
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+
+        var report = await plan.ApplyAsync();
+        await pdf.SaveAsync(output);
+        await WriteArtifactAsync("redaction-region-overlay.pdf", output);
+
+        report.AppliedMarkCount.Should().Be(1);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain(" f ");
+    }
+
+    [Fact]
     public async Task Page_AddTextAsync_DefaultLayout_DoesNotClipByDefault()
     {
         using var pdf = Pdf.Create();
