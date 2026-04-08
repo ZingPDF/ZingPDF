@@ -817,7 +817,7 @@ await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
             <h3>Current limits</h3>
             <p>This version is a high-level redaction workflow for exact extracted text and explicit regions. It does not yet rewrite every arbitrary painted operator, derive OCR bounds for image-based pages, or redact raster image content directly.</p>
 
-            <p>Redaction currently uses the standard <code>Pdf</code> API because it is a document-level workflow rather than a page-authoring flow.</p>
+            <p>Redaction currently uses the standard <code>Pdf</code> API because it is a document-level workflow over an existing file, rather than an authored page layout.</p>
 
             <p>
               Related guide:
