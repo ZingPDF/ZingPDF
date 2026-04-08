@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Developer Docs</title>
   <meta name="description"
-    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), fonts, forms, metadata, encryption, save behavior, OCR, and API reference links.">
+    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), fonts, forms, metadata, encryption, redaction, save behavior, OCR, and API reference links.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -55,6 +55,7 @@
             <a href="#metadata">Metadata</a>
             <a href="#forms">Forms</a>
             <a href="#encryption">Encryption</a>
+            <a href="#redaction">Redaction</a>
             <a href="#save">Save Behavior</a>
             <a href="#ocr">OCR</a>
             <a href="#low-level">Low-Level Access</a>
@@ -133,7 +134,9 @@ await pdf.SaveAsync(output);</code></pre>
 
             <h3>Edit an existing PDF</h3>
             <p>Standard API:</p>
-            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+            <pre><code class="language-csharp">using System.Text.RegularExpressions;
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
 var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
 
 var firstPage = await pdf.GetPageAsync(1);
@@ -289,7 +292,7 @@ await pdf.SaveAsync(output);</code></pre>
             <div class="doc-grid">
               <article class="doc-card">
                 <h3><code>ZingPDF</code></h3>
-                <p>The main PDF library for loading, creating, editing, merging, watermarking, compression, forms,
+                <p>The main PDF library for loading, creating, editing, merging, watermarking, compression, redaction, forms,
                   metadata, and encryption.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
@@ -778,6 +781,50 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
             </p>
           </section>
 
+          <section class="doc-section" id="redaction">
+            <p class="eyebrow">Redaction</p>
+            <h2>Redaction marks and rewritten output</h2>
+            <p>ZingPDF can mark exact extracted-text matches or explicit page regions, apply redaction overlays, and switch the document to rewritten-file save behavior by default. This version does not yet rewrite every arbitrary painted operator or raster image payload.</p>
+
+            <h3>Mark exact text and explicit regions</h3>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var plan = await pdf.RedactionAsync();
+
+await plan.MarkTextAsync("12345");
+await plan.MarkTextAsync(new Regex(@"\b\d{3}-\d{2}-\d{4}\b"));
+plan.MarkRegion(
+    1,
+    Rectangle.FromCoordinates(
+        new Coordinate(72, 520),
+        new Coordinate(180, 548)));
+
+await plan.ApplyAsync(new PdfRedactionOptions
+{
+    OverlayText = "REDACTED"
+});
+
+await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
+
+            <h3>What v1 redaction does</h3>
+            <ul>
+              <li><code>MarkTextAsync(...)</code> uses extracted glyph runs to find exact string or regex matches.</li>
+              <li><code>MarkRegion(...)</code> adds an explicit rectangle on a known page.</li>
+              <li><code>ApplyAsync(...)</code> draws the redaction overlay and, by default, requires rewritten-file save behavior.</li>
+              <li><code>PdfRedactionOptions</code> controls fill colour, overlay text, and whether rewritten-file save behavior is required.</li>
+            </ul>
+
+            <h3>Current limits</h3>
+            <p>This version is a high-level redaction workflow for exact extracted text and explicit regions. It does not yet rewrite every arbitrary painted operator, derive OCR bounds for image-based pages, or redact raster image content directly.</p>
+
+            <p>Redaction currently uses the standard <code>Pdf</code> API because it is a document-level workflow rather than a page-authoring flow.</p>
+
+            <p>
+              Related guide:
+              <a class="inline-link" href="./redact-pdf-csharp.html">Redact PDF content in C#</a>.
+            </p>
+          </section>
+
           <section class="doc-section" id="save">
             <p class="eyebrow">Save Behavior</p>
             <h2>How saving works</h2>
@@ -818,6 +865,7 @@ await pdf.SaveAsync(File.Create("sanitized.pdf"));</code></pre>
               Related guides:
               <a class="inline-link" href="./rewrite-pdf-without-incremental-history-csharp.html">Rewrite a PDF without
                 incremental history</a>,
+              <a class="inline-link" href="./redact-pdf-csharp.html">Redact PDF content</a>,
               <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Add watermarks</a>, and
               <a class="inline-link" href="./compress-pdf-csharp.html">Compress output</a>.
             </p>
