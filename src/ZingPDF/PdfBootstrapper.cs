@@ -173,6 +173,7 @@ internal static class PdfBootstrapper
         public Task<int> GetPageCountAsync() => throw new NotSupportedException();
         public Task<Form?> GetFormAsync() => throw new NotSupportedException();
         public Task<PdfMetadata> GetMetadataAsync() => throw new NotSupportedException();
+        public Task<PdfRedactionPlan> RedactionAsync() => throw new NotSupportedException();
         public Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task DeletePageAsync(int pageNumber) => throw new NotSupportedException();

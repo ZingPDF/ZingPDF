@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Redact PDF Content in C#</title>
+  <meta name="description"
+    content="Redact exact extracted-text matches or explicit page regions in C# with ZingPDF, apply overlays, and save the document as a rewritten file.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api.html">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to redact PDF content in C#</h1>
+          <p class="article-dek">
+            Mark exact extracted-text matches or explicit page regions, apply redaction overlays, and save the output as a rewritten file.
+          </p>
+          <p>
+            This first redaction API is a document-level workflow on <code>Pdf</code>. It applies overlays and rewritten-file save behavior, rather than a page-authoring chain.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#regex-matches">Regex matches</a>
+          <a href="#region-marks">Region marks</a>
+          <a href="#save-model">Save model</a>
+          <a href="#limits">Current limits</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Mark exact text and apply redaction</h2>
+          <p>
+            This example redacts one exact text match, adds overlay text, and saves the result as a rewritten file.
+          </p>
+
+          <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var plan = await pdf.RedactionAsync();
+
+await plan.MarkTextAsync("12345");
+
+await plan.ApplyAsync(new PdfRedactionOptions
+{
+    OverlayText = "REDACTED"
+});
+
+await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="regex-matches">
+          <h2>Match text with a regular expression</h2>
+          <p>
+            Use the regex overload when the content follows a known pattern, such as identifiers or account numbers.
+          </p>
+
+          <pre><code class="language-csharp">using System.Text.RegularExpressions;
+
+await plan.MarkTextAsync(
+    new Regex(@"\b\d{3}-\d{2}-\d{4}\b"));</code></pre>
+        </section>
+
+        <section class="article-section" id="region-marks">
+          <h2>Mark an explicit region on a page</h2>
+          <p>
+            Use region marks when you already know the page and rectangle that should be covered.
+          </p>
+
+          <pre><code class="language-csharp">plan.MarkRegion(
+    1,
+    Rectangle.FromCoordinates(
+        new Coordinate(72, 520),
+        new Coordinate(180, 548)));</code></pre>
+        </section>
+
+        <section class="article-section" id="save-model">
+          <h2>Redaction uses rewritten-file save behavior</h2>
+          <p>
+            <code>ApplyAsync(...)</code> requires rewritten-file save behavior by default. That means the redaction workflow opts into <code>RemoveHistoryAsync()</code> before you save, so earlier incremental revisions are not preserved in the output file.
+          </p>
+
+          <pre><code class="language-csharp">await plan.ApplyAsync(new PdfRedactionOptions
+{
+    FillColor = RGBColour.Black,
+    OverlayText = "REDACTED"
+});
+
+await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="limits">
+          <h2>Current limits</h2>
+          <p>
+            This version is aimed at exact extracted text and known page regions. It does not yet rewrite every arbitrary painted operator, derive OCR bounds for image-based pages, or redact raster image content directly.
+          </p>
+        </section>
+
+        <section class="article-cta">
+          <h2>Need the document-level API details too?</h2>
+          <p>
+            The docs page covers <code>PdfRedactionPlan</code>, save behavior, and the rest of the core document workflow.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./docs.html#redaction">Open redaction docs</a>
+            <a class="button button-secondary" href="./capabilities.html">Open capabilities</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
