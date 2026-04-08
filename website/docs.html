@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Developer Docs</title>
   <meta name="description"
-    content="Developer documentation for ZingPDF, including quick start, fonts, forms, metadata, encryption, save behavior, OCR, and API reference links.">
+    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), fonts, forms, metadata, encryption, save behavior, OCR, and API reference links.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -40,7 +40,7 @@
         <div class="docs-hero-copy">
           <p class="eyebrow">Docs</p>
           <h1>ZingPDF docs</h1>
-          <p class="lead">Curated documentation for the main API surface, package choices, and PDF behavior.</p>
+          <p class="lead">Curated documentation for the main API surface, fluent authoring, package choices, and PDF behavior.</p>
         </div>
       </section>
 
@@ -70,7 +70,8 @@
             <h2>Load, create, edit, and save</h2>
             <p>Start by installing the package, importing the core namespaces, and deciding whether you are loading an
               existing PDF or creating a new one from scratch. The main entry points are <code>Pdf.Load(...)</code> for
-              existing documents and <code>Pdf.Create(...)</code> for new ones.
+              existing documents, <code>Pdf.Create(...)</code> for low-level blank documents, and <code>Pdf.New()</code>
+              for the fluent authoring surface.
             </p>
 
             <h3>Install the package</h3>
@@ -95,6 +96,95 @@ var firstPage = await pdf.GetPageAsync(1);</code></pre>
 
 using var output = File.Create("blank.pdf");
 await pdf.SaveAsync(output);</code></pre>
+
+            <h3>Author a new PDF fluently</h3>
+            <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Size(595, 842)
+        .Text(text => text
+            .Value("Monthly delivery report")
+            .HelveticaBold()
+            .FontSize(24)
+            .At(48, 780))
+        .Rectangle(box => box
+            .At(48, 720)
+            .Size(220, 40)
+            .Stroke(RGBColour.PrimaryBlue, 1)
+            .Fill(new RGBColour(0.9, 0.97, 1)))
+        .Text(text => text
+            .Value("Generated with the fluent authoring API")
+            .Helvetica()
+            .FontSize(11)
+            .InBox(60, 730, 196, 20)
+            .AlignStart()
+            .AlignMiddle()
+            .Padding(0)))
+    .SaveToFileAsync("authored.pdf");</code></pre>
+
+            <p><code>Pdf.New()</code> is a builder for authored pages. It covers page sizing, text, shapes, paths,
+              images, watermarks, boxed text alignment, wrapping, and font registration through the same core
+              document APIs. Use <code>pdf.Pages(...)</code> when you want the same page-level fluent operations on an
+              existing document.</p>
+
+            <p>Use the standard API when you are loading an existing PDF, working directly with <code>Pdf</code> and
+              <code>Page</code>, or need explicit control over each step. Use the fluent API when you are building a new
+              document from authored content and want the page layout to read top to bottom.
+            </p>
+
+            <h3>Edit an existing PDF</h3>
+            <p>Standard API:</p>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+
+var firstPage = await pdf.GetPageAsync(1);
+await firstPage.AddTextAsync(
+    "Approved",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 780),
+        new Coordinate(168, 804)),
+    font,
+    18,
+    RGBColour.Black);
+
+var summaryPage = await pdf.AppendPageAsync(options =>
+{
+    options.MediaBox = Rectangle.FromDimensions(595, 842);
+});
+
+await summaryPage.AddTextAsync(
+    "Summary",
+    Rectangle.FromCoordinates(
+        new Coordinate(48, 780),
+        new Coordinate(220, 808)),
+    font,
+    24,
+    RGBColour.Black);
+
+await pdf.SaveAsync(File.Create("edited.pdf"));</code></pre>
+            <p>Fluent API:</p>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+await pdf.Pages(pages => pages
+        .Page(1, page => page
+            .Text(text => text
+                .Value("Approved")
+                .HelveticaBold()
+                .FontSize(18)
+                .At(48, 780)))
+        .Append(page => page
+            .Size(595, 842)
+            .Text(text => text
+                .Value("Summary")
+                .HelveticaBold()
+                .FontSize(24)
+                .At(48, 780))))
+    .SaveAsync(File.Create("edited.pdf"));</code></pre>
+            <p><code>Remove(...)</code> and <code>Delete(...)</code> are also available when you want to drop pages from an existing document.</p>
+
+            <p>
+              Dedicated guide:
+              <a class="inline-link" href="./fluent-pdf-authoring-csharp.html">How to create PDFs with the fluent authoring API in C#</a>.
+            </p>
 
             <p>When saving, use an output stream that is writable and seekable. If you save to a different stream than
               the input stream, it must also be empty.</p>
@@ -173,6 +263,13 @@ await pdf.SaveAsync(output);</code></pre>
               <a class="inline-link" href="./extract-text-from-pdf-csharp.html">Extract text</a>,
               <a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Add watermarks</a>, and
               <a class="inline-link" href="./compress-pdf-csharp.html">Compress output</a>.
+            </p>
+
+            <p>
+              Runnable examples:
+              <a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/CreateBlankPdf">CreateBlankPdf</a>
+              and
+              <a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/CreateProjectStatusReport">CreateProjectStatusReport</a>.
             </p>
           </section>
 
@@ -273,6 +370,16 @@ await page.AddTextAsync(
     18,
     RGBColour.Black);</code></pre>
 
+            <h3>Use a standard font in the fluent API</h3>
+            <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Text(text => text
+            .Value("Hello, world")
+            .Helvetica()
+            .FontSize(18)
+            .At(48, 780)))
+    .SaveToFileAsync("hello.pdf");</code></pre>
+
             <h3>Usable standard PDF fonts</h3>
             <ul>
               <li><code>StandardPdfFonts.Helvetica</code></li>
@@ -299,6 +406,16 @@ await page.AddTextAsync(
     font,
     18,
     RGBColour.Black);</code></pre>
+
+            <h3>Use an embedded TrueType font in the fluent API</h3>
+            <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Text(text => text
+            .Value("Custom font text")
+            .WithTrueTypeFont("MyFont-Regular.ttf", fontName: "MyFont-Regular")
+            .FontSize(18)
+            .At(48, 780)))
+    .SaveToFileAsync("custom-font.pdf");</code></pre>
 
             <h3>Register a Google Font</h3>
             <pre><code class="language-csharp">using ZingPDF.GoogleFonts;
@@ -337,9 +454,10 @@ await page.AddTextAsync(
 
           <section class="doc-section" id="drawing">
             <p class="eyebrow">Drawing</p>
-            <h2>Draw vector paths on a page</h2>
-            <p>The page API supports drawing vector paths with stroke and fill options. Use linear paths for straight
-              segments and bezier paths for curves.</p>
+            <h2>Draw vector paths and authored page content</h2>
+            <p>The page API supports drawing vector paths with stroke and fill options. The fluent authoring API uses
+              the same drawing primitives for rectangles, lines, paths, images, watermarks, and positioned or boxed
+              text.</p>
 
             <h3>Draw a stroked path</h3>
             <pre><code class="language-csharp">using ZingPDF.Elements.Drawing;
@@ -366,6 +484,42 @@ await page.AddPathAsync(new Path(
         new Coordinate(90, 80),
         new Coordinate(110, 20)
     ]));</code></pre>
+
+            <h3>Draw the same kind of content fluently</h3>
+            <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Line(line => line
+            .From(48, 720)
+            .To(220, 720)
+            .Stroke(RGBColour.PrimaryRed, 2))
+        .Rectangle(box => box
+            .At(48, 660)
+            .Size(120, 40)
+            .Stroke(RGBColour.PrimaryBlue, 1)
+            .Fill(new RGBColour(0.9, 0.97, 1)))
+        .Path(path => path
+            .Bezier()
+            .Point(220, 660)
+            .Point(260, 720)
+            .Point(320, 720)
+            .Point(360, 660)
+            .Fill(RGBColour.PrimaryBlue)))
+    .SaveToFileAsync("drawing.pdf");</code></pre>
+
+            <h3>Boxed text, alignment, and wrapping</h3>
+            <pre><code class="language-csharp">await Pdf.New()
+    .Page(page => page
+        .Text(text => text
+            .Value("A longer note that should wrap inside the box.")
+            .Helvetica()
+            .FontSize(11)
+            .InBox(48, 640, 180, 42)
+            .AlignStart()
+            .AlignTop()
+            .Padding(0)
+            .Wrap()
+            .ClipOverflow()))
+    .SaveToFileAsync("boxed-text.pdf");</code></pre>
 
             <p>
               Related guides:
