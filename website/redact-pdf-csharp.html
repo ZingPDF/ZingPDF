@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>How to Redact PDF Content in C#</title>
   <meta name="description"
-    content="Redact exact extracted-text matches or explicit page regions in C# with ZingPDF, apply overlays, and save the document as a rewritten file.">
+    content="Redact exact extracted-text matches or explicit page regions in C# with ZingPDF, remove matched text from supported page content, and save the document as a rewritten file.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -41,10 +41,10 @@
           <p class="eyebrow">Guide</p>
           <h1>How to redact PDF content in C#</h1>
           <p class="article-dek">
-            Mark exact extracted-text matches or explicit page regions, apply redaction overlays, and save the output as a rewritten file.
+            Mark exact extracted-text matches or explicit page regions, remove matched text and intersecting supported painted content, and save the output as a rewritten file.
           </p>
           <p>
-            This first redaction API is a document-level workflow on <code>Pdf</code>. Use it to mark exact extracted-text matches or explicit regions, apply overlays, and save rewritten output.
+            This redaction API is a document-level workflow on <code>Pdf</code>. It removes matched text from supported page content, redacts intersecting supported vector and XObject content, draws the visible redaction overlay, and rewrites the saved file so earlier file history is not preserved.
           </p>
         </header>
 
@@ -60,7 +60,7 @@
         <section class="article-section" id="minimal-example">
           <h2>Mark exact text and apply redaction</h2>
           <p>
-            This example redacts one exact text match, adds overlay text, and saves the result as a rewritten file.
+            This example removes one exact text match from supported page content, adds overlay text, and saves the result as a rewritten file.
           </p>
 
           <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
@@ -92,7 +92,7 @@ await plan.MarkTextAsync(
         <section class="article-section" id="region-marks">
           <h2>Mark an explicit region on a page</h2>
           <p>
-            Use region marks when you already know the page and rectangle that should be covered.
+            Use region marks when you already know the page and rectangle that should be removed.
           </p>
 
           <pre><code class="language-csharp">plan.MarkRegion(
@@ -105,7 +105,7 @@ await plan.MarkTextAsync(
         <section class="article-section" id="save-model">
           <h2>Redaction uses rewritten-file save behavior</h2>
           <p>
-            <code>ApplyAsync(...)</code> requires rewritten-file save behavior by default. That means the redaction workflow opts into <code>RemoveHistoryAsync()</code> before you save, so earlier incremental revisions are not preserved in the output file.
+            <code>ApplyAsync(...)</code> opts into <code>RemoveHistoryAsync()</code> before you save, so earlier incremental revisions are not preserved in the output file.
           </p>
 
           <pre><code class="language-csharp">await plan.ApplyAsync(new PdfRedactionOptions
@@ -120,7 +120,7 @@ await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
         <section class="article-section" id="limits">
           <h2>Current limits</h2>
           <p>
-            This version is aimed at exact extracted text and known page regions. It does not yet rewrite every arbitrary painted operator, derive OCR bounds for image-based pages, or redact raster image content directly.
+            This version removes matched text from supported page content and structurally redacts intersecting vector paths, image XObjects, and form XObjects. It still refuses inline images and shading content, and it does not yet derive OCR bounds for scanned pages.
           </p>
         </section>
 

@@ -110,8 +110,8 @@ public class TextExtractor : ITextExtractor
 
     private async Task<List<GlyphRun>> ExtractPageGlyphRunsAsync(PageDictionary pageDictionary, int pageNumber)
     {
-        var contents = await pageDictionary.Contents.GetAsync();
-        if (contents is null)
+        var contents = await ResolveContentsAsync(pageDictionary);
+        if (contents.Count == 0)
         {
             return [];
         }
@@ -136,8 +136,8 @@ public class TextExtractor : ITextExtractor
 
     private async Task<List<TextRun>> ExtractPageTextRunsAsync(PageDictionary pageDictionary, int pageNumber)
     {
-        var contents = await pageDictionary.Contents.GetAsync();
-        if (contents is null)
+        var contents = await ResolveContentsAsync(pageDictionary);
+        if (contents.Count == 0)
         {
             return [];
         }
@@ -214,8 +214,8 @@ public class TextExtractor : ITextExtractor
             return cached;
         }
 
-        var contents = await pageDictionary.Contents.GetAsync();
-        if (contents is null)
+        var contents = await ResolveContentsAsync(pageDictionary);
+        if (contents.Count == 0)
         {
             _pagePlainTextCache[cacheKey] = string.Empty;
             return string.Empty;
@@ -254,6 +254,47 @@ public class TextExtractor : ITextExtractor
         var plainText = builder.ToString();
         _pagePlainTextCache[cacheKey] = plainText;
         return plainText;
+    }
+
+    private async Task<IReadOnlyList<StreamObject<StreamDictionary>>> ResolveContentsAsync(PageDictionary pageDictionary)
+    {
+        var rawContents = await pageDictionary.Contents.GetRawValueAsync();
+
+        switch (rawContents)
+        {
+            case null:
+                return [];
+
+            case IndirectObjectReference reference:
+                return [await _pdf.Objects.GetAsync<StreamObject<StreamDictionary>>(reference)];
+
+            case StreamObject<StreamDictionary> streamObject:
+                return [streamObject];
+
+            case Syntax.Objects.ArrayObject array:
+            {
+                var streams = new List<StreamObject<StreamDictionary>>();
+
+                foreach (var item in array)
+                {
+                    var resolved = item is IndirectObjectReference itemReference
+                        ? (await _pdf.Objects.GetAsync(itemReference)).Object
+                        : item;
+
+                    if (resolved is not StreamObject<StreamDictionary> contentStream)
+                    {
+                        continue;
+                    }
+
+                    streams.Add(contentStream);
+                }
+
+                return streams;
+            }
+
+            default:
+                return [];
+        }
     }
 
     private async Task<TextExtractionResult> ExtractSegmentsResultAsync()

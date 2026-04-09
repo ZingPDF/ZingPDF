@@ -302,9 +302,9 @@
                       revision history.</td>
                   </tr>
                   <tr>
-                    <td>Apply redaction overlays with rewritten-file save behavior</td>
+                    <td>Structural text redaction with rewritten-file save behavior</td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>Marks exact extracted-text matches or explicit page regions, applies overlays, and rewrites file history by default.</td>
+                    <td>Marks exact extracted-text matches or explicit page regions, removes matched text, redacts intersecting vector paths and XObjects, draws overlays, and rewrites the document so earlier file history is not preserved.</td>
                   </tr>
                 </tbody>
               </table>
@@ -357,14 +357,14 @@
                       <td>High-level signing does not yet create visible signature fields automatically or sign encrypted output.</td>
                     </tr>
                   <tr>
-                    <td>Structural redaction of arbitrary painted operators</td>
+                    <td>Inline image and shading redaction</td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>The current redaction API applies overlays and rewritten-file save behavior. Full operator-level removal is not exposed yet.</td>
+                    <td>The current redaction API handles supported vector content, image XObjects, and form XObjects. Inline images and shading content are still rejected.</td>
                   </tr>
                   <tr>
-                    <td>OCR-driven and raster image redaction</td>
+                    <td>OCR-driven redaction for scanned pages</td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>OCR result bounds and image-content redaction are not exposed through the high-level API yet.</td>
+                    <td>OCR result bounds for scanned or image-based pages are not exposed through the redaction API yet.</td>
                   </tr>
                   <tr>
                     <td>High-level annotation APIs</td>
