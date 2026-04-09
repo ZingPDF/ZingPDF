@@ -1,5 +1,8 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
+using ZingPDF.InteractiveFeatures;
+using ZingPDF.Parsing.Parsers;
 using ZingPDF.Syntax;
+using ZingPDF.Syntax.ContentStreamsAndResources;
 using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
@@ -15,10 +18,13 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         string? description,
         FieldProperties properties,
         Form parent,
-        IPdf pdf
+        IPdf pdf,
+        IParser<ContentStream> contentStreamParser
         )
         : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdf)
     {
+        private readonly IParser<ContentStream> _contentStreamParser = contentStreamParser;
+
         /// <summary>
         /// Gets the available options for the field, including their current selected state.
         /// </summary>
@@ -40,7 +46,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 
                 options.Add(new ChoiceItem(optionValues.Item1, optionValues.Item2, selected, SelectOptionAsync, DeselectOptionAsync));
             }
-            
+
             return options.AsReadOnly();
         }
 
@@ -116,6 +122,8 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 
                 SetValue(new ArrayObject(selectedOptions, ObjectContext.UserCreated));
             }
+
+            await UpdateAppearanceAsync();
         }
 
         protected async Task DeselectOptionAsync(PdfString value)
@@ -124,17 +132,24 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
 
             selectedOptions.Remove(value);
 
-            if (selectedOptions.Count == 1)
+            if (selectedOptions.Count == 0)
             {
-                SetValue(value);
+                SetValue(null);
+            }
+            else if (selectedOptions.Count == 1)
+            {
+                SetValue(selectedOptions[0]);
             }
             else
             {
                 SetValue(new ArrayObject(selectedOptions, ObjectContext.UserCreated));
             }
+
+            await UpdateAppearanceAsync();
         }
 
-        private async Task<bool> IsSelectedAsync(PdfString value) => (await GetSelectedOptionsAsync()).Contains(value);
+        private async Task<bool> IsSelectedAsync(PdfString value)
+            => (await GetSelectedOptionsAsync()).Any(selected => PdfStringsEqual(selected, value));
 
         private async Task<List<PdfString>> GetSelectedOptionsAsync()
         {
@@ -144,6 +159,11 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             }
 
             var val = await _fieldDictionary.V.GetAsync();
+
+            if (val is null)
+            {
+                return [];
+            }
 
             if (val is PdfString singleOption)
             {
@@ -158,6 +178,68 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             throw new InvalidOperationException($"Invalid field value encountered: {val}");
         }
 
+        private async Task UpdateAppearanceAsync()
+        {
+            var selectedDisplayText = await GetSelectedDisplayTextAsync();
+            var manager = new VariableTextAppearanceStreamManager(
+                await _parent.GetFormDictionaryAsync(),
+                _fieldDictionary,
+                _pdf,
+                _contentStreamParser,
+                await _parent.GetFontProvidersAsync());
+
+            if (string.IsNullOrWhiteSpace(selectedDisplayText))
+            {
+                await manager.WipeFieldAsync();
+                _pdf.Objects.Update(_fieldIndirectObject);
+                _parent.MarkForUpdate();
+                return;
+            }
+
+            await manager.WriteTextAsync(PdfString.FromTextAuto(selectedDisplayText, ObjectContext.FromImplicitOperator));
+        }
+
+        private async Task<string?> GetSelectedDisplayTextAsync()
+        {
+            var selectedOptions = await GetSelectedOptionsAsync();
+            if (selectedOptions.Count == 0)
+            {
+                return null;
+            }
+
+            var availableOptions = await GetOptionsAsync();
+            var displayValues = new List<string>(selectedOptions.Count);
+
+            foreach (var selected in selectedOptions)
+            {
+                var match = availableOptions.FirstOrDefault(option => PdfStringsEqual(option.Value, selected));
+                displayValues.Add(ZingPDF.Extensions.PdfStringExtensions.Decode(match?.Text ?? selected));
+            }
+
+            return string.Join(Properties.IsMultiSelect ? "\n" : ", ", displayValues);
+        }
+
+        private static bool PdfStringsEqual(PdfString left, PdfString right)
+        {
+            ArgumentNullException.ThrowIfNull(left);
+            ArgumentNullException.ThrowIfNull(right);
+
+            if (left.Kind != right.Kind || left.TextEncoding != right.TextEncoding)
+            {
+                try
+                {
+                    return ZingPDF.Extensions.PdfStringExtensions.Decode(left)
+                        == ZingPDF.Extensions.PdfStringExtensions.Decode(right);
+                }
+                catch
+                {
+                    return left.Bytes.AsSpan().SequenceEqual(right.Bytes);
+                }
+            }
+
+            return left.Bytes.AsSpan().SequenceEqual(right.Bytes);
+        }
+
         // Each item in the Opt array is either a single text string, or an array of 2 values (export value and display text)
         private static (PdfString, PdfString) GetOptionValues(IPdfObject option)
         {
@@ -165,9 +247,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
             {
                 return ((ary[0] as PdfString)!, (ary[1] as PdfString)!);
             }
-            
+
             var text = option as PdfString;
-            
+
             return (text!, text!);
         }
     }

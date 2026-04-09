@@ -49,6 +49,11 @@ public interface IPdf
     Task<Form?> GetFormAsync();
 
     /// <summary>
+    /// Gets the document form wrapper, creating an empty AcroForm when the document does not already have one.
+    /// </summary>
+    Task<Form> GetOrCreateFormAsync();
+
+    /// <summary>
     /// Gets the editable document metadata backed by the trailer Info dictionary.
     /// </summary>
     /// <remarks>

@@ -65,6 +65,10 @@ namespace ZingPDF.Syntax.CommonDataStructures
         public static Rectangle FromCoordinates(Coordinate lowerLeft, Coordinate upperRight, ObjectContext context)
             => new(lowerLeft, upperRight, context);
 
-        public override object Clone() => FromSize(Size, Context);
+        public override object Clone()
+            => FromCoordinates(
+                new Coordinate(LowerLeft.X, LowerLeft.Y),
+                new Coordinate(UpperRight.X, UpperRight.Y),
+                Context);
     }
 }
