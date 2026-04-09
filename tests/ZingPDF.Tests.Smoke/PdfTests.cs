@@ -1,7 +1,9 @@
 using FluentAssertions;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Formats.Asn1;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1624,6 +1626,7 @@ public class PdfTests
         writtenPdf.Should().Contain("/ByteRange [");
         writtenPdf.Should().Contain("/SubFilter /adbe.pkcs7.detached");
         writtenPdf.Should().Contain("/AP <<");
+        AssertDetachedSignatureVerifies(output.ToArray());
 
         output.Position = 0;
         using var reloaded = Pdf.Load(output);
@@ -1688,6 +1691,7 @@ public class PdfTests
         writtenPdf.Should().Contain("/Rect [0.000 0.000 0.000 0.000]");
         writtenPdf.Should().Contain("/F 34");
         writtenPdf.Should().NotContain("/AP <<");
+        AssertDetachedSignatureVerifies(output.ToArray());
 
         output.Position = 0;
         using var reloaded = Pdf.Load(output);
@@ -2475,5 +2479,48 @@ public class PdfTests
 
         output.Position = 0;
         await File.WriteAllBytesAsync(artifactPath, output.ToArray());
+    }
+
+    private static void AssertDetachedSignatureVerifies(byte[] pdfBytes)
+    {
+        var ascii = Encoding.ASCII.GetString(pdfBytes);
+        var byteRangeMatch = Regex.Match(ascii, @"/ByteRange \[(\d+) (\d+) (\d+) (\d+)\]");
+        byteRangeMatch.Success.Should().BeTrue("expected the signed PDF to contain a ByteRange entry");
+
+        var range0 = int.Parse(byteRangeMatch.Groups[1].Value);
+        var range1 = int.Parse(byteRangeMatch.Groups[2].Value);
+        var range2 = int.Parse(byteRangeMatch.Groups[3].Value);
+        var range3 = int.Parse(byteRangeMatch.Groups[4].Value);
+
+        var signedContent = new byte[range1 + range3];
+        Buffer.BlockCopy(pdfBytes, range0, signedContent, 0, range1);
+        Buffer.BlockCopy(pdfBytes, range2, signedContent, range1, range3);
+
+        var contentsStartMarker = "/Contents <";
+        var contentsStart = ascii.IndexOf(contentsStartMarker, StringComparison.Ordinal);
+        contentsStart.Should().BeGreaterThanOrEqualTo(0, "expected the signed PDF to contain signature contents");
+
+        var hexStart = contentsStart + contentsStartMarker.Length;
+        var hexEnd = ascii.IndexOf('>', hexStart);
+        hexEnd.Should().BeGreaterThan(hexStart, "expected the signature contents hex string to terminate");
+
+        var allSignatureBytes = new byte[(hexEnd - hexStart) / 2];
+        for (var i = 0; i < allSignatureBytes.Length; i++)
+        {
+            allSignatureBytes[i] = Convert.ToByte(ascii.Substring(hexStart + (i * 2), 2), 16);
+        }
+
+        AsnDecoder.ReadEncodedValue(
+            allSignatureBytes,
+            AsnEncodingRules.BER,
+            out _,
+            out _,
+            out var consumed);
+
+        var cmsBytes = allSignatureBytes.AsSpan(0, consumed).ToArray();
+        var cms = new SignedCms(new ContentInfo(signedContent), detached: true);
+        cms.Decode(cmsBytes);
+        cms.CheckHash();
+        cms.CheckSignature(verifySignatureOnly: true);
     }
 }

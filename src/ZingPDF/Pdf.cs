@@ -667,7 +667,8 @@ public class Pdf : IPdf, IDisposable
         }
 
         _pendingSignature = new PendingPdfSignature(signatureObject, certificate, options);
-        _rewriteAllObjects = false;
+        _removeHistoryOnSave = true;
+        _rewriteAllObjects = true;
     }
 
     private async Task<IndirectObject> EnsureHiddenSignatureFieldAsync(string? fieldName)
