@@ -99,7 +99,44 @@ using IOPath = System.IO.Path;
 
 //var test = new CrossReferenceEntry(0, 0, true, true);
 
-await FlattenForm();
+//await FlattenForm();
+
+await Redact();
+
+static async Task Redact()
+{
+    using var source = new MemoryStream();
+    using var output = new FileStream("output.pdf", FileMode.Create);
+
+    await Pdf.New()
+        .Page(page => page
+            .Size(200, 200)
+            .Rectangle(box => box
+                .At(20, 20)
+                .Size(60, 40)
+                .Fill(RGBColour.PrimaryBlue))
+            .Text(text => text
+                .Value("Secret")
+                .HelveticaBold()
+                .FontSize(18)
+                .At(20, 120)))
+        .SaveAsync(source);
+
+    source.Position = 0;
+    using var pdf = Pdf.Load(source);
+
+    var plan = await pdf.RedactionAsync();
+    plan.MarkRegion(
+        1,
+        Rectangle.FromCoordinates(
+            new Coordinate(18, 18),
+            new Coordinate(90, 70)));
+
+    await plan.MarkTextAsync("Secret");
+
+    await plan.ApplyAsync(new PdfRedactionOptions { OverlayText = "REDACTED" });
+    await pdf.SaveAsync(output);
+}
 
 static async Task FlattenForm()
 {

@@ -150,7 +150,9 @@ public sealed class PdfAuthoringBuilder
             var text = new TextObject(
                 Value,
                 new Coordinate(X!.Value, Y!.Value),
-                font.CreateOptions(FontSize, Colour));
+                font,
+                FontSize,
+                Colour);
 
             await page.AddTextAsync(text);
         }

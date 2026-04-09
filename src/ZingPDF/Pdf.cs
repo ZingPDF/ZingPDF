@@ -19,6 +19,7 @@ using ZingPDF.IncrementalUpdates;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
+using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
 using ZingPDF.Signing;
 using ZingPDF.Syntax;
@@ -130,7 +131,11 @@ public class Pdf : IPdf, IDisposable
 
     /// <inheritdoc />
     public Task<PdfRedactionPlan> RedactionAsync()
-        => Task.FromResult(new PdfRedactionPlan(this));
+        => Task.FromResult(new PdfRedactionPlan(
+            this,
+            new StrictContentStreamParser(
+                _services.GetRequiredService<IParserResolver>(),
+                _services.GetRequiredService<ITokenTypeIdentifier>())));
 
     /// <inheritdoc />
     public async Task<Page> GetPageAsync(int pageNumber)

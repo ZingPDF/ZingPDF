@@ -192,9 +192,10 @@ namespace ZingPDF.Parsing
 
             return token[cursor] switch
             {
-                (byte)'R' => typeof(IndirectObjectReference),
-                (byte)'o' when StartsWith(token[cursor..], "obj"u8) => typeof(IndirectObject),
-                (byte)'f' or (byte)'n' => typeof(CrossReferenceEntry),
+                (byte)'R' when IsStandaloneKeywordToken(token, cursor, "R"u8) => typeof(IndirectObjectReference),
+                (byte)'o' when IsStandaloneKeywordToken(token, cursor, "obj"u8) => typeof(IndirectObject),
+                (byte)'f' when IsStandaloneKeywordToken(token, cursor, "f"u8) => typeof(CrossReferenceEntry),
+                (byte)'n' when IsStandaloneKeywordToken(token, cursor, "n"u8) => typeof(CrossReferenceEntry),
                 _ => typeof(Number),
             };
         }
@@ -213,6 +214,26 @@ namespace ZingPDF.Parsing
         {
             return buffer.Length >= value.Length && buffer[..value.Length].SequenceEqual(value);
         }
+
+        private static bool IsStandaloneKeywordToken(ReadOnlySpan<byte> buffer, int start, ReadOnlySpan<byte> token)
+        {
+            if (!StartsWith(buffer[start..], token))
+            {
+                return false;
+            }
+
+            var end = start + token.Length;
+            return end >= buffer.Length || IsDelimiterOrWhitespace(buffer[end]);
+        }
+
+        private static bool IsDelimiterOrWhitespace(byte value)
+            => IsWhite(value)
+                || value is
+                    (byte)'(' or (byte)')'
+                    or (byte)'<' or (byte)'>'
+                    or (byte)'[' or (byte)']'
+                    or (byte)'{' or (byte)'}'
+                    or (byte)'/' or (byte)'%';
 
         private static bool LooksLikeParsableDateLiteral(ReadOnlySpan<byte> buffer)
         {

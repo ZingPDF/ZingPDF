@@ -32,13 +32,4 @@ public sealed class PdfRedactionOptions
     /// </summary>
     public double OverlayFontSize { get; init; } = 10;
 
-    /// <summary>
-    /// Whether applying redaction should force rewritten-file save behavior.
-    /// </summary>
-    public bool RewriteFile { get; init; } = true;
-
-    /// <summary>
-    /// Whether to reject apply operations that do not also request rewritten-file save behavior.
-    /// </summary>
-    public bool RequireRewriteForSave { get; init; } = true;
 }

@@ -784,7 +784,7 @@ await pdf.SaveAsync(File.Create("decrypted.pdf"));</code></pre>
           <section class="doc-section" id="redaction">
             <p class="eyebrow">Redaction</p>
             <h2>Redaction marks and rewritten output</h2>
-            <p>ZingPDF can mark exact extracted-text matches or explicit page regions, apply redaction overlays, and switch the document to rewritten-file save behavior by default. This version does not yet rewrite every arbitrary painted operator or raster image payload.</p>
+            <p>ZingPDF can mark exact extracted-text matches or explicit page regions, remove matched text from supported page content, redact intersecting vector and XObject content, draw visible redaction overlays, and rewrite the document so earlier file history is not preserved.</p>
 
             <h3>Mark exact text and explicit regions</h3>
             <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
@@ -808,14 +808,14 @@ await pdf.SaveAsync(File.Create("redacted.pdf"));</code></pre>
 
             <h3>What v1 redaction does</h3>
             <ul>
-              <li><code>MarkTextAsync(...)</code> uses extracted glyph runs to find exact string or regex matches.</li>
-              <li><code>MarkRegion(...)</code> adds an explicit rectangle on a known page.</li>
-              <li><code>ApplyAsync(...)</code> draws the redaction overlay and, by default, requires rewritten-file save behavior.</li>
-              <li><code>PdfRedactionOptions</code> controls fill colour, overlay text, and whether rewritten-file save behavior is required.</li>
+              <li><code>MarkTextAsync(...)</code> uses extracted glyph runs to find exact string or regex matches and maps those matches back to supported text-showing operators.</li>
+              <li><code>MarkRegion(...)</code> adds an explicit rectangle on a known page and removes intersecting supported text, vector, image XObject, and form XObject content.</li>
+              <li><code>ApplyAsync(...)</code> rewrites matched content, draws the redaction overlay, and switches the document to rewritten-file save behavior.</li>
+              <li><code>PdfRedactionOptions</code> controls fill colour and overlay text. Incremental-save redaction is not supported.</li>
             </ul>
 
             <h3>Current limits</h3>
-            <p>This version is a high-level redaction workflow for exact extracted text and explicit regions. It does not yet rewrite every arbitrary painted operator, derive OCR bounds for image-based pages, or redact raster image content directly.</p>
+            <p>This version removes matched text from supported page content and structurally redacts intersecting vector paths, image XObjects, and form XObjects. It still refuses inline images and shading content, and it does not yet derive OCR bounds for scanned pages.</p>
 
             <p>Redaction currently uses the standard <code>Pdf</code> API because it is a document-level workflow over an existing file, rather than an authored page layout.</p>
 

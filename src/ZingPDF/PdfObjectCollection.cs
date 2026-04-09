@@ -200,9 +200,7 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
     {
         ArgumentNullException.ThrowIfNull(indirectObjectId);
 
-        indirectObjectId.GenerationNumber++;
-
-        _deletedObjects.Add(indirectObjectId);
+        _deletedObjects.Add(new IndirectObjectId(indirectObjectId.Index, (ushort)(indirectObjectId.GenerationNumber + 1)));
         Interlocked.Increment(ref _changeVersion);
     }
 
@@ -261,11 +259,13 @@ public class PdfObjectCollection : IPdfObjectCollection, IAsyncEnumerable<Indire
 
     public async IAsyncEnumerator<IndirectObject> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
+        var deletedIndices = _deletedObjects.Select(static id => id.Index).ToHashSet();
         var liveKeys = (await _versions)
             .SelectMany(v => v.IndirectObjects)
             .Where(kvp => kvp.Key.Index > 0 && kvp.Value.InUse)
             .Select(kvp => kvp.Key)
             .Concat(_newObjects.Select(x => x.Id))
+            .Where(key => !deletedIndices.Contains(key.Index))
             .Distinct();
 
         foreach (var key in liveKeys)
