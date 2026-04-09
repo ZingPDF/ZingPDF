@@ -54,6 +54,11 @@ namespace ZingPDF.Elements
         {
             ArgumentNullException.ThrowIfNull(text);
 
+            foreach (var font in text.ReferencedFonts)
+            {
+                await EnsureFontResourceAsync(font);
+            }
+
             await AddContentStreamAsync(text);
         }
 

@@ -99,9 +99,20 @@ internal class ContentStreamParser : IParser<ContentStream>
 
                 if (item is Keyword keyword && _operatorSet.Contains(keyword.Value))
                 {
+                    var operatorValue = keyword.Value;
+                    if (operands.LastOrDefault() is Keyword operatorPrefix)
+                    {
+                        var combinedOperator = operatorPrefix.Value + operatorValue;
+                        if (_operatorSet.Contains(combinedOperator))
+                        {
+                            operands.RemoveAt(operands.Count - 1);
+                            operatorValue = combinedOperator;
+                        }
+                    }
+
                     instructions.Add(new ContentStreamOperation
                     {
-                        Operator = keyword.Value,
+                        Operator = operatorValue,
                         Operands = operands.Count != 0 ? [.. operands] : null
                     });
 

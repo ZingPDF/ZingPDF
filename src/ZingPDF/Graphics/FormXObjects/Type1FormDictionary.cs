@@ -28,6 +28,7 @@ namespace ZingPDF.Graphics.FormXObjects
             )
             : this(new Dictionary<string, IPdfObject>
                 {
+                    [Constants.DictionaryKeys.Type] = (Name)Constants.DictionaryTypes.XObject,
                     [Constants.DictionaryKeys.Subtype] = (Name)Subtypes.Form,
                 },
                 pdf,
