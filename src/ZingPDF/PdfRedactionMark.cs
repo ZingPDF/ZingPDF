@@ -26,4 +26,9 @@ public sealed record PdfRedactionMark
     /// The matched text when the mark came from text extraction.
     /// </summary>
     public string? SourceText { get; init; }
+
+    internal int? StreamIndex { get; init; }
+    internal int? OperationIndex { get; init; }
+    internal int? TextStartIndex { get; init; }
+    internal int? TextLength { get; init; }
 }

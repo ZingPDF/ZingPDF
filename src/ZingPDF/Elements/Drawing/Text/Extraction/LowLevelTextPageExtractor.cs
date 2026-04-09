@@ -1728,20 +1728,20 @@ internal sealed class ResolvedFontResourceSet
         bool includeDisplayName,
         bool includeMetrics)
     {
-        var cacheKey = CreateResolvedFontCacheKey(fontObject, includeDisplayName, includeMetrics);
+        var cacheKey = CreateResolvedFontCacheKey(pdf, fontObject, includeDisplayName, includeMetrics);
         return ResolvedFontCache.GetOrAdd(
             cacheKey,
             static (_, state) => ResolveFontAsync(state.pdf, state.resourceName, state.fontObject, state.baseProviders, state.includeDisplayName, state.includeMetrics),
             (pdf, resourceName, fontObject, baseProviders, includeDisplayName, includeMetrics));
     }
 
-    private static string CreateResolvedFontCacheKey(IPdfObject fontObject, bool includeDisplayName, bool includeMetrics)
+    private static string CreateResolvedFontCacheKey(IPdf pdf, IPdfObject fontObject, bool includeDisplayName, bool includeMetrics)
     {
         var mode = $"{(includeDisplayName ? "display" : "plain")}:{(includeMetrics ? "metrics" : "nometrics")}";
         return fontObject switch
         {
-            IndirectObjectReference reference => $"ref:{reference.Id.Index}:{reference.Id.GenerationNumber}:{mode}",
-            _ => $"direct:{RuntimeHelpers.GetHashCode(fontObject)}:{mode}"
+            IndirectObjectReference reference => $"pdf:{RuntimeHelpers.GetHashCode(pdf)}:ref:{reference.Id.Index}:{reference.Id.GenerationNumber}:{mode}",
+            _ => $"pdf:{RuntimeHelpers.GetHashCode(pdf)}:direct:{RuntimeHelpers.GetHashCode(fontObject)}:{mode}"
         };
     }
 

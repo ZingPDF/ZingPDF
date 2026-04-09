@@ -11,6 +11,7 @@ namespace ZingPDF.Text;
 public class TextObject : ContentStream
 {
     private static readonly System.Text.Encoding _winAnsi = CreateWinAnsiEncoding();
+    internal IReadOnlyList<PdfFont> ReferencedFonts { get; private init; } = [];
 
     // TODO: should the position of the text box be controlled outside this object?
     //  text object should be text, font, size, box size
@@ -62,6 +63,15 @@ public class TextObject : ContentStream
     {
         ArgumentNullException.ThrowIfNull(font, nameof(font));
         ArgumentNullException.ThrowIfNull(colour, nameof(colour));
+        ReferencedFonts = [font];
+    }
+
+    public TextObject(string text, Coordinate textOrigin, PdfFont font, Number size, Graphics.RGBColour colour, Rectangle? clipBounds = null)
+        : this(text, textOrigin, font.CreateOptions(size, colour), clipBounds)
+    {
+        ArgumentNullException.ThrowIfNull(font, nameof(font));
+        ArgumentNullException.ThrowIfNull(colour, nameof(colour));
+        ReferencedFonts = [font];
     }
 
     private static PdfString EncodeText(string text, FontTextEncoding encoding)

@@ -3,6 +3,7 @@ using ZingPDF.Diagnostics;
 using ZingPDF.Syntax.Encryption;
 using ZingPDF.Syntax.Filters;
 using ZingPDF.Syntax.Objects.Dictionaries;
+using System.Reflection;
 
 namespace ZingPDF.Syntax.Objects.Streams;
 
@@ -159,7 +160,56 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
         Data.CopyTo(ms);
         ms.Position = 0;
 
-        return new StreamObject<TDictionary>(ms, (TDictionary)Dictionary.Clone(), Context);
+        return new StreamObject<TDictionary>(ms, CloneDictionary(), Context);
+    }
+
+    private TDictionary CloneDictionary()
+    {
+        var clonedBaseDictionary = (ZingPDF.Syntax.Objects.Dictionaries.Dictionary)Dictionary.Clone();
+        var runtimeType = Dictionary.GetType();
+
+        if (runtimeType == typeof(TDictionary) && clonedBaseDictionary is TDictionary directClone)
+        {
+            return directClone;
+        }
+
+        var fromDictionary = runtimeType.GetMethod(
+            "FromDictionary",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            types:
+            [
+                typeof(System.Collections.Generic.Dictionary<string, IPdfObject>),
+                typeof(IPdf),
+                typeof(ObjectContext)
+            ],
+            modifiers: null);
+
+        if (fromDictionary is not null)
+        {
+            var rebound = fromDictionary.Invoke(null, [clonedBaseDictionary.InnerDictionary, clonedBaseDictionary.Pdf, clonedBaseDictionary.Context]);
+            if (rebound is TDictionary typedRebound)
+            {
+                return typedRebound;
+            }
+        }
+
+        var dictionaryConstructor = runtimeType.GetConstructor(
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
+            binder: null,
+            [typeof(ZingPDF.Syntax.Objects.Dictionaries.Dictionary)],
+            modifiers: null);
+
+        if (dictionaryConstructor is not null)
+        {
+            var rebound = dictionaryConstructor.Invoke([clonedBaseDictionary]);
+            if (rebound is TDictionary typedRebound)
+            {
+                return typedRebound;
+            }
+        }
+
+        throw new InvalidOperationException($"Unable to clone stream dictionary type '{runtimeType.FullName}'.");
     }
 
     private sealed class NonDisposingStreamView : Stream

@@ -13,6 +13,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements;
 using ZingPDF.Graphics;
+using ZingPDF.Graphics.Images;
 using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Extensions;
@@ -643,27 +644,39 @@ public class PdfTests
 
         var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
         writtenPdf.Should().Contain("REDACTED");
+        writtenPdf.Should().NotContain("12345");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var extractedText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        extractedText.Should().NotContain("12345");
     }
 
     [Fact]
-    public async Task PdfRedactionPlan_CanMarkRegionAndRequireRewrittenSaveByDefault()
+    public async Task PdfRedactionPlan_CanMarkRegionAndRewriteOutput()
     {
-        using var pdf = Pdf.Create();
+        using var source = new MemoryStream();
         using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Text(text => text
+                    .Value("Top Secret")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 120)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
 
         var plan = await pdf.RedactionAsync();
         plan.MarkRegion(
             1,
             Rectangle.FromCoordinates(
-                new DrawingCoordinate(20, 20),
-                new DrawingCoordinate(80, 40)));
-
-        var act = async () => await plan.ApplyAsync(new PdfRedactionOptions
-        {
-            RewriteFile = false
-        });
-
-        await act.Should().ThrowAsync<InvalidOperationException>();
+                new DrawingCoordinate(18, 112),
+                new DrawingCoordinate(120, 138)));
 
         var report = await plan.ApplyAsync();
         await pdf.SaveAsync(output);
@@ -673,6 +686,191 @@ public class PdfTests
 
         var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
         writtenPdf.Should().Contain(" f ");
+        writtenPdf.Should().NotContain("Top Secret");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var extractedText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        extractedText.Should().NotContain("Top Secret");
+    }
+
+    [Fact]
+    public async Task PdfRedactionPlan_RegionMark_CanRedactPagesWithVectorPainting()
+    {
+        using var source = new MemoryStream();
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Rectangle(box => box
+                    .At(20, 20)
+                    .Size(60, 40)
+                    .Fill(RGBColour.PrimaryBlue))
+                .Text(text => text
+                    .Value("Secret")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 120)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
+
+        var plan = await pdf.RedactionAsync();
+        plan.MarkRegion(
+            1,
+            Rectangle.FromCoordinates(
+                new DrawingCoordinate(18, 18),
+                new DrawingCoordinate(90, 70)));
+
+        await plan.ApplyAsync();
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("20 20 m 80 20 l 80 60 l 20 60 l 20 20 l n");
+        writtenPdf.Should().NotContain(" R G ");
+    }
+
+    [Fact]
+    public async Task PdfRedactionPlan_RegionMark_PreservesVisibleTextOutsideTheMarkedRegion()
+    {
+        using var source = new MemoryStream();
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Rectangle(box => box
+                    .At(20, 20)
+                    .Size(60, 40)
+                    .Fill(RGBColour.PrimaryBlue))
+                .Text(text => text
+                    .Value("Secret")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 120)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
+
+        var plan = await pdf.RedactionAsync();
+        plan.MarkRegion(
+            1,
+            Rectangle.FromCoordinates(
+                new DrawingCoordinate(18, 18),
+                new DrawingCoordinate(90, 70)));
+
+        await plan.ApplyAsync(new PdfRedactionOptions
+        {
+            OverlayText = "REDACTED"
+        });
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().Contain("(Secret)");
+        writtenPdf.Should().Contain("(REDACTED)");
+        writtenPdf.Should().NotContain(" R G ");
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var extractedText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        extractedText.Should().Contain("Secret");
+    }
+
+    [Fact]
+    public async Task PdfRedactionPlan_TextAndRegionMarks_DoNotLeaveOriginalContentInRewrittenOutput()
+    {
+        using var source = new MemoryStream();
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Rectangle(box => box
+                    .At(20, 20)
+                    .Size(60, 40)
+                    .Fill(RGBColour.PrimaryBlue))
+                .Text(text => text
+                    .Value("Secret")
+                    .HelveticaBold()
+                    .FontSize(18)
+                    .At(20, 120)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
+
+        var plan = await pdf.RedactionAsync();
+        plan.MarkRegion(
+            1,
+            Rectangle.FromCoordinates(
+                new DrawingCoordinate(18, 18),
+                new DrawingCoordinate(90, 70)));
+
+        await plan.MarkTextAsync("Secret");
+        await plan.ApplyAsync(new PdfRedactionOptions
+        {
+            OverlayText = "REDACTED"
+        });
+
+        await pdf.SaveAsync(output);
+
+        var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
+        writtenPdf.Should().NotContain("(Secret)");
+        writtenPdf.Should().NotContain("20 20 m 80 20 l 80 60 l 20 60 l 20 20 l B");
+        writtenPdf.Should().Contain("(REDACTED)");
+        writtenPdf.Should().Contain("20 20 m 80 20 l 80 60 l 20 60 l 20 20 l n");
+        writtenPdf.Should().Contain("20 120 Td (      ) Tj");
+    }
+
+    [Fact]
+    public async Task PdfRedactionPlan_RegionMark_CanRedactImageXObjects()
+    {
+        using var source = new MemoryStream();
+        using var output = new MemoryStream();
+        using var pngImage = new SixLabors.ImageSharp.Image<Rgba32>(1, 1, new Rgba32(255, 0, 0, 255));
+        using var pngStream = new MemoryStream();
+
+        await pngImage.SaveAsync(pngStream, new PngEncoder());
+        pngStream.Position = 0;
+
+        await Pdf.New()
+            .Page(page => page
+                .Size(200, 200)
+                .Image(image => image
+                    .FromStream(() => new MemoryStream(pngStream.ToArray(), writable: false))
+                    .At(20, 20)
+                    .Size(100, 100)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using var pdf = Pdf.Load(source);
+
+        var plan = await pdf.RedactionAsync();
+        plan.MarkRegion(
+            1,
+            Rectangle.FromCoordinates(
+                new DrawingCoordinate(18, 18),
+                new DrawingCoordinate(122, 122)));
+
+        await plan.ApplyAsync();
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var page = await reloaded.GetPageAsync(1);
+        var rawResources = await page.Dictionary.Resources.GetAsync();
+        var resources = ResourceDictionary.FromDictionary(rawResources!);
+        var xObjects = await resources.XObject.GetAsync();
+        var imageReference = (IndirectObjectReference)xObjects!.First().Value;
+        var imageStream = await reloaded.Objects.GetAsync<StreamObject<ImageDictionary>>(imageReference);
+        await using var decoded = await imageStream.GetDecompressedDataAsync();
+        using var decodedCopy = new MemoryStream();
+        await decoded.CopyToAsync(decodedCopy);
+
+        decodedCopy.ToArray().Take(3).Should().Equal((byte)0, (byte)0, (byte)0);
     }
 
     [Fact]
