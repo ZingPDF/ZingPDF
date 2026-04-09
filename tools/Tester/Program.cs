@@ -673,7 +673,7 @@ static async Task CreateCapabilitySample_SigningAsync(string outputPath)
     await AddInstructionPageAsync(
         pdf,
         "Capability 13: Visible signing",
-        "Manual validation instructions:\n1. Page 2 should contain a visible signature appearance.\n2. The appearance should include signature text and an image.\n3. Depending on your viewer, the cryptographic signature state may also be inspectable in the signature panel.",
+        "Manual validation instructions:\n1. Page 2 should contain a visible signature appearance.\n2. The appearance should include signature text and an image.\n3. In Acrobat, the signature may show as UNKNOWN because this sample uses a self-signed test certificate.\n4. The important validation result is that Acrobat reports the document has not been modified since the signature was applied.",
         pageNumber: 1);
 
     var signedPage = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
