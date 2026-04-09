@@ -149,11 +149,6 @@ internal class VariableTextAppearanceStreamManager
     {
         _fieldDict.SetAppearanceDictionary(null);
         _fieldDict.SetValue(null);
-
-        // set zero so we can test how acrobat sizes text when we save from reader
-        await _fieldDict.SetDefaultAppearanceAsync(
-            new ContentStream().SetTextState("Helv", 0)
-            );
     }
 
     public async Task WriteTextAsync(PdfString value)

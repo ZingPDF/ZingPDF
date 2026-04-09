@@ -32,7 +32,7 @@ namespace ZingPDF.Syntax.Objects
 
         public void Remove<T>(Predicate<T> match) where T : IPdfObject
         {
-            _values.OfType<T>().ToList().RemoveAll(match);
+            _values.RemoveAll(value => value is T typedValue && match(typedValue));
         }
 
         public T? Get<T>(int index) where T : class, IPdfObject
