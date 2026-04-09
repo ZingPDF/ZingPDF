@@ -21,4 +21,19 @@ public class DateTests
 
         output.Should().Be("(D:20230922161207+10'00')");
     }
+
+    [Fact]
+    internal async Task WriteAsyncPadsZeroOffsetHours()
+    {
+        var date = new Date(DateTimeOffset.ParseExact("20230922161207+0000", "yyyyMMddHHmmsszzz", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal));
+
+        using var ms = new MemoryStream();
+
+        await date.WriteAsync(ms);
+
+        ms.Position = 0;
+        var output = await ms.GetAsync();
+
+        output.Should().Be("(D:20230922161207+00'00')");
+    }
 }

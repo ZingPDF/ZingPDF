@@ -680,6 +680,7 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
                   <li>Read signed state and signature metadata such as signer name, reason, filter, and signing time.</li>
                   <li>Use <code>SignAsync(...)</code> to sign an existing visible field.</li>
                   <li>Use <code>Pdf.SignInvisibleAsync(...)</code> when you only need cryptographic validation and want to add a hidden field automatically.</li>
+                  <li>Signing saves rewritten output so the signed byte ranges are stable and do not depend on incremental history.</li>
                 </ul>
               </article>
             </div>
