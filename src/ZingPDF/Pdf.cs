@@ -123,6 +123,27 @@ public class Pdf : IPdf, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task<Form> GetOrCreateFormAsync()
+    {
+        var documentCatalog = await Objects.GetDocumentCatalogAsync();
+
+        if (await documentCatalog.AcroForm.GetAsync() is null)
+        {
+            var latestTrailer = await Objects.GetLatestTrailerDictionaryAsync();
+            var catalogReference = latestTrailer.Root
+                ?? throw new InvalidPdfException("Missing Root entry");
+            var catalogObject = await Objects.GetAsync(catalogReference);
+            await EnsureAcroFormObjectAsync((DocumentCatalogDictionary)catalogObject.Object, catalogObject);
+            documentCatalog = await Objects.GetDocumentCatalogAsync();
+        }
+
+        var contentStreamParser = _services.GetRequiredService<IParser<ContentStream>>();
+        _form = new Form(documentCatalog.AcroForm, this, contentStreamParser);
+
+        return _form;
+    }
+
+    /// <inheritdoc />
     public async Task<PdfMetadata> GetMetadataAsync()
     {
         _metadata ??= await PdfMetadata.LoadAsync(this);
@@ -1032,10 +1053,12 @@ public class Pdf : IPdf, IDisposable
         var standalonePage = await CreateStandalonePageDictionaryAsync(
             (PageDictionary)sourcePageIndirectObject.Object,
             appendParentIndirectObject.Reference);
+        standalonePage.Unset(Constants.DictionaryKeys.Parent);
 
         var pageIndirectObject = await Objects.AddAsync(standalonePage);
         copier.RegisterMapping(sourcePageIndirectObject.Reference, pageIndirectObject.Reference);
         pageIndirectObject.Object = await copier.CopyAsync(standalonePage);
+        ((PageDictionary)pageIndirectObject.Object).SetParent(appendParentIndirectObject.Reference);
 
         var appendParent = (PageTreeNodeDictionary)appendParentIndirectObject.Object;
         await appendParent.AddChildAsync(pageIndirectObject.Reference);

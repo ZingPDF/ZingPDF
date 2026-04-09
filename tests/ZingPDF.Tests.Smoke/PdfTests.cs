@@ -135,6 +135,119 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task InsertDeleteAndAppendPdfAsync_PreservesExpectedPageSequence()
+    {
+        using var source = new MemoryStream();
+        using var mergeSource = new MemoryStream();
+        using var output = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("alpha").HelveticaBold().FontSize(18).At(20, 140)))
+            .Page(page => page.Size(240, 180).Text(text => text.Value("bravo").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(source);
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("merged page").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(mergeSource);
+
+        source.Position = 0;
+        mergeSource.Position = 0;
+
+        using (var pdf = Pdf.Load(source))
+        {
+            var insertedPage = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(240, 180));
+            await insertedPage.AddTextAsync(
+                "inserted page",
+                Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(20, 120), new ZingPDF.Elements.Drawing.Coordinate(200, 150)),
+                await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+                18,
+                RGBColour.Black);
+
+            await pdf.DeletePageAsync(3);
+            await pdf.AppendPdfAsync(mergeSource);
+            await pdf.SaveAsync(output);
+        }
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(3);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await reloaded.ExtractTextAsync(2)).Select(x => x.Text));
+        var thirdPageText = string.Join("\n", (await reloaded.ExtractTextAsync(3)).Select(x => x.Text));
+        var wholeDocumentText = string.Join("\n", (await reloaded.ExtractTextAsync()).Select(x => x.Text));
+
+        firstPageText.Should().Contain("inserted page");
+        secondPageText.Should().Contain("alpha");
+        thirdPageText.Should().Contain("merged page");
+        wholeDocumentText.Should().NotContain("bravo");
+    }
+
+    [Fact]
+    public async Task WrappedInsertDeleteAndAppendPdfAsync_PreservesExpectedPageSequence()
+    {
+        using var source = new MemoryStream();
+        using var mergeSource = new MemoryStream();
+        using var result = new MemoryStream();
+        using var wrapped = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("alpha").HelveticaBold().FontSize(18).At(20, 140)))
+            .Page(page => page.Size(240, 180).Text(text => text.Value("bravo").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(source);
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("merged page").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(mergeSource);
+
+        source.Position = 0;
+        mergeSource.Position = 0;
+
+        using (var pdf = Pdf.Load(source))
+        {
+            var insertedPage = await pdf.InsertPageAsync(1, options => options.MediaBox = Rectangle.FromDimensions(240, 180));
+            await insertedPage.AddTextAsync(
+                "inserted page",
+                Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(20, 120), new ZingPDF.Elements.Drawing.Coordinate(200, 150)),
+                await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+                18,
+                RGBColour.Black);
+
+            await pdf.DeletePageAsync(3);
+            await pdf.AppendPdfAsync(mergeSource);
+            await pdf.SaveAsync(result);
+        }
+
+        using (var wrapperSource = new MemoryStream())
+        {
+            await Pdf.New()
+                .Page(page => page.Size(240, 180).Text(text => text.Value("instructions").HelveticaBold().FontSize(18).At(20, 140)))
+                .SaveAsync(wrapperSource);
+
+            wrapperSource.Position = 0;
+            result.Position = 0;
+
+            using var wrapperPdf = Pdf.Load(wrapperSource);
+            await wrapperPdf.AppendPdfAsync(result);
+            await wrapperPdf.SaveAsync(wrapped);
+        }
+
+        wrapped.Position = 0;
+        using var reloaded = Pdf.Load(wrapped);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(4);
+
+        var wholeDocumentText = string.Join("\n", (await reloaded.ExtractTextAsync()).Select(x => x.Text));
+
+        wholeDocumentText.Should().Contain("instructions");
+        wholeDocumentText.Should().Contain("inserted page");
+        wholeDocumentText.Should().Contain("alpha");
+        wholeDocumentText.Should().Contain("merged page");
+        wholeDocumentText.Should().NotContain("bravo");
+    }
+
+    [Fact]
     public async Task GetPage_PageProperties()
     {
         using var pdf = Pdf.Load(Files.AsStream(Files.Minimal1));
@@ -260,6 +373,56 @@ public class PdfTests
         firstPageText.Should().NotContain("Tax Invoice");
         secondPageText.Should().Contain("Tax Invoice");
         secondPageText.Should().Contain("Thomas Bowers");
+    }
+
+    [Fact]
+    public async Task WrappedExportPagesAsync_SelectedPages_PreserveRequestedOrderAfterSave()
+    {
+        using var source = new MemoryStream();
+        using var wrapperSource = new MemoryStream();
+        using var exportedOutput = new MemoryStream();
+        using var wrappedOutput = new MemoryStream();
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("page one").HelveticaBold().FontSize(18).At(20, 140)))
+            .Page(page => page.Size(240, 180).Text(text => text.Value("page two").HelveticaBold().FontSize(18).At(20, 140)))
+            .Page(page => page.Size(240, 180).Text(text => text.Value("page three").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(source);
+
+        source.Position = 0;
+        using (var pdf = Pdf.Load(source))
+        using (var exported = await pdf.ExportPagesAsync([3, 1]))
+        {
+            await exported.SaveAsync(exportedOutput);
+        }
+
+        await Pdf.New()
+            .Page(page => page.Size(240, 180).Text(text => text.Value("instructions").HelveticaBold().FontSize(18).At(20, 140)))
+            .SaveAsync(wrapperSource);
+
+        wrapperSource.Position = 0;
+        exportedOutput.Position = 0;
+
+        using (var wrapperPdf = Pdf.Load(wrapperSource))
+        {
+            await wrapperPdf.AppendPdfAsync(exportedOutput);
+            await wrapperPdf.SaveAsync(wrappedOutput);
+        }
+
+        wrappedOutput.Position = 0;
+        using var reloaded = Pdf.Load(wrappedOutput);
+
+        (await reloaded.GetPageCountAsync()).Should().Be(3);
+
+        var firstPageText = string.Join("\n", (await reloaded.ExtractTextAsync(1)).Select(x => x.Text));
+        var secondPageText = string.Join("\n", (await reloaded.ExtractTextAsync(2)).Select(x => x.Text));
+        var thirdPageText = string.Join("\n", (await reloaded.ExtractTextAsync(3)).Select(x => x.Text));
+        var wholeDocumentText = string.Join("\n", (await reloaded.ExtractTextAsync()).Select(x => x.Text));
+
+        firstPageText.Should().Contain("instructions");
+        secondPageText.Should().Contain("page three");
+        thirdPageText.Should().Contain("page one");
+        wholeDocumentText.Should().NotContain("page two");
     }
 
     [Fact]
@@ -1859,6 +2022,266 @@ public class PdfTests
 
         reloadedField.Properties.IsComb.Should().BeTrue();
         (await reloadedField.GetValueAsync()).Should().Be("1234");
+    }
+
+    [Fact]
+    public async Task GetOrCreateFormAsync_AddTextFieldAsync_CreatesDiscoverableField()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        await form.AddTextFieldAsync(
+            1,
+            "CustomerName",
+            Rectangle.FromCoordinates(
+                new ZingPDF.Elements.Drawing.Coordinate(40, 90),
+                new ZingPDF.Elements.Drawing.Coordinate(260, 120)),
+            options => options.Description = "Customer name");
+
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var textField = await reloadedForm!.GetFieldAsync<TextFormField>("CustomerName");
+
+        textField.Should().NotBeNull();
+        textField!.Description.Should().Be("Customer name");
+        ((double)(await textField.GetFieldBoundsAsync()).Width).Should().Be(220);
+    }
+
+    [Fact]
+    public async Task CreatedTextField_SetValueAsync_PersistsAfterSave()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        var createdField = await form.AddTextFieldAsync(
+            1,
+            "CustomerName",
+            Rectangle.FromCoordinates(
+                new ZingPDF.Elements.Drawing.Coordinate(40, 90),
+                new ZingPDF.Elements.Drawing.Coordinate(260, 120)));
+
+        await createdField.SetValueAsync("validated");
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var textField = await reloadedForm!.GetFieldAsync<TextFormField>("CustomerName");
+
+        textField.Should().NotBeNull();
+        (await textField!.GetValueAsync()).Should().Be("validated");
+        (await textField.GetAPAsync()).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetOrCreateFormAsync_AddCheckboxRadioChoiceAndSignatureFields_CreatesDiscoverableFields()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        await form.AddCheckboxFieldAsync(1, "AcceptTerms", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 700), new ZingPDF.Elements.Drawing.Coordinate(56, 716)));
+        await form.AddRadioButtonFieldAsync(
+            1,
+            "DeliveryOption",
+            [
+                new RadioButtonFieldOption("Standard", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 660), new ZingPDF.Elements.Drawing.Coordinate(56, 676))),
+                new RadioButtonFieldOption("Express", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 632), new ZingPDF.Elements.Drawing.Coordinate(56, 648)))
+            ]);
+        await form.AddComboBoxFieldAsync(
+            1,
+            "Priority",
+            Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 590), new ZingPDF.Elements.Drawing.Coordinate(180, 614)),
+            [new ChoiceFieldOption("Low"), new ChoiceFieldOption("Medium"), new ChoiceFieldOption("High")]);
+        await form.AddListBoxFieldAsync(
+            1,
+            "Regions",
+            Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 520), new ZingPDF.Elements.Drawing.Coordinate(180, 572)),
+            [new ChoiceFieldOption("APAC"), new ChoiceFieldOption("EMEA"), new ChoiceFieldOption("NA")]);
+        await form.AddSignatureFieldAsync(1, "ApprovalSignature", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 450), new ZingPDF.Elements.Drawing.Coordinate(240, 500)));
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var fields = (await reloadedForm!.GetFieldsAsync()).ToList();
+
+        fields.OfType<CheckboxFormField>().Single().Name.Should().Be("AcceptTerms");
+        fields.OfType<RadioButtonFormField>().Single().Name.Should().Be("DeliveryOption");
+        fields.OfType<ComboBoxFormField>().Single().Name.Should().Be("Priority");
+        fields.OfType<ListBoxFormField>().Single().Name.Should().Be("Regions");
+        fields.OfType<SignatureFormField>().Single().Name.Should().Be("ApprovalSignature");
+    }
+
+    [Fact]
+    public async Task CreatedCheckboxRadioAndChoiceFields_PersistSelectionsAfterSave()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        var checkbox = await form.AddCheckboxFieldAsync(1, "AcceptTerms", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 700), new ZingPDF.Elements.Drawing.Coordinate(56, 716)));
+        var radio = await form.AddRadioButtonFieldAsync(
+            1,
+            "DeliveryOption",
+            [
+                new RadioButtonFieldOption("Standard", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 660), new ZingPDF.Elements.Drawing.Coordinate(56, 676))),
+                new RadioButtonFieldOption("Express", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 632), new ZingPDF.Elements.Drawing.Coordinate(56, 648)))
+            ]);
+        var combo = await form.AddComboBoxFieldAsync(
+            1,
+            "Priority",
+            Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 590), new ZingPDF.Elements.Drawing.Coordinate(180, 614)),
+            [new ChoiceFieldOption("Low"), new ChoiceFieldOption("Medium"), new ChoiceFieldOption("High")]);
+
+        await (await checkbox.GetOptionsAsync()).Single().SelectAsync();
+        await (await radio.GetOptionsAsync()).Single(x => x.Value == "Express").SelectAsync();
+        (await combo.SelectOptionByValueAsync("High")).Should().BeTrue();
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+
+        (await (await reloadedForm!.GetFieldAsync<CheckboxFormField>("AcceptTerms"))!.GetOptionsAsync()).Single().Selected.Should().BeTrue();
+        (await (await reloadedForm.GetFieldAsync<RadioButtonFormField>("DeliveryOption"))!.GetOptionsAsync()).Single(x => x.Value == "Express").Selected.Should().BeTrue();
+        (await (await reloadedForm.GetFieldAsync<ComboBoxFormField>("Priority"))!.GetOptionByValueAsync("High"))!.Selected.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CreatedCheckboxAndRadioFields_UseCanonicalWidgetAppearanceStructure()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        await form.AddCheckboxFieldAsync(1, "AcceptTerms", Rectangle.FromCoordinates(new DrawingCoordinate(40, 700), new DrawingCoordinate(56, 716)));
+        await form.AddRadioButtonFieldAsync(
+            1,
+            "DeliveryOption",
+            [
+                new RadioButtonFieldOption("Standard", Rectangle.FromCoordinates(new DrawingCoordinate(40, 660), new DrawingCoordinate(56, 676))),
+                new RadioButtonFieldOption("Express", Rectangle.FromCoordinates(new DrawingCoordinate(40, 632), new DrawingCoordinate(56, 648)))
+            ]);
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var trailer = await reloaded.Objects.GetLatestTrailerDictionaryAsync();
+        var catalogObject = await reloaded.Objects.GetAsync(trailer.Root!);
+        var catalog = (DocumentCatalogDictionary)catalogObject.Object;
+        var acroFormDictionary = await catalog.AcroForm.GetAsync();
+        var rootFieldReferences = await acroFormDictionary!.Fields.GetAsync();
+        var rootFields = new List<IndirectObject>();
+        foreach (var fieldRef in rootFieldReferences.Cast<IndirectObjectReference>())
+        {
+            rootFields.Add(await reloaded.Objects.GetAsync(fieldRef));
+        }
+
+        FieldDictionary? checkboxDictionary = null;
+        FieldDictionary? radioRoot = null;
+        foreach (var rootField in rootFields.Select(x => (FieldDictionary)x.Object))
+        {
+            var fieldName = (await rootField.T.GetAsync())!.Decode();
+            if (fieldName == "AcceptTerms")
+            {
+                checkboxDictionary = rootField;
+            }
+            else if (fieldName == "DeliveryOption")
+            {
+                radioRoot = rootField;
+            }
+        }
+
+        checkboxDictionary.Should().NotBeNull();
+        radioRoot.Should().NotBeNull();
+
+        (await checkboxDictionary!.MK.GetAsync()).Should().BeNull();
+        (await checkboxDictionary.H.GetAsync())!.Value.Should().Be("N");
+        var checkboxAppearance = await checkboxDictionary.AP.GetAsync();
+        checkboxAppearance.Should().NotBeNull();
+        var checkboxAppearanceNotNull = checkboxAppearance!;
+        (await checkboxAppearanceNotNull.R.GetAsync()).Value.Should().BeNull();
+        (await checkboxAppearanceNotNull.D.GetAsync()).Value.Should().BeNull();
+        var checkboxNormalStates = (await checkboxAppearanceNotNull.N.GetAsync()).Type2!;
+        checkboxNormalStates.Keys.Should().BeEquivalentTo(["Off", "Yes"]);
+
+        var radioKids = await radioRoot!.Kids.GetAsync();
+        radioKids.Should().NotBeNull();
+        foreach (var kidRef in radioKids!.Cast<IndirectObjectReference>())
+        {
+            var kidObject = await reloaded.Objects.GetAsync(kidRef);
+            var widget = (FieldDictionary)kidObject.Object;
+            (await widget.MK.GetAsync()).Should().BeNull();
+            (await widget.H.GetAsync())!.Value.Should().Be("N");
+            var widgetAppearance = await widget.AP.GetAsync();
+            widgetAppearance.Should().NotBeNull();
+            var widgetAppearanceNotNull = widgetAppearance!;
+            (await widgetAppearanceNotNull.R.GetAsync()).Value.Should().BeNull();
+            (await widgetAppearanceNotNull.D.GetAsync()).Value.Should().BeNull();
+            var widgetStates = (await widgetAppearanceNotNull.N.GetAsync()).Type2!;
+            widgetStates.Keys.Should().Contain("Off");
+            widgetStates.Keys.Should().ContainSingle(key => key != "Off");
+        }
+    }
+
+    [Fact]
+    public async Task CreatedMixedFields_TextFieldCanStillRenderAppearanceAfterReload()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+
+        var form = await pdf.GetOrCreateFormAsync();
+        await form.AddTextFieldAsync(1, "CustomerName", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 700), new ZingPDF.Elements.Drawing.Coordinate(200, 724)));
+        await form.AddCheckboxFieldAsync(1, "AcceptTerms", Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 660), new ZingPDF.Elements.Drawing.Coordinate(56, 676)));
+        await form.AddComboBoxFieldAsync(
+            1,
+            "Priority",
+            Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 620), new ZingPDF.Elements.Drawing.Coordinate(180, 644)),
+            [new ChoiceFieldOption("Low"), new ChoiceFieldOption("High")]);
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var textField = await reloadedForm!.GetFieldAsync<TextFormField>("CustomerName");
+
+        await textField!.SetValueAsync("validated");
+        await reloaded.SaveAsync(new MemoryStream());
+
+        (await textField.GetAPAsync()).Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreatedSignatureField_SignsSuccessfully()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        var form = await pdf.GetOrCreateFormAsync();
+        var signatureField = await form.AddSignatureFieldAsync(
+            1,
+            "ApprovalSignature",
+            Rectangle.FromCoordinates(new ZingPDF.Elements.Drawing.Coordinate(40, 450), new ZingPDF.Elements.Drawing.Coordinate(240, 500)));
+        using var certificate = CreateSigningCertificate();
+
+        await signatureField.SignAsync(certificate, new PdfSignatureOptions
+        {
+            SignerName = "Smoke Test",
+            Reason = "Created field validation"
+        });
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedSignatureField = await reloadedForm!.GetFieldAsync<SignatureFormField>("ApprovalSignature");
+
+        (await reloadedSignatureField!.HasSignatureValueAsync()).Should().BeTrue();
     }
 
     [Fact]
