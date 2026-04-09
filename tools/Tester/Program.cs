@@ -66,6 +66,7 @@ static async Task RunCapabilityValidationSamplesAsync()
     await CreateCapabilitySample_SignatureImageAsync(IOPath.Combine(outputDirectory, "23-signature-image.pdf"));
     await CreateCapabilitySample_TextOnlyRedactionAsync(IOPath.Combine(outputDirectory, "24-text-redaction-safety.pdf"));
     await CreateCapabilitySample_FormRoundTripAsync(IOPath.Combine(outputDirectory, "25-form-roundtrip.pdf"));
+    await CreateCapabilitySample_ComplexVectorAsync(IOPath.Combine(outputDirectory, "26-complex-vector.pdf"));
 }
 
 static async Task CreateCapabilitySample_AuthoringAsync(string outputPath)
@@ -987,12 +988,188 @@ static async Task CreateCapabilitySample_FormRoundTripAsync(string outputPath)
     await reloadedPdf.SaveAsync(output);
 }
 
+static async Task CreateCapabilitySample_ComplexVectorAsync(string outputPath)
+{
+    using var pdf = Pdf.Create();
+    await AddInstructionPageAsync(
+        pdf,
+        "Complex vector illustration",
+        "Manual validation instructions:\n1. Page 2 should contain a layered rosette-style vector illustration.\n2. The artwork should be composed of smooth filled and stroked curves rather than raster image pixels.\n3. Petals, rings, and small spark elements should all render crisply when you zoom in.\n4. This validates heavier path-based drawing with many bezier segments on a single page.",
+        pageNumber: 1);
+
+    var page = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+    await DrawComplexVectorIllustrationAsync(pdf, page);
+
+    using var output = OpenValidationOutput(outputPath);
+    await pdf.SaveAsync(output);
+}
+
 static async Task CreateCapabilitySample_PackageSetupPdfAsync(string outputPath, string title, string instructions)
 {
     using var summary = await CreateInstructionDocumentAsync(title, instructions, "This PDF is a setup/status artifact for a package-dependent capability.");
     using var output = OpenValidationOutput(outputPath);
     await summary.CopyToAsync(output);
 }
+
+static async Task DrawComplexVectorIllustrationAsync(Pdf pdf, Page page)
+{
+    var navy = new RGBColour(0.08, 0.11, 0.22);
+    var deepBlue = new RGBColour(0.14, 0.22, 0.44);
+    var cyan = new RGBColour(0.2, 0.74, 0.81);
+    var aqua = new RGBColour(0.45, 0.9, 0.88);
+    var gold = new RGBColour(0.95, 0.74, 0.3);
+    var peach = new RGBColour(0.99, 0.82, 0.62);
+    var pink = new RGBColour(0.92, 0.48, 0.6);
+    var white = new RGBColour(0.97, 0.98, 1.0);
+
+    var center = new Coordinate(297.5, 380);
+
+    await page.AddPathAsync(new DrawingPath(
+        null,
+        new FillOptions(navy),
+        PathType.Linear,
+        [
+            new Coordinate(0, 0),
+            new Coordinate(595, 0),
+            new Coordinate(595, 842),
+            new Coordinate(0, 842),
+            new Coordinate(0, 0)
+        ]));
+
+    await page.AddPathAsync(new DrawingPath(
+        null,
+        new FillOptions(deepBlue),
+        PathType.Linear,
+        [
+            new Coordinate(48, 130),
+            new Coordinate(547, 130),
+            new Coordinate(547, 630),
+            new Coordinate(48, 630),
+            new Coordinate(48, 130)
+        ]));
+
+    for (var i = 0; i < 18; i++)
+    {
+        var angle = i * (Math.PI * 2 / 18);
+        var fill = i % 2 == 0 ? cyan : gold;
+        await page.AddPathAsync(CreatePetalPath(center, 72, 180, angle, 0.22, fill, white, 2));
+    }
+
+    for (var i = 0; i < 12; i++)
+    {
+        var angle = i * (Math.PI * 2 / 12) + 0.12;
+        var fill = i % 2 == 0 ? pink : peach;
+        await page.AddPathAsync(CreatePetalPath(center, 48, 124, angle, 0.28, fill, white, 2));
+    }
+
+    await page.AddPathAsync(CreateCirclePath(center, 92, new StrokeOptions(aqua, 4), null));
+    await page.AddPathAsync(CreateCirclePath(center, 58, new StrokeOptions(white, 3), new FillOptions(deepBlue)));
+    await page.AddPathAsync(CreateCirclePath(center, 22, null, new FillOptions(gold)));
+
+    for (var i = 0; i < 24; i++)
+    {
+        var angle = i * (Math.PI * 2 / 24);
+        await page.AddPathAsync(CreateDiamondPath(
+            Offset(center, Math.Cos(angle) * 220, Math.Sin(angle) * 220),
+            10,
+            i % 2 == 0 ? aqua : peach,
+            white));
+    }
+
+    for (var i = 0; i < 8; i++)
+    {
+        var angle = i * (Math.PI * 2 / 8) + 0.15;
+        var start = Offset(center, Math.Cos(angle) * 26, Math.Sin(angle) * 26);
+        var end = Offset(center, Math.Cos(angle) * 74, Math.Sin(angle) * 74);
+        await page.AddPathAsync(new DrawingPath(
+            new StrokeOptions(white, 2),
+            null,
+            PathType.Linear,
+            [start, end]));
+    }
+
+    await page.AddTextAsync(
+        "Bezier path stress sample",
+        Rectangle.FromCoordinates(new Coordinate(170, 660), new Coordinate(430, 700)),
+        await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+        22,
+        white);
+}
+
+static DrawingPath CreatePetalPath(
+    Coordinate center,
+    double innerRadius,
+    double outerRadius,
+    double angle,
+    double spread,
+    RGBColour fillColour,
+    RGBColour strokeColour,
+    int strokeWidth)
+{
+    var start = Offset(center, Math.Cos(angle - spread) * innerRadius, Math.Sin(angle - spread) * innerRadius);
+    var tip = Offset(center, Math.Cos(angle) * outerRadius, Math.Sin(angle) * outerRadius);
+    var end = Offset(center, Math.Cos(angle + spread) * innerRadius, Math.Sin(angle + spread) * innerRadius);
+
+    var control1 = Offset(center, Math.Cos(angle - spread * 0.85) * (innerRadius + outerRadius) * 0.48, Math.Sin(angle - spread * 0.85) * (innerRadius + outerRadius) * 0.48);
+    var control2 = Offset(center, Math.Cos(angle - spread * 0.18) * outerRadius * 0.92, Math.Sin(angle - spread * 0.18) * outerRadius * 0.92);
+    var control3 = Offset(center, Math.Cos(angle + spread * 0.18) * outerRadius * 0.92, Math.Sin(angle + spread * 0.18) * outerRadius * 0.92);
+    var control4 = Offset(center, Math.Cos(angle + spread * 0.85) * (innerRadius + outerRadius) * 0.48, Math.Sin(angle + spread * 0.85) * (innerRadius + outerRadius) * 0.48);
+
+    return new DrawingPath(
+        new StrokeOptions(strokeColour, strokeWidth),
+        new FillOptions(fillColour),
+        PathType.Bezier,
+        [start, control1, control2, tip, control3, control4, end]);
+}
+
+static DrawingPath CreateCirclePath(Coordinate center, double radius, StrokeOptions? stroke, FillOptions? fill)
+{
+    const double kappa = 0.5522847498307936;
+    var ox = radius * kappa;
+    var oy = radius * kappa;
+
+    var top = new Coordinate(center.X, center.Y + radius);
+    var right = new Coordinate(center.X + radius, center.Y);
+    var bottom = new Coordinate(center.X, center.Y - radius);
+    var left = new Coordinate(center.X - radius, center.Y);
+
+    return new DrawingPath(
+        stroke,
+        fill,
+        PathType.Bezier,
+        [
+            top,
+            new Coordinate(center.X + ox, center.Y + radius),
+            new Coordinate(center.X + radius, center.Y + oy),
+            right,
+            new Coordinate(center.X + radius, center.Y - oy),
+            new Coordinate(center.X + ox, center.Y - radius),
+            bottom,
+            new Coordinate(center.X - ox, center.Y - radius),
+            new Coordinate(center.X - radius, center.Y - oy),
+            left,
+            new Coordinate(center.X - radius, center.Y + oy),
+            new Coordinate(center.X - ox, center.Y + radius),
+            top
+        ]);
+}
+
+static DrawingPath CreateDiamondPath(Coordinate center, double radius, RGBColour fillColour, RGBColour strokeColour)
+{
+    return new DrawingPath(
+        new StrokeOptions(strokeColour, 1),
+        new FillOptions(fillColour),
+        PathType.Linear,
+        [
+            new Coordinate(center.X, center.Y + radius),
+            new Coordinate(center.X + radius, center.Y),
+            new Coordinate(center.X, center.Y - radius),
+            new Coordinate(center.X - radius, center.Y),
+            new Coordinate(center.X, center.Y + radius)
+        ]);
+}
+
+static Coordinate Offset(Coordinate origin, double x, double y) => new(origin.X + x, origin.Y + y);
 
 static async Task<MemoryStream> CreateInstructionDocumentAsync(string title, string instructions, string? summary = null)
 {
