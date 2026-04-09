@@ -63,6 +63,9 @@ static async Task RunCapabilityValidationSamplesAsync()
     await CreateCapabilitySample_InvisibleSigningAsync(IOPath.Combine(outputDirectory, "20-invisible-signing.pdf"));
     await CreateCapabilitySample_EncryptionPermissionsAsync(IOPath.Combine(outputDirectory, "21-encryption-permissions.pdf"));
     await CreateCapabilitySample_MalformedRecoveryAsync(IOPath.Combine(outputDirectory, "22-malformed-recovery.pdf"));
+    await CreateCapabilitySample_SignatureImageAsync(IOPath.Combine(outputDirectory, "23-signature-image.pdf"));
+    await CreateCapabilitySample_TextOnlyRedactionAsync(IOPath.Combine(outputDirectory, "24-text-redaction-safety.pdf"));
+    await CreateCapabilitySample_FormRoundTripAsync(IOPath.Combine(outputDirectory, "25-form-roundtrip.pdf"));
 }
 
 static async Task CreateCapabilitySample_AuthoringAsync(string outputPath)
@@ -584,7 +587,7 @@ static async Task CreateCapabilitySample_SigningAsync(string outputPath)
     await AddInstructionPageAsync(
         pdf,
         "Visible signing",
-        "Manual validation instructions:\n1. Page 2 should contain a visible signature appearance.\n2. The appearance should include signature text and an image.\n3. In Acrobat, the signature may show as UNKNOWN because this sample uses a self-signed test certificate.\n4. The important validation result is that Acrobat reports the document has not been modified since the signature was applied.",
+        "Manual validation instructions:\n1. Page 2 should contain a visible signature appearance.\n2. This sample should use a plain text-based signature appearance rather than a custom image.\n3. In Acrobat, the signature may show as UNKNOWN because this sample uses a self-signed test certificate.\n4. The important validation result is that Acrobat reports the document has not been modified since the signature was applied.",
         pageNumber: 1);
 
     var signedPage = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
@@ -606,8 +609,7 @@ static async Task CreateCapabilitySample_SigningAsync(string outputPath)
     await signatureField.SignAsync(certificate, new PdfSignatureOptions
     {
         SignerName = "ZingPDF Tester",
-        Reason = "Manual validation",
-        SignatureImageBytes = File.ReadAllBytes(ResolveTestAssetPath(IOPath.Combine("testfiles", "image", "cat.jpg")))
+        Reason = "Manual validation"
     });
 
     using var output = OpenValidationOutput(outputPath);
@@ -841,6 +843,148 @@ static async Task CreateCapabilitySample_MalformedRecoveryAsync(string outputPat
 
     using var output = OpenValidationOutput(outputPath);
     await recoveredPdf.SaveAsync(output);
+}
+
+static async Task CreateCapabilitySample_SignatureImageAsync(string outputPath)
+{
+    using var pdf = Pdf.Create();
+    await AddInstructionPageAsync(
+        pdf,
+        "Signature image appearance",
+        "Manual validation instructions:\n1. Page 2 should contain a visible signature field.\n2. The signature appearance should clearly include a custom image rather than text alone.\n3. In Acrobat, the signature may show as UNKNOWN because this sample uses a self-signed test certificate.\n4. This validates the custom signature-image appearance path specifically.",
+        pageNumber: 1);
+
+    var signedPage = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+    await signedPage.AddTextAsync(
+        "Custom signature image sample",
+        Rectangle.FromCoordinates(new Coordinate(40, 740), new Coordinate(340, 780)),
+        await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+        20,
+        RGBColour.Black);
+
+    var form = await pdf.GetOrCreateFormAsync();
+    var signatureField = await form.AddSignatureFieldAsync(
+        2,
+        "ImageSignature",
+        Rectangle.FromCoordinates(new Coordinate(40, 580), new Coordinate(280, 680)),
+        options => options.Description = "Signature field with custom image appearance");
+
+    using var certificate = CreateSigningCertificate();
+    await signatureField.SignAsync(certificate, new PdfSignatureOptions
+    {
+        SignerName = "ZingPDF Tester",
+        Reason = "Custom image validation",
+        SignatureImageBytes = File.ReadAllBytes(ResolveTestAssetPath(IOPath.Combine("testfiles", "image", "cat.jpg")))
+    });
+
+    using var output = OpenValidationOutput(outputPath);
+    await pdf.SaveAsync(output);
+}
+
+static async Task CreateCapabilitySample_TextOnlyRedactionAsync(string outputPath)
+{
+    using var source = new MemoryStream();
+
+    await Pdf.New()
+        .Page(page => page
+            .Size(595, 842)
+            .Text(text => text
+                .Value("Text-only redaction safety")
+                .HelveticaBold()
+                .FontSize(24)
+                .At(40, 790))
+            .Rectangle(box => box
+                .At(40, 620)
+                .Size(515, 120)
+                .Stroke(new RGBColour(0.78, 0.84, 0.92), 1)
+                .Fill(new RGBColour(0.96, 0.98, 1.0)))
+            .Text(text => text
+                .Value("Manual validation instructions:\n1. The secret text below should be replaced by a black REDACTED box.\n2. If you inspect the saved PDF bytes, the original phrase TOP-SECRET-TEXT-ONLY should not be present anywhere.\n3. This validates text-only structural redaction and rewritten output.")
+                .Helvetica()
+                .FontSize(12)
+                .InBox(56, 634, 480, 90)
+                .Wrap()
+                .ClipOverflow())
+            .Text(text => text
+                .Value("TOP-SECRET-TEXT-ONLY")
+                .HelveticaBold()
+                .FontSize(18)
+                .At(60, 520)))
+        .SaveAsync(source);
+
+    source.Position = 0;
+    using var pdf = Pdf.Load(source);
+    var plan = await pdf.RedactionAsync();
+    await plan.MarkTextAsync("TOP-SECRET-TEXT-ONLY");
+    await plan.ApplyAsync(new PdfRedactionOptions { OverlayText = "REDACTED" });
+
+    using var output = OpenValidationOutput(outputPath);
+    await pdf.SaveAsync(output);
+}
+
+static async Task CreateCapabilitySample_FormRoundTripAsync(string outputPath)
+{
+    using var source = new MemoryStream();
+
+    using (var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595, 842)))
+    {
+        await AddInstructionPageAsync(
+            pdf,
+            "Form round-trip persistence",
+            "Manual validation instructions:\n1. Page 2 should show a created form that has been reloaded and then completed.\n2. The text field should contain 'round-tripped'.\n3. The checkbox should be selected and the combo box should show 'Medium'.\n4. This validates high-level form creation, save, reload, completion, and save again in one flow.",
+            pageNumber: 1);
+
+        var page = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(420, 260));
+        var headingFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+        var bodyFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+        await page.AddTextAsync("Round-trip sample", Rectangle.FromCoordinates(new Coordinate(30, 222), new Coordinate(220, 246)), headingFont, 18, RGBColour.Black);
+        await page.AddTextAsync("Reference", Rectangle.FromCoordinates(new Coordinate(30, 186), new Coordinate(120, 204)), bodyFont, 12, RGBColour.Black);
+        await page.AddTextAsync("Ready for export", Rectangle.FromCoordinates(new Coordinate(58, 132), new Coordinate(230, 150)), bodyFont, 12, RGBColour.Black);
+        await page.AddTextAsync("Priority", Rectangle.FromCoordinates(new Coordinate(30, 78), new Coordinate(120, 96)), bodyFont, 12, RGBColour.Black);
+
+        var form = await pdf.GetOrCreateFormAsync();
+        await form.AddTextFieldAsync(
+            2,
+            "Reference",
+            Rectangle.FromCoordinates(new Coordinate(30, 146), new Coordinate(230, 172)),
+            options => options.Description = "Reference");
+        await form.AddCheckboxFieldAsync(
+            2,
+            "Ready",
+            Rectangle.FromCoordinates(new Coordinate(30, 128), new Coordinate(46, 144)),
+            options => options.Description = "Ready for export");
+        await form.AddComboBoxFieldAsync(
+            2,
+            "Priority",
+            Rectangle.FromCoordinates(new Coordinate(30, 40), new Coordinate(180, 68)),
+            [new ChoiceFieldOption("Low"), new ChoiceFieldOption("Medium"), new ChoiceFieldOption("High")],
+            options => options.Description = "Priority");
+
+        await pdf.SaveAsync(source);
+    }
+
+    source.Position = 0;
+    using var reloadedPdf = Pdf.Load(source);
+    var reloadedForm = await reloadedPdf.GetFormAsync() ?? throw new InvalidOperationException("Expected round-trip form.");
+    foreach (var field in await reloadedForm.GetFieldsAsync())
+    {
+        if (field is TextFormField textField)
+        {
+            await textField.SetValueAsync("round-tripped");
+        }
+        else if (field is CheckboxFormField checkboxField)
+        {
+            await (await checkboxField.GetOptionsAsync()).Single().SelectAsync();
+        }
+        else if (field is ComboBoxFormField comboBoxField)
+        {
+            await comboBoxField.SelectOptionByValueAsync("Medium");
+        }
+    }
+
+    using var output = OpenValidationOutput(outputPath);
+    await reloadedPdf.SaveAsync(output);
 }
 
 static async Task CreateCapabilitySample_PackageSetupPdfAsync(string outputPath, string title, string instructions)
