@@ -1,6 +1,8 @@
 ﻿using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Syntax.Objects.Streams;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
@@ -73,9 +75,18 @@ public abstract class ButtonOptionsFormField : FormField<Name>
             return Constants.ButtonStates.On;
         }
 
-        // TODO: handle the case where N is a stream
+        var normalAppearance = await ap.N.GetAsync();
+        if (normalAppearance.Value is IStreamObject)
+        {
+            return Constants.ButtonStates.On;
+        }
 
-        return ap.Keys.First(k => k != Constants.ButtonStates.Off);
+        if (normalAppearance.Value is Dictionary stateDictionary)
+        {
+            return stateDictionary.Keys.First(k => k != Constants.ButtonStates.Off);
+        }
+
+        return Constants.ButtonStates.On;
     }
 
     protected IEnumerable<IndirectObject> WidgetAnnotationObjects

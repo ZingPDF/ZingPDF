@@ -97,6 +97,11 @@ public class DictionaryIdentifier : IDictionaryIdentifier
             return dictSubtype ?? dictType;
         }
 
+        if (dictionary.ContainsKey(Constants.DictionaryKeys.Field.FT))
+        {
+            return typeof(FieldDictionary);
+        }
+
         if (dictionary.ContainsKey(Constants.DictionaryKeys.InteractiveForm.Fields))
         {
             return typeof(InteractiveFormDictionary);
