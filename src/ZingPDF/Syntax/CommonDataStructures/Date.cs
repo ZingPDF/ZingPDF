@@ -16,7 +16,10 @@ public class Date(DateTimeOffset dateTimeOffset, ObjectContext context)
     protected override async Task WriteOutputAsync(Stream stream)
     {
         string formattedDateTime = DateTimeOffset.ToString("yyyyMMddHHmmss", DateTimeFormatInfo.InvariantInfo);
-        string offsetString = $"{(DateTimeOffset.Offset.Hours >= 0 ? "+" : "-")}{Math.Abs(DateTimeOffset.Offset.Hours)}'{DateTimeOffset.Offset.Minutes:00}'";
+        var totalOffsetMinutes = (int)Math.Abs(DateTimeOffset.Offset.TotalMinutes);
+        var offsetHours = totalOffsetMinutes / 60;
+        var offsetMinutes = totalOffsetMinutes % 60;
+        string offsetString = $"{(DateTimeOffset.Offset >= TimeSpan.Zero ? "+" : "-")}{offsetHours:00}'{offsetMinutes:00}'";
 
         await stream.WriteTextAsync($"(D:{formattedDateTime}{offsetString})");
     }
