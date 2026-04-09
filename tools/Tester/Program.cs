@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using ZingPDF;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing;
@@ -59,6 +60,9 @@ static async Task RunCapabilityValidationSamplesAsync()
         IOPath.Combine(outputDirectory, "19-ocr.pdf"),
         "OCR package",
         "This environment still needs a validated OCR setup sample. Once Tesseract and tessdata are available, replace this setup note with a scanned-page example and include the extracted text on the first page for comparison.");
+    await CreateCapabilitySample_InvisibleSigningAsync(IOPath.Combine(outputDirectory, "20-invisible-signing.pdf"));
+    await CreateCapabilitySample_EncryptionPermissionsAsync(IOPath.Combine(outputDirectory, "21-encryption-permissions.pdf"));
+    await CreateCapabilitySample_MalformedRecoveryAsync(IOPath.Combine(outputDirectory, "22-malformed-recovery.pdf"));
 }
 
 static async Task CreateCapabilitySample_AuthoringAsync(string outputPath)
@@ -737,6 +741,108 @@ static async Task CreateCapabilitySample_RemoveHistoryAsync(string outputPath)
     await rewrittenPdf.SaveAsync(output);
 }
 
+static async Task CreateCapabilitySample_InvisibleSigningAsync(string outputPath)
+{
+    using var pdf = Pdf.Create();
+    await AddInstructionPageAsync(
+        pdf,
+        "Invisible signing",
+        "Manual validation instructions:\n1. There should be no visible signature appearance on any page.\n2. The PDF should still contain a digital signature when you inspect the signature panel in a viewer.\n3. In Acrobat, the signature may show as UNKNOWN because this sample uses a self-signed test certificate.\n4. The important validation result is that the viewer reports the document has not been modified since signing.",
+        pageNumber: 1);
+
+    var contentPage = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+    await contentPage.AddTextAsync(
+        "Invisible signing sample",
+        Rectangle.FromCoordinates(new Coordinate(40, 740), new Coordinate(320, 780)),
+        await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+        20,
+        RGBColour.Black);
+    await contentPage.AddTextAsync(
+        "This page should remain visually unchanged after signing. Validation happens through the signature panel rather than a visible widget.",
+        Rectangle.FromCoordinates(new Coordinate(40, 660), new Coordinate(520, 720)),
+        await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica),
+        12,
+        RGBColour.Black,
+        new TextLayoutOptions { Wrap = true, Overflow = TextOverflowMode.Clip });
+
+    using var certificate = CreateSigningCertificate();
+    await pdf.SignInvisibleAsync(certificate, new PdfSignatureOptions
+    {
+        FieldName = "ValidationOnlySignature",
+        SignerName = "ZingPDF Tester",
+        Reason = "Manual validation"
+    });
+
+    using var output = OpenValidationOutput(outputPath);
+    await pdf.SaveAsync(output);
+}
+
+static async Task CreateCapabilitySample_EncryptionPermissionsAsync(string outputPath)
+{
+    using var encrypted = new MemoryStream();
+
+    using (var pdf = Pdf.Create())
+    {
+        var page = await pdf.GetPageAsync(1);
+        await page.AddTextAsync(
+            "Open this file with password: test123",
+            Rectangle.FromCoordinates(new Coordinate(40, 740), new Coordinate(420, 780)),
+            await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+            18,
+            RGBColour.Black);
+        await page.AddTextAsync(
+            "Manual validation instructions:\n1. Open the file with user password test123.\n2. In the viewer security or document permissions panel, printing should be allowed.\n3. Content copying should be disallowed.\n4. Filling form fields should be allowed.\n5. This validates writing explicit output permissions into the encryption dictionary.",
+            Rectangle.FromCoordinates(new Coordinate(40, 600), new Coordinate(540, 720)),
+            await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica),
+            12,
+            RGBColour.Black,
+            new TextLayoutOptions { Wrap = true, Overflow = TextOverflowMode.Clip });
+
+        await pdf.EncryptAsync(
+            "test123",
+            "owner123",
+            PdfEncryptionAlgorithm.Aes256,
+            PdfEncryptionPermissions.Print | PdfEncryptionPermissions.FillForms);
+        await pdf.SaveAsync(encrypted);
+    }
+
+    using var output = OpenValidationOutput(outputPath);
+    encrypted.Position = 0;
+    await encrypted.CopyToAsync(output);
+}
+
+static async Task CreateCapabilitySample_MalformedRecoveryAsync(string outputPath)
+{
+    using var source = new MemoryStream();
+
+    using (var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595, 842)))
+    {
+        await AddInstructionPageAsync(
+            pdf,
+            "Malformed PDF recovery",
+            "Manual validation instructions:\n1. This output should open and render normally even though the source PDF used to create it had a corrupted final cross-reference pointer.\n2. Page 2 should contain the phrase 'recovered from malformed startxref'.\n3. This validates the recoverable malformed-file-structure path rather than normal clean input parsing.",
+            pageNumber: 1);
+
+        var contentPage = await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(300, 180));
+        await contentPage.AddTextAsync(
+            "recovered from malformed startxref",
+            Rectangle.FromCoordinates(new Coordinate(20, 120), new Coordinate(280, 150)),
+            await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold),
+            18,
+            RGBColour.Black);
+
+        await pdf.SaveAsync(source);
+    }
+
+    var corruptedBytes = CorruptFinalStartXref(source.ToArray());
+    using var malformedInput = new MemoryStream(corruptedBytes);
+    using var recoveredPdf = Pdf.Load(malformedInput);
+    await recoveredPdf.RemoveHistoryAsync();
+
+    using var output = OpenValidationOutput(outputPath);
+    await recoveredPdf.SaveAsync(output);
+}
+
 static async Task CreateCapabilitySample_PackageSetupPdfAsync(string outputPath, string title, string instructions)
 {
     using var summary = await CreateInstructionDocumentAsync(title, instructions, "This PDF is a setup/status artifact for a package-dependent capability.");
@@ -876,6 +982,36 @@ static X509Certificate2 CreateSigningCertificate()
 
 static FileStream OpenTestAsset(string relativePath)
     => new(ResolveTestAssetPath(relativePath), FileMode.Open, FileAccess.Read, FileShare.Read);
+
+static byte[] CorruptFinalStartXref(byte[] pdfBytes)
+{
+    var pdfText = Encoding.ASCII.GetString(pdfBytes);
+    var startXrefIndex = pdfText.LastIndexOf("startxref", StringComparison.Ordinal);
+    if (startXrefIndex < 0)
+    {
+        throw new InvalidOperationException("The source PDF did not contain a startxref marker.");
+    }
+
+    var valueStart = startXrefIndex + "startxref".Length;
+    while (valueStart < pdfText.Length && char.IsWhiteSpace(pdfText[valueStart]))
+    {
+        valueStart++;
+    }
+
+    var valueEnd = valueStart;
+    while (valueEnd < pdfText.Length && char.IsDigit(pdfText[valueEnd]))
+    {
+        valueEnd++;
+    }
+
+    if (valueEnd == valueStart)
+    {
+        throw new InvalidOperationException("The source PDF did not contain a numeric startxref value.");
+    }
+
+    var corruptedText = string.Concat(pdfText.AsSpan(0, valueStart), "999999999", pdfText.AsSpan(valueEnd));
+    return Encoding.ASCII.GetBytes(corruptedText);
+}
 
 static string ResolveTestAssetPath(string relativePath)
 {
