@@ -1,12 +1,8 @@
+![ZingPDF logomark](logomark.svg)
+
 # ZingPDF.OCR
 
 `ZingPDF.OCR` adds OCR support for scanned and image-based PDF pages.
-
-Use it when:
-
-- a PDF page has little or no embedded text
-- the page is primarily a scanned image
-- you want OCR as part of the main extraction workflow
 
 ## Installation
 
@@ -29,11 +25,11 @@ var engine = new TesseractOcrEngine("./tessdata", "eng");
 var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 ```
 
-## What it does
+## Main workflows
 
-- can prefer embedded PDF text or OCR depending on the selected options
-- works best on image-based pages
-- picks the largest image XObject on a page as the OCR candidate
+- extract OCR text from scanned or image-based PDF pages
+- combine OCR with the main text extraction workflow
+- use the built-in `TesseractOcrEngine` or a custom `IOcrEngine`
 
 ## Current limits
 
@@ -41,6 +37,16 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 - OCR works on image-based pages and other pages with usable image XObjects
 - JPEG, JPEG 2000 passthrough, and common 8-bit RGB or grayscale image streams are the main supported inputs today
 - `TesseractOcrEngine` requires native Tesseract support and language data files at runtime
+
+## Licensing
+
+ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an active paid subscription with sufficient seats, or another applicable commercial agreement, before commercial use or commercial bundling.
+
+Evaluation and other non-commercial use are free.
+
+## Support and compatibility
+
+See `SUPPORT.md` in the package root or [docs/project/SUPPORT.md](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md) in the repository for the current support stance and release-readiness notes.
 
 ## Related docs
 
