@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\docs\packages\README.OCR.md" Pack="true" PackagePath="/" Link="README.OCR.md" />
+    <None Include="..\..\docs\packages\logomark.svg" Pack="true" PackagePath="/" Link="logomark.svg" />
     <None Include="..\..\docs\project\SUPPORT.md" Pack="true" PackagePath="/" Link="SUPPORT.md" />
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="/" Link="LICENSE.txt" />
   </ItemGroup>
