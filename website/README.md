@@ -7,24 +7,41 @@ This directory contains a very small static SPA for selling commercial access to
 - no framework dependency
 - no build step
 - easy static hosting
-- hosted checkout links keep payment maintenance low
+- Stripe Checkout Sessions can run through a small Pages Function without exposing secrets to the browser
 - generated API reference is emitted as a static DocFX site
 
 ## Recommended payment setup
 
-The site is currently configured for Stripe-hosted checkout links.
+The site is currently configured for Stripe Checkout Sessions through a Cloudflare Pages Function.
 
-This is a strong low-maintenance default because Stripe-hosted checkout keeps payment handling off the site and works well with a static deployment.
+This keeps payment handling off the site while still allowing monthly and annual billing from one pricing UI.
+
+Stripe is now the source of truth for both pricing amounts and plan mapping. The frontend fetches display pricing from a Pages Function backed by Stripe metadata, and checkout uses that same metadata lookup.
 
 ## How to configure
 
 Edit `config.js` and update:
 
 - `supportEmail`
-- `licenses[].checkoutUrl`
-- pricing copy and plan names if needed
+- plan names and marketing copy if needed
 
-If a checkout URL still contains `your-`, the button will stay inactive until a real checkout URL is configured.
+Then configure these Cloudflare Pages environment variables for the deploy:
+
+- `STRIPE_SECRET_KEY`
+
+Optional:
+
+- `STRIPE_SUCCESS_URL`
+- `STRIPE_CANCEL_URL`
+
+The website pricing cards read their displayed amounts from Stripe through `/api/pricing-catalog`, so you do not need to maintain numeric prices in `config.js`.
+
+Stripe metadata should be set like this:
+
+- on each Stripe product:
+  - `site_plan_id=solo|team|business`
+
+The site infers monthly vs annual directly from the Stripe recurring interval on each price.
 
 ## How to run locally
 
@@ -78,7 +95,7 @@ This site can be deployed to:
 - Cloudflare Pages
 - Vercel static hosting
 
-Because the site is static, there is no backend deployment requirement unless you later add license-key provisioning or CRM automation.
+The site is mostly static, with one small Pages Function for Stripe Checkout Session creation.
 
 ## Cloudflare Pages deployment
 
@@ -120,6 +137,8 @@ On every push to `main`, GitHub Actions will:
 2. run `pwsh ./website/generate-api-reference.ps1`
 3. deploy the `website/` folder to Cloudflare Pages
 
+Cloudflare Pages will also deploy any functions under `website/functions/`.
+
 ### Custom domain
 
 After the first successful deployment:
@@ -133,6 +152,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 ## Suggested next steps
 
 1. Confirm the configured support email is correct.
-2. Create or confirm Stripe checkout links for Solo, Team, and Business.
+2. Ensure each Stripe product has `site_plan_id`, and that the matching Stripe prices use standard monthly/yearly recurring intervals.
 3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
 4. Confirm the published legal pages match the current commercial terms.

@@ -1,6 +1,8 @@
 (function () {
   const config = window.ZINGPDF_STORE_CONFIG || {};
   const pricingGrid = document.getElementById("pricing-grid");
+  const billingToggle = document.getElementById("billing-toggle");
+  const checkoutBanner = document.getElementById("checkout-banner");
   const dialog = document.getElementById("contact-dialog");
   const emailText = document.getElementById("contact-email-text");
   const emailLink = document.getElementById("contact-email-link");
@@ -11,15 +13,30 @@
   const guidesCount = document.querySelector("[data-guides-count]");
   const guidesEmpty = document.querySelector("[data-guides-empty]");
 
+  let billingPeriod = "monthly";
+  let checkoutInFlight = false;
+  let pricingCatalog = {};
+
   if (pricingGrid && dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
     emailText.textContent = `Email ${supportEmail} to discuss custom licensing, redistribution, procurement, or support terms.`;
     emailLink.href = `mailto:${supportEmail}?subject=${encodeURIComponent("ZingPDF commercial licensing")}`;
     emailLink.textContent = `Email ${supportEmail}`;
 
-    for (const license of config.licenses || []) {
-      pricingGrid.appendChild(buildCard(license));
+    if (billingToggle) {
+      for (const button of billingToggle.querySelectorAll("[data-billing-period]")) {
+        button.addEventListener("click", () => {
+          billingPeriod = button.getAttribute("data-billing-period") || "monthly";
+          syncBillingToggle();
+          renderPricingCards();
+        });
+      }
+      syncBillingToggle();
     }
+
+    initializePricing().catch(() => {
+      renderPricingCards();
+    });
   }
 
   for (const trigger of contactSalesTriggers) {
@@ -70,8 +87,49 @@
   }
 
   highlightCodeBlocks();
+  hydrateCheckoutBanner();
+
+  async function initializePricing() {
+    pricingCatalog = await loadPricingCatalog();
+    renderPricingCards();
+  }
+
+  async function loadPricingCatalog() {
+    const response = await fetch("/api/pricing-catalog", {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.plans) {
+      throw new Error(payload.error || "Unable to load pricing.");
+    }
+
+    return payload.plans;
+  }
+
+  function renderPricingCards() {
+    pricingGrid.innerHTML = "";
+    for (const license of config.licenses || []) {
+      pricingGrid.appendChild(buildCard(license));
+    }
+  }
+
+  function syncBillingToggle() {
+    if (!billingToggle) {
+      return;
+    }
+
+    for (const button of billingToggle.querySelectorAll("[data-billing-period]")) {
+      const isActive = button.getAttribute("data-billing-period") === billingPeriod;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    }
+  }
 
   function buildCard(license) {
+    const planPricing = pricingCatalog[license.id] || {};
     const article = document.createElement("article");
     article.className = `pricing-card${license.featured ? " featured" : ""}`;
 
@@ -93,8 +151,19 @@
 
     const price = document.createElement("div");
     price.className = "pricing-price";
-    price.innerHTML = `${escapeHtml(license.price || "")}${license.cadence ? ` <small>${escapeHtml(license.cadence)}</small>` : ""}`;
+    const activePrice = billingPeriod === "annual" ? planPricing.annualPrice : planPricing.monthlyPrice;
+    const activeCadence = billingPeriod === "annual" ? planPricing.annualCadence : planPricing.monthlyCadence;
+    price.innerHTML = `${escapeHtml(activePrice || "")}${activeCadence ? ` <small>${escapeHtml(activeCadence)}</small>` : ""}`;
     article.appendChild(price);
+
+    if (planPricing.annualPrice) {
+      const annualPrice = document.createElement("div");
+      annualPrice.className = "pricing-annual-price";
+      annualPrice.innerHTML = billingPeriod === "annual"
+        ? `monthly option: ${escapeHtml(planPricing.monthlyPrice || "")}${planPricing.monthlyCadence ? ` <small>${escapeHtml(planPricing.monthlyCadence)}</small>` : ""}`
+        : `or ${escapeHtml(planPricing.annualPrice)}${planPricing.annualCadence ? ` <small>${escapeHtml(planPricing.annualCadence)}</small>` : ""}`;
+      article.appendChild(annualPrice);
+    }
 
     const description = document.createElement("p");
     description.className = "pricing-description";
@@ -117,32 +186,56 @@
   }
 
   function buildActionButton(license) {
-    const button = document.createElement(license.contactOnly ? "button" : "a");
+    const button = document.createElement("button");
     button.className = "button button-primary";
-    button.textContent = license.ctaLabel || "Continue";
+    button.type = "button";
+    button.textContent = `${license.ctaLabel || "Continue"}${billingPeriod === "annual" ? " Annual" : ""}`;
 
     if (license.contactOnly) {
-      button.type = "button";
       button.addEventListener("click", () => dialog.showModal());
       return button;
     }
 
-    if (!license.checkoutUrl || license.checkoutUrl.includes("your-")) {
-      button.classList.remove("button-primary");
-      button.classList.add("button-ghost", "button-disabled");
-      button.href = "#";
-      button.setAttribute("aria-disabled", "true");
-      button.title = "Set a real hosted checkout URL in website/config.js";
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.alert("Update website/config.js with your real hosted checkout URL first.");
-      });
+    if (!pricingCatalog[license.id]) {
+      button.disabled = true;
+      button.title = "Pricing is not configured yet.";
       return button;
     }
 
-    button.href = license.checkoutUrl;
-    button.target = "_blank";
-    button.rel = "noopener";
+    button.addEventListener("click", async () => {
+      if (checkoutInFlight) {
+        return;
+      }
+
+      checkoutInFlight = true;
+      button.disabled = true;
+
+      try {
+        const response = await fetch("/api/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            planId: license.id,
+            billingPeriod
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.url) {
+          throw new Error(payload.error || "Unable to start checkout.");
+        }
+
+        window.location.href = payload.url;
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Unable to start checkout.");
+      } finally {
+        checkoutInFlight = false;
+        button.disabled = false;
+      }
+    });
+
     return button;
   }
 
@@ -160,6 +253,32 @@
       .toLowerCase()
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  function hydrateCheckoutBanner() {
+    if (!checkoutBanner) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    const state = url.searchParams.get("checkout");
+
+    if (state === "success") {
+      checkoutBanner.hidden = false;
+      checkoutBanner.setAttribute("data-state", "success");
+      checkoutBanner.textContent = "Thanks — your checkout completed successfully. Your subscription should be active shortly.";
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.toString());
+      return;
+    }
+
+    if (state === "cancelled") {
+      checkoutBanner.hidden = false;
+      checkoutBanner.setAttribute("data-state", "cancelled");
+      checkoutBanner.textContent = "Checkout cancelled. You can review the plans below and try again whenever you're ready.";
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.toString());
+    }
   }
 
   function highlightCodeBlocks() {
