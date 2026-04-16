@@ -689,8 +689,8 @@ code {
   grid-template-columns: auto 1fr;
   align-items: start;
   gap: 12px 16px;
-  margin-bottom: 14px;
-  padding: 14px 18px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
   border: 1px solid rgba(14, 116, 144, 0.2);
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, rgba(14, 116, 144, 0.06), rgba(255, 255, 255, 0.92));
@@ -709,9 +709,15 @@ code {
 }
 
 .pricing-savings-note {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   color: var(--muted);
   font-weight: 600;
+}
+
+.pricing-currency-note {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.96rem;
 }
 
 .checkout-banner {
@@ -738,7 +744,7 @@ code {
   display: inline-flex;
   gap: 8px;
   padding: 6px;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.88);
@@ -995,7 +1001,7 @@ code {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 24px 22px 22px;
+  padding: 22px 20px 20px;
 }
 
 .pricing-card.featured {
@@ -1005,7 +1011,7 @@ code {
   transform: scale(1.04);
   transform-origin: center;
   z-index: 1;
-  padding: 30px 26px 28px;
+  padding: 28px 24px 26px;
 }
 
 .pricing-badge {
@@ -1061,14 +1067,14 @@ code {
 }
 
 .pricing-description {
-  min-height: 4.8em;
+  min-height: 3.6em;
 }
 
 .pricing-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   padding: 0;
-  margin: 20px 0 24px;
+  margin: 16px 0 20px;
   list-style: none;
 }
 
