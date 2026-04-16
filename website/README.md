@@ -1,69 +1,46 @@
 # ZingPDF Sales Site
 
-This directory contains a very small static SPA for selling commercial access to ZingPDF.
+This directory contains a very small static site for selling commercial access to ZingPDF.
 
 ## Why this approach
 
 - no framework dependency
 - no build step
 - easy static hosting
-- Stripe Checkout Sessions can run through a small Pages Function without exposing secrets to the browser
+- Stripe Pricing Table keeps checkout and local-currency pricing in Stripe rather than in site code
 - generated API reference is emitted as a static DocFX site
 
 ## Recommended payment setup
 
-The site is currently configured for Stripe Checkout Sessions through a Cloudflare Pages Function.
+The site is currently configured to embed a Stripe Pricing Table directly into the pricing section.
 
-This keeps payment handling off the site while still allowing monthly and annual billing from one pricing UI.
+This keeps pricing, billing cadence, currency handling, and checkout behavior in Stripe rather than in custom frontend or Cloudflare code.
 
-Stripe is now the source of truth for both pricing amounts and plan mapping. The frontend fetches display pricing from a Pages Function backed by Stripe metadata, and checkout uses that same metadata lookup.
+Stripe is the source of truth for pricing amounts, billing intervals, currencies, and checkout flow.
 
 ## How to configure
 
 Edit `config.js` and update:
 
 - `supportEmail`
-- plan names and marketing copy if needed
 
-Then configure these Cloudflare Pages environment variables for the deploy:
+Then configure Stripe itself:
 
-- `STRIPE_SECRET_KEY`
+- create the `Solo`, `Team`, and `Business` products
+- create the recurring prices you want to show in the pricing table
+- add additional currencies with Stripe's `Add a price by currency` option where needed
+- configure the Pricing Table in Stripe and copy:
+  - the `pricing-table-id`
+  - the publishable key
 
-Optional:
+The site currently embeds Stripe with:
 
-- `STRIPE_SUCCESS_URL`
-- `STRIPE_CANCEL_URL`
+```html
+<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+<stripe-pricing-table pricing-table-id="..." publishable-key="..."></stripe-pricing-table>
+```
 
-The website pricing cards read their displayed amounts from Stripe through `/api/pricing-catalog`, so you do not need to maintain numeric prices in `config.js`.
-
-Stripe metadata should be set like this:
-
-- on each Stripe product:
-  - `site_plan_id=solo|team|business`
-
-The site infers monthly vs annual directly from the Stripe recurring interval on each price.
-
-To support localized pricing, the recommended setup is:
-
-- one monthly recurring price per product
-- one annual recurring price per product
-- add extra currencies to each of those prices with Stripe's `Add a price by currency` option
-
-Example for `Solo`:
-
-- Solo product
-  - metadata: `site_plan_id=solo`
-  - one monthly recurring price with USD plus any extra currencies such as AUD, GBP, and EUR
-  - one annual recurring price with USD plus any extra currencies such as AUD, GBP, and EUR
-
-The site currently prefers currencies by request location like this:
-
-- Australia: `AUD`
-- United Kingdom: `GBP`
-- Eurozone countries: `EUR`
-- United States and fallback markets: `USD`
-
-If the preferred currency is not configured for a plan, the site falls back to the next configured currency.
+So the only site-side maintenance is updating those values in `index.html` if you replace the Stripe Pricing Table.
 
 ## How to run locally
 
@@ -117,7 +94,7 @@ This site can be deployed to:
 - Cloudflare Pages
 - Vercel static hosting
 
-The site is mostly static, with one small Pages Function for Stripe Checkout Session creation.
+The site is fully static for pricing and checkout because Stripe Pricing Table is embedded directly.
 
 ## Cloudflare Pages deployment
 
@@ -159,8 +136,6 @@ On every push to `main`, GitHub Actions will:
 2. run `pwsh ./website/generate-api-reference.ps1`
 3. deploy the `website/` folder to Cloudflare Pages
 
-Cloudflare Pages will also deploy any functions under `website/functions/`.
-
 ### Custom domain
 
 After the first successful deployment:
@@ -174,7 +149,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 ## Suggested next steps
 
 1. Confirm the configured support email is correct.
-2. Ensure each Stripe product has `site_plan_id`, and that the matching Stripe prices use standard monthly/yearly recurring intervals.
-3. Add the currencies you want to support under each plan's monthly and annual prices with Stripe's `Add a price by currency` option.
-4. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
-5. Confirm the published legal pages match the current commercial terms.
+2. Confirm that the embedded Stripe Pricing Table shows the right plans, billing intervals, and currencies.
+3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
+4. Confirm the published legal pages match the current commercial terms.

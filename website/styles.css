@@ -1,9 +1,9 @@
 :root {
-  --bg: #f3f6fb;
-  --bg-strong: #e7edf6;
-  --surface: rgba(255, 255, 255, 0.9);
+  --bg: #f5f7fb;
+  --bg-strong: #e8edf5;
+  --surface: #ffffff;
   --surface-strong: #ffffff;
-  --surface-muted: #f7f9fc;
+  --surface-muted: #f8fafc;
   --text: #142033;
   --muted: #526077;
   --line: rgba(20, 32, 51, 0.1);
@@ -13,10 +13,10 @@
   --night: #0f172a;
   --night-soft: #16243b;
   --night-text: #d9e7fb;
-  --shadow: 0 12px 30px rgba(20, 32, 51, 0.08);
-  --radius-xl: 22px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
+  --shadow: 0 10px 24px rgba(20, 32, 51, 0.05);
+  --radius-xl: 18px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
 }
 
 * {
@@ -30,9 +30,7 @@ html {
 body {
   margin: 0;
   color: var(--text);
-  background:
-    radial-gradient(circle at top right, rgba(14, 116, 144, 0.08), transparent 24%),
-    linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
+  background: var(--bg);
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
 }
 
@@ -49,7 +47,7 @@ a {
 
 .landing-main {
   display: grid;
-  gap: 72px;
+  gap: 64px;
   padding-top: 24px;
 }
 
@@ -139,7 +137,7 @@ a {
 .payment-panel h2,
 .contact-dialog-card h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.03em;
@@ -147,8 +145,8 @@ a {
 
 .hero-copy h1 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 700;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
+  font-weight: 800;
   font-size: clamp(2.8rem, 4.8vw, 4.25rem);
   line-height: 0.98;
   letter-spacing: -0.035em;
@@ -206,7 +204,7 @@ a {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(14, 116, 144, 0.14), rgba(20, 184, 166, 0.18));
+  background: rgba(14, 116, 144, 0.12);
   color: var(--accent-strong);
   line-height: 1;
   flex-shrink: 0;
@@ -238,13 +236,13 @@ a {
 .button-primary {
   color: #f6fbff;
   border-color: var(--accent);
-  background: linear-gradient(135deg, var(--accent), #127b99);
-  box-shadow: 0 10px 22px rgba(14, 116, 144, 0.18);
+  background: var(--accent);
+  box-shadow: 0 10px 20px rgba(14, 116, 144, 0.14);
 }
 
 .button-secondary {
   border-color: var(--line);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
 }
 
 .button-ghost {
@@ -283,8 +281,8 @@ a {
   padding: 16px 18px;
   border: 1px solid rgba(14, 116, 144, 0.12);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.05);
+  background: #fff;
+  box-shadow: none;
 }
 
 .hero-strip-item strong {
@@ -410,7 +408,7 @@ code {
 
 .section-copy {
   max-width: 720px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .homepage-performance-band {
@@ -453,11 +451,11 @@ code {
 .platform-band {
   display: grid;
   grid-template-columns: 0.95fr 1.05fr;
-  gap: 22px;
-  padding: 28px;
+  gap: 20px;
+  padding: 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(244, 251, 255, 0.96), rgba(255, 255, 255, 0.88));
+  background: #fff;
   box-shadow: var(--shadow);
 }
 
@@ -467,11 +465,11 @@ code {
 
 .platform-copy h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
   font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-size: clamp(1.85rem, 3.7vw, 2.75rem);
 }
 
 .platform-grid {
@@ -483,10 +481,10 @@ code {
 .platform-card {
   display: grid;
   gap: 10px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid rgba(14, 116, 144, 0.16);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-muted);
 }
 
 .platform-card-head {
@@ -531,7 +529,7 @@ code {
 }
 
 .homepage-performance-card strong {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(1.55rem, 2.6vw, 2.15rem);
   line-height: 1.1;
   color: #ffffff;
@@ -564,7 +562,7 @@ code {
 .why-layout {
   display: grid;
   grid-template-columns: 0.95fr 1.05fr;
-  gap: 34px;
+  gap: 28px;
   align-items: start;
 }
 
@@ -574,16 +572,16 @@ code {
 
 .why-copy h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
   font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-size: clamp(2.15rem, 4vw, 3.05rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-size: clamp(1.95rem, 3.8vw, 2.8rem);
 }
 
 .why-copy p {
   color: var(--muted);
-  line-height: 1.72;
+  line-height: 1.68;
   font-size: 1.02rem;
 }
 
@@ -594,7 +592,7 @@ code {
 .why-points {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .why-point {
@@ -606,9 +604,9 @@ code {
 
 .why-point {
   gap: 10px;
-  padding: 20px 22px;
+  padding: 18px 20px;
   border-top: 1px solid rgba(14, 116, 144, 0.2);
-  background: rgba(255, 255, 255, 0.36);
+  background: #fff;
   border-radius: 0 0 14px 14px;
 }
 
@@ -642,26 +640,26 @@ code {
   grid-template-columns: 44px minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 18px;
   align-items: start;
-  padding: 22px 24px;
+  padding: 20px 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow);
+  background: #fff;
+  box-shadow: none;
 }
 
 .capability-summary-row h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.14rem;
 }
 
 .capability-summary-row p {
   margin: 0;
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .capability-summary-row-cta {
-  background: linear-gradient(180deg, rgba(244, 251, 255, 1), rgba(233, 244, 248, 1));
+  background: var(--surface-muted);
   border-color: rgba(14, 116, 144, 0.22);
 }
 
@@ -669,116 +667,141 @@ code {
   justify-self: start;
 }
 
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  align-items: center;
-}
-
 .pricing-context-grid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 18px;
-  margin-top: 18px;
+  margin-top: 10px;
   margin-bottom: 24px;
+}
+
+.capabilities .section-copy h2,
+.faq .section-copy h2 {
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-size: clamp(1.9rem, 3.8vw, 2.75rem);
+}
+
+.licenses {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 56px 0;
+  color: var(--night-text);
+  background: #16243b;
+}
+
+.licenses-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.pricing-header-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.pricing-section-copy {
+  margin-bottom: 0;
+}
+
+.licenses .eyebrow {
+  color: #8ed7e3;
+}
+
+.pricing-section-copy h2 {
+  max-width: 11ch;
+  color: #ffffff;
+}
+
+.licenses .section-copy p {
+  color: rgba(217, 231, 251, 0.82);
 }
 
 .pricing-free-callout {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: start;
-  gap: 12px 16px;
-  margin-bottom: 12px;
-  padding: 12px 16px;
-  border: 1px solid rgba(14, 116, 144, 0.2);
+  gap: 14px 16px;
+  min-height: 100%;
+  padding: 18px 20px;
+  border: 1px solid rgba(142, 215, 227, 0.16);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(14, 116, 144, 0.06), rgba(255, 255, 255, 0.92));
-  box-shadow: 0 8px 18px rgba(20, 32, 51, 0.04);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.pricing-free-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(142, 215, 227, 0.14);
+  color: #b6e7ef;
+}
+
+.pricing-free-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .pricing-free-callout strong {
   font-size: 1rem;
-  white-space: nowrap;
+  color: #ffffff;
 }
 
 .pricing-free-callout p {
-  margin: 0;
-  color: var(--muted);
+  margin: 6px 0 0;
+  color: rgba(217, 231, 251, 0.82);
   line-height: 1.55;
-}
-
-.pricing-savings-note {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.pricing-currency-note {
-  margin: 0 0 14px;
-  color: var(--muted);
-  font-size: 0.96rem;
 }
 
 .checkout-banner {
   margin: 0 0 16px;
   padding: 14px 18px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(142, 215, 227, 0.16);
   border-radius: var(--radius-lg);
   font-weight: 600;
 }
 
 .checkout-banner[data-state="success"] {
   border-color: rgba(22, 163, 74, 0.24);
-  background: rgba(22, 163, 74, 0.08);
-  color: #166534;
+  background: rgba(22, 163, 74, 0.12);
+  color: #d1fae5;
 }
 
 .checkout-banner[data-state="cancelled"] {
   border-color: rgba(202, 138, 4, 0.24);
-  background: rgba(254, 249, 195, 0.72);
-  color: #854d0e;
+  background: rgba(202, 138, 4, 0.12);
+  color: #fde68a;
 }
 
-.billing-toggle {
-  display: inline-flex;
-  gap: 8px;
-  padding: 6px;
-  margin: 0 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
+.stripe-pricing-table-shell {
+  margin: 0 0 22px;
+  padding: 10px 0 0;
 }
 
-.billing-toggle-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 10px 16px;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.billing-toggle-button.is-active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.billing-toggle-button:disabled,
-.pricing-card .button:disabled {
-  opacity: 0.65;
-  cursor: wait;
+.stripe-pricing-table-shell stripe-pricing-table {
+  display: block;
 }
 
 .pricing-context-card {
   min-width: 0;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-content: start;
   position: relative;
   overflow: hidden;
+  padding: 18px 18px 16px;
+  border-color: rgba(142, 215, 227, 0.12);
+  background: rgba(9, 17, 31, 0.26);
+  box-shadow: none;
 }
 
 .pricing-context-head {
@@ -790,27 +813,32 @@ code {
 
 .pricing-context-head .mini-icon {
   flex-shrink: 0;
+  background: rgba(142, 215, 227, 0.14);
+  color: #b6e7ef;
 }
 
 .pricing-context-card h3,
 .pricing-context-card.doc-card h3 {
   margin: 0;
   line-height: 1.2;
+  color: #ffffff;
+  font-size: 1.15rem;
 }
 
 .pricing-context-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--muted);
+  color: rgba(217, 231, 251, 0.82);
+  font-size: 0.98rem;
 }
 
 .pricing-context-list li {
   position: relative;
-  padding-left: 24px;
-  line-height: 1.6;
+  padding-left: 22px;
+  line-height: 1.55;
 }
 
 .pricing-context-list li::before {
@@ -818,25 +846,26 @@ code {
   position: absolute;
   left: 0;
   top: 0.6em;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), #14b8a6);
-  box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.12);
+  background: #8ed7e3;
+  box-shadow: 0 0 0 3px rgba(142, 215, 227, 0.1);
 }
 
 .pricing-enterprise-note {
-  margin: 20px 8px 0;
-  color: var(--muted);
+  margin: 18px 8px 0;
+  color: rgba(217, 231, 251, 0.82);
   line-height: 1.65;
   font-size: 0.98rem;
+  text-align: center;
 }
 
 .pricing-inline-button {
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--accent-strong);
+  color: #8ed7e3;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -845,7 +874,7 @@ code {
 }
 
 .pricing-inline-button:hover {
-  color: var(--accent);
+  color: #b6e7ef;
 }
 
 .feature-grid {
@@ -874,7 +903,7 @@ code {
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 251, 255, 0.92));
+  background: #fff;
   box-shadow: var(--shadow);
 }
 
@@ -889,7 +918,7 @@ code {
 
 .guide-card h3 {
   margin: 0 0 12px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(1.45rem, 2.4vw, 2rem);
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -981,54 +1010,20 @@ code {
 
 .support-group-copy h3 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(1.35rem, 2vw, 1.75rem);
   line-height: 1.05;
   letter-spacing: -0.03em;
 }
 
-.pricing-card,
 .feature-card,
 .faq-list details {
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
-.pricing-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  padding: 22px 20px 20px;
-}
-
-.pricing-card.featured {
-  background: linear-gradient(180deg, rgba(244, 251, 255, 1), rgba(233, 244, 248, 1));
-  border-color: rgba(14, 116, 144, 0.22);
-  box-shadow: 0 16px 36px rgba(14, 116, 144, 0.12);
-  transform: scale(1.04);
-  transform-origin: center;
-  z-index: 1;
-  padding: 28px 24px 26px;
-}
-
-.pricing-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.pricing-card h3,
 .feature-card h3 {
   margin: 0 0 10px;
   font-size: 1.35rem;
@@ -1036,68 +1031,6 @@ code {
 
 .licenses .section-copy h2 {
   font-size: clamp(2.1rem, 4vw, 3rem);
-}
-
-.pricing-price {
-  margin: 18px 0 6px;
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 2.7rem;
-  line-height: 1;
-}
-
-.pricing-price small {
-  font-size: 1rem;
-  color: var(--muted);
-}
-
-.pricing-annual-price {
-  margin-bottom: 10px;
-  color: var(--muted);
-  font-size: 0.98rem;
-}
-
-.pricing-annual-price small {
-  font-size: 0.95rem;
-  color: var(--muted);
-}
-
-.pricing-subtitle,
-.pricing-description {
-  color: var(--muted);
-}
-
-.pricing-description {
-  min-height: 3.6em;
-}
-
-.pricing-list {
-  display: grid;
-  gap: 8px;
-  padding: 0;
-  margin: 16px 0 20px;
-  list-style: none;
-}
-
-.pricing-list li {
-  position: relative;
-  padding-left: 24px;
-  line-height: 1.6;
-}
-
-.pricing-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.6em;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), #14b8a6);
-  box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.12);
-}
-
-.pricing-card .button {
-  margin-top: auto;
 }
 
 .feature-card {
@@ -1221,7 +1154,7 @@ code {
 
 .faq-list details {
   padding: 18px 20px;
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
   transition: border-color 120ms ease, background 120ms ease;
 }
 
@@ -1294,7 +1227,7 @@ code {
 .doc-callout h3,
 .doc-card h3 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   letter-spacing: -0.03em;
 }
 
@@ -1369,7 +1302,7 @@ code {
 
 .article-header h1 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(2.4rem, 5vw, 4rem);
   line-height: 0.98;
   letter-spacing: -0.04em;
@@ -1430,7 +1363,7 @@ code {
 .article-section h2,
 .article-cta h2 {
   margin: 0 0 12px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(1.7rem, 3vw, 2.25rem);
   line-height: 1.08;
   letter-spacing: -0.03em;
@@ -1484,7 +1417,7 @@ code {
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   box-shadow: 0 10px 24px rgba(20, 32, 51, 0.06);
 }
 
@@ -1539,6 +1472,43 @@ code {
   margin-bottom: 0;
 }
 
+.licenses .pricing-context-card {
+  padding: 18px 18px 16px;
+  border-color: rgba(142, 215, 227, 0.12);
+  background: rgba(9, 17, 31, 0.26);
+  box-shadow: none;
+}
+
+.licenses .pricing-context-card h3,
+.licenses .pricing-context-card.doc-card h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.licenses .pricing-context-card p,
+.licenses .pricing-context-list {
+  color: rgba(217, 231, 251, 0.82);
+}
+
+.licenses .pricing-context-list {
+  gap: 10px;
+  font-size: 0.98rem;
+}
+
+.licenses .pricing-context-list li {
+  padding-left: 22px;
+  line-height: 1.55;
+}
+
+.licenses .pricing-context-list li::before {
+  width: 8px;
+  height: 8px;
+  background: #8ed7e3;
+  box-shadow: 0 0 0 3px rgba(142, 215, 227, 0.1);
+}
+
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1564,7 +1534,7 @@ code {
 }
 
 .doc-callout {
-  background: linear-gradient(180deg, rgba(244, 251, 255, 1), rgba(233, 244, 248, 1));
+  background: var(--surface-muted);
   border-color: rgba(14, 116, 144, 0.22);
 }
 
@@ -1675,7 +1645,7 @@ code {
 
 .benchmark-callout,
 .metric-card {
-  background: linear-gradient(180deg, rgba(244, 251, 255, 1), rgba(233, 244, 248, 1));
+  background: var(--surface-muted);
   border-color: rgba(14, 116, 144, 0.22);
 }
 
@@ -1714,7 +1684,7 @@ code {
 .metric-card strong {
   display: block;
   margin-top: 10px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: "Sora", "Space Grotesk", "Segoe UI", sans-serif;
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1;
 }
@@ -1837,7 +1807,6 @@ code {
 @media (max-width: 980px) {
 
   .hero,
-  .pricing-grid,
   .pricing-context-grid,
   .feature-grid,
   .why-layout,
@@ -1854,6 +1823,10 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .pricing-header-row {
+    grid-template-columns: 1fr;
+  }
+
   .support-table {
     min-width: 640px;
   }
@@ -1867,17 +1840,8 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .pricing-card.featured {
-    transform: none;
-  }
-
   .pricing-free-callout {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .pricing-free-callout strong {
-    white-space: normal;
+    grid-template-columns: auto 1fr;
   }
 
   .docs-sidebar {
@@ -1902,6 +1866,10 @@ code {
 
   .homepage-performance-band {
     padding: 48px 0;
+  }
+
+  .licenses-shell {
+    width: min(100% - 20px, 1180px);
   }
 
   .topbar {
