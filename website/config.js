@@ -13,7 +13,6 @@ window.ZINGPDF_STORE_CONFIG = {
       bullets: [
         "1 developer seat",
         "Commercial use",
-        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Email-based support"
       ]
     },
@@ -21,13 +20,12 @@ window.ZINGPDF_STORE_CONFIG = {
       id: "team",
       name: "Team",
       subtitle: "For up to 5 developers.",
-      description: "Up to 5 developer seats on the standard online plan.",
+      description: "Best value for small teams on the standard online plan.",
       ctaLabel: "Buy Team",
       featured: true,
       badge: "Most Popular",
       bullets: [
         "Up to 5 developer seats",
-        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Commercial use",
         "Priority email support"
       ]
@@ -41,7 +39,6 @@ window.ZINGPDF_STORE_CONFIG = {
       featured: false,
       bullets: [
         "Up to 20 developer seats",
-        "Core, Fonts, GoogleFonts, and FromHTML packages included",
         "Commercial use",
         "Priority email support"
       ]

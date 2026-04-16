@@ -43,6 +43,28 @@ Stripe metadata should be set like this:
 
 The site infers monthly vs annual directly from the Stripe recurring interval on each price.
 
+To support localized pricing, the recommended setup is:
+
+- one monthly recurring price per product
+- one annual recurring price per product
+- add extra currencies to each of those prices with Stripe's `Add a price by currency` option
+
+Example for `Solo`:
+
+- Solo product
+  - metadata: `site_plan_id=solo`
+  - one monthly recurring price with USD plus any extra currencies such as AUD, GBP, and EUR
+  - one annual recurring price with USD plus any extra currencies such as AUD, GBP, and EUR
+
+The site currently prefers currencies by request location like this:
+
+- Australia: `AUD`
+- United Kingdom: `GBP`
+- Eurozone countries: `EUR`
+- United States and fallback markets: `USD`
+
+If the preferred currency is not configured for a plan, the site falls back to the next configured currency.
+
 ## How to run locally
 
 Any static server will work. For example:
@@ -153,5 +175,6 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 
 1. Confirm the configured support email is correct.
 2. Ensure each Stripe product has `site_plan_id`, and that the matching Stripe prices use standard monthly/yearly recurring intervals.
-3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
-4. Confirm the published legal pages match the current commercial terms.
+3. Add the currencies you want to support under each plan's monthly and annual prices with Stripe's `Add a price by currency` option.
+4. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
+5. Confirm the published legal pages match the current commercial terms.

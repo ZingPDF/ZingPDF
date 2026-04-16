@@ -8,7 +8,7 @@ import {
 const PLAN_IDS = ["solo", "team", "business"];
 
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
 
   try {
     if (!env.STRIPE_SECRET_KEY) {
@@ -19,8 +19,8 @@ export async function onRequestGet(context) {
     const catalog = {};
 
     for (const planId of PLAN_IDS) {
-      const monthlyPrice = getCatalogPrice(stripeCatalog, planId, "monthly");
-      const annualPrice = getCatalogPrice(stripeCatalog, planId, "annual");
+      const monthlyPrice = getCatalogPrice(stripeCatalog, planId, "monthly", request);
+      const annualPrice = getCatalogPrice(stripeCatalog, planId, "annual", request);
 
       if (!monthlyPrice || !annualPrice) {
         continue;

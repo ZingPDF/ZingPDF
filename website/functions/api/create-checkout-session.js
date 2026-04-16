@@ -12,7 +12,7 @@ export async function onRequestPost(context) {
     const planId = typeof body?.planId === "string" ? body.planId : "";
     const billingPeriod = body?.billingPeriod === "annual" ? "annual" : "monthly";
     const catalog = await getPricingCatalog(env);
-    const price = getCatalogPrice(catalog, planId, billingPeriod);
+    const price = getCatalogPrice(catalog, planId, billingPeriod, request);
     const priceId = price?.id || null;
 
     if (!priceId) {
