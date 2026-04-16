@@ -10,10 +10,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Playfair+Display:wght@700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 </head>
 
 <body>
@@ -521,76 +522,85 @@
       </section>
 
       <section class="licenses" id="licenses">
-        <div class="section-copy">
-          <p class="eyebrow">Licensing</p>
-          <h2>Choose the plan that matches your team size.</h2>
-          <p>Commercial pricing is by developer seat. Evaluation and other non-commercial use stay free.</p>
-        </div>
-
-        <div class="pricing-free-callout">
-          <strong>Free to evaluate</strong>
-          <p>Use ZingPDF for trial, evaluation, and other non-commercial work without a time-limited trial. You only
-            need a paid plan when commercial use begins.</p>
-        </div>
-
-        <div class="checkout-banner" id="checkout-banner" hidden></div>
-
-        <p class="pricing-savings-note">Save about 2 months with annual billing on every plan.</p>
-        <p class="pricing-currency-note">Local currency shown where available.</p>
-        <div class="billing-toggle" id="billing-toggle" aria-label="Billing period">
-          <button type="button" class="billing-toggle-button is-active" data-billing-period="monthly">Monthly</button>
-          <button type="button" class="billing-toggle-button" data-billing-period="annual">Annual</button>
-        </div>
-
-        <div class="pricing-grid" id="pricing-grid"></div>
-
-        <div class="pricing-context-grid">
-          <article class="doc-card pricing-context-card">
-            <div class="pricing-context-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="8"></circle>
-                  <path d="M12 10v5"></path>
-                  <path d="M12 7.5h.01"></path>
-                </svg>
-              </span>
-              <h3>All paid plans include</h3>
+        <div class="licenses-shell">
+          <div class="pricing-header-row">
+            <div class="section-copy pricing-section-copy">
+              <p class="eyebrow">Licensing</p>
+              <h2>Choose the plan that matches your team size.</h2>
             </div>
-            <ul class="pricing-context-list">
-              <li>Commercial use</li>
-              <li>Core, GoogleFonts, OCR, and FromHTML packages</li>
-              <li>Ongoing updates</li>
-              <li>Email support</li>
-              <li>Free evaluation before you subscribe</li>
-            </ul>
-          </article>
-          <article class="doc-card pricing-context-card">
-            <div class="pricing-context-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9.5" cy="7" r="3.2"></circle>
-                  <path d="M20 20v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M14.5 4.4a3.2 3.2 0 0 1 0 5.2"></path>
-                </svg>
-              </span>
-              <h3>Seat-based licensing</h3>
-            </div>
-            <ul class="pricing-context-list">
-              <li>Evaluation and non-commercial use are free</li>
-              <li>A seat covers one developer using ZingPDF commercially</li>
-              <li>Choose the plan that matches how many developers use the library</li>
-              <li>Custom terms and invoicing are available on request</li>
-            </ul>
-          </article>
-        </div>
 
-        <p class="pricing-enterprise-note">
-          Need procurement, invoicing, or more seats? <button type="button" class="pricing-inline-button"
-            data-contact-sales>Contact ZingPDF directly</button>.
-        </p>
+            <aside class="pricing-free-callout">
+              <div class="pricing-free-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3l7 4v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V7l7-4z"></path>
+                  <path d="m9.5 12 1.7 1.7 3.3-3.4"></path>
+                </svg>
+              </div>
+              <div>
+                <strong>Free to evaluate</strong>
+                <p>Use ZingPDF for trial, evaluation, and other non-commercial work without a time-limited trial. You
+                  only need a paid plan when commercial use begins.</p>
+              </div>
+            </aside>
+          </div>
+
+          <div class="checkout-banner" id="checkout-banner" hidden></div>
+
+          <div class="stripe-pricing-table-shell">
+            <stripe-pricing-table pricing-table-id="prctbl_1TMfzpL6fCXAz4BdbX1euTjF"
+              publishable-key="pk_live_51TGo2pL6fCXAz4BdL8ZGRrXvQYRqJ3UdRxEJbnhEkVQStSUma0Z37q6fdsJbNGMQGUJE0B10wAusZa4rRszysFCa00ywYd1gBH">
+            </stripe-pricing-table>
+          </div>
+
+          <div class="pricing-context-grid">
+            <article class="doc-card pricing-context-card">
+              <div class="pricing-context-head">
+                <span class="mini-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="8"></circle>
+                    <path d="M12 10v5"></path>
+                    <path d="M12 7.5h.01"></path>
+                  </svg>
+                </span>
+                <h3>All paid plans include</h3>
+              </div>
+              <ul class="pricing-context-list">
+                <li>Commercial use</li>
+                <li>Core, GoogleFonts, OCR, and FromHTML packages</li>
+                <li>Ongoing updates</li>
+                <li>Email support</li>
+                <li>Free evaluation before you subscribe</li>
+              </ul>
+            </article>
+            <article class="doc-card pricing-context-card">
+              <div class="pricing-context-head">
+                <span class="mini-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9.5" cy="7" r="3.2"></circle>
+                    <path d="M20 20v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M14.5 4.4a3.2 3.2 0 0 1 0 5.2"></path>
+                  </svg>
+                </span>
+                <h3>Seat-based licensing</h3>
+              </div>
+              <ul class="pricing-context-list">
+                <li>Evaluation and non-commercial use are free</li>
+                <li>A seat covers one developer using ZingPDF commercially</li>
+                <li>Choose the plan that matches how many developers use the library</li>
+                <li>Custom terms and invoicing are available on request</li>
+              </ul>
+            </article>
+          </div>
+
+          <p class="pricing-enterprise-note">
+            Need procurement, invoicing, or more seats? <button type="button" class="pricing-inline-button"
+              data-contact-sales>Contact ZingPDF directly</button>.
+          </p>
+        </div>
       </section>
     </main>
     <footer class="site-footer">

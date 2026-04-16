@@ -1,7 +1,5 @@
 (function () {
   const config = window.ZINGPDF_STORE_CONFIG || {};
-  const pricingGrid = document.getElementById("pricing-grid");
-  const billingToggle = document.getElementById("billing-toggle");
   const checkoutBanner = document.getElementById("checkout-banner");
   const dialog = document.getElementById("contact-dialog");
   const emailText = document.getElementById("contact-email-text");
@@ -13,30 +11,11 @@
   const guidesCount = document.querySelector("[data-guides-count]");
   const guidesEmpty = document.querySelector("[data-guides-empty]");
 
-  let billingPeriod = "monthly";
-  let checkoutInFlight = false;
-  let pricingCatalog = {};
-
-  if (pricingGrid && dialog && emailText && emailLink) {
+  if (dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
     emailText.textContent = `Email ${supportEmail} to discuss custom licensing, redistribution, procurement, or support terms.`;
     emailLink.href = `mailto:${supportEmail}?subject=${encodeURIComponent("ZingPDF commercial licensing")}`;
     emailLink.textContent = `Email ${supportEmail}`;
-
-    if (billingToggle) {
-      for (const button of billingToggle.querySelectorAll("[data-billing-period]")) {
-        button.addEventListener("click", () => {
-          billingPeriod = button.getAttribute("data-billing-period") || "monthly";
-          syncBillingToggle();
-          renderPricingCards();
-        });
-      }
-      syncBillingToggle();
-    }
-
-    initializePricing().catch(() => {
-      renderPricingCards();
-    });
   }
 
   for (const trigger of contactSalesTriggers) {
@@ -88,156 +67,6 @@
 
   highlightCodeBlocks();
   hydrateCheckoutBanner();
-
-  async function initializePricing() {
-    pricingCatalog = await loadPricingCatalog();
-    renderPricingCards();
-  }
-
-  async function loadPricingCatalog() {
-    const response = await fetch("/api/pricing-catalog", {
-      headers: {
-        Accept: "application/json"
-      }
-    });
-
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload.plans) {
-      throw new Error(payload.error || "Unable to load pricing.");
-    }
-
-    return payload.plans;
-  }
-
-  function renderPricingCards() {
-    pricingGrid.innerHTML = "";
-    for (const license of config.licenses || []) {
-      pricingGrid.appendChild(buildCard(license));
-    }
-  }
-
-  function syncBillingToggle() {
-    if (!billingToggle) {
-      return;
-    }
-
-    for (const button of billingToggle.querySelectorAll("[data-billing-period]")) {
-      const isActive = button.getAttribute("data-billing-period") === billingPeriod;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", isActive ? "true" : "false");
-    }
-  }
-
-  function buildCard(license) {
-    const planPricing = pricingCatalog[license.id] || {};
-    const article = document.createElement("article");
-    article.className = `pricing-card${license.featured ? " featured" : ""}`;
-
-    if (license.badge) {
-      const badge = document.createElement("div");
-      badge.className = "pricing-badge";
-      badge.textContent = license.badge;
-      article.appendChild(badge);
-    }
-
-    const title = document.createElement("h3");
-    title.textContent = license.name;
-    article.appendChild(title);
-
-    const subtitle = document.createElement("p");
-    subtitle.className = "pricing-subtitle";
-    subtitle.textContent = license.subtitle || "";
-    article.appendChild(subtitle);
-
-    const price = document.createElement("div");
-    price.className = "pricing-price";
-    const activePrice = billingPeriod === "annual" ? planPricing.annualPrice : planPricing.monthlyPrice;
-    const activeCadence = billingPeriod === "annual" ? planPricing.annualCadence : planPricing.monthlyCadence;
-    price.innerHTML = `${escapeHtml(activePrice || "")}${activeCadence ? ` <small>${escapeHtml(activeCadence)}</small>` : ""}`;
-    article.appendChild(price);
-
-    if (planPricing.annualPrice) {
-      const annualPrice = document.createElement("div");
-      annualPrice.className = "pricing-annual-price";
-      annualPrice.innerHTML = billingPeriod === "annual"
-        ? `monthly option: ${escapeHtml(planPricing.monthlyPrice || "")}${planPricing.monthlyCadence ? ` <small>${escapeHtml(planPricing.monthlyCadence)}</small>` : ""}`
-        : `or ${escapeHtml(planPricing.annualPrice)}${planPricing.annualCadence ? ` <small>${escapeHtml(planPricing.annualCadence)}</small>` : ""}`;
-      article.appendChild(annualPrice);
-    }
-
-    const description = document.createElement("p");
-    description.className = "pricing-description";
-    description.textContent = license.description || "";
-    article.appendChild(description);
-
-    const list = document.createElement("ul");
-    list.className = "pricing-list";
-
-    for (const bullet of license.bullets || []) {
-      const item = document.createElement("li");
-      item.textContent = bullet;
-      list.appendChild(item);
-    }
-
-    article.appendChild(list);
-    article.appendChild(buildActionButton(license));
-
-    return article;
-  }
-
-  function buildActionButton(license) {
-    const button = document.createElement("button");
-    button.className = "button button-primary";
-    button.type = "button";
-    button.textContent = `${license.ctaLabel || "Continue"}${billingPeriod === "annual" ? " Annual" : ""}`;
-
-    if (license.contactOnly) {
-      button.addEventListener("click", () => dialog.showModal());
-      return button;
-    }
-
-    if (!pricingCatalog[license.id]) {
-      button.disabled = true;
-      button.title = "Pricing is not configured yet.";
-      return button;
-    }
-
-    button.addEventListener("click", async () => {
-      if (checkoutInFlight) {
-        return;
-      }
-
-      checkoutInFlight = true;
-      button.disabled = true;
-
-      try {
-        const response = await fetch("/api/create-checkout-session", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            planId: license.id,
-            billingPeriod
-          })
-        });
-
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || !payload.url) {
-          throw new Error(payload.error || "Unable to start checkout.");
-        }
-
-        window.location.href = payload.url;
-      } catch (error) {
-        window.alert(error instanceof Error ? error.message : "Unable to start checkout.");
-      } finally {
-        checkoutInFlight = false;
-        button.disabled = false;
-      }
-    });
-
-    return button;
-  }
 
   function escapeHtml(value) {
     return String(value)
