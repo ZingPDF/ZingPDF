@@ -62,6 +62,7 @@ static async Task GenerateImageHeavyFixtureAsync(string outputPath, string image
     using var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
     var openImages = new List<Image>();
     var imageBytes = await File.ReadAllBytesAsync(imagePath);
+    var headingFont = await pdf.RegisterStandardFontAsync("Helvetica-Bold", "FixtureHead");
 
     try
     {
@@ -74,12 +75,7 @@ static async Task GenerateImageHeavyFixtureAsync(string outputPath, string image
             await page.AddTextAsync(new TextObject(
                 $"Image workload page {pageIndex + 1}",
                 Rectangle.FromCoordinates(new Coordinate(40, 24), new Coordinate(320, 60)),
-                new FontOptions
-                {
-                    ResourceName = "Helv",
-                    Size = 18,
-                    Colour = RGBColour.Black
-                }));
+                headingFont.CreateOptions(18, RGBColour.Black)));
 
             for (var row = 0; row < 3; row++)
             {
@@ -116,17 +112,13 @@ static async Task GenerateIncrementalHistoryFixtureAsync(string outputPath)
     await using (var initialOutput = new MemoryStream())
     {
         using var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+        var headingFont = await pdf.RegisterStandardFontAsync("Helvetica", "FixtureHead");
         var page = await pdf.GetPageAsync(1);
 
         await page.AddTextAsync(new TextObject(
             "Incremental history base revision",
             Rectangle.FromCoordinates(new Coordinate(40, 80), new Coordinate(400, 120)),
-            new FontOptions
-            {
-                ResourceName = "Helv",
-                Size = 20,
-                Colour = RGBColour.Black
-            }));
+            headingFont.CreateOptions(20, RGBColour.Black)));
 
         await pdf.SaveAsync(initialOutput);
         currentBytes = initialOutput.ToArray();
@@ -152,64 +144,53 @@ static async Task GenerateIncrementalHistoryFixtureAsync(string outputPath)
 
 static async Task GenerateMixedWorkloadFixtureAsync(string outputPath, string imagePath)
 {
-    using var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
-    var openImages = new List<Image>();
-    var imageBytes = await File.ReadAllBytesAsync(imagePath);
+    var authoring = Pdf.New();
 
-    try
+    for (var pageIndex = 0; pageIndex < 8; pageIndex++)
     {
-        for (var pageIndex = 0; pageIndex < 8; pageIndex++)
+        var capturedPageIndex = pageIndex;
+
+        authoring.Page(page =>
         {
-            var page = pageIndex == 0
-                ? await pdf.GetPageAsync(1)
-                : await pdf.AppendPageAsync(options => options.MediaBox = Rectangle.FromDimensions(595, 842));
+            page.Size(595, 842);
 
-            await page.AddTextAsync(new TextObject(
-                $"Mixed workload page {pageIndex + 1}",
-                Rectangle.FromCoordinates(new Coordinate(40, 28), new Coordinate(320, 60)),
-                new FontOptions
-                {
-                    ResourceName = "Helv",
-                    Size = 18,
-                    Colour = RGBColour.PrimaryRed
-                }));
+            page.Text(text => text
+                .Value($"Mixed workload page {capturedPageIndex + 1}")
+                .HelveticaBold()
+                .FontSize(18)
+                .Color(RGBColour.PrimaryRed)
+                .At(40, 800));
 
-            await page.AddTextAsync(new TextObject(
-                BuildParagraph(pageIndex, 99),
-                Rectangle.FromCoordinates(new Coordinate(40, 80), new Coordinate(555, 220)),
-                new FontOptions
-                {
-                    ResourceName = "Helv",
-                    Size = 12,
-                    Colour = RGBColour.Black
-                }));
+            page.Text(text => text
+                .Value(BuildParagraph(capturedPageIndex, 99))
+                .Helvetica()
+                .FontSize(12)
+                .Color(RGBColour.Black)
+                .InBox(40, 610, 515, 150)
+                .AlignStart()
+                .AlignTop()
+                .Padding(0)
+                .Wrap());
 
-            var image = new Image(
-                new MemoryStream(imageBytes, writable: false),
-                Rectangle.FromCoordinates(new Coordinate(40, 260), new Coordinate(300, 520)));
-            openImages.Add(image);
-            await page.AddImageAsync(image);
+            page.Image(image => image
+                .FromFile(imagePath)
+                .At(40, 322)
+                .Size(260, 260));
 
-            await page.AddTextAsync(new TextObject(
-                "This fixture mixes text blocks and JPEG image XObjects to exercise parsing, extraction, and save paths.",
-                Rectangle.FromCoordinates(new Coordinate(320, 280), new Coordinate(555, 430)),
-                new FontOptions
-                {
-                    ResourceName = "Helv",
-                    Size = 12,
-                    Colour = RGBColour.Black
-                }));
-        }
-
-        await SaveFreshAsync(pdf, outputPath);
+            page.Text(text => text
+                .Value("This fixture mixes text blocks and JPEG image XObjects to exercise parsing, extraction, and save paths.")
+                .Helvetica()
+                .FontSize(12)
+                .Color(RGBColour.Black)
+                .InBox(320, 410, 235, 120)
+                .AlignStart()
+                .AlignTop()
+                .Padding(0)
+                .Wrap());
+        });
     }
-    finally
-    {
-        foreach (var image in openImages)
-        {
-            image.Dispose();
-        }
-    }
+
+    await authoring.SaveToFileAsync(outputPath);
 }
 
 static async Task SaveFreshAsync(Pdf pdf, string outputPath)

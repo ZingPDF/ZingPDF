@@ -294,15 +294,16 @@ a {
 .hero-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: -18px;
+  gap: 18px;
+  margin-top: -6px;
 }
 
 .hero-strip-item {
   display: flex;
   gap: 12px;
   align-items: start;
-  padding: 16px 18px;
+  min-height: 144px;
+  padding: 20px 20px 18px;
   border: 1px solid rgba(14, 116, 144, 0.12);
   border-radius: var(--radius-lg);
   background: #fff;
@@ -311,14 +312,14 @@ a {
 
 .hero-strip-item strong {
   display: block;
-  margin-bottom: 4px;
-  font-size: 0.96rem;
+  margin-bottom: 6px;
+  font-size: 1rem;
 }
 
 .hero-strip-item p {
   margin: 0;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.6;
   font-size: 0.9rem;
 }
 
@@ -584,77 +585,6 @@ code {
   background: rgba(255, 255, 255, 0.14);
 }
 
-.why {
-  display: grid;
-}
-
-.why-layout {
-  display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
-  gap: 28px;
-  align-items: start;
-}
-
-.why-copy {
-  max-width: 38rem;
-}
-
-.why-copy h2 {
-  margin: 0;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-size: clamp(1.95rem, 3.8vw, 2.8rem);
-}
-
-.why-copy p {
-  color: var(--muted);
-  line-height: 1.68;
-  font-size: 1.02rem;
-}
-
-.why-copy p+p {
-  margin-top: 16px;
-}
-
-.why-points {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.why-point {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: 0;
-}
-
-.why-point {
-  gap: 10px;
-  padding: 18px 20px;
-  border-top: 1px solid rgba(14, 116, 144, 0.2);
-  background: #fff;
-  border-radius: 0 0 14px 14px;
-}
-
-.why-point>div {
-  min-width: 0;
-}
-
-.why-point h3 {
-  margin: 0 0 10px;
-  font-size: 1.08rem;
-  line-height: 1.25;
-}
-
-.why-point p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.65;
-}
-
 .capability-summary-grid {
   align-items: stretch;
 }
@@ -718,9 +648,7 @@ code {
   margin-left: calc(50% - 50vw);
   padding: 44px 0;
   color: var(--text);
-  background:
-    radial-gradient(circle at top right, rgba(14, 116, 144, 0.05), transparent 20%),
-    linear-gradient(180deg, #edf4fb 0%, #e5edf7 100%);
+  background: #edf4fb;
   border-top: 1px solid rgba(20, 32, 51, 0.06);
 }
 
@@ -816,7 +744,7 @@ code {
 
 .stripe-pricing-table-shell {
   margin: 0 0 18px;
-  padding: 2px 0 0;
+  padding: 18px 0 0;
 }
 
 .stripe-pricing-table-shell stripe-pricing-table {
@@ -1851,7 +1779,6 @@ body.landing-page::after {
 
 .landing-page .hero-copy h1,
 .landing-page .section-copy h2,
-.landing-page .why-copy h2,
 .landing-page .platform-copy h2,
 .landing-page .capabilities .section-copy h2,
 .landing-page .faq .section-copy h2,
@@ -1862,7 +1789,6 @@ body.landing-page::after {
 .landing-page .lead,
 .landing-page .section-copy p,
 .landing-page .hero-subnote,
-.landing-page .why-copy p,
 .landing-page .capability-summary-row p,
 .landing-page .faq-list p,
 .landing-page .platform-card p,
@@ -1951,7 +1877,6 @@ body.landing-page::after {
 
 .landing-page .hero-strip-item,
 .landing-page .platform-band,
-.landing-page .why-point,
 .landing-page .capability-summary-row,
 .landing-page .faq-list details,
 .landing-page .guide-card,
@@ -1964,7 +1889,6 @@ body.landing-page::after {
 }
 
 .landing-page .hero-strip-item p,
-.landing-page .why-point p,
 .landing-page .capability-summary-row p,
 .landing-page .faq-list p,
 .landing-page .feature-card p,
@@ -1975,7 +1899,6 @@ body.landing-page::after {
 }
 
 .landing-page .hero-strip-item strong,
-.landing-page .why-point h3,
 .landing-page .capability-summary-row h3,
 .landing-page .feature-card h3,
 .landing-page .guide-card h3,
@@ -2009,10 +1932,6 @@ body.landing-page::after {
 
 .landing-page .platform-card {
   border-color: rgba(182, 214, 255, 0.14);
-}
-
-.landing-page .why-point {
-  border-top-color: rgba(182, 214, 255, 0.16);
 }
 
 .landing-page .mini-icon {
@@ -2227,8 +2146,6 @@ body.landing-page::after {
   .hero,
   .pricing-context-grid,
   .feature-grid,
-  .why-layout,
-  .why-points,
   .capability-summary-row,
   .homepage-performance-grid,
   .hero-strip,

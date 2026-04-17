@@ -23,8 +23,14 @@ public class CompetitiveBenchmarks
     private int _mixedWorkloadMiddlePageIndex;
     private ZingPDF.Pdf? _openedZingTestPdf;
     private UglyToad.PdfPig.PdfDocument? _openedPdfPigTestPdf;
+    private Stream? _openedITextTestStream;
+    private ITextPdfReader? _openedITextTestReader;
+    private ITextPdfDocument? _openedITextTestPdf;
     private ZingPDF.Pdf? _openedZingTextHeavyPdf;
     private UglyToad.PdfPig.PdfDocument? _openedPdfPigTextHeavyPdf;
+    private Stream? _openedITextTextHeavyStream;
+    private ITextPdfReader? _openedITextTextHeavyReader;
+    private ITextPdfDocument? _openedITextTextHeavyPdf;
 
     [GlobalSetup]
     public void Setup()
@@ -408,6 +414,30 @@ public class CompetitiveBenchmarks
         _ = _openedPdfPigTestPdf!.GetPage(1).Text;
     }
 
+    [IterationSetup(Target = nameof(IText_ExtractText_FirstPage_TestPdf_Opened))]
+    public void SetupIText_ExtractText_FirstPage_TestPdf_Opened()
+    {
+        _openedITextTestStream = TestFiles.OpenStream(TestFiles.Test);
+        _openedITextTestReader = new ITextPdfReader(_openedITextTestStream);
+        _openedITextTestPdf = new ITextPdfDocument(_openedITextTestReader);
+    }
+
+    [IterationCleanup(Target = nameof(IText_ExtractText_FirstPage_TestPdf_Opened))]
+    public void CleanupIText_ExtractText_FirstPage_TestPdf_Opened()
+    {
+        _openedITextTestPdf?.Close();
+        _openedITextTestPdf = null;
+        _openedITextTestReader = null;
+        _openedITextTestStream?.Dispose();
+        _openedITextTestStream = null;
+    }
+
+    [Benchmark(Description = "iText: Extract plain text from the first page in an already-open small composite-font PDF")]
+    public void IText_ExtractText_FirstPage_TestPdf_Opened()
+    {
+        _ = PdfTextExtractor.GetTextFromPage(_openedITextTestPdf!.GetPage(1));
+    }
+
     [IterationSetup(Target = nameof(ZingPdf_ExtractText_FirstPage_TextHeavyPdf_Opened))]
     public void SetupZingPdf_ExtractText_FirstPage_TextHeavyPdf_Opened()
     {
@@ -446,6 +476,30 @@ public class CompetitiveBenchmarks
     public void PdfPig_ExtractText_FirstPage_TextHeavyPdf_Opened()
     {
         _ = _openedPdfPigTextHeavyPdf!.GetPage(1).Text;
+    }
+
+    [IterationSetup(Target = nameof(IText_ExtractText_FirstPage_TextHeavyPdf_Opened))]
+    public void SetupIText_ExtractText_FirstPage_TextHeavyPdf_Opened()
+    {
+        _openedITextTextHeavyStream = TestFiles.OpenStream(TestFiles.TextHeavy);
+        _openedITextTextHeavyReader = new ITextPdfReader(_openedITextTextHeavyStream);
+        _openedITextTextHeavyPdf = new ITextPdfDocument(_openedITextTextHeavyReader);
+    }
+
+    [IterationCleanup(Target = nameof(IText_ExtractText_FirstPage_TextHeavyPdf_Opened))]
+    public void CleanupIText_ExtractText_FirstPage_TextHeavyPdf_Opened()
+    {
+        _openedITextTextHeavyPdf?.Close();
+        _openedITextTextHeavyPdf = null;
+        _openedITextTextHeavyReader = null;
+        _openedITextTextHeavyStream?.Dispose();
+        _openedITextTextHeavyStream = null;
+    }
+
+    [Benchmark(Description = "iText: Extract plain text from the first page in an already-open text-heavy PDF")]
+    public void IText_ExtractText_FirstPage_TextHeavyPdf_Opened()
+    {
+        _ = PdfTextExtractor.GetTextFromPage(_openedITextTextHeavyPdf!.GetPage(1));
     }
 
     [Benchmark(Description = "ZingPDF: Append a page and save")]
