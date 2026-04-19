@@ -1,4 +1,6 @@
-![ZingPDF logomark](logomark.svg)
+![ZingPDF logomark](https://raw.githubusercontent.com/ZingPDF/ZingPDF/main/docs/packages/logomark.svg)
+
+![logo](logomark.svg)
 
 # ZingPDF
 
