@@ -1,7 +1,5 @@
 ![ZingPDF logomark](https://raw.githubusercontent.com/ZingPDF/ZingPDF/main/docs/packages/logomark.svg)
 
-![logo](logomark.svg)
-
 # ZingPDF
 
 `ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, signing, redacting, and saving PDFs in C#.
