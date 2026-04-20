@@ -100,7 +100,23 @@ jobs:
             throw "Unable to inspect changed files since $latestTag."
           }
 
-          $hasReleaseChanges = $changedFiles.Count -gt 0
+          $ignoredPaths = @(
+            'scripts/compare-performance.ps1'
+            'scripts/run-competitive-performance.ps1'
+            'scripts/run-performance.ps1'
+            'scripts/update-performance-pages.ps1'
+            'scripts/write-competitive-summary.ps1'
+            'scripts/write-performance-summary.ps1'
+          )
+
+          $releaseChangedFiles = @($changedFiles | Where-Object { $_ -notin $ignoredPaths })
+
+          if ($releaseChangedFiles.Count -eq 0 -and $changedFiles.Count -gt 0) {
+            Write-Host "Ignoring benchmark/reporting-only changes:"
+            $changedFiles | ForEach-Object { Write-Host " - $_" }
+          }
+
+          $hasReleaseChanges = $releaseChangedFiles.Count -gt 0
           "has_release_changes=$($hasReleaseChanges.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Stop when no release-affecting changes were found
