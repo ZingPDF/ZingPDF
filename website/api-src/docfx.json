@@ -46,7 +46,7 @@
       "_appFooter": "Generated from source with DocFX.",
       "_appLogoPath": "logo.svg",
       "_appFaviconPath": "favicon.svg",
-      "_appCssPath": "styles/docfx-overrides.css",
+      "_appCssPath": "styles/docfx-overrides.css?v=20260421-1",
       "_disableContribution": true,
       "_enableSearch": true,
       "_noindex": false
