@@ -193,52 +193,27 @@
         <a href="./guides.html">Guides</a>
         <a href="./capabilities.html">Capabilities</a>
         <a href="./performance.html">Performance</a>
-        <a href="./api.html">API</a>
+        <a href="./api/">API</a>
         <a href="./commercial-terms.html">Terms</a>
       </nav>
     </header>
 
     <main class="panel">
-      <div id="local-message" hidden>
-        <div class="status">Local Preview</div>
-        <h1>Serve the API docs over a local web server.</h1>
-        <p>The generated DocFX site uses JavaScript modules and search assets that browsers block when pages are opened directly with <code>file://</code>.</p>
-        <p>The build is fine. Open it through <code>http://localhost</code> instead of directly from disk.</p>
-        <p>Use the API reference when you need exact types, members, and signatures rather than the curated docs or guides.</p>
-        <div class="actions">
-          <a class="button button-primary" href="./index.html">Back to the site</a>
-          <a class="button button-secondary" href="./api/index.html">Try the DocFX entry anyway</a>
-        </div>
-        <div class="code">cd C:\Users\tom\dev\ZingPDF\website
+      <div class="status">Generated Reference</div>
+      <h1>Open the generated API reference.</h1>
+      <p>Use this section when you want exact namespaces, types, members, and signatures generated from the ZingPDF source and XML documentation comments.</p>
+      <p>Preview it locally through a web server instead of opening files directly from disk.</p>
+      <div class="actions">
+        <a class="button button-primary" href="./api/">Open API Reference</a>
+        <a class="button button-secondary" href="./index.html">Back to the site</a>
+      </div>
+      <div class="code">cd C:\Users\tom\dev\ZingPDF\website
 python -m http.server 8080
 
 Then open:
 http://localhost:8080/api/</div>
-      </div>
-
-      <div id="redirect-message" hidden>
-        <div class="status">Redirecting</div>
-        <h1>Opening the generated API reference.</h1>
-        <p>Use this for exact member signatures and type-level reference.</p>
-        <div class="actions">
-          <a class="button button-primary" href="./api/index.html">Open API Reference</a>
-        </div>
-      </div>
     </main>
   </div>
-
-  <script>
-    const isLocalFile = window.location.protocol === "file:";
-    const localMessage = document.getElementById("local-message");
-    const redirectMessage = document.getElementById("redirect-message");
-
-    if (isLocalFile) {
-      localMessage.hidden = false;
-    } else {
-      redirectMessage.hidden = false;
-      window.location.replace("./api/index.html");
-    }
-  </script>
 </body>
 </html>
 
