@@ -215,6 +215,8 @@ a {
   margin: 16px 0 0;
   color: var(--muted);
   font-size: 0.98rem;
+  display: flex;
+  gap: 10px;
 }
 
 .hero-subnote strong {
