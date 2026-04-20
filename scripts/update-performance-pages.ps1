@@ -635,9 +635,9 @@ if ($RunBenchmarks) {
     )
 
     Invoke-CompetitiveBenchmarkFamily -ProjectPath $projectPath -ArtifactsPath $writesArtifacts -Patterns @(
-        "*AppendPage_RewriteAndSave_MixedWorkloadPdf*",
-        "*Append10Pages_RewriteAndSave_MixedWorkloadPdf*",
-        "*AppendPdf_RewriteAndSave_MixedPlusTextHeavy*",
+        "*AppendPage_AndSave_MixedWorkloadPdf*",
+        "*Append10Pages_AndSave_MixedWorkloadPdf*",
+        "*AppendPdf_AndSave_MixedPlusTextHeavy*",
         "*PdfSharp_AppendPage_AndSave_MixedWorkloadPdf*",
         "*PdfSharp_Append10Pages_AndSave_MixedWorkloadPdf*",
         "*PdfSharp_AppendPdf_AndSave_MixedPlusTextHeavy*",
@@ -768,7 +768,7 @@ $writeScenarios = @(
     @{
         Label = "Append 1 page to mixed-workload PDF and save"
         Comparisons = [ordered]@{
-            ZingPDF = "ZingPDF: Append a page to a mixed-workload PDF, rewrite, and save"
+            ZingPDF = "ZingPDF: Append a page to a mixed-workload PDF and save"
             PDFsharp = "PDFsharp: Append a page to a mixed-workload PDF and save"
             iText = "iText: Append a page to a mixed-workload PDF and save"
         }
@@ -776,7 +776,7 @@ $writeScenarios = @(
     @{
         Label = "Append 10 pages to mixed-workload PDF and save"
         Comparisons = [ordered]@{
-            ZingPDF = "ZingPDF: Append 10 pages to a mixed-workload PDF, rewrite, and save"
+            ZingPDF = "ZingPDF: Append 10 pages to a mixed-workload PDF and save"
             PDFsharp = "PDFsharp: Append 10 pages to a mixed-workload PDF and save"
             iText = "iText: Append 10 pages to a mixed-workload PDF and save"
         }
@@ -784,7 +784,7 @@ $writeScenarios = @(
     @{
         Label = "Merge text-heavy PDF into mixed-workload PDF and save"
         Comparisons = [ordered]@{
-            ZingPDF = "ZingPDF: Merge a text-heavy PDF into a mixed-workload PDF, rewrite, and save"
+            ZingPDF = "ZingPDF: Merge a text-heavy PDF into a mixed-workload PDF and save"
             PDFsharp = "PDFsharp: Merge a text-heavy PDF into a mixed-workload PDF and save"
             iText = "iText: Merge a text-heavy PDF into a mixed-workload PDF and save"
         }
