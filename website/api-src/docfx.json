@@ -5,7 +5,7 @@
         {
           "src": "../..",
           "files": [
-            "ZingPDF/ZingPDF.csproj"
+            "src/ZingPDF/ZingPDF.csproj"
           ]
         }
       ],
