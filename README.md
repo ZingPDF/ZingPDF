@@ -6,13 +6,23 @@
 
 # ZingPDF
 
-[![NuGet](https://img.shields.io/nuget/v/ZingPDF.svg)](https://www.nuget.org/packages/ZingPDF/)
+[![NuGet](https://img.shields.io/nuget/dt/zingpdf?style=for-the-badge&labelColor=%233bc4f3&color=%233c9ad5)](https://www.nuget.org/packages/ZingPDF/)
 
 [Website](https://zingpdf.dev) · [Docs](https://zingpdf.dev/docs.html) · [Guides](https://zingpdf.dev/guides.html) · [Capabilities](https://zingpdf.dev/capabilities.html) · [Performance](https://zingpdf.dev/performance.html)
 
-ZingPDF is a proprietary .NET 8 library for reading, editing, and saving PDF files in C#.
+ZingPDF is a .NET 8 library for reading, editing, and saving PDF files in C#. It's free for non-commercial use.
 
-It covers the PDF jobs many applications need first: page editing, document assembly, text extraction, form filling and flattening, watermarking, compression, metadata updates, encryption, and clean rewrites without prior incremental history.
+- Editing
+- Signing
+- Document assembly
+- Text extraction
+- Form filling and flattening
+- Watermarking
+- Compression
+- Metadata updates
+- Encryption / Decryption
+- Redaction
+- History Removal
 
 ## Repository layout
 
