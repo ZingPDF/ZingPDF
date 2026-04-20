@@ -743,12 +743,30 @@ code {
 }
 
 .stripe-pricing-table-shell {
-  margin: 0 0 18px;
-  padding: 18px 0 0;
+  position: relative;
+  margin: 0 0 20px;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(14, 116, 144, 0.12);
+  border-radius: 24px;
+  background: #f8fbff;
+  box-shadow: 0 14px 30px rgba(20, 32, 51, 0.07);
+  overflow: hidden;
+}
+
+.stripe-pricing-table-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
 
 .stripe-pricing-table-shell stripe-pricing-table {
   display: block;
+  position: relative;
+  z-index: 1;
 }
 
 .pricing-context-card {
@@ -2003,6 +2021,18 @@ body.landing-page::after {
   color: var(--text);
 }
 
+.landing-page .licenses .pricing-context-card {
+  border-color: rgba(14, 116, 144, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.94));
+  box-shadow: 0 12px 28px rgba(20, 32, 51, 0.08);
+}
+
+.landing-page .licenses .pricing-context-head .mini-icon {
+  background: rgba(14, 116, 144, 0.1);
+  color: var(--accent-strong);
+}
+
 .landing-page .homepage-performance-band .section-copy p,
 .landing-page .licenses .section-copy p,
 .landing-page .licenses .pricing-enterprise-note,
@@ -2015,6 +2045,11 @@ body.landing-page::after {
 .landing-page .licenses .pricing-context-card.doc-card h3,
 .landing-page .licenses .pricing-free-callout strong {
   color: var(--text);
+}
+
+.landing-page .licenses .pricing-context-list li::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.1);
 }
 
 .landing-page .licenses .pricing-free-callout p {
@@ -2162,6 +2197,11 @@ body.landing-page::after {
 
   .pricing-header-row {
     grid-template-columns: 1fr;
+  }
+
+  .stripe-pricing-table-shell {
+    padding: 14px 12px 12px;
+    border-radius: 20px;
   }
 
   .support-table {
