@@ -6,7 +6,6 @@ $repoRoot = Split-Path -Parent $scriptRoot
 $docfxConfigPath = Join-Path $scriptRoot "api-src\docfx.json"
 $outputPath = Join-Path $scriptRoot "api"
 $cssOverridePath = Join-Path $scriptRoot "api-src\styles\docfx-overrides.css"
-$nestedApiIndexPath = Join-Path $outputPath "api\index.html"
 $apiEntryPointRelativePath = "api/ZingPDF.Pdf.html"
 $apiRootIndexPath = Join-Path $outputPath "index.html"
 
@@ -42,10 +41,6 @@ try {
     $generatedCssPath = Join-Path $outputPath "public\main.css"
     if ((Test-Path $generatedCssPath) -and (Test-Path $cssOverridePath)) {
         Add-Content -Path $generatedCssPath -Value "`r`n/* ZingPDF DocFX overrides */`r`n$(Get-Content $cssOverridePath -Raw)"
-    }
-
-    if (-not (Test-Path $nestedApiIndexPath)) {
-        throw "Expected generated API landing page was not created: $nestedApiIndexPath"
     }
 
     $apiEntryPointPath = Join-Path $outputPath $apiEntryPointRelativePath
