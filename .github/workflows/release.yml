@@ -10,6 +10,8 @@ on:
       - "src/ZingPDF.FromHTML/**"
       - "src/ZingPDF.GoogleFonts/**"
       - "src/ZingPDF.OCR/**"
+      - "src/ZingPDF.Templates/**"
+      - "src/ZingPDF.Templates.LiquidHtml/**"
       - "src/ZingPDF.InheritableSourceGenerator/**"
       - "tests/**"
       - "scripts/**"
@@ -84,6 +86,8 @@ jobs:
             src/ZingPDF.FromHTML `
             src/ZingPDF.GoogleFonts `
             src/ZingPDF.OCR `
+            src/ZingPDF.Templates `
+            src/ZingPDF.Templates.LiquidHtml `
             src/ZingPDF.InheritableSourceGenerator `
             tests `
             scripts `
@@ -225,6 +229,32 @@ jobs:
           dotnet pack src/ZingPDF.OCR/ZingPDF.OCR.csproj
           --configuration Release
           --no-restore
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+
+      - name: Pack templates package
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        run: >
+          dotnet pack src/ZingPDF.Templates/ZingPDF.Templates.csproj
+          --configuration Release
+          --no-build
+          --output artifacts/packages
+          -p:PackageVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.prepare.outputs.version }}
+          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+
+      - name: Pack Liquid HTML templates package
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        run: >
+          dotnet pack src/ZingPDF.Templates.LiquidHtml/ZingPDF.Templates.LiquidHtml.csproj
+          --configuration Release
+          --no-build
           --output artifacts/packages
           -p:PackageVersion=${{ steps.prepare.outputs.version }}
           -p:Version=${{ steps.prepare.outputs.version }}

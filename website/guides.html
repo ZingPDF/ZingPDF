@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Guides</title>
   <meta name="description"
-    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, blank PDFs, page editing, text, fonts, metadata, extraction, redaction, merging, watermarking, compression, rotation, encryption, and save behavior.">
+    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, Liquid HTML templates, blank PDFs, page editing, text, fonts, metadata, extraction, redaction, merging, watermarking, compression, rotation, encryption, and save behavior.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -54,328 +54,395 @@
             <input id="guides-search" type="search" placeholder="Search by task, topic, or keyword" autocomplete="off"
               data-guides-search>
           </label>
-          <p class="guides-count" data-guides-count>26 guides</p>
+          <p class="guides-count" data-guides-count>27 guides</p>
         </div>
         <div class="guide-list">
           <article class="guide-card" data-guide-card data-guide-search-text="redact pdf content exact text regex region rewritten save overlay document security">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16"></path><path d="M8 6v13"></path><path d="M16 6v13"></path><path d="M7 19h4"></path><path d="M15 19h4"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Security and output</p>
-            <h3>How to redact PDF content in C#</h3>
+            <h3><a href="./redact-pdf-csharp.html">How to redact PDF content in C#</a></h3>
             <p>
               Mark exact extracted-text matches or explicit regions, remove matched text from supported page content, and save a rewritten output file.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Structural text redaction</span>
-              <a class="button button-secondary" href="./redact-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="fluent authoring pdf.new create pdf page text rectangle line path image wrap layout boxed text">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M9 9h6"></path><path d="M9 13h6"></path><path d="M8 18l8-8"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Document creation</p>
-            <h3>How to create PDFs with the fluent authoring API in C#</h3>
+            <h3><a href="./fluent-pdf-authoring-csharp.html">How to create PDFs with the fluent authoring API in C#</a></h3>
             <p>
               Use <code>Pdf.New()</code> to author pages with text, shapes, images, boxed layout, wrapping, and saved output.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Fluent authoring with Pdf.New()</span>
-              <a class="button button-secondary" href="./fluent-pdf-authoring-csharp.html">Open guide</a>
-            </div>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="template liquid html pdf invoice data model fluid fromhtml chromium browser render loops conditionals includes">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h9l3 3v13H6z"></path><path d="M15 4v4h4"></path><path d="M9 14h7"></path><path d="M13 10l4 4-4 4"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Document creation</p>
+            <h3><a href="./create-pdf-from-liquid-html-template-csharp.html">How to create a PDF from a Liquid HTML template in C#</a></h3>
+            <p>
+              Render a Liquid template with a .NET model, inspect the HTML if needed, and convert it to PDF through
+              the template package.
+            </p>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="create blank pdf new document media box page size save">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 3h9l3 3v15H6z"></path><path d="M15 3v4h4"></path><path d="M9 13h6"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Document creation</p>
-            <h3>How to create a blank PDF in C#</h3>
+            <h3><a href="./create-blank-pdf-csharp.html">How to create a blank PDF in C#</a></h3>
             <p>
               Start a new PDF, choose the page size up front, add more pages if needed, and save the result.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Create and save a new document</span>
-              <a class="button button-secondary" href="./create-blank-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="insert append delete pages page order media box new page 1-based">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3l7 4v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V7z"></path><path d="M9 12h6"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to insert, append, and delete PDF pages in C#</h3>
+            <h3><a href="./insert-append-delete-pdf-pages-csharp.html">How to insert, append, and delete PDF pages in C#</a></h3>
             <p>
               Add pages to the end, insert them at a specific position, remove existing pages, and keep the order
               straight.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Append, insert, and delete pages</span>
-              <a class="button button-secondary" href="./insert-append-delete-pdf-pages-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="split export selected pages page range page numbers save output order">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 19l6-14 6 14"></path><path d="M8 13h6"></path><path d="M17 9h2v10"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to export selected pages or split a PDF in C#</h3>
+            <h3><a href="./split-pdf-pages-csharp.html">How to export selected pages or split a PDF in C#</a></h3>
             <p>
               Copy only the pages you want into a new PDF, keep the requested page order, or break a larger document
               into smaller files.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Selected-page export and splitting</span>
-              <a class="button button-secondary" href="./split-pdf-pages-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="export selected pages copy subset packet page order page numbers">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 5h10"></path><path d="M9 5V3h6v2"></path><path d="M9 9v9"></path><path d="M15 9v9"></path><path d="M6 5l1 16h10l1-16"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to export selected PDF pages in C#</h3>
+            <h3><a href="./export-selected-pdf-pages-csharp.html">How to export selected PDF pages in C#</a></h3>
             <p>
               Copy a known set of pages into a new PDF and preserve the output order you asked for.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Selected-page export</span>
-              <a class="button button-secondary" href="./export-selected-pdf-pages-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="append page new page media box page size end of document">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M8 8h8"></path><path d="M8 12h8"></path><path d="M8 16h8"></path><path d="M4 20h16"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to append a page to a PDF in C#</h3>
+            <h3><a href="./append-page-to-pdf-csharp.html">How to append a page to a PDF in C#</a></h3>
             <p>
               Add a page to the end of the document, set the size up front, and use the returned page for new content.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Append one page</span>
-              <a class="button button-secondary" href="./append-page-to-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="delete page remove page page number 1-based">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h14v16H5z"></path><path d="M8 15l8-8"></path><path d="M9 9h.01"></path><path d="M15 15h.01"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to delete PDF pages in C#</h3>
+            <h3><a href="./delete-pdf-pages-csharp.html">How to delete PDF pages in C#</a></h3>
             <p>
               Remove one or more pages by 1-based number and save the updated document.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Delete by page number</span>
-              <a class="button button-secondary" href="./delete-pdf-pages-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="add text page bounding box font options layout overflow shrink to fit">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a7 7 0 0 0 0 14h1"></path><path d="M19 10a7 7 0 0 0-7-7"></path><path d="M12 21v-8"></path><path d="M9 16h6"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page content</p>
-            <h3>How to add text to a PDF page in C#</h3>
+            <h3><a href="./add-text-to-pdf-page-csharp.html">How to add text to a PDF page in C#</a></h3>
             <p>
               Write text into a page rectangle, choose font settings, and decide what should happen when the text does
               not fit.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Text bounds and layout</span>
-              <a class="button button-secondary" href="./add-text-to-pdf-page-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="standard pdf fonts helvetica times courier register font built-in">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v2"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Fonts and text</p>
-            <h3>How to use standard PDF fonts in C#</h3>
+            <h3><a href="./use-standard-pdf-fonts-csharp.html">How to use standard PDF fonts in C#</a></h3>
             <p>
               Register built-in PDF fonts such as Helvetica, Times, and Courier and use them for page text.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Standard font registration</span>
-              <a class="button button-secondary" href="./use-standard-pdf-fonts-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="truetype ttf embed custom font register stream path">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h3"></path><circle cx="16" cy="16" r="2"></circle>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Fonts and text</p>
-            <h3>How to embed a TrueType font in a PDF in C#</h3>
+            <h3><a href="./embed-truetype-font-pdf-csharp.html">How to embed a TrueType font in a PDF in C#</a></h3>
             <p>
               Register a font from disk or a stream and use it when the output needs a specific typeface.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Embedded font registration</span>
-              <a class="button button-secondary" href="./embed-truetype-font-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="google fonts register font family variant api key remote font">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h7v16H5z"></path><path d="M12 8h4"></path><path d="M12 16h4"></path><path d="M16 4h3v16h-3"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Fonts and text</p>
-            <h3>How to use Google Fonts in a PDF in C#</h3>
+            <h3><a href="./use-google-fonts-in-pdf-csharp.html">How to use Google Fonts in a PDF in C#</a></h3>
             <p>
               Download a Google Fonts family, register it into the document, and use it like any other embedded font.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Google Fonts package</span>
-              <a class="button button-secondary" href="./use-google-fonts-in-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="remove password decrypt encrypted revision history clean rewrite security output">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="10" cy="10" r="5"></circle><path d="M14 14l5 5"></path><path d="M8 8h4"></path><path d="M10 8v4"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Security and output</p>
-            <h3>How to remove a password from a PDF in C# without leaving old encrypted revisions behind</h3>
+            <h3><a href="./remove-password-from-pdf-csharp.html">How to remove a password from a PDF in C# without leaving old encrypted revisions behind</a></h3>
             <p>
               Save a plain copy from an encrypted PDF, and decide whether you also need to remove older encrypted
               revision history from the file.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Decrypt, save, and rewrite history</span>
-              <a class="button button-secondary" href="./remove-password-from-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="fill form fields acroform text choice select options names data capture">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8V5h3"></path><path d="M17 5h3v3"></path><path d="M20 16v3h-3"></path><path d="M7 19H4v-3"></path><path d="M8 12h8"></path><path d="M12 8v8"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Forms and data capture</p>
-            <h3>How to fill PDF form fields in C#</h3>
+            <h3><a href="./fill-pdf-form-fields-csharp.html">How to fill PDF form fields in C#</a></h3>
             <p>
               Fill AcroForm fields by name, discover fields in unfamiliar files, and select choice options without
               looping through every option yourself.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Field lookup and choice selection</span>
-              <a class="button button-secondary" href="./fill-pdf-form-fields-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="flatten form acroform non interactive completed output save">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 7h8l3 3v8H7z"></path><path d="M15 7v4h4"></path><path d="M7 3v4H3"></path><path d="M4 7a8 8 0 0 1 13-3"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Forms and data capture</p>
-            <h3>How to flatten a PDF form in C#</h3>
+            <h3><a href="./flatten-pdf-form-csharp.html">How to flatten a PDF form in C#</a></h3>
             <p>
               Turn the current form appearance into normal page content when the completed output should stop behaving
               like a form.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Flatten completed forms</span>
-              <a class="button button-secondary" href="./flatten-pdf-form-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="merge append pages streams document assembly combine output">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 18c3-5 5-5 7 0 2-4 4-4 6 0"></path><path d="M15 5l4 4"></path><path d="M14 10l5-5"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Document assembly</p>
-            <h3>How to merge PDFs in C#</h3>
+            <h3><a href="./merge-pdfs-csharp.html">How to merge PDFs in C#</a></h3>
             <p>
               Append pages from one or more PDF streams, control the final page order, and save the combined output.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Append streams and save</span>
-              <a class="button button-secondary" href="./merge-pdfs-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="watermark page all pages document content draft confidential paid">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 4h8v16H8z"></path><path d="M4 8l4 4-4 4"></path><path d="M20 8l-4 4 4 4"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page content</p>
-            <h3>How to add watermarks to PDFs in C#</h3>
+            <h3><a href="./add-watermark-to-pdf-csharp.html">How to add watermarks to PDFs in C#</a></h3>
             <p>
               Add a text watermark to one page or the whole document, then save or combine it with other document
               updates.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Single-page or all-pages</span>
-              <a class="button button-secondary" href="./add-watermark-to-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="encrypt aes aes128 aes256 password security output owner user">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 11V8a5 5 0 0 1 10 0v3"></path><path d="M6 11h12v9H6z"></path><path d="M12 15v2"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Security and output</p>
-            <h3>How to encrypt a PDF with AES in C#</h3>
+            <h3><a href="./encrypt-pdf-with-aes-csharp.html">How to encrypt a PDF with AES in C#</a></h3>
             <p>
               Write AES-128 or AES-256 protected output, choose user and owner passwords, and save the encrypted file.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">AES-128 and AES-256</span>
-              <a class="button button-secondary" href="./encrypt-pdf-with-aes-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="permissions restrict print copy edit fill forms owner user password encrypted pdf">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3l7 4v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V7z"></path><path d="M9 12l2 2 4-5"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Security and output</p>
-            <h3>How to restrict PDF permissions in C#</h3>
+            <h3><a href="./restrict-pdf-permissions-csharp.html">How to restrict PDF permissions in C#</a></h3>
             <p>
               Allow or block printing, copying, editing, annotation, and form filling when writing encrypted output.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Permission flags on encrypted PDFs</span>
-              <a class="button button-secondary" href="./restrict-pdf-permissions-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="sign signature field cms x509certificate2 detached signature form field pfx invisible hidden validation cryptographic">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 3l5 5-11 11H5v-5z"></path><path d="M14 5l5 5"></path><path d="M4 21h16"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Forms and data capture</p>
-            <h3>How to sign a PDF form field in C#</h3>
+            <h3><a href="./sign-pdf-form-field-csharp.html">How to sign a PDF form field in C#</a></h3>
             <p>
               Sign an existing signature field, or add a hidden validation-only field and sign that with an X509 certificate.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Visible or invisible PDF signing</span>
-              <a class="button button-secondary" href="./sign-pdf-form-field-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="extract text plain text page segments whole document content reading">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h14"></path><path d="M12 4v16"></path><path d="M8 20h8"></path><path d="M5 10h4"></path><path d="M15 10h4"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Text and content</p>
-            <h3>How to extract text from a PDF in C#</h3>
+            <h3><a href="./extract-text-from-pdf-csharp.html">How to extract text from a PDF in C#</a></h3>
             <p>
               Read text from the whole document or a single page, and choose between extracted segments and plain text
               output.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Whole document or one page</span>
-              <a class="button button-secondary" href="./extract-text-from-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="ocr scanned pdf image based pages tesseract text recognition plain text extracted text">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7V5h2"></path><path d="M18 5h2v2"></path><path d="M20 17v2h-2"></path><path d="M6 19H4v-2"></path><path d="M7 12h10"></path><path d="M9 9h6"></path><path d="M9 15h6"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Text and content</p>
-            <h3>How to extract text from a scanned PDF in C#</h3>
+            <h3><a href="./extract-text-from-scanned-pdf-csharp.html">How to extract text from a scanned PDF in C#</a></h3>
             <p>
               Use OCR on scanned or image-based pages with Tesseract and the ZingPDF OCR package.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">OCR for scanned and image-based pages</span>
-              <a class="button button-secondary" href="./extract-text-from-scanned-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="metadata title author subject keywords creator creation date info dictionary">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h3"></path><circle cx="16" cy="16" r="1.5"></circle>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Document info</p>
-            <h3>How to update PDF metadata in C#</h3>
+            <h3><a href="./update-pdf-metadata-csharp.html">How to update PDF metadata in C#</a></h3>
             <p>
               Set title, author, subject, keywords, creator, and creation date through the high-level metadata wrapper.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Info dictionary updates</span>
-              <a class="button button-secondary" href="./update-pdf-metadata-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="rotate pages rotation degrees90 degrees180 degrees270 set rotation page document">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12a8 8 0 0 1 13.7-5.7L20 8"></path><path d="M20 4v4h-4"></path><path d="M20 12a8 8 0 0 1-13.7 5.7L4 16"></path><path d="M4 20v-4h4"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Page structure</p>
-            <h3>How to rotate PDF pages in C#</h3>
+            <h3><a href="./rotate-pdf-pages-csharp.html">How to rotate PDF pages in C#</a></h3>
             <p>
               Rotate one page or the whole document with the built-in rotation helpers and save the updated file.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Page or document rotation</span>
-              <a class="button button-secondary" href="./rotate-pdf-pages-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="compress compression image jpeg quality size output save">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 4h8v16H8z"></path><path d="M4 12h5"></path><path d="M15 12h5"></path><path d="M7 9l2 3-2 3"></path><path d="M17 9l-2 3 2 3"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Output and size</p>
-            <h3>How to compress a PDF in C#</h3>
+            <h3><a href="./compress-pdf-csharp.html">How to compress a PDF in C#</a></h3>
             <p>
               Recompress eligible streams, tune JPEG quality, and save a smaller output file from the high-level API.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Compression and save</span>
-              <a class="button button-secondary" href="./compress-pdf-csharp.html">Open guide</a>
-            </div>
           </article>
 
           <article class="guide-card" data-guide-card data-guide-search-text="remove history incremental history rewrite clean save prev trailer revisions">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M9 8h6"></path><path d="M9 12h4"></path><path d="M9 16h6"></path><path d="M4 4l16 16"></path>
+              </svg>
+            </span>
+
             <p class="guide-kicker">Output and save</p>
-            <h3>How to rewrite a PDF without incremental history in C#</h3>
+            <h3><a href="./rewrite-pdf-without-incremental-history-csharp.html">How to rewrite a PDF without incremental history in C#</a></h3>
             <p>
               Remove the previous incremental revision chain before saving when the output should only reflect the
               current document state.
             </p>
-            <div class="guide-card-footer">
-              <span class="guide-meta">Clean rewrite before save</span>
-              <a class="button button-secondary" href="./rewrite-pdf-without-incremental-history-csharp.html">Open guide</a>
-            </div>
           </article>
         </div>
         <p class="guides-empty" data-guides-empty hidden>No guides match that search yet.</p>

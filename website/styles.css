@@ -536,6 +536,22 @@ code {
   line-height: 1.6;
 }
 
+.platform-package-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-package-list code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
 .platform-label {
   color: var(--accent-strong);
   font-size: 0.76rem;
@@ -887,13 +903,34 @@ code {
   box-shadow: var(--shadow);
 }
 
+.guide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0 10px 14px 0;
+  border-radius: 10px;
+  color: var(--accent-strong);
+  background: rgba(14, 116, 144, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(14, 116, 144, 0.14);
+  vertical-align: middle;
+}
+
+.guide-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .guide-kicker {
-  margin: 0 0 10px;
+  display: inline-block;
+  margin: 0 0 14px;
   color: var(--accent-strong);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .guide-card h3 {
@@ -902,6 +939,15 @@ code {
   font-size: clamp(1.45rem, 2.4vw, 2rem);
   line-height: 1.08;
   letter-spacing: -0.03em;
+}
+
+.guide-card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.guide-card h3 a:hover {
+  color: var(--accent-strong);
 }
 
 .guide-card p {
@@ -959,18 +1005,12 @@ code {
   margin-top: 16px;
 }
 
-.guide-card-footer,
 .article-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   margin-top: 20px;
-}
-
-.guide-meta {
-  color: var(--muted);
-  font-size: 0.95rem;
 }
 
 .support-groups {

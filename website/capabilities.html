@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Capabilities</title>
   <meta name="description"
-    content="Support matrix for ZingPDF covering document editing, fluent authoring and page editing, text extraction, OCR, redaction, forms, signing, encryption, save behavior, packages, and planned features.">
+    content="Support matrix for ZingPDF covering document editing, fluent authoring and page editing, templates, text extraction, OCR, redaction, forms, signing, encryption, save behavior, packages, and planned features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -111,8 +111,8 @@
 
           <section class="support-group">
             <div class="support-group-copy">
-              <p class="eyebrow">Page Content</p>
-              <h3>Add visible content with page APIs for text, graphics, and media.</h3>
+              <p class="eyebrow">Document Creation</p>
+              <h3>Create PDFs with native authoring APIs or template renderers.</h3>
             </div>
             <div class="support-table-wrap">
               <table class="support-table">
@@ -128,6 +128,11 @@
                     <td>Fluent authoring for new PDFs</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>Pdf.New()</code> covers pages, text, shapes, paths, images, watermarks, boxed layout, wrapping, and fonts.</td>
+                  </tr>
+                  <tr>
+                    <td>Liquid HTML templates</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>ZingPDF.Templates.LiquidHtml</code> renders Liquid variables, loops, conditionals, and includes with Fluid, then converts the rendered HTML through <code>ZingPDF.FromHTML</code>.</td>
                   </tr>
                   <tr>
                     <td>Fluent page editing for existing PDFs</td>
@@ -173,6 +178,11 @@
                     <td>Google Fonts package</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Package for registering Google Fonts through the Google Fonts Developer API.</td>
+                  </tr>
+                  <tr>
+                    <td>PDF-native flow templates</td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>The current template package is Liquid HTML backed by browser conversion, not a PDF-native flow layout engine.</td>
                   </tr>
                 </tbody>
               </table>
@@ -335,6 +345,11 @@
                     <td>HTML-to-PDF package</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>HTML-to-PDF package with browser automation requirements.</td>
+                  </tr>
+                  <tr>
+                    <td>Liquid HTML template package</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>ZingPDF.Templates.LiquidHtml</code> renders Liquid templates with Fluid and converts the resulting HTML through <code>ZingPDF.FromHTML</code>.</td>
                   </tr>
                   <tr>
                     <td>OCR package</td>

@@ -37,6 +37,8 @@ Unless Licensor states otherwise in writing, all paid subscriptions include acce
 This includes:
 
 - `ZingPDF`
+- `ZingPDF.Templates`
+- `ZingPDF.Templates.LiquidHtml`
 - `ZingPDF.GoogleFonts`
 - `ZingPDF.OCR`
 - `ZingPDF.FromHTML`

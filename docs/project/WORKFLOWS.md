@@ -45,7 +45,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 1. Confirm release-affecting changes are intentional.
 2. Update `CHANGELOG.md` under `## [Unreleased]` with meaningful notes, or let `scripts/prepare-release.ps1` derive notes from commits.
 3. Run `pwsh ./scripts/prepare-release.ps1` only when preparing release metadata.
-4. The release workflow packs core, FromHTML, GoogleFonts, and OCR packages.
+4. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
 
 ## Capturing New Memory
 

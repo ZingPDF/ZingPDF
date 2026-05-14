@@ -45,6 +45,7 @@ await pdfStream.CopyToAsync(output);
 
 - render HTML strings to PDF
 - render URLs to PDF
+- convert rendered template HTML to PDF through `ZingPDF.Templates.LiquidHtml`
 - use Chromium-based output alongside the core `ZingPDF` package
 
 ## Notes

@@ -10,8 +10,9 @@
 
 [Website](https://zingpdf.dev) · [Docs](https://zingpdf.dev/docs.html) · [Guides](https://zingpdf.dev/guides.html) · [Capabilities](https://zingpdf.dev/capabilities.html) · [Performance](https://zingpdf.dev/performance.html)
 
-ZingPDF is a .NET 8 library for reading, editing, and saving PDF files in C#. It's free for non-commercial use.
+ZingPDF is a .NET 8 library for reading, editing, creating, templating, and saving PDF files in C#. It's free for non-commercial use.
 
+- PDF templating from Liquid HTML
 - Editing
 - Signing
 - Document assembly
@@ -46,8 +47,10 @@ ZingPDF is a .NET 8 library for reading, editing, and saving PDF files in C#. It
 ## Packages
 
 - `src/ZingPDF`: core PDF APIs
+- `src/ZingPDF.Templates`: shared template abstractions
+- `src/ZingPDF.Templates.LiquidHtml`: Liquid HTML template rendering package
 - `src/ZingPDF.GoogleFonts`: optional Google Fonts integration package
-- `src/ZingPDF.OCR`: OCR fallback for image-based PDF pages
+- `src/ZingPDF.OCR`: OCR support for image-based PDF pages
 - `src/ZingPDF.FromHTML`: HTML-to-PDF helpers
 
 ## Licensing
