@@ -8,6 +8,8 @@ This document records the current support expectations for ZingPDF ahead of publ
 - `ZingPDF.FromHTML`: `net8.0`
 - `ZingPDF.GoogleFonts`: `net8.0`
 - `ZingPDF.OCR`: `net8.0`
+- `ZingPDF.Templates`: `net8.0`
+- `ZingPDF.Templates.LiquidHtml`: `net8.0`
 
 ## Operating systems
 
@@ -21,6 +23,7 @@ Notes:
 
 - Actual runtime behaviour depends on the native/runtime requirements of third-party dependencies such as `SkiaSharp` and `PuppeteerSharp`.
 - `ZingPDF.FromHTML` has additional environment requirements because it depends on a browser automation stack.
+- `ZingPDF.Templates.LiquidHtml` has the same browser automation requirements because it converts rendered HTML through `ZingPDF.FromHTML`.
 
 ## Supported scenarios
 
@@ -35,6 +38,7 @@ Notes:
 
 ### Page content
 
+- create PDFs from Liquid HTML templates through `ZingPDF.Templates.LiquidHtml`
 - add text with registered fonts
 - add images including PNG support
 - draw vector paths with stroke and fill options
@@ -69,6 +73,7 @@ These limits should be treated as part of the current product contract unless ex
 - high-level custom font registration currently targets WinAnsi / Windows-1252 text workflows
 - high-level registration does not yet cover Symbol or ZapfDingbats usage
 - `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
+- `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
 - text fields currently have the richest form write support
 - signing does not yet support encrypted PDFs or create visible signature fields automatically
@@ -92,7 +97,7 @@ These limits should be treated as part of the current product contract unless ex
 
 ## Evaluation FAQ
 
-- install `ZingPDF` by default; add `ZingPDF.FromHTML`, `ZingPDF.GoogleFonts`, or `ZingPDF.OCR` only when you need those specific features
+- install `ZingPDF` by default; add `ZingPDF.FromHTML`, `ZingPDF.Templates.LiquidHtml`, `ZingPDF.GoogleFonts`, or `ZingPDF.OCR` only when you need those specific features
 - evaluation and other non-commercial use are free; paid seats are required for commercial use and internal business operations outside genuine evaluation
 - seats are licensed per developer, and contractors may use seats licensed to the same customer legal entity
 - the core library targets `net8.0` and is intended for Windows, Linux, and macOS environments that support .NET 8

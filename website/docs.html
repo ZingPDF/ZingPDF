@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Developer Docs</title>
   <meta name="description"
-    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), fonts, forms, metadata, encryption, redaction, save behavior, OCR, and API reference links.">
+    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), templates, fonts, forms, metadata, encryption, redaction, save behavior, OCR, and API reference links.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -50,6 +50,7 @@
           <nav>
             <a href="#quick-start">Quick Start</a>
             <a href="#packages">Packages</a>
+            <a href="#templates">Templates</a>
             <a href="#fonts">Fonts</a>
             <a href="#drawing">Drawing</a>
             <a href="#metadata">Metadata</a>
@@ -280,11 +281,12 @@ await pdf.SaveAsync(output);</code></pre>
             <p class="eyebrow">Packages</p>
             <h2>NuGet packages</h2>
             <p>ZingPDF ships as a small set of packages. Use the core package unless you specifically need HTML
-              rendering, Google Fonts, or OCR support for scanned or image-based pages.</p>
+              rendering, Liquid HTML templates, Google Fonts, or OCR support for scanned or image-based pages.</p>
 
             <h3>Which package should I install?</h3>
             <p class="doc-package-intro">
               Start with <code>ZingPDF</code>. Add <code>ZingPDF.FromHTML</code> for HTML-to-PDF,
+              <code>ZingPDF.Templates.LiquidHtml</code> for Liquid HTML templates,
               <code>ZingPDF.GoogleFonts</code> for Google Fonts, and <code>ZingPDF.OCR</code> for scanned or
               image-based pages.
             </p>
@@ -315,6 +317,28 @@ await pdf.SaveAsync(output);</code></pre>
               </article>
 
               <article class="doc-card">
+                <h3><code>ZingPDF.Templates</code></h3>
+                <p>Shared source and diagnostic types for template renderer packages.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Use when building or referencing renderer packages</li>
+                  <li>No dependency on HTML, Liquid, or browser automation</li>
+                  <li>Contains template sources, diagnostics, and render exceptions</li>
+                </ul>
+              </article>
+
+              <article class="doc-card">
+                <h3><code>ZingPDF.Templates.LiquidHtml</code></h3>
+                <p>Liquid HTML template package for creating PDFs from data models.</p>
+                <ul>
+                  <li>Target framework: <code>net8.0</code></li>
+                  <li>Uses Fluid for Liquid rendering</li>
+                  <li>Uses <code>ZingPDF.FromHTML</code> for HTML-to-PDF conversion</li>
+                  <li>Has the same browser automation requirements as <code>ZingPDF.FromHTML</code></li>
+                </ul>
+              </article>
+
+              <article class="doc-card">
                 <h3><code>ZingPDF.GoogleFonts</code></h3>
                 <p>Google Fonts integration package for registering Google Fonts in a PDF document.</p>
                 <ul>
@@ -340,6 +364,8 @@ await pdf.SaveAsync(output);</code></pre>
             <ul>
               <li>For application integrations, prefer <code>ZingPDF</code> unless you specifically need HTML
                 conversion.</li>
+              <li>Use <code>ZingPDF.Templates.LiquidHtml</code> for Liquid variables, loops, and conditionals in HTML
+                templates that render to PDF.</li>
               <li>The core package already covers standard PDF fonts and embedded TrueType font registration.</li>
               <li>Use <code>ZingPDF.GoogleFonts</code> if you need to register Google Fonts directly from the Google
                 Fonts catalog.</li>
@@ -349,6 +375,57 @@ await pdf.SaveAsync(output);</code></pre>
               <li>Validate your exact deployment platform if you depend on image handling, font metrics, or browser
                 automation.</li>
             </ul>
+          </section>
+
+          <section class="doc-section" id="templates">
+            <p class="eyebrow">Templates</p>
+            <h2>Liquid HTML templates</h2>
+            <p>
+              <code>ZingPDF.Templates.LiquidHtml</code> renders a Liquid HTML template with a .NET model, converts the
+              rendered HTML to PDF through <code>ZingPDF.FromHTML</code>, and writes the PDF stream you provide.
+            </p>
+
+            <h3>Install the renderer package</h3>
+            <pre><code class="language-bash">dotnet add package ZingPDF.Templates.LiquidHtml</code></pre>
+
+            <h3>Render a template file</h3>
+            <pre><code class="language-csharp">using ZingPDF.Templates.LiquidHtml;
+
+var invoice = new
+{
+    Number = "INV-1001",
+    CustomerName = "Ada Lovelace",
+    Items = new[]
+    {
+        new { Description = "Consulting", Total = 240m },
+        new { Description = "Support", Total = 80m }
+    }
+};
+
+await using var output = File.Create("invoice.pdf");
+
+await LiquidHtmlPdfTemplate
+    .FromFile("invoice.liquid.html")
+    .RenderAsync(invoice, output);</code></pre>
+
+            <h3>Inspect rendered HTML</h3>
+            <pre><code class="language-csharp">var html = await LiquidHtmlPdfTemplate
+    .FromFile("invoice.liquid.html")
+    .RenderHtmlAsync(invoice);</code></pre>
+
+            <h3>Template behavior</h3>
+            <ul>
+              <li>Liquid variables, loops, conditionals, and includes are handled by Fluid.</li>
+              <li>File-backed templates resolve Liquid includes from the template directory by default.</li>
+              <li>The package uses browser automation through <code>ZingPDF.FromHTML</code> after Liquid rendering.</li>
+              <li>Use <code>PdfTemplateRenderException.Diagnostics</code> for template parse, load, and render failures.</li>
+            </ul>
+
+            <p>
+              Dedicated guide:
+              <a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">Create a PDF from a
+                Liquid HTML template</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="fonts">
@@ -947,6 +1024,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
               workflows. Add companion packages only for the extra capability they provide.</p>
             <ul>
               <li>Add <code>ZingPDF.FromHTML</code> for Chromium-based HTML-to-PDF.</li>
+              <li>Add <code>ZingPDF.Templates.LiquidHtml</code> for Liquid HTML templates that render to PDF.</li>
               <li>Add <code>ZingPDF.GoogleFonts</code> for Google Fonts registration.</li>
               <li>Add <code>ZingPDF.OCR</code> for OCR on scanned or image-based pages.</li>
             </ul>
@@ -966,6 +1044,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
             <ul>
               <li>The core library fits desktop apps, background jobs, services, workers, and CLI tools.</li>
               <li><code>ZingPDF.FromHTML</code> has additional browser-runtime requirements.</li>
+              <li><code>ZingPDF.Templates.LiquidHtml</code> has the same browser-runtime requirements after Liquid rendering.</li>
               <li>Input streams passed to <code>Pdf.Load(...)</code> must be seekable.</li>
             </ul>
 

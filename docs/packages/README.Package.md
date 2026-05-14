@@ -4,7 +4,7 @@
 
 `ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, signing, redacting, and saving PDFs in C#.
 
-It covers the PDF jobs many applications need first: fluent PDF authoring, existing-PDF page editing, text extraction, form creation and completion, signing, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
+It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, text extraction, form creation and completion, signing, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
 
 ## Installation
 
@@ -142,6 +142,7 @@ await pdf.SaveAsync(output);
 ## Main workflows
 
 - create new PDFs with `Pdf.New()` or `Pdf.Create()`
+- create PDFs from Liquid HTML templates with `ZingPDF.Templates.LiquidHtml`
 - edit existing PDFs with `pdf.Pages(...)`
 - append, insert, delete, export, merge, or split pages
 - add text, images, vector drawing, and watermarks to pages
@@ -169,6 +170,8 @@ await pdf.SaveAsync(output);
 - `ZingPDF.GoogleFonts`: download and register Google Fonts
 - `ZingPDF.OCR`: OCR support for scanned and image-based PDF pages
 - `ZingPDF.FromHTML`: render HTML to PDF through PuppeteerSharp
+- `ZingPDF.Templates`: shared contracts for template renderer packages
+- `ZingPDF.Templates.LiquidHtml`: render Liquid HTML templates to PDF through Fluid and `ZingPDF.FromHTML`
 
 ## Licensing
 

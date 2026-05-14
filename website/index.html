@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF for .NET</title>
   <meta name="description"
-    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, extracting, redacting, filling and flattening forms, signing, encrypting, and saving PDFs, with a fluent authoring API for new documents. Evaluate it freely and subscribe when commercial use begins.">
+    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, templating, extracting, redacting, filling and flattening forms, signing, encrypting, and saving PDFs. Evaluate it freely and subscribe when commercial use begins.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -51,10 +51,10 @@
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">Commercial PDF toolkit for .NET</p>
-          <h1>Fast PDF editing and authoring for .NET.</h1>
+          <h1>PDF editing, authoring, and templating for .NET.</h1>
           <p class="lead">
-            Load existing PDFs, create new ones, fill and sign forms, extract text, redact content, and save through one
-            .NET API.
+            Load existing PDFs, create new ones, render Liquid HTML templates, fill and sign forms, extract text,
+            redact content, and save through one .NET API.
           </p>
           <p class="hero-subnote"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -83,20 +83,16 @@
               <span class="traffic">
                 <span></span><span></span><span></span>
               </span>
-              <span>Fluent authoring API</span>
+              <span>Liquid HTML template API</span>
             </div>
-            <pre><code>await Pdf.New()
-  .Page(page => page
-    .Size(595, 842)
-    .Text(text => text
-      .Value("Monthly delivery report")
-      .HelveticaBold()
-      .FontSize(24)
-      .At(48, 780))
-    .Line(line => line
-      .From(48, 764)
-      .To(260, 764))
-  .SaveToFileAsync("report.pdf");</code></pre>
+            <pre><code>await LiquidHtmlPdfTemplate
+  .FromFile("invoice.liquid.html")
+  .RenderAsync(new
+  {
+    Number = "INV-1001",
+    CustomerName = "Ada Lovelace",
+    Items = invoiceLines
+  }, File.Create("invoice.pdf"));</code></pre>
           </div>
         </div>
       </section>
@@ -111,8 +107,8 @@
             </svg>
           </span>
           <div>
-            <strong>One API</strong>
-            <p>Edit existing PDFs and author new ones through the same .NET library.</p>
+            <strong>Document generation</strong>
+            <p>Create PDFs with fluent authoring or render Liquid HTML templates from .NET models.</p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -218,8 +214,8 @@
           <p class="eyebrow">Why ZingPDF</p>
           <h2>What ZingPDF is built for.</h2>
           <p>
-            Open existing PDFs, create new ones, and ship commercial .NET workflows without stitching multiple libraries
-            together.
+            Open existing PDFs, create new ones, render template-driven documents, and ship commercial .NET workflows
+            without stitching multiple libraries together.
           </p>
         </div>
 
@@ -247,6 +243,21 @@
             <h3>Create and draw new PDFs</h3>
             <p>Author new documents with <code>Pdf.New()</code>, add text, shapes, images, and layout boxes, and save
               with the same library.</p>
+          </article>
+          <article class="feature-card">
+            <span class="mini-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+                <path d="M8 9h8"></path>
+                <path d="M8 13h4"></path>
+                <path d="M14 13h2"></path>
+                <path d="M8 17h8"></path>
+              </svg>
+            </span>
+            <h3>Render PDFs from templates</h3>
+            <p>Use <code>ZingPDF.Templates.LiquidHtml</code> to merge Liquid variables, loops, and conditionals into
+              HTML before PDF conversion.</p>
           </article>
           <article class="feature-card">
             <span class="mini-icon" aria-hidden="true">
@@ -281,7 +292,8 @@
           <h2>.NET 8 PDF library for Windows, Linux, and macOS.</h2>
           <p>
             The core package targets <code>net8.0</code> and is intended for .NET 8 applications and services running
-            on supported operating systems. Related packages add HTML rendering and Google Fonts when you need them.
+            on supported operating systems. Related packages add Liquid HTML templates, HTML rendering, Google Fonts,
+            and OCR when you need them.
           </p>
         </div>
         <div class="platform-grid">
@@ -339,9 +351,14 @@
               </span>
               <span class="platform-label">Related Packages</span>
             </div>
-            <strong><code>ZingPDF.FromHTML</code>, <code>ZingPDF.GoogleFonts</code>, <code>ZingPDF.OCR</code></strong>
-            <p>Add browser-based HTML rendering, Google Fonts support, or OCR for scanned and image-based pages when
-              your application needs them.</p>
+            <ul class="platform-package-list" aria-label="Related packages">
+              <li><code>ZingPDF.Templates.LiquidHtml</code></li>
+              <li><code>ZingPDF.FromHTML</code></li>
+              <li><code>ZingPDF.GoogleFonts</code></li>
+              <li><code>ZingPDF.OCR</code></li>
+            </ul>
+            <p>Add Liquid HTML templates, browser-based HTML rendering, Google Fonts support, or OCR for scanned and
+              image-based pages when your application needs them.</p>
           </article>
         </div>
       </section>
@@ -380,6 +397,18 @@
             <h3>Author content and extract text</h3>
             <p>Add text, images, vector paths, watermarks, and fonts, author new documents with <code>Pdf.New()</code>,
               extract plain text from existing files, and run OCR on scanned or image-based pages.</p>
+          </article>
+          <article class="capability-summary-row">
+            <span class="mini-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M5 4h14v16H5z"></path>
+                <path d="M8 8h8M8 12h3M13 12h3M8 16h8"></path>
+              </svg>
+            </span>
+            <h3>Create PDFs from templates</h3>
+            <p>Render Liquid HTML templates with Fluid, inspect the generated HTML, and convert the result to PDF
+              through <code>ZingPDF.FromHTML</code>.</p>
           </article>
           <article class="capability-summary-row">
             <span class="mini-icon" aria-hidden="true">
@@ -499,7 +528,7 @@
               </div>
               <ul class="pricing-context-list">
                 <li>Commercial use</li>
-                <li>Core, GoogleFonts, OCR, and FromHTML packages</li>
+                <li>Core, Templates, Liquid HTML templates, GoogleFonts, OCR, and FromHTML packages</li>
                 <li>Ongoing updates</li>
                 <li>Email support</li>
                 <li>Free evaluation before you subscribe</li>

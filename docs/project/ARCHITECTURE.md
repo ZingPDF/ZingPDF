@@ -9,6 +9,8 @@ This is a compact map for future maintenance. Keep it factual and update it when
 - `src/ZingPDF.GoogleFonts` contains optional Google Fonts integration.
 - `src/ZingPDF.OCR` contains OCR extraction helpers and Tesseract-backed OCR implementation.
 - `src/ZingPDF.FromHTML` contains HTML-to-PDF conversion helpers.
+- `src/ZingPDF.Templates` contains shared source and diagnostic abstractions for template renderer packages.
+- `src/ZingPDF.Templates.LiquidHtml` contains Liquid HTML template rendering backed by Fluid and `ZingPDF.FromHTML`.
 - `src/ZingPDF.InheritableSourceGenerator` generates code for inheritable dictionary properties.
 
 ## Public Surface

@@ -21,6 +21,8 @@
     <ProjectReference Include="..\ZingPDF.Tests.Common\ZingPDF.Tests.Common.csproj" />
     <ProjectReference Include="..\..\src\ZingPDF.Fonts\ZingPDF.Fonts.csproj" />
     <ProjectReference Include="..\..\src\ZingPDF.GoogleFonts\ZingPDF.GoogleFonts.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF.Templates\ZingPDF.Templates.csproj" />
+    <ProjectReference Include="..\..\src\ZingPDF.Templates.LiquidHtml\ZingPDF.Templates.LiquidHtml.csproj" />
   </ItemGroup>
 
 </Project>
