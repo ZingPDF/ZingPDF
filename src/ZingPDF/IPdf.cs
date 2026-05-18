@@ -199,6 +199,11 @@ public interface IPdf
     Task SignInvisibleAsync(X509Certificate2 certificate, PdfSignatureOptions? options = null);
 
     /// <summary>
+    /// Enumerates signature fields that contain a signature dictionary value.
+    /// </summary>
+    Task<IReadOnlyList<PdfSignature>> GetSignaturesAsync();
+
+    /// <summary>
     /// Saves the document.
     /// </summary>
     /// <remarks>

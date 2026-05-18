@@ -15,9 +15,10 @@
 1. Inspect relevant source and tests before editing.
 2. Prefer the smallest change that fixes the root cause.
 3. Preserve existing public API shape unless the task explicitly asks for an API change.
-4. Add or update focused tests for parsing, object model, save, text extraction, form, encryption, redaction, and page-editing behavior.
-5. Run the narrowest relevant test project first, then broader checks when shared behavior changed.
-6. Summarize changed files, verification commands, and any remaining risk.
+4. Add or update focused tests for parsing, object model, save, text extraction, form, signing, signature validation, encryption, redaction, and page-editing behavior.
+5. Update public docs when the change affects public APIs, supported capabilities, package behavior, examples, guides, or product limits.
+6. Run the narrowest relevant test project first, then broader checks when shared behavior changed.
+7. Summarize changed files, verification commands, and any remaining risk.
 
 ## Common Commands
 
@@ -42,7 +43,7 @@
 - Prefer structured parsers, dictionaries, object wrappers, and existing helper APIs over ad hoc string manipulation.
 - Avoid new dependencies unless the existing stack cannot reasonably solve the task.
 - Public APIs should have XML documentation that names concrete behavior, constraints, and stream requirements.
-- When changing save, encryption, xref, object stream, or page tree behavior, expect integration or smoke coverage in addition to unit tests.
+- When changing save, encryption, xref, object stream, signature validation, signing, or page tree behavior, expect integration or smoke coverage in addition to unit tests.
 
 ## Website And Copy
 
@@ -50,6 +51,7 @@
 - The website voice is plain technical English. It should name real PDF operations, API calls, constraints, pricing facts, and measured benchmark results.
 - Avoid generic SaaS language and soft adjectives such as "robust", "powerful", "flexible", "seamless", and "strong" unless backed by a concrete fact.
 - Before finishing website copy changes, run `pwsh ./website/check-copy.ps1`.
+- When public API or product capability changes, update `website/docs.html`, `website/capabilities.html`, relevant guides, package READMEs, and `docs/project/SUPPORT.md`; regenerate `website/api` when XML docs need to be published.
 - Legal pages are not marketing copy. Do not rewrite them for tone unless the requested change preserves legal meaning.
 
 ## Release And CI Notes

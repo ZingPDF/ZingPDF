@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Validate a Signed PDF in C#</title>
+  <meta name="description"
+    content="Validate signed PDF byte ranges, detached CMS payloads, signer certificates, and unsigned appended bytes in C# with ZingPDF.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api/">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to validate a signed PDF in C#</h1>
+          <p class="article-dek">
+            Use <code>Pdf.GetSignaturesAsync()</code> to enumerate signed fields, then call
+            <code>ValidateIntegrityAsync()</code> or <code>ValidateAsync(...)</code>.
+          </p>
+          <p>
+            ZingPDF validates the PDF <code>/ByteRange</code>, reads the detached CMS payload from
+            <code>/Contents</code>, and reports integrity, coverage, certificate, revocation, timestamp, and permission
+            results separately.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#integrity">Validate integrity</a>
+          <a href="#field-api">Validate from a field</a>
+          <a href="#certificate-chain">Build a certificate chain</a>
+          <a href="#results">Read the result</a>
+          <a href="#limits">Current limits</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="integrity">
+          <h2>Validate signature integrity</h2>
+          <p>
+            <code>ValidateIntegrityAsync()</code> checks that the signed byte ranges still match the detached CMS
+            signature. It does not use the machine trust store, network revocation checks, or the current clock.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("contract-signed.pdf"));
+
+var signatures = await pdf.GetSignaturesAsync();
+var result = await signatures[0].ValidateIntegrityAsync();
+
+if (result.Status == PdfSignatureValidationStatus.Valid)
+{
+    Console.WriteLine("The signed byte ranges match the CMS signature.");
+}</code></pre>
+        </section>
+
+        <section class="article-section" id="field-api">
+          <h2>Validate from a signature field</h2>
+          <p>
+            If your code already has the AcroForm field, call <code>ValidateSignatureAsync(...)</code> on the
+            <code>SignatureFormField</code>.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Forms.FieldTypes.Signature;
+
+using var pdf = Pdf.Load(File.OpenRead("contract-signed.pdf"));
+
+var form = await pdf.GetFormAsync();
+var field = await form!.GetFieldAsync&lt;SignatureFormField&gt;("Approval.Signature");
+
+var result = await field!.ValidateSignatureAsync();</code></pre>
+        </section>
+
+        <section class="article-section" id="certificate-chain">
+          <h2>Build a certificate chain</h2>
+          <p>
+            Use <code>ValidateAsync(...)</code> when you want certificate-chain validation. You can pass extra
+            intermediate certificates or custom trusted roots through <code>PdfSignatureValidationOptions</code>.
+          </p>
+
+          <pre><code class="language-csharp">using System.Security.Cryptography.X509Certificates;
+using ZingPDF;
+
+using var pdf = Pdf.Load(File.OpenRead("contract-signed.pdf"));
+using var trustedRoot = new X509Certificate2("trusted-root.cer");
+
+var signatures = await pdf.GetSignaturesAsync();
+var result = await signatures[0].ValidateAsync(new PdfSignatureValidationOptions
+{
+    Profile = PdfSignatureValidationProfile.CertificateChain,
+    TrustedRoots = new X509Certificate2Collection(trustedRoot)
+});</code></pre>
+        </section>
+
+        <section class="article-section" id="results">
+          <h2>Read the validation result</h2>
+          <p>
+            The top-level <code>Status</code> is a summary. Inspect the layer results when you need to distinguish a
+            changed PDF from an untrusted certificate or unsigned bytes appended after signing.
+          </p>
+
+          <pre><code class="language-csharp">Console.WriteLine(result.Status);
+Console.WriteLine(result.Integrity.Status);
+Console.WriteLine(result.Coverage.HasUnsignedChangesAfterSignature);
+Console.WriteLine(result.Certificate.Status);
+
+foreach (var finding in result.Findings)
+{
+    Console.WriteLine($"{finding.Code}: {finding.Message}");
+}</code></pre>
+        </section>
+
+        <section class="article-section" id="limits">
+          <h2>Current limits</h2>
+          <p>
+            ZingPDF validates ByteRange integrity, detached CMS signatures, signer certificate extraction, and optional
+            X509Chain validation. Trusted timestamp token validation, DSS/VRI long-term validation data, and DocMDP
+            certification permissions are reported as separate result layers but are not validated yet.
+          </p>
+          <p>
+            Signature validation requires a seekable input stream because the signed byte ranges are reconstructed from
+            the original PDF bytes.
+          </p>
+        </section>
+
+        <section class="article-cta" id="next-step">
+          <h2>Need to sign the PDF first?</h2>
+          <p>
+            Create a detached CMS signature in an existing field or a hidden field before validating the saved output.
+          </p>
+          <p class="article-actions">
+            <a class="button button-primary" href="./sign-pdf-form-field-csharp.html">Open signing guide</a>
+            <a class="button button-secondary" href="./docs.html#forms">Open forms docs</a>
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./guides.html">All Guides</a>
+      <a href="./docs.html">Developer Docs</a>
+      <a href="./capabilities.html">Capabilities</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

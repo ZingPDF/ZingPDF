@@ -80,6 +80,25 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Signature
             await pdf.QueueSignatureAsync(_fieldIndirectObject, certificate, options ?? new PdfSignatureOptions());
         }
 
+        /// <summary>
+        /// Validates the signature dictionary associated with this field.
+        /// </summary>
+        public async Task<PdfSignatureValidationResult> ValidateSignatureAsync(PdfSignatureValidationOptions? options = null)
+        {
+            if (_pdf is not Pdf pdf)
+            {
+                throw new NotSupportedException("Signature validation requires the default Pdf implementation.");
+            }
+
+            var signature = await PdfSignature.CreateAsync(pdf, this)
+                ?? throw new InvalidOperationException("The signature field does not contain a signature dictionary value.");
+
+            return await signature.ValidateAsync(options);
+        }
+
+        internal async Task<Dictionary?> GetSignatureDictionaryForValidationAsync()
+            => await GetSignatureDictionaryAsync();
+
         private async Task<Dictionary?> GetSignatureDictionaryAsync()
             => await _fieldDictionary.V.GetAsync() as Dictionary;
     }

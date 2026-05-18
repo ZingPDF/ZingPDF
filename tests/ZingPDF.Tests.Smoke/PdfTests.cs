@@ -1641,6 +1641,94 @@ public class PdfTests
     }
 
     [Fact]
+    public async Task GetSignaturesAsync_ValidateIntegrityAsync_ReturnsValid_ForSignedDocument()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        using var certificate = CreateSigningCertificate();
+
+        await AddSignatureFieldAsync(pdf, "ApprovalSignature");
+
+        var form = await pdf.GetFormAsync();
+        var signatureField = (await form!.GetFieldsAsync()).OfType<SignatureFormField>().First();
+
+        await signatureField.SignAsync(certificate, new PdfSignatureOptions
+        {
+            SignerName = "Taylor Smith",
+            Reason = "Approval"
+        });
+
+        await pdf.SaveAsync(output);
+
+        output.Position = 0;
+        using var reloaded = Pdf.Load(output);
+        var signatures = await reloaded.GetSignaturesAsync();
+
+        signatures.Should().ContainSingle();
+        signatures[0].FieldName.Should().Be("ApprovalSignature");
+        signatures[0].Metadata.SignerName.Should().Be("Taylor Smith");
+
+        var result = await signatures[0].ValidateIntegrityAsync();
+
+        result.Status.Should().Be(PdfSignatureValidationStatus.Valid);
+        result.Integrity.Status.Should().Be(PdfSignatureCheckStatus.Valid);
+        result.Integrity.ByteRangeValid.Should().BeTrue();
+        result.Integrity.MessageDigestValid.Should().BeTrue();
+        result.Integrity.CmsSignatureValid.Should().BeTrue();
+        result.Coverage.HasUnsignedChangesAfterSignature.Should().BeFalse();
+        result.Certificate.Status.Should().Be(PdfSignatureCheckStatus.NotChecked);
+
+        var certificateResult = await signatures[0].ValidateAsync(new PdfSignatureValidationOptions
+        {
+            Profile = PdfSignatureValidationProfile.CertificateChain,
+            TrustedRoots = new X509Certificate2Collection(certificate)
+        });
+
+        certificateResult.Status.Should().Be(PdfSignatureValidationStatus.Valid);
+        certificateResult.Certificate.Status.Should().Be(PdfSignatureCheckStatus.Valid);
+        certificateResult.Certificate.SignerCertificate.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task SignatureFormField_ValidateSignatureAsync_ReturnsInvalid_WhenSignedBytesWereChanged()
+    {
+        using var pdf = Pdf.Create();
+        using var output = new MemoryStream();
+        using var certificate = CreateSigningCertificate();
+
+        await AddSignatureFieldAsync(pdf, "ApprovalSignature");
+
+        var form = await pdf.GetFormAsync();
+        var signatureField = (await form!.GetFieldsAsync()).OfType<SignatureFormField>().First();
+
+        await signatureField.SignAsync(certificate, new PdfSignatureOptions
+        {
+            SignerName = "Taylor Smith",
+            Reason = "Approval"
+        });
+
+        await pdf.SaveAsync(output);
+
+        var tamperedBytes = output.ToArray();
+        var ascii = Encoding.ASCII.GetString(tamperedBytes);
+        var signerNameIndex = ascii.IndexOf("Taylor Smith", StringComparison.Ordinal);
+        signerNameIndex.Should().BeGreaterThanOrEqualTo(0);
+        tamperedBytes[signerNameIndex] = (byte)'B';
+
+        using var reloaded = Pdf.Load(new MemoryStream(tamperedBytes));
+        var reloadedForm = await reloaded.GetFormAsync();
+        var reloadedSignatureField = await reloadedForm!.GetFieldAsync<SignatureFormField>("ApprovalSignature");
+
+        var result = await reloadedSignatureField!.ValidateSignatureAsync();
+
+        result.Status.Should().Be(PdfSignatureValidationStatus.Invalid);
+        result.Integrity.Status.Should().Be(PdfSignatureCheckStatus.Invalid);
+        result.Integrity.CmsSignatureValid.Should().BeFalse();
+        result.Findings.Should().Contain(finding =>
+            finding.Code == "Integrity.MessageDigestMismatch" || finding.Code == "Integrity.SignatureMismatch");
+    }
+
+    [Fact]
     public async Task SignatureFormField_SignAsync_WithSignatureImage_WritesImageIntoVisibleAppearance()
     {
         using var pdf = Pdf.Create();

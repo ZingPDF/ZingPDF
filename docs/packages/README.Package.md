@@ -2,9 +2,9 @@
 
 # ZingPDF
 
-`ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, signing, redacting, and saving PDFs in C#.
+`ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, signing, validating signatures, redacting, and saving PDFs in C#.
 
-It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, text extraction, form creation and completion, signing, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
+It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, text extraction, form creation and completion, signing, signature validation, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
 
 ## Installation
 
@@ -132,11 +132,28 @@ var signatureField = await form.GetFieldAsync<SignatureFormField>("Approval.Sign
 
 await signatureField.SignAsync(certificate, new PdfSignatureOptions
 {
-    Name = "Ada Lovelace",
+    SignerName = "Ada Lovelace",
     Reason = "Approved"
 });
 
 await pdf.SaveAsync(output);
+```
+
+Validate a signed PDF:
+
+```csharp
+using ZingPDF;
+
+using var input = File.OpenRead("contract-signed.pdf");
+using var pdf = Pdf.Load(input);
+
+var signatures = await pdf.GetSignaturesAsync();
+var result = await signatures[0].ValidateIntegrityAsync();
+
+if (result.Status == PdfSignatureValidationStatus.Valid)
+{
+    Console.WriteLine("The signed byte ranges match the detached CMS signature.");
+}
 ```
 
 ## Main workflows
@@ -147,7 +164,7 @@ await pdf.SaveAsync(output);
 - append, insert, delete, export, merge, or split pages
 - add text, images, vector drawing, and watermarks to pages
 - register standard PDF fonts and embedded TrueType fonts
-- create, fill, flatten, and sign AcroForm fields
+- create, fill, flatten, sign, and validate AcroForm signature fields
 - read and update metadata
 - extract text from full documents or individual pages
 - redact exact text matches or explicit regions with rewritten-file output
@@ -166,7 +183,7 @@ await pdf.SaveAsync(output);
 
 ## Package split
 
-- `ZingPDF`: core PDF load, author, edit, sign, redact, form, metadata, and encryption APIs
+- `ZingPDF`: core PDF load, author, edit, sign, signature validation, redact, form, metadata, and encryption APIs
 - `ZingPDF.GoogleFonts`: download and register Google Fonts
 - `ZingPDF.OCR`: OCR support for scanned and image-based PDF pages
 - `ZingPDF.FromHTML`: render HTML to PDF through PuppeteerSharp

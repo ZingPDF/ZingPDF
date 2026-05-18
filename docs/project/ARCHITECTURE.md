@@ -17,7 +17,7 @@ This is a compact map for future maintenance. Keep it factual and update it when
 
 - `IPdf` is the main document contract.
 - `Pdf` is the default implementation and owns document lifetime services, object collection access, parsing, document edits, save behavior, and high-level operations.
-- Common public operations include page access/editing, form access, metadata, redaction, text extraction, watermarking, font registration, compression, encryption/decryption, document merging, signing, and save.
+- Common public operations include page access/editing, form access, metadata, redaction, text extraction, watermarking, font registration, compression, encryption/decryption, document merging, signing, signature validation, and save.
 - Public page numbers are 1-based.
 - Public XML documentation should state concrete behavior and important stream or PDF format constraints.
 
@@ -55,6 +55,8 @@ This is a compact map for future maintenance. Keep it factual and update it when
 - AcroForm and field dictionaries live under `InteractiveFeatures/Forms`.
 - Widget and appearance stream dictionaries live under `InteractiveFeatures/Annotations`.
 - Form filling, flattening, appearance streams, and signature fields depend on both high-level wrappers and low-level PDF dictionaries.
+- Public signature validation starts from signed AcroForm fields but is exposed through `Pdf.GetSignaturesAsync()` and `SignatureFormField.ValidateSignatureAsync(...)`.
+- Signature integrity validation reconstructs the signed `/ByteRange`, decodes `/Contents` as detached CMS, and reports integrity, coverage, certificate, revocation, timestamp, and permission status separately.
 
 ## Tests And Fixtures
 
