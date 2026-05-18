@@ -9,6 +9,7 @@ using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
+using ZingPDF.Elements.Forms.FieldTypes.Signature;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
@@ -531,6 +532,27 @@ public class Pdf : IPdf, IDisposable
         var signatureField = await EnsureHiddenSignatureFieldAsync(resolvedOptions.FieldName);
 
         await QueueSignatureAsync(signatureField, certificate, resolvedOptions);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<PdfSignature>> GetSignaturesAsync()
+    {
+        var form = await GetFormAsync();
+        if (form is null)
+        {
+            return [];
+        }
+
+        var signatures = new List<PdfSignature>();
+        foreach (var field in (await form.GetFieldsAsync()).OfType<SignatureFormField>())
+        {
+            if (await PdfSignature.CreateAsync(this, field) is { } signature)
+            {
+                signatures.Add(signature);
+            }
+        }
+
+        return signatures;
     }
 
     /// <inheritdoc />

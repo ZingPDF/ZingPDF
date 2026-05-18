@@ -8,14 +8,16 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 2. Identify the behavior boundary: parser, syntax object, public API, save pipeline, forms, text extraction, website, release, or packaging.
 3. Make the narrowest change that fixes the root cause.
 4. Add or update focused tests near the changed behavior.
-5. Run the narrow test project first.
-6. Run `dotnet test ZingPDF.sln --configuration Release` when shared behavior, public APIs, save behavior, or package wiring changed.
+5. Update public docs when the change affects public APIs, supported capabilities, package behavior, examples, guides, or product limits.
+6. Run the narrow test project first.
+7. Run `dotnet test ZingPDF.sln --configuration Release` when shared behavior, public APIs, save behavior, or package wiring changed.
 
 ## Testing Matrix
 
 - Parser, syntax object, helper, font, and copy changes: start with `dotnet test tests/ZingPDF.Tests.Unit/ZingPDF.Tests.Unit.csproj`.
 - Trailer, xref, save, encrypted file, object stream, and fixture-driven behavior: include `dotnet test tests/ZingPDF.Tests.Integration/ZingPDF.Tests.Integration.csproj`.
 - End-to-end document operations or package-level confidence: include `dotnet test tests/ZingPDF.Tests.Smoke/ZingPDF.Tests.Smoke.csproj`.
+- Public signing or signature validation behavior: include smoke coverage because validation depends on saved PDF bytes, `/ByteRange`, `/Contents`, and CMS payloads.
 - Fixture checkout concerns: run `pwsh ./scripts/assert-binary-fixtures.ps1`.
 - Broad release confidence: run restore, Release build, and Release test against `ZingPDF.sln`.
 
@@ -26,6 +28,13 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 3. Avoid process-facing text, generic marketing adjectives, and audience-observer phrasing.
 4. Run `pwsh ./website/check-copy.ps1`.
 5. For visual changes, run `pwsh ./website/serve-local.ps1` and inspect the changed pages in a browser.
+
+## Documentation Updates
+
+1. For public API changes, update XML documentation, `website/docs.html`, `website/capabilities.html`, relevant guides, package READMEs, and `docs/project/SUPPORT.md`.
+2. For new guides, add the guide page, link it from `website/guides.html`, and cross-link related guides.
+3. For capability limits, document both the available behavior and the not-yet-supported PDF cases.
+4. Regenerate `website/api` with `pwsh ./website/generate-api-reference.ps1` before publishing API reference changes.
 
 ## API Reference
 

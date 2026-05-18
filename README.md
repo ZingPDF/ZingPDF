@@ -15,6 +15,7 @@ ZingPDF is a .NET 8 library for reading, editing, creating, templating, and savi
 - PDF templating from Liquid HTML
 - Editing
 - Signing
+- Signature validation
 - Document assembly
 - Text extraction
 - Form filling and flattening

@@ -85,6 +85,18 @@ The script restores the local DocFX tool, generates metadata from `ZingPDF.cspro
 
 Important: the generated DocFX API site should be previewed through a local web server such as `python -m http.server`. Opening `api/index.html` directly with `file://` will trigger browser CORS/module restrictions and break search and other frontend behavior.
 
+## Public API documentation checklist
+
+When a public API or supported capability changes:
+
+1. update the XML docs in source
+2. update `docs.html`
+3. update `capabilities.html`
+4. add or update task guides in this folder
+5. update package README content under `docs/packages`
+6. update `docs/project/SUPPORT.md`
+7. run `pwsh ./generate-api-reference.ps1` before publishing generated API reference changes
+
 ## How to deploy
 
 This site can be deployed to:

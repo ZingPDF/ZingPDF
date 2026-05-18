@@ -62,6 +62,7 @@
           <a href="#certificate">Certificate requirements</a>
           <a href="#options">Signature metadata</a>
           <a href="#limits">Current limits</a>
+          <a href="#validate-output">Validate output</a>
           <a href="#next-step">Next step</a>
         </nav>
 
@@ -152,18 +153,30 @@ await pdf.SaveAsync(File.Create("statement-signed.pdf"));</code></pre>
           <h2>Current limits</h2>
           <p>
             High-level signing supports existing signature fields and hidden validation-only fields on unencrypted PDFs.
-            It does not sign encrypted PDFs yet, and it does not create visible signature fields automatically.
+            For visible signing, create the signature field first. Encrypted PDFs are outside the current signing path.
           </p>
+        </section>
+
+        <section class="article-section" id="validate-output">
+          <h2>Validate signed output</h2>
+          <p>
+            After loading a signed PDF, call <code>Pdf.GetSignaturesAsync()</code> and
+            <code>ValidateIntegrityAsync()</code> to check the PDF byte ranges and detached CMS payload.
+          </p>
+          <pre><code class="language-csharp">using var signedPdf = Pdf.Load(File.OpenRead("signed.pdf"));
+
+var signatures = await signedPdf.GetSignaturesAsync();
+var result = await signatures[0].ValidateIntegrityAsync();</code></pre>
         </section>
 
         <section class="article-cta" id="next-step">
           <h2>Need to fill the form first?</h2>
           <p>
-            Fill the rest of the AcroForm fields before signing.
+            Fill the rest of the AcroForm fields before signing, or validate a signed file after saving.
           </p>
           <p class="article-actions">
             <a class="button button-primary" href="./fill-pdf-form-fields-csharp.html">Open form guide</a>
-            <a class="button button-secondary" href="./docs.html#forms">Open forms docs</a>
+            <a class="button button-secondary" href="./validate-signed-pdf-csharp.html">Open validation guide</a>
           </p>
         </section>
       </article>

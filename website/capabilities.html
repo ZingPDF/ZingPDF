@@ -234,6 +234,16 @@
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read signature presence, filter, subfilter, signer name, reason, and signing time.</td>
                   </tr>
+                  <tr>
+                    <td>Validate signature integrity</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Checks PDF ByteRange values, detached CMS payloads, message digests, and CMS signatures.</td>
+                  </tr>
+                  <tr>
+                    <td>Build signer certificate chains</td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Uses .NET X509Chain with extra certificates or custom trusted roots supplied through validation options.</td>
+                  </tr>
                     <tr>
                       <td>Sign existing or hidden signature fields</td>
                       <td><span class="status-pill status-live">Available</span></td>
@@ -369,7 +379,12 @@
                     <tr>
                       <td>Create visible signature fields and sign encrypted PDFs</td>
                       <td><span class="status-pill status-roadmap">Planned</span></td>
-                      <td>High-level signing does not yet create visible signature fields automatically or sign encrypted output.</td>
+                      <td>Visible signing currently uses an existing signature field. Encrypted signed output is planned.</td>
+                    </tr>
+                    <tr>
+                      <td>Trusted timestamps, LTV, and DocMDP validation</td>
+                      <td><span class="status-pill status-roadmap">Planned</span></td>
+                      <td>Signature validation reports these layers separately, but trusted timestamp tokens, DSS/VRI data, and DocMDP permissions are not validated yet.</td>
                     </tr>
                   <tr>
                     <td>Inline image and shading redaction</td>

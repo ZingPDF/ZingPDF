@@ -57,6 +57,8 @@ Notes:
 - fill and flatten forms
 - sign existing visible signature fields
 - add hidden validation-only signature fields
+- validate PDF signature byte ranges and detached CMS payloads
+- optionally build the signer certificate chain with extra certificates or custom trusted roots
 - compress and decompress stream content
 - save incremental updates
 - authenticate encrypted PDFs
@@ -76,7 +78,8 @@ These limits should be treated as part of the current product contract unless ex
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
 - text fields currently have the richest form write support
-- signing does not yet support encrypted PDFs or create visible signature fields automatically
+- signing encrypted PDFs and automatic visible signature field creation are outside the current high-level signing API
+- signature validation does not yet validate trusted timestamp tokens, DSS/VRI long-term validation data, or DocMDP certification permissions
 - push-button actions are not yet exposed through the high-level API
 - unusual viewer-specific form appearance behaviour may still require low-level object access
 

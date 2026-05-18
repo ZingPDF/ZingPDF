@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Developer Docs</title>
   <meta name="description"
-    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), templates, fonts, forms, metadata, encryption, redaction, save behavior, OCR, and API reference links.">
+    content="Developer documentation for ZingPDF, including quick start, fluent authoring with Pdf.New(), templates, fonts, forms, signing, signature validation, metadata, encryption, redaction, save behavior, OCR, and API reference links.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -752,30 +752,55 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
               </article>
               <article class="doc-card">
                 <h3>Signature fields</h3>
-                <p><code>SignatureFormField</code> supports both inspection and signing.</p>
+                <p><code>SignatureFormField</code> supports inspection, signing, and validation.</p>
                 <ul>
                   <li>Read signed state and signature metadata such as signer name, reason, filter, and signing time.</li>
                   <li>Use <code>SignAsync(...)</code> to sign an existing visible field.</li>
                   <li>Use <code>Pdf.SignInvisibleAsync(...)</code> when you only need cryptographic validation and want to add a hidden field automatically.</li>
+                  <li>Use <code>Pdf.GetSignaturesAsync()</code> or <code>ValidateSignatureAsync(...)</code> to validate signed byte ranges and detached CMS payloads.</li>
                   <li>Signing saves rewritten output so the signed byte ranges are stable and do not depend on incremental history.</li>
                 </ul>
               </article>
             </div>
+
+            <h3>Validate a signed PDF</h3>
+            <p>
+              <code>ValidateIntegrityAsync()</code> checks the PDF <code>/ByteRange</code>, extracts the detached CMS
+              payload from <code>/Contents</code>, and verifies that the signed bytes match the CMS signature.
+            </p>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("signed.pdf"));
+
+var signatures = await pdf.GetSignaturesAsync();
+var result = await signatures[0].ValidateIntegrityAsync();
+
+if (result.Status == PdfSignatureValidationStatus.Valid)
+{
+    Console.WriteLine("The signed byte ranges match the CMS signature.");
+}</code></pre>
+
+            <p>
+              Use <code>ValidateAsync(...)</code> with <code>PdfSignatureValidationOptions</code> to build a signer
+              certificate chain with extra certificates or custom trusted roots. The result separates integrity,
+              coverage, certificate, revocation, timestamp, and permission checks.
+            </p>
 
             <h3>Current gaps</h3>
             <ul>
                 <li>Push-button action details can be inspected, but action execution is not yet exposed through the
                   high-level API.</li>
               <li>High-level signing supports existing visible signature fields and hidden validation-only fields on
-                unencrypted PDFs. It does not sign encrypted PDFs yet, and it does not create visible signature fields
-                automatically.</li>
+                unencrypted PDFs. For visible signing, create the signature field before calling
+                <code>SignAsync(...)</code>.</li>
+              <li>Signature validation does not yet validate trusted timestamp tokens, DSS/VRI long-term validation
+                data, or DocMDP certification permissions.</li>
             </ul>
 
             <p>
               Related guides:
               <a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Fill PDF form fields</a> and
               <a class="inline-link" href="./flatten-pdf-form-csharp.html">Flatten a PDF form</a> and
-              <a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign a PDF form field</a>.
+              <a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign a PDF form field</a> and
+              <a class="inline-link" href="./validate-signed-pdf-csharp.html">Validate a signed PDF</a>.
             </p>
           </section>
 
@@ -1052,7 +1077,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
             <p>ZingPDF covers the main document-editing path, but some PDF features are still outside the current
               high-level API.</p>
             <ul>
-              <li>Signing does not yet support encrypted PDFs or create visible signature fields automatically.</li>
+              <li>Encrypted PDFs are outside the current signing path, and visible signing uses an existing signature field.</li>
               <li>OCR works best on image-based pages and supported image XObjects rather than arbitrary rendered page content.</li>
               <li>Push-button actions can be inspected but are not executed through the high-level API.</li>
               <li>Malformed file repair is limited to a few common recovery paths rather than full document reconstruction.</li>
