@@ -144,7 +144,7 @@ Prefer this:
 
 - "Fast page access and plain-text extraction when your code opens lots of existing PDFs."
 - "Supports RC4-128, AES-128, and AES-256 output."
-- "Push-button action execution is not exposed through the high-level API."
+- "Push-button action dictionaries are exposed as metadata for viewers and editing software."
 - "Remove file history"
 - "This removes earlier incremental revisions, helping with file size and document security."
 

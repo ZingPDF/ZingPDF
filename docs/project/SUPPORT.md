@@ -78,9 +78,9 @@ These limits should be treated as part of the current product contract unless ex
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
 - text fields currently have the richest form write support
-- signing encrypted PDFs and automatic visible signature field creation are outside the current high-level signing API
+- signing encrypted PDFs is outside the current high-level signing API; visible signing uses an existing or separately created signature field
 - signature validation does not yet validate trusted timestamp tokens, DSS/VRI long-term validation data, or DocMDP certification permissions
-- push-button actions are not yet exposed through the high-level API
+- push-button action dictionaries are exposed as metadata; form reset is not implemented yet
 - unusual viewer-specific form appearance behaviour may still require low-level object access
 
 ## Deployment expectations

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Trace PDF Performance in C#</title>
+  <meta name="description"
+    content="Enable ZingPDF performance tracing in C#, run a PDF workflow, and print timing summaries for diagnostics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api/">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to trace PDF performance in C#</h1>
+          <p class="article-dek">
+            Enable <code>PerformanceTrace</code>, run the PDF workflow, then read or write the timing summary.
+          </p>
+          <p>
+            The trace API is diagnostic instrumentation. It helps identify expensive parser, page-tree, extraction, or
+            application-defined scopes during development and performance investigations.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#custom-scope">Custom scopes</a>
+          <a href="#environment">Environment variable</a>
+          <a href="#rules">Operational notes</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Trace a document workflow</h2>
+          <p>
+            Reset the trace before the measured work, enable it, run the workflow, then disable tracing before printing
+            the summary.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Diagnostics;
+
+PerformanceTrace.Reset();
+PerformanceTrace.SetEnabled(true);
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+_ = await pdf.GetPageCountAsync();
+_ = await pdf.ExtractTextAsync();
+
+PerformanceTrace.SetEnabled(false);
+
+Console.WriteLine(PerformanceTrace.GetSummary());</code></pre>
+        </section>
+
+        <section class="article-section" id="custom-scope">
+          <h2>Add a custom scope</h2>
+          <p>
+            Use <code>Measure(...)</code> around application work that belongs next to built-in ZingPDF timings.
+          </p>
+
+          <pre><code class="language-csharp">using (PerformanceTrace.Measure("Import.InvoiceBatch"))
+{
+    using var pdf = Pdf.Load(File.OpenRead("invoice-batch.pdf"));
+    await pdf.GetPageCountAsync();
+    await pdf.ExtractTextAsync();
+}</code></pre>
+        </section>
+
+        <section class="article-section" id="environment">
+          <h2>Enable from the environment</h2>
+          <p>
+            Set <code>ZINGPDF_PERF_TRACE=1</code> before process startup to enable tracing without changing code.
+          </p>
+
+          <pre><code class="language-bash">set ZINGPDF_PERF_TRACE=1</code></pre>
+        </section>
+
+        <section class="article-section" id="rules">
+          <h2>Operational notes</h2>
+          <ul>
+            <li>The trace store is process-wide and static.</li>
+            <li>Call <code>Reset()</code> between measured runs so summaries do not mix separate workloads.</li>
+            <li><code>GetSummary(...)</code> returns a formatted table. <code>WriteSummary(...)</code> writes the same data to a <code>TextWriter</code>.</li>
+            <li>Tracing is for diagnostics, not API-level timing guarantees.</li>
+          </ul>
+        </section>
+
+        <section class="article-section" id="next-step">
+          <h2>Next step</h2>
+          <p>
+            For measured benchmark results, see the
+            <a class="inline-link" href="./performance.html">ZingPDF performance page</a>.
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./license.html">License Notice</a>
+      <a href="./eula.html">EULA</a>
+      <a href="./evaluation.html">Evaluation Terms</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./support-policy.html">Support Policy</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

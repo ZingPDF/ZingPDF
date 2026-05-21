@@ -60,6 +60,7 @@
             <a href="#save">Save Behavior</a>
             <a href="#ocr">OCR</a>
             <a href="#low-level">Low-Level Access</a>
+            <a href="#diagnostics">Diagnostics</a>
             <a href="#technical-faq">Technical FAQ</a>
             <a href="#evaluation-faq">Evaluation FAQ</a>
             <a href="./api/">API Reference</a>
@@ -375,6 +376,28 @@ await pdf.SaveAsync(output);</code></pre>
               <li>Validate your exact deployment platform if you depend on image handling, font metrics, or browser
                 automation.</li>
             </ul>
+
+            <h3>Direct HTML-to-PDF conversion</h3>
+            <p>
+              <code>ZingPDF.FromHTML</code> exposes <code>Converter.ToPdfAsync(...)</code> for direct conversion from an
+              HTML string or a URL.
+            </p>
+            <pre><code class="language-csharp">using ZingPDF.FromHTML;
+
+await using var pdfStream = await Converter.ToPdfAsync(
+    new Uri("https://example.com/report"),
+    new NavigationOptions
+    {
+        TimeoutExpiration = 60_000,
+        WaitUntilFlags = WaitUntil.Networkidle0
+    });
+
+await using var output = File.Create("report.pdf");
+await pdfStream.CopyToAsync(output);</code></pre>
+            <p>
+              Dedicated guide:
+              <a class="inline-link" href="./convert-html-to-pdf-csharp.html">How to convert HTML to PDF in C#</a>.
+            </p>
           </section>
 
           <section class="doc-section" id="templates">
@@ -658,6 +681,54 @@ await pdf.SaveAsync(output);</code></pre>
             <p><code>GetFormAsync()</code> returns a <code>Form</code> wrapper for terminal field enumeration, typed
               field lookup, and field-family-specific behavior.</p>
 
+            <h3>Create fields</h3>
+            <p>
+              <code>GetOrCreateFormAsync()</code> returns a form wrapper that can add new AcroForm fields to 1-based
+              pages. ZingPDF creates the field dictionary, widget annotation, page annotation reference, and default
+              appearance resources for supported field types.
+            </p>
+            <pre><code class="language-csharp">using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Syntax.CommonDataStructures;
+
+var form = await pdf.GetOrCreateFormAsync();
+
+await form.AddTextFieldAsync(
+    1,
+    "Applicant.Name",
+    Rectangle.FromCoordinates(new Coordinate(48, 720), new Coordinate(260, 748)),
+    options => options.DefaultValue = "Ada Lovelace");
+
+await form.AddCheckboxFieldAsync(
+    1,
+    "Applicant.AcceptedTerms",
+    Rectangle.FromCoordinates(new Coordinate(48, 680), new Coordinate(64, 696)),
+    options => options.Checked = true);
+
+await form.AddRadioButtonFieldAsync(
+    1,
+    "Applicant.ContactMethod",
+    [
+        new RadioButtonFieldOption("Email", Rectangle.FromCoordinates(new Coordinate(48, 640), new Coordinate(64, 656))),
+        new RadioButtonFieldOption("Phone", Rectangle.FromCoordinates(new Coordinate(48, 612), new Coordinate(64, 628)))
+    ],
+    options => options.SelectedValue = "Email");
+
+await form.AddComboBoxFieldAsync(
+    1,
+    "Applicant.State",
+    Rectangle.FromCoordinates(new Coordinate(48, 560), new Coordinate(220, 586)),
+    [
+        new ChoiceFieldOption("NSW", "New South Wales"),
+        new ChoiceFieldOption("VIC", "Victoria")
+    ]);
+
+await form.AddSignatureFieldAsync(
+    1,
+    "Approval.Signature",
+    Rectangle.FromCoordinates(new Coordinate(48, 400), new Coordinate(260, 450)));</code></pre>
+
             <h3>Field discovery</h3>
             <ul>
               <li><code>Form.GetFieldsAsync()</code> returns terminal fields as <code>IFormField</code> instances.</li>
@@ -747,7 +818,7 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
                 <ul>
                   <li>Inspect captions and primary action type.</li>
                   <li>Read URI actions, named actions, and additional-action triggers.</li>
-                  <li>Use this when you need to understand how an interactive form behaves before flattening or replacing that behavior elsewhere.</li>
+                  <li>Action dictionaries are exposed as metadata because click behavior belongs to PDF viewers and editing software.</li>
                 </ul>
               </article>
               <article class="doc-card">
@@ -762,6 +833,27 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
                 </ul>
               </article>
             </div>
+
+            <h3>Inspect push-button action metadata</h3>
+            <p>
+              Push buttons expose action dictionaries as metadata for viewer or editor integrations. ZingPDF does not
+              execute those actions.
+            </p>
+            <pre><code class="language-csharp">using ZingPDF.Elements.Forms.FieldTypes.Button;
+
+var form = await pdf.GetFormAsync();
+if (form is null)
+{
+    return;
+}
+
+foreach (var button in (await form.GetFieldsAsync()).OfType<PushButtonFormField>())
+{
+    Console.WriteLine(await button.GetCaptionAsync());
+    Console.WriteLine(await button.GetActionTypeAsync());
+    Console.WriteLine(await button.GetActionUriAsync());
+    Console.WriteLine(await button.GetNamedActionAsync());
+}</code></pre>
 
             <h3>Validate a signed PDF</h3>
             <p>
@@ -786,8 +878,7 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 
             <h3>Current gaps</h3>
             <ul>
-                <li>Push-button action details can be inspected, but action execution is not yet exposed through the
-                  high-level API.</li>
+                <li>A form reset API for restoring fields to their default values is planned.</li>
               <li>High-level signing supports existing visible signature fields and hidden validation-only fields on
                 unencrypted PDFs. For visible signing, create the signature field before calling
                 <code>SignAsync(...)</code>.</li>
@@ -797,8 +888,10 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 
             <p>
               Related guides:
+              <a class="inline-link" href="./create-pdf-form-fields-csharp.html">Create PDF form fields</a> and
               <a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Fill PDF form fields</a> and
               <a class="inline-link" href="./flatten-pdf-form-csharp.html">Flatten a PDF form</a> and
+              <a class="inline-link" href="./inspect-pdf-push-button-actions-csharp.html">Inspect push-button actions</a> and
               <a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign a PDF form field</a> and
               <a class="inline-link" href="./validate-signed-pdf-csharp.html">Validate a signed PDF</a>.
             </p>
@@ -998,9 +1091,58 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
             <h2>Low-level object access</h2>
             <p><code>IPdf.Objects</code> exposes the underlying PDF object collection and page tree for integrations
               that need direct syntax-level access.</p>
+            <pre><code class="language-csharp">using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+
+var catalog = await pdf.Objects.GetDocumentCatalogAsync();
+var trailer = await pdf.Objects.GetLatestTrailerDictionaryAsync();
+var pageCount = await pdf.Objects.PageTree.GetPageCountAsync();
+
+Console.WriteLine($"Root reference: {trailer.Root}");
+Console.WriteLine($"Pages: {pageCount}");
+
+await foreach (var indirectObject in pdf.Objects)
+{
+    Console.WriteLine($"{indirectObject.Id}: {indirectObject.Object.GetType().Name}");
+}</code></pre>
+            <ul>
+              <li>Use high-level wrappers for ordinary page, form, metadata, redaction, signing, and save workflows.</li>
+              <li>Use <code>AddAsync(...)</code>, <code>Update(...)</code>, and <code>Delete(...)</code> only when the
+                integration owns the PDF syntax details being changed.</li>
+              <li>Deleting an object marks it free for the next update. It does not scrub old file bytes from previous
+                revisions.</li>
+            </ul>
             <p>
-              For exact member signatures and the generated type reference, go straight to the
-              <a class="inline-link" href="./api/">API docs</a>.
+              Related guide:
+              <a class="inline-link" href="./inspect-pdf-object-graph-csharp.html">How to inspect the PDF object graph in C#</a>.
+              For exact member signatures, use the <a class="inline-link" href="./api/">API docs</a>.
+            </p>
+          </section>
+
+          <section class="doc-section" id="diagnostics">
+            <p class="eyebrow">Diagnostics</p>
+            <h2>Performance tracing</h2>
+            <p>
+              <code>PerformanceTrace</code> records process-wide timing entries for instrumented ZingPDF operations and
+              caller-defined scopes.
+            </p>
+            <pre><code class="language-csharp">using ZingPDF.Diagnostics;
+
+PerformanceTrace.Reset();
+PerformanceTrace.SetEnabled(true);
+
+using var pdf = Pdf.Load(File.OpenRead("input.pdf"));
+_ = await pdf.GetPageCountAsync();
+_ = await pdf.ExtractTextAsync();
+
+PerformanceTrace.SetEnabled(false);
+Console.WriteLine(PerformanceTrace.GetSummary());</code></pre>
+            <p>
+              Set <code>ZINGPDF_PERF_TRACE=1</code> before process startup to enable tracing without code changes.
+              Tracing is diagnostic instrumentation, not an API-level timing guarantee.
+            </p>
+            <p>
+              Related guide:
+              <a class="inline-link" href="./trace-pdf-performance-csharp.html">How to trace PDF performance in C#</a>.
             </p>
           </section>
 
@@ -1079,7 +1221,7 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
             <ul>
               <li>Encrypted PDFs are outside the current signing path, and visible signing uses an existing signature field.</li>
               <li>OCR works best on image-based pages and supported image XObjects rather than arbitrary rendered page content.</li>
-              <li>Push-button actions can be inspected but are not executed through the high-level API.</li>
+              <li>Push-button action dictionaries are exposed as metadata for viewers and editing software.</li>
               <li>Malformed file repair is limited to a few common recovery paths rather than full document reconstruction.</li>
             </ul>
           </section>

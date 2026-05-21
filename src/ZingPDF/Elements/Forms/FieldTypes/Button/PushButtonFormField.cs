@@ -11,8 +11,8 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 /// Represents a push-button field in an AcroForm.
 /// </summary>
 /// <remarks>
-/// Push-button actions are not yet executable through the high-level API, but caption and action inspection
-/// are available for discovery workflows.
+/// Push-button action dictionaries are exposed as metadata for viewers and editing software. Caption and
+/// action inspection are available through high-level methods.
 /// </remarks>
 public class PushButtonFormField : FormField<IPdfObject>
 {

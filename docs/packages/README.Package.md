@@ -77,21 +77,21 @@ await pdf.SaveAsync(File.Create("hello-standard.pdf"));
 Create and fill a PDF form:
 
 ```csharp
+using ZingPDF;
+using ZingPDF.Elements.Drawing;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Syntax.CommonDataStructures;
 
 using var pdf = Pdf.Create();
-var page = await pdf.GetPageAsync(1);
 var form = await pdf.GetOrCreateFormAsync();
 
-await form.AddTextFieldAsync(new TextFormFieldCreationOptions
-{
-    Name = "Customer.Name",
-    Page = page,
-    Bounds = Rectangle.FromCoordinates(
+await form.AddTextFieldAsync(
+    1,
+    "Customer.Name",
+    Rectangle.FromCoordinates(
         new Coordinate(48, 720),
-        new Coordinate(280, 752))
-});
+        new Coordinate(280, 752)),
+    options => options.DefaultValue = "Ada Lovelace");
 
 var nameField = await form.GetFieldAsync<TextFormField>("Customer.Name");
 await nameField.SetValueAsync("Ada Lovelace");
@@ -160,12 +160,16 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 
 - create new PDFs with `Pdf.New()` or `Pdf.Create()`
 - create PDFs from Liquid HTML templates with `ZingPDF.Templates.LiquidHtml`
+- convert HTML strings and URLs to PDF with `ZingPDF.FromHTML`
 - edit existing PDFs with `pdf.Pages(...)`
 - append, insert, delete, export, merge, or split pages
 - add text, images, vector drawing, and watermarks to pages
 - register standard PDF fonts and embedded TrueType fonts
-- create, fill, flatten, sign, and validate AcroForm signature fields
+- create, fill, flatten, sign, and validate AcroForm fields
+- inspect push-button captions and action metadata
 - read and update metadata
+- inspect the catalog, trailer, page tree, and indirect objects through `pdf.Objects`
+- trace named parser and document-workflow timings with `PerformanceTrace`
 - extract text from full documents or individual pages
 - redact exact text matches or explicit regions with rewritten-file output
 - compress output and tune image quality
@@ -180,6 +184,11 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 - performance: [zingpdf.dev/performance.html](https://zingpdf.dev/performance.html)
 - API reference: [zingpdf.dev/api/](https://zingpdf.dev/api/)
 - examples folder: [github.com/ZingPDF/ZingPDF/tree/main/examples](https://github.com/ZingPDF/ZingPDF/tree/main/examples)
+- HTML conversion guide: [zingpdf.dev/convert-html-to-pdf-csharp.html](https://zingpdf.dev/convert-html-to-pdf-csharp.html)
+- form creation guide: [zingpdf.dev/create-pdf-form-fields-csharp.html](https://zingpdf.dev/create-pdf-form-fields-csharp.html)
+- push-button metadata guide: [zingpdf.dev/inspect-pdf-push-button-actions-csharp.html](https://zingpdf.dev/inspect-pdf-push-button-actions-csharp.html)
+- object access guide: [zingpdf.dev/inspect-pdf-object-graph-csharp.html](https://zingpdf.dev/inspect-pdf-object-graph-csharp.html)
+- performance tracing guide: [zingpdf.dev/trace-pdf-performance-csharp.html](https://zingpdf.dev/trace-pdf-performance-csharp.html)
 
 ## Package split
 

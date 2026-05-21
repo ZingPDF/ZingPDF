@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Guides</title>
   <meta name="description"
-    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, Liquid HTML templates, blank PDFs, page editing, text, fonts, metadata, extraction, redaction, merging, watermarking, compression, rotation, signing, signature validation, encryption, and save behavior.">
+    content="Articles for specific .NET PDF tasks with ZingPDF, including fluent PDF authoring, HTML conversion, Liquid HTML templates, blank PDFs, page editing, forms, object access, performance tracing, text, fonts, metadata, extraction, redaction, signing, validation, encryption, and save behavior.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -54,7 +54,7 @@
             <input id="guides-search" type="search" placeholder="Search by task, topic, or keyword" autocomplete="off"
               data-guides-search>
           </label>
-          <p class="guides-count" data-guides-count>28 guides</p>
+          <p class="guides-count" data-guides-count>33 guides</p>
         </div>
         <div class="guide-list">
           <article class="guide-card" data-guide-card data-guide-search-text="redact pdf content exact text regex region rewritten save overlay document security">
@@ -97,6 +97,20 @@
             <p>
               Render a Liquid template with a .NET model, inspect the HTML if needed, and convert it to PDF through
               the template package.
+            </p>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="html to pdf fromhtml chromium converter html string url navigation options wait until">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h14v12H5z"></path><path d="M8 20h8"></path><path d="M12 16v4"></path><path d="M9 8h6"></path><path d="M9 12h4"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Document creation</p>
+            <h3><a href="./convert-html-to-pdf-csharp.html">How to convert HTML to PDF in C#</a></h3>
+            <p>
+              Convert an HTML string or URL to a PDF stream through <code>ZingPDF.FromHTML</code> and browser rendering.
             </p>
           </article>
 
@@ -273,6 +287,34 @@
             </p>
           </article>
 
+          <article class="guide-card" data-guide-card data-guide-search-text="create acroform fields text checkbox radio choice combobox listbox signature add field bounds">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4h12v16H6z"></path><path d="M9 8h6"></path><path d="M9 12h3"></path><path d="M14 15l2 2 4-5"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Forms and data capture</p>
+            <h3><a href="./create-pdf-form-fields-csharp.html">How to create PDF form fields in C#</a></h3>
+            <p>
+              Add text fields, checkboxes, radio groups, choice fields, and signature fields to an AcroForm.
+            </p>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="push button action metadata caption uri named additional action triggers viewer editor acroform">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="7" width="14" height="10" rx="2"></rect><path d="M9 12h6"></path><path d="M12 9v6"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Forms and data capture</p>
+            <h3><a href="./inspect-pdf-push-button-actions-csharp.html">How to inspect PDF push-button actions in C#</a></h3>
+            <p>
+              Read push-button captions, primary action metadata, URI or named targets, and additional-action triggers.
+            </p>
+          </article>
+
           <article class="guide-card" data-guide-card data-guide-search-text="flatten form acroform non interactive completed output save">
             <span class="guide-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -416,6 +458,20 @@
             </p>
           </article>
 
+          <article class="guide-card" data-guide-card data-guide-search-text="low level pdf object access object collection catalog trailer page tree indirect objects syntax">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 5h6v6H5z"></path><path d="M13 5h6v6h-6z"></path><path d="M5 13h6v6H5z"></path><path d="M13 13h6v6h-6z"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Document structure</p>
+            <h3><a href="./inspect-pdf-object-graph-csharp.html">How to inspect the PDF object graph in C#</a></h3>
+            <p>
+              Use <code>pdf.Objects</code> to inspect the catalog, trailer, page tree, and indirect objects.
+            </p>
+          </article>
+
           <article class="guide-card" data-guide-card data-guide-search-text="rotate pages rotation degrees90 degrees180 degrees270 set rotation page document">
             <span class="guide-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -441,6 +497,20 @@
             <h3><a href="./compress-pdf-csharp.html">How to compress a PDF in C#</a></h3>
             <p>
               Recompress eligible streams, tune JPEG quality, and save a smaller output file from the high-level API.
+            </p>
+          </article>
+
+          <article class="guide-card" data-guide-card data-guide-search-text="performance trace timing diagnostics parser extraction page tree summary">
+            <span class="guide-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 19V5"></path><path d="M5 19h14"></path><path d="M8 16l3-5 3 2 4-7"></path>
+              </svg>
+            </span>
+
+            <p class="guide-kicker">Diagnostics</p>
+            <h3><a href="./trace-pdf-performance-csharp.html">How to trace PDF performance in C#</a></h3>
+            <p>
+              Enable <code>PerformanceTrace</code>, run a document workflow, and print timing summaries for diagnostics.
             </p>
           </article>
 

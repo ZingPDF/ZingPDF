@@ -36,7 +36,14 @@ Render a URL to PDF:
 ```csharp
 using ZingPDF.FromHTML;
 
-await using var pdfStream = await Converter.ToPdfAsync(new Uri("https://example.com/report"));
+await using var pdfStream = await Converter.ToPdfAsync(
+    new Uri("https://example.com/report"),
+    new NavigationOptions
+    {
+        TimeoutExpiration = 60_000,
+        WaitUntilFlags = WaitUntil.Networkidle0
+    });
+
 await using var output = File.Create("report.pdf");
 await pdfStream.CopyToAsync(output);
 ```
@@ -44,7 +51,7 @@ await pdfStream.CopyToAsync(output);
 ## Main workflows
 
 - render HTML strings to PDF
-- render URLs to PDF
+- render URLs to PDF with navigation timeout and wait-state options
 - convert rendered template HTML to PDF through `ZingPDF.Templates.LiquidHtml`
 - use Chromium-based output alongside the core `ZingPDF` package
 
@@ -68,5 +75,6 @@ See `SUPPORT.md` in the package root or [docs/project/SUPPORT.md](https://github
 
 - core docs: [zingpdf.dev/docs.html](https://zingpdf.dev/docs.html)
 - guides: [zingpdf.dev/guides.html](https://zingpdf.dev/guides.html)
+- HTML conversion guide: [zingpdf.dev/convert-html-to-pdf-csharp.html](https://zingpdf.dev/convert-html-to-pdf-csharp.html)
 - capability matrix: [zingpdf.dev/capabilities.html](https://zingpdf.dev/capabilities.html)
 - repository: [github.com/ZingPDF/ZingPDF](https://github.com/ZingPDF/ZingPDF)

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Create PDF Form Fields in C#</title>
+  <meta name="description"
+    content="Create AcroForm text fields, checkboxes, radio groups, choice fields, and signature fields in C# with ZingPDF.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api/">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to create PDF form fields in C#</h1>
+          <p class="article-dek">
+            Call <code>GetOrCreateFormAsync()</code>, add fields to 1-based pages, and pass PDF rectangles for widget
+            bounds.
+          </p>
+          <p>
+            ZingPDF creates the AcroForm field dictionary, widget annotation, page annotation reference, and default
+            appearance resources for the supported field types.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#minimal-example">Minimal example</a>
+          <a href="#field-types">Supported field types</a>
+          <a href="#bounds">Bounds and page numbers</a>
+          <a href="#signatures">Signature fields</a>
+          <a href="#reset">Reset behavior</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="minimal-example">
+          <h2>Create several fields</h2>
+          <p>
+            This example adds a text field, checkbox, radio group, combo box, list box, and signature field to page 1.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Drawing;
+using ZingPDF.Elements.Forms.FieldTypes.Button;
+using ZingPDF.Elements.Forms.FieldTypes.Choice;
+using ZingPDF.Syntax.CommonDataStructures;
+
+using var pdf = Pdf.Create();
+var form = await pdf.GetOrCreateFormAsync();
+
+await form.AddTextFieldAsync(
+    1,
+    "Applicant.Name",
+    Rectangle.FromCoordinates(new Coordinate(48, 720), new Coordinate(260, 748)),
+    options =>
+    {
+        options.Description = "Applicant name";
+        options.DefaultValue = "Ada Lovelace";
+    });
+
+await form.AddCheckboxFieldAsync(
+    1,
+    "Applicant.AcceptedTerms",
+    Rectangle.FromCoordinates(new Coordinate(48, 680), new Coordinate(64, 696)),
+    options =>
+    {
+        options.Description = "Accepted terms";
+        options.ExportValue = "Yes";
+        options.Checked = true;
+    });
+
+await form.AddRadioButtonFieldAsync(
+    1,
+    "Applicant.ContactMethod",
+    [
+        new RadioButtonFieldOption("Email", Rectangle.FromCoordinates(new Coordinate(48, 640), new Coordinate(64, 656))),
+        new RadioButtonFieldOption("Phone", Rectangle.FromCoordinates(new Coordinate(48, 612), new Coordinate(64, 628)))
+    ],
+    options => options.SelectedValue = "Email");
+
+await form.AddComboBoxFieldAsync(
+    1,
+    "Applicant.State",
+    Rectangle.FromCoordinates(new Coordinate(48, 560), new Coordinate(220, 586)),
+    [
+        new ChoiceFieldOption("NSW", "New South Wales"),
+        new ChoiceFieldOption("VIC", "Victoria"),
+        new ChoiceFieldOption("QLD", "Queensland")
+    ],
+    options => options.DefaultValue = "NSW");
+
+await form.AddListBoxFieldAsync(
+    1,
+    "Applicant.Products",
+    Rectangle.FromCoordinates(new Coordinate(48, 480), new Coordinate(220, 540)),
+    [
+        new ChoiceFieldOption("Core"),
+        new ChoiceFieldOption("OCR"),
+        new ChoiceFieldOption("HTML")
+    ]);
+
+await form.AddSignatureFieldAsync(
+    1,
+    "Approval.Signature",
+    Rectangle.FromCoordinates(new Coordinate(48, 400), new Coordinate(260, 450)));
+
+await pdf.SaveAsync(File.Create("created-form.pdf"));</code></pre>
+        </section>
+
+        <section class="article-section" id="field-types">
+          <h2>Supported field types</h2>
+          <ul>
+            <li><code>AddTextFieldAsync(...)</code> creates a text field and can set a default value.</li>
+            <li><code>AddCheckboxFieldAsync(...)</code> creates a single checkbox with an export value.</li>
+            <li><code>AddRadioButtonFieldAsync(...)</code> creates one field with multiple widget options.</li>
+            <li><code>AddComboBoxFieldAsync(...)</code> and <code>AddListBoxFieldAsync(...)</code> create choice fields.</li>
+            <li><code>AddSignatureFieldAsync(...)</code> creates a visible signature widget that can later be signed.</li>
+          </ul>
+        </section>
+
+        <section class="article-section" id="bounds">
+          <h2>Bounds and page numbers</h2>
+          <p>
+            Public page numbers are 1-based. Field bounds are PDF rectangles on the target page. Keep field names stable
+            and unique because later filling code often addresses fields by fully qualified name.
+          </p>
+        </section>
+
+        <section class="article-section" id="signatures">
+          <h2>Signature fields</h2>
+          <p>
+            Creating a signature field and signing it are separate operations. Create the visible field first, save or
+            keep working in memory, then call <code>SignatureFormField.SignAsync(...)</code> when certificate material
+            is available.
+          </p>
+        </section>
+
+        <section class="article-section" id="reset">
+          <h2>Reset behavior</h2>
+          <p>
+            Field creation stores default values where the field type supports them. A future form reset API will
+            restore fields to those defaults.
+          </p>
+        </section>
+
+        <section class="article-section" id="next-step">
+          <h2>Next step</h2>
+          <p>
+            After creating fields, see
+            <a class="inline-link" href="./fill-pdf-form-fields-csharp.html">How to fill PDF form fields in C#</a>
+            and
+            <a class="inline-link" href="./sign-pdf-form-field-csharp.html">How to sign a PDF form field in C#</a>.
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./license.html">License Notice</a>
+      <a href="./eula.html">EULA</a>
+      <a href="./evaluation.html">Evaluation Terms</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./support-policy.html">Support Policy</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>
