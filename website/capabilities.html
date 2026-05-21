@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF Capabilities</title>
   <meta name="description"
-    content="Support matrix for ZingPDF covering document editing, fluent authoring and page editing, templates, text extraction, OCR, redaction, forms, signing, encryption, save behavior, packages, and planned features.">
+    content="Support matrix for ZingPDF covering document editing, fluent authoring and page editing, HTML conversion, templates, text extraction, OCR, redaction, forms, signing, signature validation, encryption, save behavior, packages, and planned features.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -41,7 +41,7 @@
           <p class="eyebrow">Capability Matrix</p>
           <h1>ZingPDF capabilities</h1>
           <p class="lead">
-            Support matrix for the current API surface, package split, and planned features.
+            Support matrix for the current API surface, companion packages, and product boundaries.
           </p>
         </div>
       </section>
@@ -65,42 +65,47 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Load existing PDFs from seekable streams</td>
+                    <td><a class="inline-link" href="./docs.html#quick-start">Load existing PDFs from seekable streams</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Load existing documents from seekable streams.</td>
                   </tr>
                   <tr>
-                    <td>Create blank PDFs</td>
+                    <td><a class="inline-link" href="./create-blank-pdf-csharp.html">Create blank PDFs</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Includes page creation APIs.</td>
                   </tr>
                   <tr>
-                    <td>Get page counts and retrieve pages</td>
+                    <td><a class="inline-link" href="./docs.html#quick-start">Get page counts and retrieve pages</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Page count and page access APIs.</td>
                   </tr>
                   <tr>
-                    <td>Append, insert, delete, and merge pages</td>
+                    <td><a class="inline-link" href="./insert-append-delete-pdf-pages-csharp.html">Append, insert, and delete pages</a>; <a class="inline-link" href="./merge-pdfs-csharp.html">merge pages</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Append, insert, delete, and merge operations.</td>
                   </tr>
                   <tr>
-                    <td>Export selected pages and split documents</td>
+                    <td><a class="inline-link" href="./export-selected-pdf-pages-csharp.html">Export selected pages</a>; <a class="inline-link" href="./split-pdf-pages-csharp.html">split documents</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Create a new PDF from selected page numbers or split a document into multiple PDFs.</td>
                   </tr>
                   <tr>
-                    <td>Rotate pages</td>
+                    <td><a class="inline-link" href="./rotate-pdf-pages-csharp.html">Rotate pages</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Page-level and document-wide rotation.</td>
                   </tr>
                   <tr>
-                    <td>Read and update document metadata</td>
+                    <td><a class="inline-link" href="./update-pdf-metadata-csharp.html">Read and update document metadata</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Title, author, subject, keywords, creator, and dates.</td>
                   </tr>
                   <tr>
-                    <td>Recover from some malformed file-structure defects</td>
+                    <td><a class="inline-link" href="./inspect-pdf-object-graph-csharp.html">Low-level PDF object access</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>IPdf.Objects</code> exposes the object collection and page tree for integrations that need syntax-level access.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./inspect-pdf-object-graph-csharp.html">Recover from some malformed file-structure defects</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Includes some broken <code>startxref</code> recovery and common xref-stream repair paths. Not a full repair engine.</td>
                   </tr>
@@ -125,62 +130,67 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Fluent authoring for new PDFs</td>
+                    <td><a class="inline-link" href="./fluent-pdf-authoring-csharp.html">Fluent authoring for new PDFs</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>Pdf.New()</code> covers pages, text, shapes, paths, images, watermarks, boxed layout, wrapping, and fonts.</td>
                   </tr>
                   <tr>
-                    <td>Liquid HTML templates</td>
+                    <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">Liquid HTML templates</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>ZingPDF.Templates.LiquidHtml</code> renders Liquid variables, loops, conditionals, and includes with Fluid, then converts the rendered HTML through <code>ZingPDF.FromHTML</code>.</td>
                   </tr>
                   <tr>
-                    <td>Fluent page editing for existing PDFs</td>
+                    <td><a class="inline-link" href="./convert-html-to-pdf-csharp.html">HTML-to-PDF conversion</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>ZingPDF.FromHTML</code> converts rendered HTML through browser automation.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./fluent-pdf-authoring-csharp.html">Fluent page editing for existing PDFs</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>pdf.Pages(...)</code> applies page-level fluent operations to existing documents.</td>
                   </tr>
                   <tr>
-                    <td>Add text and image content</td>
+                    <td><a class="inline-link" href="./add-text-to-pdf-page-csharp.html">Add text</a> and image content</td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Text and image placement through the page API.</td>
                   </tr>
                   <tr>
-                    <td>Draw vector paths</td>
+                    <td><a class="inline-link" href="./fluent-pdf-authoring-csharp.html">Draw vector paths</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Path drawing with stroke and fill options through the page API.</td>
                   </tr>
                   <tr>
-                    <td>Text watermarks</td>
+                    <td><a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Text watermarks</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Simple all-pages watermarking.</td>
                   </tr>
                   <tr>
-                    <td>Extract text</td>
+                    <td><a class="inline-link" href="./extract-text-from-pdf-csharp.html">Extract text</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Text extraction API.</td>
                   </tr>
                   <tr>
-                    <td>OCR for scanned or image-based pages</td>
+                    <td><a class="inline-link" href="./extract-text-from-scanned-pdf-csharp.html">OCR for scanned or image-based pages</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>ZingPDF.OCR</code> adds OCR support for scanned and image-based pages, with configurable embedded-text preference.</td>
                   </tr>
                   <tr>
-                    <td>Register standard PDF fonts</td>
+                    <td><a class="inline-link" href="./use-standard-pdf-fonts-csharp.html">Register standard PDF fonts</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Document-level registration API for the standard PDF text fonts.</td>
                   </tr>
                   <tr>
-                    <td>Register embedded TrueType fonts</td>
+                    <td><a class="inline-link" href="./embed-truetype-font-pdf-csharp.html">Register embedded TrueType fonts</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Document-level registration API for local TrueType font files and streams.</td>
                   </tr>
                   <tr>
-                    <td>Google Fonts package</td>
+                    <td><a class="inline-link" href="./use-google-fonts-in-pdf-csharp.html">Google Fonts package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Package for registering Google Fonts through the Google Fonts Developer API.</td>
                   </tr>
                   <tr>
-                    <td>PDF-native flow templates</td>
+                    <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">PDF-native flow templates</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>The current template package is Liquid HTML backed by browser conversion, not a PDF-native flow layout engine.</td>
                   </tr>
@@ -205,63 +215,73 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>AcroForm field enumeration</td>
+                    <td><a class="inline-link" href="./fill-pdf-form-fields-csharp.html">AcroForm field enumeration</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Typed wrappers for terminal fields.</td>
                   </tr>
                   <tr>
-                    <td>Inspect form field bounds</td>
+                    <td><a class="inline-link" href="./create-pdf-form-fields-csharp.html">Create AcroForms and fields</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td>Create forms with text, checkbox, radio, choice, and signature fields.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Inspect form field bounds</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read full field rectangles for placement and layout.</td>
                   </tr>
                   <tr>
-                    <td>Text field read/write</td>
+                    <td><a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Text field read/write</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read, set, and clear text field values.</td>
                   </tr>
                   <tr>
-                    <td>Choice, checkbox, and radio selection</td>
+                    <td><a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Choice, checkbox, and radio selection</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Selection APIs exposed through option wrappers.</td>
                   </tr>
                   <tr>
-                    <td>Signature field discovery</td>
+                    <td><a class="inline-link" href="./sign-pdf-form-field-csharp.html">Signature field discovery</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Signature fields can be identified and inspected.</td>
                   </tr>
                   <tr>
-                    <td>Inspect signature metadata</td>
+                    <td><a class="inline-link" href="./validate-signed-pdf-csharp.html">Inspect signature metadata</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read signature presence, filter, subfilter, signer name, reason, and signing time.</td>
                   </tr>
                   <tr>
-                    <td>Validate signature integrity</td>
+                    <td><a class="inline-link" href="./validate-signed-pdf-csharp.html">Validate signature integrity</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Checks PDF ByteRange values, detached CMS payloads, message digests, and CMS signatures.</td>
                   </tr>
                   <tr>
-                    <td>Build signer certificate chains</td>
+                    <td><a class="inline-link" href="./validate-signed-pdf-csharp.html">Build signer certificate chains</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Uses .NET X509Chain with extra certificates or custom trusted roots supplied through validation options.</td>
                   </tr>
                     <tr>
-                      <td>Sign existing or hidden signature fields</td>
+                      <td><a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign existing or hidden signature fields</a></td>
                       <td><span class="status-pill status-live">Available</span></td>
                       <td>Signs existing signature fields with a visible appearance that can include a signature image, or adds a hidden field for validation-only signing on unencrypted PDFs.</td>
                     </tr>
                   <tr>
-                    <td>Visible and invisible signing workflows</td>
+                    <td><a class="inline-link" href="./sign-pdf-form-field-csharp.html">Visible and invisible signing workflows</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Supports visible field signing with a basic appearance, optional signature image, and hidden-field signing for cryptographic validation-only workflows.</td>
                   </tr>
                   <tr>
-                    <td>Push-button caption and action inspection</td>
+                    <td><a class="inline-link" href="./inspect-pdf-push-button-actions-csharp.html">Push-button caption and action inspection</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Read button captions, inspect primary action types, inspect URI or named actions, and list
                       additional-action triggers.</td>
                   </tr>
                   <tr>
-                    <td>Flatten filled AcroForms</td>
+                    <td><a class="inline-link" href="./fill-pdf-form-fields-csharp.html">Form reset</a></td>
+                    <td><span class="status-pill status-roadmap">Planned</span></td>
+                    <td>Planned API for restoring AcroForm fields to their default values.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./flatten-pdf-form-csharp.html">Flatten filled AcroForms</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Place widget appearances onto the page and remove the interactive form structure.</td>
                   </tr>
@@ -286,43 +306,48 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Compress and decompress stream content</td>
+                    <td><a class="inline-link" href="./compress-pdf-csharp.html">Compress and decompress stream content</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Compression and decompression APIs for supported streams.</td>
                   </tr>
                   <tr>
-                    <td>Authenticate encrypted PDFs</td>
+                    <td><a class="inline-link" href="./trace-pdf-performance-csharp.html">Performance tracing</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>PerformanceTrace</code> records named timing scopes for parser and document workflow diagnostics.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./remove-password-from-pdf-csharp.html">Authenticate encrypted PDFs</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Password authentication for encrypted files.</td>
                   </tr>
                   <tr>
-                    <td>Apply password protection</td>
+                    <td><a class="inline-link" href="./encrypt-pdf-with-aes-csharp.html">Apply password protection</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Supports Standard security handler RC4-128, AES-128, and AES-256 output, including user permission flags.</td>
                   </tr>
                   <tr>
-                    <td>Restrict print, copy, edit, and form permissions</td>
+                    <td><a class="inline-link" href="./restrict-pdf-permissions-csharp.html">Restrict print, copy, edit, and form permissions</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>User permission flags are exposed through the high-level encryption API.</td>
                   </tr>
                   <tr>
-                    <td>Decrypt to a plain latest revision</td>
+                    <td><a class="inline-link" href="./remove-password-from-pdf-csharp.html">Decrypt to a plain latest revision</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Removes encryption from the latest saved revision.</td>
                   </tr>
                   <tr>
-                    <td>Incremental save</td>
+                    <td><a class="inline-link" href="./rewrite-pdf-without-incremental-history-csharp.html">Incremental save</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Writes a new revision and preserves prior document history.</td>
                   </tr>
                   <tr>
-                    <td>Document history removal</td>
+                    <td><a class="inline-link" href="./rewrite-pdf-without-incremental-history-csharp.html">Document history removal</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Rewrites the document so only the latest live objects are saved, removing prior incremental
                       revision history.</td>
                   </tr>
                   <tr>
-                    <td>Structural text redaction with rewritten-file save behavior</td>
+                    <td><a class="inline-link" href="./redact-pdf-csharp.html">Structural text redaction with rewritten-file save behavior</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Marks exact extracted-text matches or explicit page regions, removes matched text, redacts intersecting vector paths and XObjects, draws overlays, and rewrites the document so earlier file history is not preserved.</td>
                   </tr>
@@ -347,57 +372,52 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Cross-platform core library support</td>
+                    <td><a class="inline-link" href="./docs.html#packages">Cross-platform core library support</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Windows, Linux, and macOS, subject to runtime dependencies.</td>
                   </tr>
                   <tr>
-                    <td>HTML-to-PDF package</td>
+                    <td><a class="inline-link" href="./convert-html-to-pdf-csharp.html">HTML-to-PDF package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>HTML-to-PDF package with browser automation requirements.</td>
                   </tr>
                   <tr>
-                    <td>Liquid HTML template package</td>
+                    <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">Liquid HTML template package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td><code>ZingPDF.Templates.LiquidHtml</code> renders Liquid templates with Fluid and converts the resulting HTML through <code>ZingPDF.FromHTML</code>.</td>
                   </tr>
                   <tr>
-                    <td>OCR package</td>
+                    <td><a class="inline-link" href="./extract-text-from-scanned-pdf-csharp.html">OCR package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>OCR companion package for scanned or image-based PDFs using a pluggable engine model.</td>
                   </tr>
                   <tr>
-                    <td>Full malformed-PDF repair and xref rebuild</td>
+                    <td><a class="inline-link" href="./inspect-pdf-object-graph-csharp.html">Full malformed-PDF repair and xref rebuild</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>Current recovery covers a few common defects. Full object-graph reconstruction is not implemented yet.</td>
                   </tr>
-                  <tr>
-                    <td>Execute push-button actions</td>
-                    <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>Action execution is not exposed through the high-level API yet.</td>
-                  </tr>
                     <tr>
-                      <td>Create visible signature fields and sign encrypted PDFs</td>
+                      <td><a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign encrypted PDFs</a></td>
                       <td><span class="status-pill status-roadmap">Planned</span></td>
-                      <td>Visible signing currently uses an existing signature field. Encrypted signed output is planned.</td>
+                      <td>Visible signature fields can be created separately. Encrypted signed output is planned.</td>
                     </tr>
                     <tr>
-                      <td>Trusted timestamps, LTV, and DocMDP validation</td>
+                      <td><a class="inline-link" href="./validate-signed-pdf-csharp.html">Trusted timestamps, LTV, and DocMDP validation</a></td>
                       <td><span class="status-pill status-roadmap">Planned</span></td>
                       <td>Signature validation reports these layers separately, but trusted timestamp tokens, DSS/VRI data, and DocMDP permissions are not validated yet.</td>
                     </tr>
                   <tr>
-                    <td>Inline image and shading redaction</td>
+                    <td><a class="inline-link" href="./redact-pdf-csharp.html">Inline image and shading redaction</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>The current redaction API handles supported vector content, image XObjects, and form XObjects. Inline images and shading content are still rejected.</td>
                   </tr>
                   <tr>
-                    <td>OCR-driven redaction for scanned pages</td>
+                    <td><a class="inline-link" href="./redact-pdf-csharp.html">OCR-driven redaction for scanned pages</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>OCR result bounds for scanned or image-based pages are not exposed through the redaction API yet.</td>
                   </tr>
                   <tr>
-                    <td>High-level annotation APIs</td>
+                    <td><a class="inline-link" href="./docs.html#low-level">High-level annotation APIs</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>Review annotations and comment workflows are not exposed as a friendly high-level surface yet.</td>
                   </tr>

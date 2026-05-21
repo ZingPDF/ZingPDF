@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Convert HTML to PDF in C#</title>
+  <meta name="description"
+    content="Convert an HTML string or URL to PDF in C# with ZingPDF.FromHTML, including navigation timeout and wait options.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+
+<body>
+  <div class="docs-shell">
+    <header class="topbar">
+      <a class="brand" href="./index.html">
+        <span class="brand-mark">
+          <img src="./logo.svg" alt="ZingPDF logo">
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="./docs.html">Docs</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <a href="./guides.html">Guides</a>
+        <a href="./capabilities.html">Capabilities</a>
+        <a href="./performance.html">Performance</a>
+        <a href="./api/">API</a>
+        <a href="./commercial-terms.html">Terms</a>
+      </nav>
+    </header>
+
+    <main class="article-shell">
+      <article class="article-page">
+        <header class="article-header">
+          <p class="eyebrow">Guide</p>
+          <h1>How to convert HTML to PDF in C#</h1>
+          <p class="article-dek">
+            Add <code>ZingPDF.FromHTML</code>, pass either an HTML string or a URL to <code>Converter.ToPdfAsync(...)</code>,
+            then copy the returned stream to the destination you control.
+          </p>
+          <p>
+            The package renders with browser automation, so deployment planning includes the Chromium runtime and fonts
+            required by the HTML.
+          </p>
+        </header>
+
+        <nav class="article-toc" aria-label="On this page">
+          <strong>On this page</strong>
+          <a href="#install">Install</a>
+          <a href="#html-string">Convert an HTML string</a>
+          <a href="#url">Convert a URL</a>
+          <a href="#navigation">Navigation options</a>
+          <a href="#deployment">Deployment notes</a>
+          <a href="#next-step">Next step</a>
+        </nav>
+
+        <section class="article-section" id="install">
+          <h2>Install the HTML package</h2>
+          <pre><code class="language-bash">dotnet add package ZingPDF.FromHTML</code></pre>
+        </section>
+
+        <section class="article-section" id="html-string">
+          <h2>Convert an HTML string</h2>
+          <p>
+            Use the string overload when your application has already rendered the markup.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF.FromHTML;
+
+await using var pdfStream = await Converter.ToPdfAsync("""
+<!doctype html>
+<html>
+<body>
+  <h1>Invoice INV-1001</h1>
+  <p>Rendered through Chromium.</p>
+</body>
+</html>
+""");
+
+await using var output = File.Create("invoice.pdf");
+await pdfStream.CopyToAsync(output);</code></pre>
+        </section>
+
+        <section class="article-section" id="url">
+          <h2>Convert a URL</h2>
+          <p>
+            Use the URL overload when the HTML is served by an application route, static site, or report endpoint.
+          </p>
+
+          <pre><code class="language-csharp">using ZingPDF.FromHTML;
+
+await using var pdfStream = await Converter.ToPdfAsync(
+    new Uri("https://example.com/report"),
+    new NavigationOptions
+    {
+        TimeoutExpiration = 60_000,
+        WaitUntilFlags = WaitUntil.Networkidle0
+    });
+
+await using var output = File.Create("report.pdf");
+await pdfStream.CopyToAsync(output);</code></pre>
+        </section>
+
+        <section class="article-section" id="navigation">
+          <h2>Navigation options</h2>
+          <p>
+            <code>NavigationOptions</code> controls URL navigation. The default timeout is 30 seconds. The wait flags
+            map to browser navigation states such as <code>Load</code>, <code>DOMContentLoaded</code>,
+            <code>Networkidle0</code>, and <code>Networkidle2</code>.
+          </p>
+          <pre><code class="language-csharp">var options = NavigationOptions.WaitUntil(WaitUntil.DOMContentLoaded);
+options.TimeoutExpiration = 15_000;</code></pre>
+        </section>
+
+        <section class="article-section" id="deployment">
+          <h2>Deployment notes</h2>
+          <ul>
+            <li>The HTML package is separate from the core <code>ZingPDF</code> package because browser rendering has additional runtime requirements.</li>
+            <li>The string overload sets the supplied HTML as page content. The URL overload navigates to the address and waits for browser font readiness before returning the PDF stream.</li>
+            <li>The returned stream is positioned for copying and belongs to the caller.</li>
+            <li>Use <code>ZingPDF.Templates.LiquidHtml</code> for HTML rendered from Liquid variables, loops, and conditionals before conversion.</li>
+          </ul>
+        </section>
+
+        <section class="article-section" id="next-step">
+          <h2>Next step</h2>
+          <p>
+            For model-driven HTML, see
+            <a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">How to create a PDF from a Liquid HTML template in C#</a>.
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <a href="./license.html">License Notice</a>
+      <a href="./eula.html">EULA</a>
+      <a href="./evaluation.html">Evaluation Terms</a>
+      <a href="./commercial-terms.html">Commercial Terms</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+      <a href="./privacy.html">Privacy Policy</a>
+      <a href="./support-policy.html">Support Policy</a>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

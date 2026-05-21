@@ -206,7 +206,7 @@ await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
             Two areas still sit outside the current high-level API.
           </p>
           <ul>
-            <li>Push-button action details can be inspected, but action execution is not exposed through the high-level API.</li>
+            <li>Push-button action dictionaries can be inspected as metadata. Resetting fields to default values is not implemented yet.</li>
             <li>Existing signature fields can be signed with a visible appearance, including an optional signature image. Signed fields can be validated for ByteRange and detached CMS integrity. Encrypted PDFs are outside the current signing path, and visible signature fields must already exist before calling <code>SignAsync(...)</code>.</li>
           </ul>
         </section>
