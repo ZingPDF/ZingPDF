@@ -168,7 +168,7 @@ public class Pdf : IPdf, IDisposable
 
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
-            : new Page(pageIndirectObject, this);
+            : new Page(pageIndirectObject, this, pageNumber);
     }
 
     /// <inheritdoc />
@@ -194,7 +194,7 @@ public class Pdf : IPdf, IDisposable
 
         Objects.PageTree.Reset();
 
-        return new Page(pageIndirectObject, this);
+        return new Page(pageIndirectObject, this, await GetPageCountAsync());
     }
 
     /// <inheritdoc />
@@ -219,7 +219,7 @@ public class Pdf : IPdf, IDisposable
         }
 
         var (pageAtNumberIndirectObject, parentPageTreeNodeIndirectObject, kidsIndex) = await Objects.PageTree.GetPageLocationAsync(pageNumber);
-        var pageAtNumber = new Page(pageAtNumberIndirectObject, this);
+        var pageAtNumber = new Page(pageAtNumberIndirectObject, this, pageNumber);
         var parentPageTreeNode = (PageTreeNodeDictionary)parentPageTreeNodeIndirectObject.Object;
 
         // Ensure page has all required properties.
@@ -247,7 +247,7 @@ public class Pdf : IPdf, IDisposable
         _appendLeafHint = null;
         Objects.PageTree.Reset();
 
-        return new Page(newPageIndirectObject, this);
+        return new Page(newPageIndirectObject, this, pageNumber);
     }
 
     /// <inheritdoc />

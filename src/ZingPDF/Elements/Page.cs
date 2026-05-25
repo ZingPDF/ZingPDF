@@ -14,6 +14,7 @@ using ZingPDF.Syntax.Objects.Streams;
 using ZingPDF.Syntax.Objects.Strings;
 using ZingPDF.Text;
 using ZingPDF.Text.SimpleFonts;
+using ZingPDF.Rendering;
 using System.Text.RegularExpressions;
 
 namespace ZingPDF.Elements
@@ -27,14 +28,16 @@ namespace ZingPDF.Elements
         private static readonly Regex LineTokenRegex = new(@"\S+\s*", RegexOptions.Compiled);
 
         private readonly IPdf _pdf;
+        private readonly int? _pageNumber;
 
-        internal Page(IndirectObject pageObject, IPdf pdf)
+        internal Page(IndirectObject pageObject, IPdf pdf, int? pageNumber = null)
         {
             ArgumentNullException.ThrowIfNull(pageObject, nameof(pageObject));
             ArgumentNullException.ThrowIfNull(pdf);
 
             IndirectObject = pageObject;
             _pdf = pdf;
+            _pageNumber = pageNumber;
         }
 
         /// <summary>
@@ -46,6 +49,42 @@ namespace ZingPDF.Elements
         /// Gets the page dictionary for the page.
         /// </summary>
         public PageDictionary Dictionary => (PageDictionary)IndirectObject.Object;
+
+        /// <summary>
+        /// Gets the visible page geometry and coordinate mapping used for display.
+        /// </summary>
+        /// <remarks>
+        /// Page coordinates use the PDF bottom-left origin. Display coordinates use a
+        /// top-left origin after crop and clockwise page rotation are applied.
+        /// </remarks>
+        public async Task<PdfPageGeometry> GetGeometryAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var mediaBox = NormalizeBox(await Dictionary.MediaBox.GetAsync()
+                ?? throw new InvalidPdfException("Unable to resolve the page MediaBox."));
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var cropBox = NormalizeBox(await Dictionary.CropBox.GetAsync() ?? mediaBox);
+            var visibleBox = Intersect(mediaBox, cropBox);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var rawRotation = await Dictionary.Rotate.GetAsync();
+            var rotationDegrees = NormalizeRotation(rawRotation?.Value ?? 0);
+            var pageNumber = await GetPageNumberAsync(cancellationToken);
+            var swapsDimensions = rotationDegrees is 90 or 270;
+
+            return new PdfPageGeometry
+            {
+                PageNumber = pageNumber,
+                MediaBox = mediaBox,
+                CropBox = cropBox,
+                VisibleBox = visibleBox,
+                RotationDegrees = rotationDegrees,
+                DisplayWidth = swapsDimensions ? visibleBox.Height : visibleBox.Width,
+                DisplayHeight = swapsDimensions ? visibleBox.Width : visibleBox.Height
+            };
+        }
 
         /// <summary>
         /// Adds a text object to the page contents.
@@ -204,6 +243,60 @@ namespace ZingPDF.Elements
             Dictionary.SetRotation(existingRotation + rotation);
 
             _pdf.Objects.Update(IndirectObject);
+        }
+
+        private async Task<int> GetPageNumberAsync(CancellationToken cancellationToken)
+        {
+            if (_pageNumber is int pageNumber)
+            {
+                return pageNumber;
+            }
+
+            var pageObjects = await _pdf.GetAllPagesAsync();
+            for (var index = 0; index < pageObjects.Count; index++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (pageObjects[index].Id == IndirectObject.Id)
+                {
+                    return index + 1;
+                }
+            }
+
+            throw new InvalidOperationException("Unable to determine the page number for geometry retrieval.");
+        }
+
+        private static Rectangle NormalizeBox(Rectangle box)
+            => Rectangle.FromCoordinates(
+                new Coordinate(
+                    Math.Min(box.LowerLeft.X, box.UpperRight.X),
+                    Math.Min(box.LowerLeft.Y, box.UpperRight.Y)),
+                new Coordinate(
+                    Math.Max(box.LowerLeft.X, box.UpperRight.X),
+                    Math.Max(box.LowerLeft.Y, box.UpperRight.Y)),
+                box.Context);
+
+        private static Rectangle Intersect(Rectangle first, Rectangle second)
+        {
+            var left = Math.Max(first.LowerLeft.X, second.LowerLeft.X);
+            var bottom = Math.Max(first.LowerLeft.Y, second.LowerLeft.Y);
+            var right = Math.Min(first.UpperRight.X, second.UpperRight.X);
+            var top = Math.Min(first.UpperRight.Y, second.UpperRight.Y);
+
+            return Rectangle.FromCoordinates(
+                new Coordinate(left, bottom),
+                new Coordinate(Math.Max(left, right), Math.Max(bottom, top)),
+                first.Context);
+        }
+
+        private static int NormalizeRotation(double rawRotation)
+        {
+            if (!double.IsFinite(rawRotation) || rawRotation % 90 != 0)
+            {
+                throw new InvalidPdfException("Page Rotate must be a finite multiple of 90 degrees.");
+            }
+
+            var rotation = (int)(rawRotation % 360);
+            return rotation < 0 ? rotation + 360 : rotation;
         }
 
         // TODO: move to testable class (ICalulations maybe)
