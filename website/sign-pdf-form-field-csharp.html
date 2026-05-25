@@ -153,7 +153,8 @@ await pdf.SaveAsync(File.Create("statement-signed.pdf"));</code></pre>
           <h2>Current limits</h2>
           <p>
             High-level signing supports existing signature fields and hidden validation-only fields on unencrypted PDFs.
-            For visible signing, create the signature field first. Encrypted PDFs are outside the current signing path.
+            For visible signing, create the signature field first. Password-protected input PDFs are outside the current
+            signing path, and encrypting an already signed PDF is not a supported high-level workflow.
           </p>
         </section>
 

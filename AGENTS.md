@@ -44,6 +44,7 @@
 - Avoid new dependencies unless the existing stack cannot reasonably solve the task.
 - Public APIs should have XML documentation that names concrete behavior, constraints, and stream requirements.
 - When changing save, encryption, xref, object stream, signature validation, signing, or page tree behavior, expect integration or smoke coverage in addition to unit tests.
+- Do not present generic encryption of already signed PDFs as a supported high-level workflow. For signing/encryption boundaries, use `docs/project/SIGNING_ENCRYPTION_PLAN.md`.
 
 ## Website And Copy
 
@@ -79,3 +80,4 @@
 - Website voice: `website/STYLE_GUIDE.md`.
 - Package READMEs: `docs/packages`.
 - Support and compatibility notes: `docs/project/SUPPORT.md`.
+- Signing and encryption boundaries: `docs/project/SIGNING_ENCRYPTION_PLAN.md`.

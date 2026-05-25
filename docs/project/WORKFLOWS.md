@@ -18,6 +18,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 - Trailer, xref, save, encrypted file, object stream, and fixture-driven behavior: include `dotnet test tests/ZingPDF.Tests.Integration/ZingPDF.Tests.Integration.csproj`.
 - End-to-end document operations or package-level confidence: include `dotnet test tests/ZingPDF.Tests.Smoke/ZingPDF.Tests.Smoke.csproj`.
 - Public signing or signature validation behavior: include smoke coverage because validation depends on saved PDF bytes, `/ByteRange`, `/Contents`, and CMS payloads.
+- Signing and encryption changes need smoke coverage for both signature validation and authentication/decryption paths. Do not model generic "encrypt an already signed PDF" as a high-level workflow; see `docs/project/SIGNING_ENCRYPTION_PLAN.md`.
 - Fixture checkout concerns: run `pwsh ./scripts/assert-binary-fixtures.ps1`.
 - Broad release confidence: run restore, Release build, and Release test against `ZingPDF.sln`.
 
