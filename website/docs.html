@@ -882,6 +882,8 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
               <li>High-level signing supports existing visible signature fields and hidden validation-only fields on
                 unencrypted PDFs. For visible signing, create the signature field before calling
                 <code>SignAsync(...)</code>.</li>
+              <li>Signing password-protected input PDFs is planned as a separate workflow. Encrypting an already signed
+                PDF is not exposed as a high-level workflow because rewriting signed bytes invalidates existing signatures.</li>
               <li>Signature validation does not yet validate trusted timestamp tokens, DSS/VRI long-term validation
                 data, or DocMDP certification permissions.</li>
             </ul>
