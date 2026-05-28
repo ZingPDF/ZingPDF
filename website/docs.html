@@ -49,6 +49,7 @@
           <h2>On This Page</h2>
           <nav>
             <a href="#quick-start">Quick Start</a>
+            <a href="#page-geometry">Page Geometry</a>
             <a href="#packages">Packages</a>
             <a href="#templates">Templates</a>
             <a href="#fonts">Fonts</a>
@@ -276,6 +277,35 @@ await pdf.SaveAsync(output);</code></pre>
               and
               <a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/CreateProjectStatusReport">CreateProjectStatusReport</a>.
             </p>
+          </section>
+
+          <section class="doc-section" id="page-geometry">
+            <p class="eyebrow">Page Geometry</p>
+            <h2>Map PDF points to displayed page points</h2>
+            <p><code>Page.GetGeometryAsync(...)</code> returns the resolved media box, crop box, visible box, and normalised page rotation. PDF page coordinates use a bottom-left origin. Display coordinates use a top-left origin after the visible box and clockwise page rotation are applied.</p>
+
+            <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Elements.Drawing;
+
+using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var page = await pdf.GetPageAsync(1);
+var geometry = await page.GetGeometryAsync();
+
+var storedPdfPoint = new Coordinate(72, 144);
+var previewPoint = geometry.PageToDisplay(storedPdfPoint);
+var restoredPdfPoint = geometry.DisplayToPage(previewPoint);
+
+Console.WriteLine($"{geometry.DisplayWidth} x {geometry.DisplayHeight}");
+Console.WriteLine($"{previewPoint.X}, {previewPoint.Y}");</code></pre>
+
+            <ul>
+              <li><code>MediaBox</code>, <code>CropBox</code>, and <code>Rotate</code> are resolved through the page tree when they are inherited.</li>
+              <li><code>VisibleBox</code> is the intersection of the crop box and media box.</li>
+              <li><code>RotationDegrees</code> is returned as <code>0</code>, <code>90</code>, <code>180</code>, or <code>270</code>.</li>
+              <li>This API describes page placement. Rendering a PDF page to a bitmap is not yet exposed by the core package.</li>
+            </ul>
           </section>
 
           <section class="doc-section" id="packages">
