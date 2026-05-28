@@ -2,6 +2,16 @@ name: Performance
 
 on:
   pull_request:
+    paths:
+      - "src/ZingPDF/**"
+      - "src/ZingPDF.InheritableSourceGenerator/**"
+      - "tests/ZingPDF.Performance/**"
+      - "tests/TestFiles/pdf/**"
+      - ".github/workflows/performance.yml"
+      - "Directory.Build.props"
+      - "scripts/compare-performance.ps1"
+      - "scripts/run-performance.ps1"
+      - "scripts/write-performance-summary.ps1"
   workflow_dispatch:
 
 jobs:
