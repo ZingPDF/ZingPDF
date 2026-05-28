@@ -49,6 +49,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 2. Run `pwsh ./scripts/run-performance.ps1` for current results.
 3. Use `pwsh ./scripts/compare-performance.ps1` when comparing against a baseline summary.
 4. Update performance pages only from measured output.
+5. The Performance PR workflow is path-filtered to core library, source generator, benchmark project, PDF fixtures, and benchmark scripts.
 
 ## Release Preparation
 
@@ -60,6 +61,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 6. Run `pwsh ./scripts/prepare-release.ps1` manually only when preparing release metadata outside automation.
 7. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
 8. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
+9. Use `[skip deploy]` on maintenance-only merge commits that should not publish the website.
 
 ## Capturing New Memory
 
