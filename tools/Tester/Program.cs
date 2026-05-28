@@ -9,6 +9,7 @@ using ZingPDF.Elements.Forms.FieldTypes.Choice;
 using ZingPDF.Elements.Forms.FieldTypes.Text;
 using ZingPDF.Fonts;
 using ZingPDF.Graphics;
+using ZingPDF.Rendering;
 using ZingPDF.Syntax.CommonDataStructures;
 using ZingPDF.Text;
 using DrawingPath = ZingPDF.Elements.Drawing.Path;
@@ -25,6 +26,16 @@ static async Task RunCapabilityValidationSamplesAsync()
         try
         {
             File.Delete(existingPdf);
+        }
+        catch (IOException)
+        {
+        }
+    }
+    foreach (var existingPng in Directory.EnumerateFiles(outputDirectory, "*.png"))
+    {
+        try
+        {
+            File.Delete(existingPng);
         }
         catch (IOException)
         {
@@ -67,6 +78,9 @@ static async Task RunCapabilityValidationSamplesAsync()
     await CreateCapabilitySample_TextOnlyRedactionAsync(IOPath.Combine(outputDirectory, "24-text-redaction-safety.pdf"));
     await CreateCapabilitySample_FormRoundTripAsync(IOPath.Combine(outputDirectory, "25-form-roundtrip.pdf"));
     await CreateCapabilitySample_ComplexVectorAsync(IOPath.Combine(outputDirectory, "26-complex-vector.pdf"));
+    await CreateCapabilitySample_PageRenderingAsync(
+        IOPath.Combine(outputDirectory, "27-page-rendering.png"),
+        IOPath.Combine(outputDirectory, "27-page-rendering-source.pdf"));
 }
 
 static async Task CreateCapabilitySample_AuthoringAsync(string outputPath)
@@ -1002,6 +1016,98 @@ static async Task CreateCapabilitySample_ComplexVectorAsync(string outputPath)
 
     using var output = OpenValidationOutput(outputPath);
     await pdf.SaveAsync(output);
+}
+
+static async Task CreateCapabilitySample_PageRenderingAsync(string outputPath, string sourcePdfPath)
+{
+    using var pdf = Pdf.Create(options => options.MediaBox = Rectangle.FromDimensions(420, 260));
+    var page = await pdf.GetPageAsync(1);
+    var headingFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.HelveticaBold);
+    var bodyFont = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+
+    await page.AddPathAsync(new DrawingPath(
+        null,
+        new FillOptions(new RGBColour(0.08, 0.14, 0.28)),
+        PathType.Linear,
+        [
+            new Coordinate(0, 0),
+            new Coordinate(420, 0),
+            new Coordinate(420, 260),
+            new Coordinate(0, 260),
+            new Coordinate(0, 0)
+        ]));
+
+    await page.AddPathAsync(new DrawingPath(
+        null,
+        new FillOptions(RGBColour.PrimaryBlue),
+        PathType.Linear,
+        [
+            new Coordinate(0, 206),
+            new Coordinate(420, 206),
+            new Coordinate(420, 260),
+            new Coordinate(0, 260),
+            new Coordinate(0, 206)
+        ]));
+
+    await page.AddTextAsync(
+        "PDF to image",
+        Rectangle.FromCoordinates(new Coordinate(24, 224), new Coordinate(260, 248)),
+        headingFont,
+        22,
+        RGBColour.White);
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(new RGBColour(0.46, 0.72, 1.0), 1),
+        new FillOptions(new RGBColour(0.92, 0.96, 1.0)),
+        PathType.Linear,
+        [
+            new Coordinate(24, 124),
+            new Coordinate(396, 124),
+            new Coordinate(396, 190),
+            new Coordinate(24, 190),
+            new Coordinate(24, 124)
+        ]));
+
+    await page.AddTextAsync(
+        "Manual validation instructions:\n1. Open this source PDF and the companion PNG.\n2. They should show the same page content.\n3. The PNG should be 630 x 390 pixels from this 420 x 260 PDF page rendered at scale 1.5.\n4. This validates rendering the current in-memory page before SaveAsync writes the PDF.",
+        Rectangle.FromCoordinates(new Coordinate(38, 136), new Coordinate(378, 182)),
+        bodyFont,
+        10,
+        RGBColour.Black,
+        new TextLayoutOptions { Wrap = true, Overflow = TextOverflowMode.Clip });
+
+    await page.AddPathAsync(new DrawingPath(
+        new StrokeOptions(new RGBColour(0.68, 0.83, 1.0), 2),
+        new FillOptions(new RGBColour(0.16, 0.24, 0.42)),
+        PathType.Linear,
+        [
+            new Coordinate(80, 38),
+            new Coordinate(340, 38),
+            new Coordinate(340, 94),
+            new Coordinate(80, 94),
+            new Coordinate(80, 38)
+        ]));
+
+    await page.AddTextAsync(
+        "PNG preview: 630 x 390",
+        Rectangle.FromCoordinates(new Coordinate(104, 58), new Coordinate(320, 82)),
+        headingFont,
+        16,
+        RGBColour.White);
+
+    var renderResult = await page.RenderAsync(new PdfPageRenderOptions { Scale = 1.5 });
+    if (renderResult.PixelWidth != 630 || renderResult.PixelHeight != 390)
+    {
+        throw new InvalidOperationException($"Expected 630 x 390 PNG output, got {renderResult.PixelWidth} x {renderResult.PixelHeight}.");
+    }
+
+    using (var imageOutput = OpenValidationOutput(outputPath))
+    {
+        await imageOutput.WriteAsync(renderResult.PngBytes);
+    }
+
+    using var sourceOutput = OpenValidationOutput(sourcePdfPath);
+    await pdf.SaveAsync(sourceOutput);
 }
 
 static async Task CreateCapabilitySample_PackageSetupPdfAsync(string outputPath, string title, string instructions)

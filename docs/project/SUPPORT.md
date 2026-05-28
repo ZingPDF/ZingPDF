@@ -22,6 +22,7 @@ ZingPDF is developed as a managed .NET library and is expected to work on:
 Notes:
 
 - Actual runtime behaviour depends on the native/runtime requirements of third-party dependencies such as `SkiaSharp` and `PuppeteerSharp`.
+- Page-to-PNG rendering in `ZingPDF` uses PDFium through `PDFtoImage` and `SkiaSharp` native assets.
 - `ZingPDF.FromHTML` has additional environment requirements because it depends on a browser automation stack.
 - `ZingPDF.Templates.LiquidHtml` has the same browser automation requirements because it converts rendered HTML through `ZingPDF.FromHTML`.
 
@@ -33,6 +34,7 @@ Notes:
 - create a new blank PDF
 - inspect page counts and retrieve pages
 - read visible page geometry and translate points between PDF page coordinates and displayed page coordinates
+- render 1-based pages to PNG bytes for previews or thumbnails
 - append, insert, delete, and merge pages
 - rotate pages
 - read and update document metadata
@@ -78,7 +80,7 @@ These limits should be treated as part of the current product contract unless ex
 - `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
-- page geometry is exposed through `Page.GetGeometryAsync(...)`; page-to-bitmap rendering is not yet exposed through the core API
+- `Page.RenderAsync(...)` and `Pdf.RenderPageAsync(...)` render PNG bytes through a native PDFium-backed dependency and should be validated on each deployment platform
 - text fields currently have the richest form write support
 - signing currently requires unencrypted input and unencrypted output; password-protected input signing is not implemented yet
 - encrypting an already signed PDF is not a supported high-level workflow because rewriting signed bytes invalidates existing signatures

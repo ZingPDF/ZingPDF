@@ -11,8 +11,8 @@
     <PackageId>ZingPDF</PackageId>
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
-    <Description>.NET 8 PDF library for loading, creating, editing, merging, watermarking, compressing, extracting text, filling and flattening forms, and encrypting PDF documents.</Description>
-    <PackageTags>pdf;dotnet-pdf;csharp;forms;acroform;text-extraction;encryption;compression;watermark;merge-pdf;split-pdf</PackageTags>
+    <Description>.NET 8 PDF library for loading, creating, editing, rendering, merging, watermarking, compressing, extracting text, filling and flattening forms, and encrypting PDF documents.</Description>
+    <PackageTags>pdf;dotnet-pdf;csharp;forms;acroform;text-extraction;pdf-rendering;png;encryption;compression;watermark;merge-pdf;split-pdf</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -28,9 +28,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
     <PackageReference Include="MorseCode.ITask" Version="2.0.3" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
+    <PackageReference Include="PDFtoImage" Version="5.2.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
-    <PackageReference Include="SkiaSharp" Version="3.116.1" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.116.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.0" />
   </ItemGroup>
 

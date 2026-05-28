@@ -1,3 +1,6 @@
+using PDFtoImage;
+using SkiaSharp;
+using System.Runtime.Versioning;
 using ZingPDF.Elements.Drawing;
 using ZingPDF.Fonts;
 using ZingPDF.Fonts.FontProviders;
@@ -83,6 +86,81 @@ namespace ZingPDF.Elements
                 RotationDegrees = rotationDegrees,
                 DisplayWidth = swapsDimensions ? visibleBox.Height : visibleBox.Width,
                 DisplayHeight = swapsDimensions ? visibleBox.Width : visibleBox.Height
+            };
+        }
+
+        /// <summary>
+        /// Renders this page to PNG bytes.
+        /// </summary>
+        /// <remarks>
+        /// Rendering includes the current in-memory page edits by staging an incremental PDF snapshot before
+        /// rasterization. The returned geometry uses PDF page units; image dimensions are in pixels.
+        /// </remarks>
+        [SupportedOSPlatform("android31.0")]
+        [SupportedOSPlatform("ios13.6")]
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("maccatalyst13.5")]
+        [SupportedOSPlatform("macos")]
+        [SupportedOSPlatform("windows")]
+        public async Task<PdfPageRenderResult> RenderAsync(
+            PdfPageRenderOptions? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            options ??= new PdfPageRenderOptions();
+            options.Validate();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var geometry = await GetGeometryAsync(cancellationToken);
+            var sourceBox = options.UseVisibleBox ? geometry.VisibleBox : geometry.MediaBox;
+            var swapsDimensions = options.ApplyPageRotation && geometry.RotationDegrees is 90 or 270;
+            var renderWidth = swapsDimensions ? (double)sourceBox.Height : (double)sourceBox.Width;
+            var renderHeight = swapsDimensions ? (double)sourceBox.Width : (double)sourceBox.Height;
+
+            var pixelWidth = ScaleToPixelDimension(renderWidth, options.Scale, nameof(geometry.DisplayWidth));
+            var pixelHeight = ScaleToPixelDimension(renderHeight, options.Scale, nameof(geometry.DisplayHeight));
+            var pdfBytes = await CreateRenderSnapshotAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var renderOptions = new RenderOptions(
+                Dpi: 72,
+                Width: pixelWidth,
+                Height: pixelHeight,
+                WithAnnotations: true,
+                WithFormFill: true,
+                WithAspectRatio: false,
+                Rotation: options.ApplyPageRotation ? PdfRotation.Rotate0 : InverseRotation(geometry.RotationDegrees),
+                AntiAliasing: PdfAntiAliasing.All,
+                BackgroundColor: ToSkColor(options.Background),
+                Bounds: null,
+                UseTiling: true,
+                DpiRelativeToBounds: false,
+                Grayscale: false);
+
+            using var pngStream = new MemoryStream();
+            try
+            {
+                Conversion.SavePng(
+                    pngStream,
+                    pdfBytes,
+                    new Index(geometry.PageNumber - 1),
+                    password: null,
+                    options: renderOptions);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                throw new PdfRenderException($"Unable to render page {geometry.PageNumber} to PNG.", exception);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return new PdfPageRenderResult
+            {
+                PageNumber = geometry.PageNumber,
+                PixelWidth = pixelWidth,
+                PixelHeight = pixelHeight,
+                Scale = options.Scale,
+                Geometry = geometry,
+                PngBytes = pngStream.ToArray()
             };
         }
 
@@ -298,6 +376,72 @@ namespace ZingPDF.Elements
             var rotation = (int)(rawRotation % 360);
             return rotation < 0 ? rotation + 360 : rotation;
         }
+
+        private async Task<byte[]> CreateRenderSnapshotAsync(CancellationToken cancellationToken)
+        {
+            var originalPosition = _pdf.Data.CanSeek ? _pdf.Data.Position : 0;
+
+            try
+            {
+                using var snapshot = new MemoryStream();
+                if (_pdf.Data.CanSeek)
+                {
+                    _pdf.Data.Position = 0;
+                }
+
+                await _pdf.Data.CopyToAsync(snapshot, cancellationToken);
+
+                if (await _pdf.Objects.GenerateUpdateDeltaAsync() is { } incrementalUpdate)
+                {
+                    await incrementalUpdate.WriteAsync(snapshot);
+                }
+
+                return snapshot.ToArray();
+            }
+            finally
+            {
+                if (_pdf.Data.CanSeek)
+                {
+                    _pdf.Data.Position = originalPosition;
+                }
+            }
+        }
+
+        private static int ScaleToPixelDimension(double pageUnits, double scale, string dimensionName)
+        {
+            if (!double.IsFinite(pageUnits) || pageUnits <= 0)
+            {
+                throw new PdfRenderException($"{dimensionName} must be greater than zero to render a page.");
+            }
+
+            var scaled = Math.Round(pageUnits * scale, MidpointRounding.AwayFromZero);
+            if (scaled is < 1 or > int.MaxValue)
+            {
+                throw new PdfRenderException($"{dimensionName} and scale produce an unsupported pixel dimension.");
+            }
+
+            return (int)scaled;
+        }
+
+        private static PdfRotation InverseRotation(int rotationDegrees)
+            => rotationDegrees switch
+            {
+                0 => PdfRotation.Rotate0,
+                90 => PdfRotation.Rotate270,
+                180 => PdfRotation.Rotate180,
+                270 => PdfRotation.Rotate90,
+                _ => throw new InvalidOperationException("Page rotation must be normalised before rendering.")
+            };
+
+        private static SKColor ToSkColor(RGBColour colour)
+            => new(
+                ToByte(colour.Red),
+                ToByte(colour.Green),
+                ToByte(colour.Blue),
+                255);
+
+        private static byte ToByte(Number value)
+            => (byte)Math.Clamp(Math.Round((double)value * 255d, MidpointRounding.AwayFromZero), byte.MinValue, byte.MaxValue);
 
         // TODO: move to testable class (ICalulations maybe)
         private static (int newWidth, int newHeight) ScaleToFit(int originalWidth, int originalHeight, int maxWidth, int maxHeight)

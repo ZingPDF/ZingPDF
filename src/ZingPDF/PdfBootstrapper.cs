@@ -1,3 +1,4 @@
+using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
@@ -13,6 +14,7 @@ using ZingPDF.Syntax.Objects;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Strings;
+using ZingPDF.Rendering;
 using ZingPDF.Text;
 
 namespace ZingPDF;
@@ -170,6 +172,13 @@ internal static class PdfBootstrapper
         public Task AuthenticateAsync(string password) => throw new NotSupportedException();
         public Task<IList<IndirectObject>> GetAllPagesAsync() => throw new NotSupportedException();
         public Task<Page> GetPageAsync(int pageNumber) => throw new NotSupportedException();
+        [SupportedOSPlatform("android31.0")]
+        [SupportedOSPlatform("ios13.6")]
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("maccatalyst13.5")]
+        [SupportedOSPlatform("macos")]
+        [SupportedOSPlatform("windows")]
+        public Task<PdfPageRenderResult> RenderPageAsync(int pageNumber, PdfPageRenderOptions? options = null, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<int> GetPageCountAsync() => throw new NotSupportedException();
         public Task<Form?> GetFormAsync() => throw new NotSupportedException();
         public Task<Form> GetOrCreateFormAsync() => throw new NotSupportedException();

@@ -1,9 +1,11 @@
 using ZingPDF.Elements;
 using ZingPDF.Elements.Drawing.Text.Extraction;
 using ZingPDF.Elements.Forms;
+using System.Runtime.Versioning;
 using System.Security.Cryptography.X509Certificates;
 using ZingPDF.Syntax.DocumentStructure.PageTree;
 using ZingPDF.Syntax.Objects.IndirectObjects;
+using ZingPDF.Rendering;
 using ZingPDF.Text;
 
 namespace ZingPDF;
@@ -37,6 +39,20 @@ public interface IPdf
     /// Gets a page by its 1-based page number.
     /// </summary>
     Task<Page> GetPageAsync(int pageNumber);
+
+    /// <summary>
+    /// Renders a 1-based page to PNG bytes.
+    /// </summary>
+    [SupportedOSPlatform("android31.0")]
+    [SupportedOSPlatform("ios13.6")]
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("maccatalyst13.5")]
+    [SupportedOSPlatform("macos")]
+    [SupportedOSPlatform("windows")]
+    Task<PdfPageRenderResult> RenderPageAsync(
+        int pageNumber,
+        PdfPageRenderOptions? options = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of pages in the document.

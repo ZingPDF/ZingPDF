@@ -17,6 +17,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 - Parser, syntax object, helper, font, and copy changes: start with `dotnet test tests/ZingPDF.Tests.Unit/ZingPDF.Tests.Unit.csproj`.
 - Trailer, xref, save, encrypted file, object stream, and fixture-driven behavior: include `dotnet test tests/ZingPDF.Tests.Integration/ZingPDF.Tests.Integration.csproj`.
 - End-to-end document operations or package-level confidence: include `dotnet test tests/ZingPDF.Tests.Smoke/ZingPDF.Tests.Smoke.csproj`.
+- Page rendering changes should include deterministic vector snapshot checks, coordinate-to-pixel alignment checks, and at least one generated PNG validation sample in `tools/Tester`.
 - Public signing or signature validation behavior: include smoke coverage because validation depends on saved PDF bytes, `/ByteRange`, `/Contents`, and CMS payloads.
 - Signing and encryption changes need smoke coverage for both signature validation and authentication/decryption paths. Do not model generic "encrypt an already signed PDF" as a high-level workflow; see `docs/project/SIGNING_ENCRYPTION_PLAN.md`.
 - Fixture checkout concerns: run `pwsh ./scripts/assert-binary-fixtures.ps1`.
@@ -49,7 +50,8 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 2. Run `pwsh ./scripts/run-performance.ps1` for current results.
 3. Use `pwsh ./scripts/compare-performance.ps1` when comparing against a baseline summary.
 4. Update performance pages only from measured output.
-5. The Performance PR workflow is path-filtered to core library, source generator, benchmark project, PDF fixtures, and benchmark scripts.
+5. For page rendering, include thumbnail-scale, 1x preview, image-heavy, and unsaved-edit scenarios so native rasterization and snapshot staging costs are visible.
+6. The Performance PR workflow is path-filtered to core library, source generator, benchmark project, PDF fixtures, and benchmark scripts.
 
 ## Release Preparation
 
