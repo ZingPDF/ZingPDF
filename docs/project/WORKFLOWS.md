@@ -49,6 +49,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 2. Run `pwsh ./scripts/run-performance.ps1` for current results.
 3. Use `pwsh ./scripts/compare-performance.ps1` when comparing against a baseline summary.
 4. Update performance pages only from measured output.
+5. The Performance PR workflow is path-filtered to core library, source generator, benchmark project, PDF fixtures, and benchmark scripts.
 
 ## Release Preparation
 

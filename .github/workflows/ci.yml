@@ -2,6 +2,14 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "tools/**"
+      - ".github/workflows/ci.yml"
+      - "ZingPDF.sln"
+      - "Directory.Build.props"
+      - "scripts/assert-binary-fixtures.ps1"
   workflow_dispatch:
 
 jobs:
