@@ -323,6 +323,9 @@ await File.WriteAllBytesAsync("page-1.png", preview.PngBytes.ToArray());
 Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
 
             <p>Rendering uses the current in-memory PDF state, so page edits can be previewed before saving. The renderer is backed by PDFium through <code>PDFtoImage</code> and <code>SkiaSharp</code> native assets for Windows, Linux, and macOS.</p>
+
+            <h3>Validate rendered output</h3>
+            <p>For automated checks, render simple vector pages and compare sampled pixels or approved image signatures. Use <code>PdfPageGeometry.PageToDisplay(...)</code> to turn PDF coordinates into expected display pixels when testing overlays, crops, or rotation. The benchmark project includes page-rendering scenarios for thumbnail-scale previews, 1x previews, image-heavy input, and unsaved edits.</p>
           </section>
 
           <section class="doc-section" id="packages">

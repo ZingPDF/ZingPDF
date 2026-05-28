@@ -113,6 +113,8 @@ Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");
 
 Page rendering uses the current in-memory PDF state, so unsaved page edits can be previewed before `SaveAsync(...)`. Rendering is backed by PDFium through `PDFtoImage` and `SkiaSharp` native assets for Windows, Linux, and macOS.
 
+For validation tests, render small vector-only pages and compare sampled pixels or approved image signatures. Use `PdfPageGeometry.PageToDisplay(...)` to convert PDF coordinates into expected display pixels for overlay and alignment checks. Rendering benchmarks live in `tests/ZingPDF.Performance`.
+
 Create and fill a PDF form:
 
 ```csharp
