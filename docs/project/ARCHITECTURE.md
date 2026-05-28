@@ -79,5 +79,6 @@ This is a compact map for future maintenance. Keep it factual and update it when
 
 - `Directory.Build.props` owns `VersionBase`.
 - `scripts/prepare-release.ps1` calculates release metadata and updates `CHANGELOG.md` and `Directory.Build.props`.
-- `.github/workflows/release.yml` builds, tests, packs, tags, creates a GitHub release, and can publish packages to NuGet.
+- `.github/workflows/prepare-release.yml` opens a release-preparation PR after release-affecting changes land on `main`.
+- `.github/workflows/release.yml` builds, tests, packs, tags, creates a GitHub release, and can publish packages to NuGet after release metadata has already been merged.
 - Performance workflows produce artifacts under `artifacts/performance`.

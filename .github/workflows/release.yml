@@ -25,8 +25,8 @@ on:
       - "docs/project/SUPPORT.md"
   workflow_dispatch:
     inputs:
-      version:
-        description: "Optional manual release version override (for example 2.0.0)"
+      expected_version:
+        description: "Optional version expected in Directory.Build.props (for example 2.0.0)"
         required: false
         default: ""
       publish_nuget:
@@ -140,155 +140,195 @@ jobs:
         shell: pwsh
         run: ./scripts/assert-binary-fixtures.ps1
 
-      - name: Prepare release version and changelog
+      - name: Read release metadata
         if: ${{ steps.changes.outputs.has_release_changes == 'true' }}
-        id: prepare
-        shell: pwsh
-        run: ./scripts/prepare-release.ps1 -OverrideVersion '${{ github.event.inputs.version }}'
-
-      - name: Stop when no releasable changes were found
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release != 'true' }}
+        id: metadata
         shell: pwsh
         run: |
-          Write-Host "No releasable changes found in CHANGELOG.md or commit history."
+          $propsContent = Get-Content Directory.Build.props -Raw
+          $versionMatch = [regex]::Match($propsContent, '<VersionBase>(?<version>\d+\.\d+\.\d+)</VersionBase>')
+          if (-not $versionMatch.Success) {
+            throw "Directory.Build.props must define VersionBase."
+          }
 
-      - name: Commit release metadata
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+          $version = $versionMatch.Groups['version'].Value
+          $expectedVersion = '${{ github.event.inputs.expected_version }}'.Trim()
+          if (-not [string]::IsNullOrWhiteSpace($expectedVersion) -and $expectedVersion -ne $version) {
+            throw "Expected version '$expectedVersion' does not match VersionBase '$version'."
+          }
+
+          $tags = @(git tag --list "v*")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to read git tags."
+          }
+
+          $latestTag = $tags |
+            Where-Object { $_ -and $_.Trim().TrimStart('v') -match '^\d+\.\d+\.\d+$' } |
+            ForEach-Object {
+              [PSCustomObject]@{
+                Tag = $_.Trim()
+                Version = [version]$_.Trim().TrimStart('v')
+              }
+            } |
+            Sort-Object Version -Descending |
+            Select-Object -First 1
+
+          if ($null -ne $latestTag -and ([version]$version).CompareTo($latestTag.Version) -le 0) {
+            Write-Host "VersionBase '$version' is not newer than latest release tag '$($latestTag.Tag)'."
+            "should_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          $existingTag = git tag --list "v$version"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to verify whether release tag v$version already exists."
+          }
+          if (-not [string]::IsNullOrWhiteSpace(($existingTag | Select-Object -First 1))) {
+            throw "Release tag v$version already exists."
+          }
+
+          $changelog = Get-Content CHANGELOG.md -Raw
+          if ($changelog -notmatch "(?m)^## \[$([regex]::Escape($version))\] - \d{4}-\d{2}-\d{2}$") {
+            Write-Host "CHANGELOG.md does not contain a release section for $version."
+            "should_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          "should_release=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "assembly_version=$version.0" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Stop when release metadata has not been prepared
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release != 'true' }}
         shell: pwsh
         run: |
-          $PSNativeCommandUseErrorActionPreference = $true
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Directory.Build.props CHANGELOG.md
-          git commit -m "chore(release): ${{ steps.prepare.outputs.version }} [skip ci][skip release]"
-          git tag "${{ steps.prepare.outputs.tag }}"
-          git push origin HEAD:main
-          git push origin "${{ steps.prepare.outputs.tag }}"
+          Write-Host "Release metadata has not been prepared. Merge a release-preparation PR first."
 
       - name: Restore
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: dotnet restore ZingPDF.sln
 
       - name: Build
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet build ZingPDF.sln
           --configuration Release
           --no-restore
           -p:ContinuousIntegrationBuild=true
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Test
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: dotnet test ZingPDF.sln --configuration Release --no-build
 
       - name: Pack core package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF/ZingPDF.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Pack HTML package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF.FromHTML/ZingPDF.FromHTML.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Pack Google Fonts package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF.GoogleFonts/ZingPDF.GoogleFonts.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Pack OCR package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF.OCR/ZingPDF.OCR.csproj
           --configuration Release
           --no-restore
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Pack templates package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF.Templates/ZingPDF.Templates.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Pack Liquid HTML templates package
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         run: >
           dotnet pack src/ZingPDF.Templates.LiquidHtml/ZingPDF.Templates.LiquidHtml.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
-          -p:PackageVersion=${{ steps.prepare.outputs.version }}
-          -p:Version=${{ steps.prepare.outputs.version }}
-          -p:AssemblyVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:FileVersion=${{ steps.prepare.outputs.assembly_version }}
-          -p:InformationalVersion=${{ steps.prepare.outputs.version }}
+          -p:PackageVersion=${{ steps.metadata.outputs.version }}
+          -p:Version=${{ steps.metadata.outputs.version }}
+          -p:AssemblyVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:FileVersion=${{ steps.metadata.outputs.assembly_version }}
+          -p:InformationalVersion=${{ steps.metadata.outputs.version }}
 
       - name: Upload packages
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: zingpdf-packages-${{ steps.prepare.outputs.version }}
+          name: zingpdf-packages-${{ steps.metadata.outputs.version }}
           path: artifacts/packages/*
           if-no-files-found: error
 
       - name: Create GitHub release
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.prepare.outputs.tag }}
-          name: ZingPDF ${{ steps.prepare.outputs.tag }}
+          tag_name: ${{ steps.metadata.outputs.tag }}
+          name: ZingPDF ${{ steps.metadata.outputs.tag }}
           generate_release_notes: true
           files: artifacts/packages/*
 
       - name: NuGet login (OIDC)
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
         uses: NuGet/login@v1
         id: nuget_login
         with:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Publish to NuGet
-        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.prepare.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
+        if: ${{ steps.changes.outputs.has_release_changes == 'true' && steps.metadata.outputs.should_release == 'true' && (github.event_name == 'push' || github.event.inputs.publish_nuget == 'true') }}
         shell: pwsh
         run: |
           $packages = Get-ChildItem artifacts/packages -Filter *.nupkg | Where-Object { $_.Name -notlike '*.snupkg' }

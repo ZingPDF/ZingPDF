@@ -53,10 +53,13 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 ## Release Preparation
 
 1. Confirm release-affecting changes are intentional.
-2. Update `CHANGELOG.md` under `## [Unreleased]` with meaningful notes, or let `scripts/prepare-release.ps1` derive notes from commits.
-3. Run `pwsh ./scripts/prepare-release.ps1` only when preparing release metadata.
-4. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
-5. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
+2. Merge product changes to `main` through PRs.
+3. Let the Prepare Release workflow open or update the release-preparation PR, then review the generated `CHANGELOG.md` section before merging it.
+4. Merge release-preparation PRs with a `chore(release): prepare <version>` title and without `[skip release]`.
+5. The Release workflow publishes only after release metadata has already been merged to `main`; it does not commit back to the protected branch.
+6. Run `pwsh ./scripts/prepare-release.ps1` manually only when preparing release metadata outside automation.
+7. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
+8. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
 
 ## Capturing New Memory
 
