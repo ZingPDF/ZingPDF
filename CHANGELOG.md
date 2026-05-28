@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.58] - 2026-05-28
+
+### Changed
+
+- Add page geometry APIs (#8)
+
 ## [1.0.57] - 2026-05-25
 
 ### Added
