@@ -2,9 +2,9 @@
 
 # ZingPDF
 
-`ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, signing, validating signatures, redacting, and saving PDFs in C#.
+`ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, rendering, signing, validating signatures, redacting, and saving PDFs in C#.
 
-It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, text extraction, form creation and completion, signing, signature validation, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
+It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, page-to-PNG rendering, text extraction, form creation and completion, signing, signature validation, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
 
 ## Installation
 
@@ -92,6 +92,28 @@ Console.WriteLine($"Preview point: {displayPoint.X}, {displayPoint.Y}");
 ```
 
 `GetGeometryAsync()` resolves inherited `MediaBox`, `CropBox`, and `Rotate` values. PDF page coordinates use a bottom-left origin. Display coordinates use a top-left origin after the visible page box and clockwise page rotation are applied.
+
+Render a page preview to PNG:
+
+```csharp
+using ZingPDF;
+using ZingPDF.Rendering;
+
+using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var preview = await pdf.RenderPageAsync(1, new PdfPageRenderOptions
+{
+    Scale = 1.5
+});
+
+await File.WriteAllBytesAsync("page-1.png", preview.PngBytes.ToArray());
+Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");
+```
+
+Page rendering uses the current in-memory PDF state, so unsaved page edits can be previewed before `SaveAsync(...)`. Rendering is backed by PDFium through `PDFtoImage` and `SkiaSharp` native assets for Windows, Linux, and macOS.
+
+For validation tests, render small vector-only pages and compare sampled pixels or approved image signatures. Use `PdfPageGeometry.PageToDisplay(...)` to convert PDF coordinates into expected display pixels for overlay and alignment checks. Rendering benchmarks live in `tests/ZingPDF.Performance`.
 
 Create and fill a PDF form:
 
@@ -183,6 +205,7 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 - edit existing PDFs with `pdf.Pages(...)`
 - append, insert, delete, export, merge, or split pages
 - read cropped and rotated page display geometry and convert overlay coordinates
+- render pages to PNG bytes for previews or thumbnails
 - add text, images, vector drawing, and watermarks to pages
 - register standard PDF fonts and embedded TrueType fonts
 - create, fill, flatten, sign, and validate AcroForm fields
@@ -212,7 +235,7 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 
 ## Package split
 
-- `ZingPDF`: core PDF load, author, edit, sign, signature validation, redact, form, metadata, and encryption APIs
+- `ZingPDF`: core PDF load, author, edit, page rendering, sign, signature validation, redact, form, metadata, and encryption APIs
 - `ZingPDF.GoogleFonts`: download and register Google Fonts
 - `ZingPDF.OCR`: OCR support for scanned and image-based PDF pages
 - `ZingPDF.FromHTML`: render HTML to PDF through PuppeteerSharp

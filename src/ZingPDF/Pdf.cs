@@ -1,6 +1,7 @@
 ﻿using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
@@ -22,6 +23,7 @@ using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.Parsing;
 using ZingPDF.Parsing.Parsers;
+using ZingPDF.Rendering;
 using ZingPDF.Signing;
 using ZingPDF.Syntax;
 using ZingPDF.Syntax.CommonDataStructures;
@@ -169,6 +171,22 @@ public class Pdf : IPdf, IDisposable
         return pageIndirectObject == null
             ? throw new InvalidOperationException()
             : new Page(pageIndirectObject, this, pageNumber);
+    }
+
+    /// <inheritdoc />
+    [SupportedOSPlatform("android31.0")]
+    [SupportedOSPlatform("ios13.6")]
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("maccatalyst13.5")]
+    [SupportedOSPlatform("macos")]
+    [SupportedOSPlatform("windows")]
+    public async Task<PdfPageRenderResult> RenderPageAsync(
+        int pageNumber,
+        PdfPageRenderOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        var page = await GetPageAsync(pageNumber);
+        return await page.RenderAsync(options, cancellationToken);
     }
 
     /// <inheritdoc />
