@@ -48,12 +48,7 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdf pdf)
             return null;
         }
 
-        if (!GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(dictionary.GetType(), out var inheritableProperties))
-        {
-            return null;
-        }
-
-        if (!inheritableProperties.Contains(key))
+        if (!IsInheritableProperty(dictionary.GetType(), key))
         {
             return null;
         }
@@ -64,6 +59,20 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdf pdf)
         return await parentDictionary
             .GetRequiredProperty<IPdfObject>(key)
             .GetRawValueAsync(); // Recurse
+    }
+
+    private static bool IsInheritableProperty(Type dictionaryType, string propertyKey)
+    {
+        for (Type? type = dictionaryType; type is not null; type = type.BaseType)
+        {
+            if (GeneratedInheritableKeys.InheritableKeys.Map.TryGetValue(type, out var inheritableProperties)
+                && inheritableProperties.Contains(propertyKey))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public async Task<IPdfObject?> ResolveAsync()

@@ -74,6 +74,25 @@ await page.AddTextAsync(
 await pdf.SaveAsync(File.Create("hello-standard.pdf"));
 ```
 
+Read displayed page geometry and translate an overlay point:
+
+```csharp
+using ZingPDF;
+using ZingPDF.Elements.Drawing;
+
+using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var page = await pdf.GetPageAsync(1);
+var geometry = await page.GetGeometryAsync();
+var displayPoint = geometry.PageToDisplay(new Coordinate(72, 144));
+
+Console.WriteLine($"{geometry.DisplayWidth} x {geometry.DisplayHeight}");
+Console.WriteLine($"Preview point: {displayPoint.X}, {displayPoint.Y}");
+```
+
+`GetGeometryAsync()` resolves inherited `MediaBox`, `CropBox`, and `Rotate` values. PDF page coordinates use a bottom-left origin. Display coordinates use a top-left origin after the visible page box and clockwise page rotation are applied.
+
 Create and fill a PDF form:
 
 ```csharp
@@ -163,6 +182,7 @@ if (result.Status == PdfSignatureValidationStatus.Valid)
 - convert HTML strings and URLs to PDF with `ZingPDF.FromHTML`
 - edit existing PDFs with `pdf.Pages(...)`
 - append, insert, delete, export, merge, or split pages
+- read cropped and rotated page display geometry and convert overlay coordinates
 - add text, images, vector drawing, and watermarks to pages
 - register standard PDF fonts and embedded TrueType fonts
 - create, fill, flatten, sign, and validate AcroForm fields

@@ -32,6 +32,7 @@ Notes:
 - load an existing PDF from a seekable stream
 - create a new blank PDF
 - inspect page counts and retrieve pages
+- read visible page geometry and translate points between PDF page coordinates and displayed page coordinates
 - append, insert, delete, and merge pages
 - rotate pages
 - read and update document metadata
@@ -77,6 +78,7 @@ These limits should be treated as part of the current product contract unless ex
 - `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
+- page geometry is exposed through `Page.GetGeometryAsync(...)`; page-to-bitmap rendering is not yet exposed through the core API
 - text fields currently have the richest form write support
 - signing currently requires unencrypted input and unencrypted output; password-protected input signing is not implemented yet
 - encrypting an already signed PDF is not a supported high-level workflow because rewriting signed bytes invalidates existing signatures
