@@ -60,6 +60,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 6. Run `pwsh ./scripts/prepare-release.ps1` manually only when preparing release metadata outside automation.
 7. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
 8. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
+9. Use `[skip deploy]` on maintenance-only merge commits that should not publish the website.
 
 ## Capturing New Memory
 
