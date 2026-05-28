@@ -85,6 +85,11 @@
                     <td><code>Page.GetGeometryAsync(...)</code> resolves crop and rotation values and converts between PDF bottom-left and display top-left points.</td>
                   </tr>
                   <tr>
+                    <td><a class="inline-link" href="./docs.html#page-geometry">Render PDF pages to PNG</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>Page.RenderAsync(...)</code> and <code>Pdf.RenderPageAsync(...)</code> return PNG bytes plus pixel dimensions and page geometry. Rendering uses PDFium through <code>PDFtoImage</code> and <code>SkiaSharp</code> native assets.</td>
+                  </tr>
+                  <tr>
                     <td><a class="inline-link" href="./insert-append-delete-pdf-pages-csharp.html">Append, insert, and delete pages</a>; <a class="inline-link" href="./merge-pdfs-csharp.html">merge pages</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Append, insert, delete, and merge operations.</td>

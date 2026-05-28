@@ -304,8 +304,25 @@ Console.WriteLine($"{previewPoint.X}, {previewPoint.Y}");</code></pre>
               <li><code>MediaBox</code>, <code>CropBox</code>, and <code>Rotate</code> are resolved through the page tree when they are inherited.</li>
               <li><code>VisibleBox</code> is the intersection of the crop box and media box.</li>
               <li><code>RotationDegrees</code> is returned as <code>0</code>, <code>90</code>, <code>180</code>, or <code>270</code>.</li>
-              <li>This API describes page placement. Rendering a PDF page to a bitmap is not yet exposed by the core package.</li>
+              <li><code>Page.RenderAsync(...)</code> and <code>Pdf.RenderPageAsync(...)</code> render PNG bytes using the same page geometry metadata.</li>
             </ul>
+
+            <h3>Render a PNG preview</h3>
+            <pre><code class="language-csharp">using ZingPDF;
+using ZingPDF.Rendering;
+
+using var input = File.OpenRead("input.pdf");
+using var pdf = Pdf.Load(input);
+
+var preview = await pdf.RenderPageAsync(1, new PdfPageRenderOptions
+{
+    Scale = 1.5
+});
+
+await File.WriteAllBytesAsync("page-1.png", preview.PngBytes.ToArray());
+Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
+
+            <p>Rendering uses the current in-memory PDF state, so page edits can be previewed before saving. The renderer is backed by PDFium through <code>PDFtoImage</code> and <code>SkiaSharp</code> native assets for Windows, Linux, and macOS.</p>
           </section>
 
           <section class="doc-section" id="packages">
@@ -325,13 +342,13 @@ Console.WriteLine($"{previewPoint.X}, {previewPoint.Y}");</code></pre>
             <div class="doc-grid">
               <article class="doc-card">
                 <h3><code>ZingPDF</code></h3>
-                <p>The main PDF library for loading, creating, editing, merging, watermarking, compression, redaction, forms,
+                <p>The main PDF library for loading, creating, editing, page rendering, merging, watermarking, compression, redaction, forms,
                   metadata, and encryption.</p>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
                   <li>Use for most applications</li>
                   <li>Runs on Windows, Linux, and macOS</li>
-                  <li>Depends on <code>SkiaSharp</code> and <code>ImageSharp</code>, so test on your target platform
+                  <li>Page rendering depends on PDFium through <code>PDFtoImage</code> and <code>SkiaSharp</code> native assets, so test on your target platform
                   </li>
                 </ul>
               </article>
