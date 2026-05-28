@@ -5,10 +5,10 @@ namespace ZingPDF.Tests.Smoke.TestFiles;
 
 public static class Files
 {
-    private const string _htmlBasePath = "testfiles/html";
-    private const string _fontBasePath = "testfiles/font";
-    private const string _imageBasePath = "testfiles/image";
-    private const string _pdfBasePath = "testfiles/pdf";
+    private const string _htmlBasePath = "TestFiles/html";
+    private const string _fontBasePath = "TestFiles/font";
+    private const string _imageBasePath = "TestFiles/image";
+    private const string _pdfBasePath = "TestFiles/pdf";
 
     private static readonly ConcurrentDictionary<string, byte[]> _files = [];
 

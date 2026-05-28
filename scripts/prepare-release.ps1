@@ -104,7 +104,11 @@ function Get-CommitNotes {
             continue
         }
 
-        $notes += "- $subject.Trim()"
+        if ($subject -match '\[skip release\]') {
+            continue
+        }
+
+        $notes += "- $($subject.Trim())"
     }
 
     return $notes
@@ -186,9 +190,9 @@ if ($bounds.End -gt ($bounds.Start + 1)) {
     $unreleasedBody = $lines[($bounds.Start + 1)..($bounds.End - 1)]
 }
 
-$bodyHasContent = ($unreleasedBody | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count -gt 0
+$bodyHasContent = @($unreleasedBody | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count -gt 0
 if (-not $bodyHasContent) {
-    $commitNotes = Get-CommitNotes -BaseTag $latestTag
+    $commitNotes = @(Get-CommitNotes -BaseTag $latestTag)
     if ($commitNotes.Count -eq 0) {
         "should_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         exit 0

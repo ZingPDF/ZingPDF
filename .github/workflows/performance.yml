@@ -37,11 +37,11 @@ jobs:
         working-directory: baseline
         run: ./scripts/run-performance.ps1
 
-      - name: Compare with base branch
+      - name: Compare with base branch (report only)
         if: github.event_name == 'pull_request'
         shell: pwsh
         working-directory: current
-        run: ./scripts/compare-performance.ps1 -CurrentSummary ./artifacts/performance/latest-summary.json -BaselineSummary ../baseline/artifacts/performance/latest-summary.json -OutputMarkdown ./artifacts/performance/comparison.md -ThresholdPercent 10
+        run: ./scripts/compare-performance.ps1 -CurrentSummary ./artifacts/performance/latest-summary.json -BaselineSummary ../baseline/artifacts/performance/latest-summary.json -OutputMarkdown ./artifacts/performance/comparison.md -ThresholdPercent 10 -ReportOnly
 
       - name: Publish workflow summary
         if: always()

@@ -56,6 +56,7 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 2. Update `CHANGELOG.md` under `## [Unreleased]` with meaningful notes, or let `scripts/prepare-release.ps1` derive notes from commits.
 3. Run `pwsh ./scripts/prepare-release.ps1` only when preparing release metadata.
 4. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
+5. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
 
 ## Capturing New Memory
 

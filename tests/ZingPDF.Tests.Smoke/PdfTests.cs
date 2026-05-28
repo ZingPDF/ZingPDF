@@ -1645,7 +1645,8 @@ public class PdfTests
     {
         using var pdf = Pdf.Create();
         using var output = new MemoryStream();
-        using var certificate = CreateSigningCertificate();
+        using var trustedRoot = CreateCertificateAuthority();
+        using var certificate = CreateSigningCertificate(trustedRoot);
 
         await AddSignatureFieldAsync(pdf, "ApprovalSignature");
 
@@ -1681,7 +1682,7 @@ public class PdfTests
         var certificateResult = await signatures[0].ValidateAsync(new PdfSignatureValidationOptions
         {
             Profile = PdfSignatureValidationProfile.CertificateChain,
-            TrustedRoots = new X509Certificate2Collection(certificate)
+            TrustedRoots = new X509Certificate2Collection(trustedRoot)
         });
 
         certificateResult.Status.Should().Be(PdfSignatureValidationStatus.Valid);
@@ -2499,6 +2500,52 @@ public class PdfTests
         return request.CreateSelfSigned(
             DateTimeOffset.UtcNow.AddDays(-1),
             DateTimeOffset.UtcNow.AddDays(30));
+    }
+
+    private static X509Certificate2 CreateCertificateAuthority()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=ZingPDF Smoke Test Root",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+
+        request.CertificateExtensions.Add(
+            new X509BasicConstraintsExtension(certificateAuthority: true, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+        request.CertificateExtensions.Add(
+            new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, critical: true));
+        request.CertificateExtensions.Add(
+            new X509SubjectKeyIdentifierExtension(request.PublicKey, critical: false));
+
+        return request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddDays(-1),
+            DateTimeOffset.UtcNow.AddDays(30));
+    }
+
+    private static X509Certificate2 CreateSigningCertificate(X509Certificate2 issuer)
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest(
+            "CN=ZingPDF Smoke Test Signer",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+
+        request.CertificateExtensions.Add(
+            new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+        request.CertificateExtensions.Add(
+            new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
+        request.CertificateExtensions.Add(
+            new X509SubjectKeyIdentifierExtension(request.PublicKey, critical: false));
+
+        using var certificate = request.Create(
+            issuer,
+            DateTimeOffset.UtcNow.AddDays(-1),
+            DateTimeOffset.UtcNow.AddDays(30),
+            RandomNumberGenerator.GetBytes(16));
+
+        return certificate.CopyWithPrivateKey(rsa);
     }
 
     private static async Task AddSignatureFieldAsync(Pdf pdf, string fieldName)

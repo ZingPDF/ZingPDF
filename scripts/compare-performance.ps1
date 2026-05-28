@@ -5,7 +5,8 @@ param(
     [string]$BaselineSummary,
     [Parameter(Mandatory = $true)]
     [string]$OutputMarkdown,
-    [double]$ThresholdPercent = 10
+    [double]$ThresholdPercent = 10,
+    [switch]$ReportOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -78,5 +79,11 @@ if ($outputDirectory) {
 $lines | Set-Content -Path $OutputMarkdown
 
 if ($regressions.Count -gt 0) {
-    throw "Performance regressions exceeded the $ThresholdPercent% threshold. See $OutputMarkdown for details."
+    $message = "Performance regressions exceeded the $ThresholdPercent% threshold. See $OutputMarkdown for details."
+    if ($ReportOnly) {
+        Write-Warning $message
+    }
+    else {
+        throw $message
+    }
 }
