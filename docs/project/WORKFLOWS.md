@@ -55,13 +55,14 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 
 1. Confirm release-affecting changes are intentional.
 2. Merge product changes to `main` through PRs.
-3. Let the Prepare Release workflow open or update the release-preparation PR, then review the generated `CHANGELOG.md` section before merging it.
+3. When you are ready to publish one or more merged changes, run the Prepare Release workflow manually.
 4. Merge release-preparation PRs with a `chore(release): prepare <version>` title and without `[skip release]`.
 5. The Release workflow publishes only after release metadata has already been merged to `main`; it does not commit back to the protected branch.
 6. Run `pwsh ./scripts/prepare-release.ps1` manually only when preparing release metadata outside automation.
 7. The release workflow packs core, FromHTML, GoogleFonts, OCR, Templates, and Templates.LiquidHtml packages.
 8. Use `[skip release]` on maintenance-only merge commits that should not become generated changelog entries.
 9. Use `[skip deploy]` on maintenance-only merge commits that should not publish the website.
+10. Cloudflare Pages deploys on `main` pushes unless `[skip deploy]` is present; use the marker when a maintenance merge should not publish the website.
 
 ## Capturing New Memory
 

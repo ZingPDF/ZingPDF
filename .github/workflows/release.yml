@@ -5,24 +5,9 @@ on:
     branches:
       - main
     paths:
-      - "src/ZingPDF/**"
-      - "src/ZingPDF.Fonts/**"
-      - "src/ZingPDF.FromHTML/**"
-      - "src/ZingPDF.GoogleFonts/**"
-      - "src/ZingPDF.OCR/**"
-      - "src/ZingPDF.Templates/**"
-      - "src/ZingPDF.Templates.LiquidHtml/**"
-      - "src/ZingPDF.InheritableSourceGenerator/**"
-      - "tests/**"
-      - "scripts/**"
       - ".github/workflows/release.yml"
-      - ".github/release.yml"
-      - "ZingPDF.sln"
       - "Directory.Build.props"
       - "CHANGELOG.md"
-      - "LICENSE.txt"
-      - "docs/packages/**"
-      - "docs/project/SUPPORT.md"
   workflow_dispatch:
     inputs:
       expected_version:
