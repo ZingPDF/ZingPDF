@@ -23,6 +23,7 @@ Stripe is the source of truth for pricing amounts, billing intervals, currencies
 Edit `config.js` and update:
 
 - `supportEmail`
+- `googleAnalyticsMeasurementId` with your Google Analytics 4 measurement ID such as `G-XXXXXXXXXX`
 
 Then configure Stripe itself:
 
@@ -41,6 +42,18 @@ The site currently embeds Stripe with:
 ```
 
 So the only site-side maintenance is updating those values in `index.html` if you replace the Stripe Pricing Table.
+
+## Google Analytics setup
+
+The site can load Google Analytics 4 through `config.js`.
+
+Set:
+
+- `googleAnalyticsMeasurementId`
+
+When that value is blank, analytics stays disabled.
+
+When it is set, the site loads `gtag.js`, sends the default page-view event, and skips tracking on `localhost`, `127.0.0.1`, and `[::1]` so local preview traffic does not pollute reporting.
 
 ## How to run locally
 

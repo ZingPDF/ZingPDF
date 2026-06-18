@@ -1,5 +1,6 @@
 (function () {
   const config = window.ZINGPDF_STORE_CONFIG || {};
+  initializeGoogleAnalytics(config);
   const checkoutBanner = document.getElementById("checkout-banner");
   const dialog = document.getElementById("contact-dialog");
   const emailText = document.getElementById("contact-email-text");
@@ -68,6 +69,29 @@
   highlightCodeBlocks();
   hydrateCheckoutBanner();
 
+  function initializeGoogleAnalytics(storeConfig) {
+    const measurementId = String(storeConfig.googleAnalyticsMeasurementId || "").trim();
+
+    if (measurementId === "" || isLocalDevelopmentHost(window.location.hostname)) {
+      return;
+    }
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function gtag() {
+      window.dataLayer.push(arguments);
+    };
+
+    window.gtag("js", new Date());
+    window.gtag("config", measurementId, {
+      anonymize_ip: true
+    });
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+    document.head.appendChild(script);
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replaceAll("&", "&amp;")
@@ -82,6 +106,10 @@
       .toLowerCase()
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  function isLocalDevelopmentHost(hostname) {
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
   }
 
   function hydrateCheckoutBanner() {
