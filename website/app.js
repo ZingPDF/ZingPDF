@@ -1,7 +1,8 @@
 (function () {
   const config = window.ZINGPDF_STORE_CONFIG || {};
-  initializeGoogleAnalytics(config);
   const checkoutBanner = document.getElementById("checkout-banner");
+  const checkoutReturnState = hydrateCheckoutBanner();
+  const analyticsEnabled = initializeGoogleAnalytics(config);
   const dialog = document.getElementById("contact-dialog");
   const emailText = document.getElementById("contact-email-text");
   const emailLink = document.getElementById("contact-email-link");
@@ -20,8 +21,13 @@
   }
 
   for (const trigger of contactSalesTriggers) {
-    trigger.addEventListener("click", () => dialog?.showModal());
+    trigger.addEventListener("click", () => {
+      trackEvent("contact_sales_click");
+      dialog?.showModal();
+    });
   }
+
+  initializeFunnelTracking();
 
   for (const detail of faqDetails) {
     detail.addEventListener("toggle", () => {
@@ -67,13 +73,56 @@
   }
 
   highlightCodeBlocks();
-  hydrateCheckoutBanner();
+
+  function trackEvent(name, parameters) {
+    if (analyticsEnabled) {
+      window.gtag("event", name, parameters || {});
+    }
+  }
+
+  function initializeFunnelTracking() {
+    if (checkoutReturnState) {
+      // A return URL is directional evidence, not a verified Stripe payment.
+      trackEvent("checkout_return", { result: checkoutReturnState });
+    }
+
+    const pricingSection = document.getElementById("licenses");
+    if (pricingSection && analyticsEnabled && "IntersectionObserver" in window) {
+      let pricingViewed = false;
+      const observer = new IntersectionObserver((entries) => {
+        if (!pricingViewed && entries.some((entry) => entry.isIntersecting)) {
+          pricingViewed = true;
+          trackEvent("pricing_view");
+          observer.disconnect();
+        }
+      }, { threshold: 0.25 });
+      observer.observe(pricingSection);
+    }
+
+    document.addEventListener("click", (event) => {
+      const link = event.target?.closest?.("a");
+      if (!link) {
+        return;
+      }
+
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin === window.location.origin && destination.hash === "#licenses") {
+        trackEvent("pricing_link_click");
+      } else if (destination.hostname === "www.nuget.org") {
+        trackEvent("resource_click", { resource: "nuget" });
+      } else if (destination.hostname === "github.com" && destination.pathname.startsWith("/ZingPDF/ZingPDF")) {
+        trackEvent("resource_click", { resource: "github" });
+      } else if (link.id === "contact-email-link") {
+        trackEvent("sales_email_click");
+      }
+    });
+  }
 
   function initializeGoogleAnalytics(storeConfig) {
     const measurementId = String(storeConfig.googleAnalyticsMeasurementId || "").trim();
 
     if (measurementId === "" || isLocalDevelopmentHost(window.location.hostname)) {
-      return;
+      return false;
     }
 
     window.dataLayer = window.dataLayer || [];
@@ -90,6 +139,7 @@
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
     document.head.appendChild(script);
+    return true;
   }
 
   function escapeHtml(value) {
@@ -114,7 +164,7 @@
 
   function hydrateCheckoutBanner() {
     if (!checkoutBanner) {
-      return;
+      return null;
     }
 
     const url = new URL(window.location.href);
@@ -123,10 +173,10 @@
     if (state === "success") {
       checkoutBanner.hidden = false;
       checkoutBanner.setAttribute("data-state", "success");
-      checkoutBanner.textContent = "Thanks — your checkout completed successfully. Your subscription should be active shortly.";
+      checkoutBanner.textContent = "Stripe returned you to ZingPDF after checkout. Check your Stripe confirmation email for your subscription details.";
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
-      return;
+      return state;
     }
 
     if (state === "cancelled") {
@@ -135,7 +185,10 @@
       checkoutBanner.textContent = "Checkout cancelled. You can review the plans below and try again whenever you're ready.";
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
+      return state;
     }
+
+    return null;
   }
 
   function highlightCodeBlocks() {

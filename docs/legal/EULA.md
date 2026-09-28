@@ -12,6 +12,7 @@ This ZingPDF Commercial End User License Agreement ("Agreement") is between Thom
 - "Authorized Developer" means an individual permitted by Customer to develop, build, test, or maintain an Application using the Software.
 - "Seat" means one licensed developer seat.
 - "Subscription Term" means the active subscription period stated in an order, invoice, checkout, quote, or other commercial document issued by Licensor.
+- "Covered Version" means an unmodified, generally released version of the Software made available by Licensor during a Subscription Term for which Customer has paid. Prerelease and evaluation builds are not Covered Versions unless an applicable order expressly says otherwise.
 
 ## 3. License Grant
 
@@ -20,6 +21,8 @@ Subject to Customer's compliance with this Agreement and payment of all applicab
 - install and use the Software for Customer's internal development, testing, and Commercial Use
 - permit up to the number of Seats purchased by Customer to access and use the Software
 - reproduce and distribute the unmodified Software only as embedded in Customer's compiled Application, and only as reasonably necessary to operate that Application
+
+For each Covered Version, the license to use that version commercially and to develop, build, maintain, run, and distribute Customer's compiled Application with that version continues indefinitely after the Subscription Term ends. This continuing license is limited to the legal entity, number of Seats, and other commercial scope purchased for that Covered Version. It does not grant access to versions first made available after the paid term, or support or maintenance after the term. The restrictions in this Agreement continue to apply.
 
 No source code rights are granted unless explicitly stated in a separate written agreement signed by Licensor.
 
@@ -63,13 +66,13 @@ Customer must pay all fees specified in the applicable order, quote, or invoice.
 
 Unless otherwise stated in the applicable commercial order:
 
-- the license remains valid only while Customer maintains an active subscription
+- access to new Covered Versions and support requires an active subscription
 - support and update entitlement lasts only while Customer maintains an active subscription
 - Customer may use any version of the Software made available by Licensor while subscribed
-- Customer may cancel at any time, but no refunds are provided for the current billing period
-- coverage continues through the end of the already-paid billing cycle
+- Customer may cancel at any time; cancellation stops future renewals and the paid term continues through the end of the billing cycle
+- initial purchase and renewal refunds are governed by the published Refund Policy and applicable law
 
-No perpetual right to continue Commercial Use after subscription expiry is granted unless Licensor expressly agrees otherwise in writing.
+Expiration or cancellation does not end the continuing license for Covered Versions. A refunded, reversed, or unpaid term creates no Covered Versions or continuing rights under that term. Rights from earlier paid terms are unaffected. A separate written agreement may specify different rights.
 
 ## 8. Updates And Support
 
@@ -106,7 +109,7 @@ These limitations apply whether the claim arises in contract, tort, statute, or 
 
 This Agreement terminates automatically if Customer breaches it and fails to cure that breach within 30 days after written notice, if the breach is curable.
 
-Upon termination or expiration, Customer must cease any unlicensed use of the Software. Sections relating to ownership, restrictions, disclaimers, limitation of liability, confidentiality, and other provisions that by their nature should survive will survive termination.
+Upon termination for uncured breach, Customer must cease Commercial Use of the Software, including Covered Versions, unless otherwise agreed in writing. Expiration or cancellation without breach does not terminate the continuing Covered Version license granted in Section 3. Sections relating to that continuing license, ownership, restrictions, disclaimers, limitation of liability, confidentiality, and other provisions that by their nature should survive will survive expiration or cancellation.
 
 ## 14. Export And Compliance
 

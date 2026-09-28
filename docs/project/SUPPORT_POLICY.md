@@ -57,6 +57,8 @@ An active maintenance term entitles Customer to use updates, patches, and minor 
 
 Access to new updates may stop when the maintenance term expires unless renewed.
 
+Expiration of support or maintenance does not end the customer's commercial license to versions released during a paid term. Those versions remain usable within the purchased license scope under `../legal/EULA.md`.
+
 ## 9. Supported Usage Boundary
 
 Support is provided for documented and supported product capabilities described in:

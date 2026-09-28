@@ -61,4 +61,4 @@ ZingPDF is a .NET 8 library for reading, editing, creating, templating, and savi
 
 ## Licensing
 
-ZingPDF is proprietary software. Commercial use requires an active subscription or a separate commercial agreement. See [LICENSE.txt](./LICENSE.txt) for the current license terms.
+ZingPDF is proprietary software. Commercial use requires a paid subscription or a separate commercial agreement. Versions released during a paid subscription may be used indefinitely within the purchased scope after cancellation; new versions and support require an active subscription. See [LICENSE.txt](./LICENSE.txt) and [the EULA](./docs/legal/EULA.md) for the current license terms.
