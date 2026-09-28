@@ -63,7 +63,7 @@ await pdfStream.CopyToAsync(output);
 
 ## Licensing
 
-ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have an active paid subscription with sufficient seats, or another applicable commercial agreement, before commercial use or commercial bundling.
+ZingPDF is proprietary software. Review `LICENSE.txt` and ensure you have paid license coverage with sufficient seats, or another applicable commercial agreement, before commercial use or commercial bundling. Versions released during a paid subscription remain licensed within the purchased scope after it ends; new versions and support require an active subscription.
 
 Evaluation and other non-commercial use are free.
 

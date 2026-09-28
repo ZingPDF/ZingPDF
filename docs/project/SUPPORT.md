@@ -108,6 +108,7 @@ These limits should be treated as part of the current product contract unless ex
 - install `ZingPDF` by default; add `ZingPDF.FromHTML`, `ZingPDF.Templates.LiquidHtml`, `ZingPDF.GoogleFonts`, or `ZingPDF.OCR` only when you need those specific features
 - evaluation and other non-commercial use are free; paid seats are required for commercial use and internal business operations outside genuine evaluation
 - seats are licensed per developer, and contractors may use seats licensed to the same customer legal entity
+- versions released during a paid subscription remain licensed for commercial use within the purchased scope after cancellation or expiry; new versions and support require an active subscription
 - the core library targets `net8.0` and is intended for Windows, Linux, and macOS environments that support .NET 8
 - the core library is suitable for desktop apps, services, workers, background jobs, and CLI tools
 

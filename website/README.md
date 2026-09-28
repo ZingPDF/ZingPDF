@@ -55,6 +55,8 @@ When that value is blank, analytics stays disabled.
 
 When it is set, the site loads `gtag.js`, sends the default page-view event, and skips tracking on `localhost`, `127.0.0.1`, and `[::1]` so local preview traffic does not pollute reporting.
 
+The site also records pricing views, clicks to pricing and ZingPDF package resources, sales-contact actions, and recognised Stripe return URLs. It cannot observe Subscribe clicks inside Stripe's embedded table.
+
 ## How to run locally
 
 Any static server will work. For example:

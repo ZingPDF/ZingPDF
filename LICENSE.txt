@@ -5,9 +5,9 @@ ZingPDF, including this repository, the distributed binaries, and the NuGet pack
 
 Non-commercial use, internal evaluation, and other use that does not generate commercial gain are permitted under the applicable non-commercial and evaluation terms.
 
-Commercial use requires an active paid subscription with sufficient licensed seats or a separate written commercial agreement from the copyright holder.
+Commercial use requires a paid subscription with sufficient licensed seats or a separate written commercial agreement from the copyright holder. A paid subscription grants continuing commercial rights to unmodified versions released during its paid term, as described in the EULA.
 
-Without an active paid subscription or separate written commercial agreement, you may not use this software for commercial gain.
+Without paid coverage for the version and licensed seats you use, or a separate written commercial agreement, you may not use this software for commercial gain.
 
 Without express written permission from the copyright holder, you may not:
 
@@ -17,7 +17,7 @@ Without express written permission from the copyright holder, you may not:
 - publish, sublicense, rent, lease, lend, assign, transfer, or make this software available as a standalone library, SDK, package, service, toolkit, or competing offering
 - remove or alter any copyright, trademark, or proprietary notices
 
-With an active paid subscription and sufficient licensed seats, you may use and bundle the unmodified ZingPDF binaries in your own applications, including commercial applications, provided that required licensing assets, terms, notices, and attribution remain intact.
+With a paid subscription and sufficient licensed seats, you may use and bundle the unmodified ZingPDF binaries in your own applications, including commercial applications, provided that required licensing assets, terms, notices, and attribution remain intact. After cancellation or expiry, you may continue to use and distribute applications with versions released during the paid term within the purchased scope. New versions and support require an active subscription.
 
 For clarity, a paid subscription does not by itself grant permission to:
 
