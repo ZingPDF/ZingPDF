@@ -133,16 +133,26 @@ internal sealed class LowLevelTextPageExtractor : IDisposable
 
     public async Task AppendPlainTextAsync(Stream stream, StringBuilder destination)
     {
+        ArgumentNullException.ThrowIfNull(destination);
+        await AppendPlainTextAsync(stream, CreatePlainTextCollector(destination));
+    }
+
+    internal PlainTextCollector CreatePlainTextCollector(StringBuilder destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        return new PlainTextCollector(destination);
+    }
+
+    internal async Task AppendPlainTextAsync(Stream stream, PlainTextCollector collector)
+    {
         using var trace = PerformanceTrace.Measure("LowLevelTextPageExtractor.AppendPlainTextAsync");
         ArgumentNullException.ThrowIfNull(stream);
-        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(collector);
 
         if (stream.CanSeek)
         {
             stream.Position = 0;
         }
-
-        var collector = new PlainTextCollector(destination);
 
         if (TryGetBuffer(stream, out var directBuffer))
         {
@@ -1503,7 +1513,7 @@ internal sealed class LowLevelTextPageExtractor : IDisposable
         public float Height { get; set; }
     }
 
-    private sealed class PlainTextCollector
+    internal sealed class PlainTextCollector
     {
         private const float YTolerance = 2f;
         private const float GapFactor = 0.2f;
