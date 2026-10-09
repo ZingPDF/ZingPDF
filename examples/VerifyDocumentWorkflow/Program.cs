@@ -34,6 +34,23 @@ if (!File.Exists(fontPath)) throw new FileNotFoundException("The bundled Noto Sa
 var cases = await CreateCorpusAsync(corpusDirectory, fontPath, workerDeadline.Token);
 if (args.Contains("--generate-only", StringComparer.Ordinal))
 {
+    foreach (var item in cases)
+    {
+        await using var source = File.OpenRead(item.PdfPath);
+        using var pdf = Pdf.Load(source);
+        var pageCount = await pdf.GetPageCountAsync();
+        for (var pageNumber = 1; pageNumber <= pageCount; pageNumber++)
+        {
+            var preview = await pdf.RenderPageAsync(pageNumber, new PdfPageRenderOptions
+            {
+                Scale = 150d / 72d,
+                ApplyPageRotation = true,
+                UseVisibleBox = true
+            }, workerDeadline.Token);
+            await File.WriteAllBytesAsync(Path.Combine(previewDirectory, $"{item.Name}-page-{pageNumber:D2}.png"),
+                preview.PngBytes.ToArray(), workerDeadline.Token);
+        }
+    }
     Console.WriteLine($"Generated {cases.Count} synthetic PDF inputs.");
     return;
 }
@@ -87,15 +104,6 @@ foreach (var item in cases)
         var expectedTokens = expected.Tokens;
         var tokenSearchText = NormalizeForTokenMatch(actualText);
         var missingTokens = expectedTokens.Where(token => !tokenSearchText.Contains(NormalizeForTokenMatch(token), StringComparison.Ordinal)).ToArray();
-        if (missingTokens.Length != 0)
-            throw new InvalidDataException($"{item.Name} page {pageNumber} missed {missingTokens.Length} expected OCR token(s).");
-        if (cer > expected.MaximumCer)
-            throw new InvalidDataException($"{item.Name} page {pageNumber} character error rate {cer:P2} exceeds {expected.MaximumCer:P2}.");
-        if (expected.MustUseOcr && !usedOcr)
-            throw new InvalidDataException($"{item.Name} page {pageNumber} did not use OCR for its image-only content.");
-        if (expected.MustUseEmbeddedText && usedOcr)
-            throw new InvalidDataException($"{item.Name} page {pageNumber} unexpectedly used OCR instead of embedded text.");
-
         pages.Add(new PageResult(pageNumber, expected.Description, source, inputCoverage, usedOcr,
             preview.PixelWidth, preview.PixelHeight, previewName,
             await HashFileAsync(previewPath, workerDeadline.Token), HashText(actualText), timer.ElapsedMilliseconds,
@@ -104,6 +112,15 @@ foreach (var item in cases)
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "progress.json"),
             JsonSerializer.Serialize(new { CurrentCase = item.Name, CompletedCases = results, Current = partialCase }, new JsonSerializerOptions { WriteIndented = true }),
             workerDeadline.Token);
+
+        if (missingTokens.Length != 0)
+            throw new InvalidDataException($"{item.Name} page {pageNumber} missed {missingTokens.Length} expected OCR token(s).");
+        if (cer > expected.MaximumCer)
+            throw new InvalidDataException($"{item.Name} page {pageNumber} character error rate {cer:P2} exceeds {expected.MaximumCer:P2}.");
+        if (expected.MustUseOcr && !usedOcr)
+            throw new InvalidDataException($"{item.Name} page {pageNumber} did not use OCR for its image-only content.");
+        if (expected.MustUseEmbeddedText && usedOcr)
+            throw new InvalidDataException($"{item.Name} page {pageNumber} unexpectedly used OCR instead of embedded text.");
     }
 
     results.Add(new CaseResult(item.Name, Path.GetFileName(item.PdfPath), pdfHash, pageCount, pages));
@@ -138,7 +155,7 @@ static async Task<IReadOnlyList<CorpusCase>> CreateCorpusAsync(string directory,
     await new PdfAuthoringBuilder()
         .Page(page => page.Size(pageSize.Width, pageSize.Height)
             .Text(text => text.Value("DIGITAL HEADER: INVOICE ZX-1042").At(42, 785).FontSize(20))
-            .Image(image => image.FromFile(combinedPng).At(40, 370).Size(515, 420).PreserveAspectRatio(false)))
+            .Image(image => image.FromFile(combinedPng).At(40, 340).Size(515, 420).PreserveAspectRatio(false)))
         .SaveToFileAsync(combinedPdf);
 
     var tiledPdf = Path.Combine(directory, "tiled-scan-page.pdf");
