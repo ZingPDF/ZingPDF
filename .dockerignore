@@ -1,0 +1,10 @@
+.git/
+.tools/
+**/bin/
+**/obj/
+**/TestResults/
+website/api/
+website/api-src/api/
+output/
+.env
+.env.*

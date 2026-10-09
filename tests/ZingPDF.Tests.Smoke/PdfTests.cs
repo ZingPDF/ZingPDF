@@ -2541,8 +2541,8 @@ public class PdfTests
 
         using var certificate = request.Create(
             issuer,
-            DateTimeOffset.UtcNow.AddDays(-1),
-            DateTimeOffset.UtcNow.AddDays(30),
+            new DateTimeOffset(issuer.NotBefore.ToUniversalTime()),
+            new DateTimeOffset(issuer.NotAfter.ToUniversalTime()),
             RandomNumberGenerator.GetBytes(16));
 
         return certificate.CopyWithPrivateKey(rsa);

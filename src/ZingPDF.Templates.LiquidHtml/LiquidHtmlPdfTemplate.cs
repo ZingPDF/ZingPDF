@@ -51,6 +51,7 @@ public sealed class LiquidHtmlPdfTemplate
         LiquidHtmlPdfTemplateOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var templateText = await ReadTemplateAsync(cancellationToken);
         var template = ParseTemplate(templateText);
         var renderOptions = CreateTemplateOptions(options);
@@ -69,8 +70,11 @@ public sealed class LiquidHtmlPdfTemplate
 
         try
         {
-            return await template.RenderAsync(context, HtmlEncoder.Default);
+            var html = await template.RenderAsync(context, HtmlEncoder.Default);
+            cancellationToken.ThrowIfCancellationRequested();
+            return html;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is not PdfTemplateRenderException)
         {
             throw new PdfTemplateRenderException(
@@ -100,7 +104,8 @@ public sealed class LiquidHtmlPdfTemplate
         await pdf.CopyToAsync(output, cancellationToken);
     }
 
-    internal static LiquidHtmlPdfTemplate FromSource(PdfTemplateSource source, IHtmlToPdfConverter converter)
+    /// <summary>Creates a template with a caller-supplied converter. The template does not own or dispose the converter; conversion receives the render cancellation token.</summary>
+    public static LiquidHtmlPdfTemplate FromSource(PdfTemplateSource source, IHtmlToPdfConverter converter)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(converter);
@@ -114,6 +119,7 @@ public sealed class LiquidHtmlPdfTemplate
         {
             return await _source.ReadAsync(cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is not PdfTemplateRenderException)
         {
             throw new PdfTemplateRenderException(

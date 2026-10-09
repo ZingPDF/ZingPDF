@@ -41,7 +41,7 @@
           <p class="eyebrow">Guide</p>
           <h1>How to convert HTML to PDF in C#</h1>
           <p class="article-dek">
-            Add <code>ZingPDF.FromHTML</code>, pass either an HTML string or a URL to <code>Converter.ToPdfAsync(...)</code>,
+            Add <code>ZingPDF.FromHTML</code>, configure <code>HtmlToPdfRenderer</code> with an installed browser and pass an HTML string or URL,
             then copy the returned stream to the destination you control.
           </p>
           <p>
@@ -71,37 +71,44 @@
             Use the string overload when your application has already rendered the markup.
           </p>
 
+          <p>The application supplies <code>cancellationToken</code> and sets <code>ZINGPDF_BROWSER_PATH</code> to the installed executable.</p>
           <pre><code class="language-csharp">using ZingPDF.FromHTML;
 
-await using var pdfStream = await Converter.ToPdfAsync("""
-<!doctype html>
-<html>
-<body>
-  <h1>Invoice INV-1001</h1>
-  <p>Rendered through Chromium.</p>
-</body>
-</html>
-""");
+await using var renderer = new HtmlToPdfRenderer(new HtmlToPdfOptions
+{
+    BrowserExecutablePath = Environment.GetEnvironmentVariable("ZINGPDF_BROWSER_PATH")
+        ?? throw new InvalidOperationException("Set ZINGPDF_BROWSER_PATH to an installed browser."),
+    MaxConcurrency = 4,
+    RenderTimeout = TimeSpan.FromSeconds(30)
+});
+
+await using var pdfStream = await renderer.RenderAsync("""
+&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;style&gt;@page { size: A4; margin: 15mm; }&lt;/style&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Invoice INV-1001&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;
+""", cancellationToken);
 
 await using var output = File.Create("invoice.pdf");
-await pdfStream.CopyToAsync(output);</code></pre>
+await pdfStream.CopyToAsync(output, cancellationToken);</code></pre>
         </section>
 
         <section class="article-section" id="url">
           <h2>Convert a URL</h2>
           <p>
-            Use the URL overload when the HTML is served by an application route, static site, or report endpoint.
+            Use the configured renderer above for any absolute URL supported by Chromium, including HTTP, HTTPS, file, data and about URLs. URL content must be trusted.
           </p>
 
           <pre><code class="language-csharp">using ZingPDF.FromHTML;
 
-await using var pdfStream = await Converter.ToPdfAsync(
+await using var pdfStream = await renderer.RenderAsync(
     new Uri("https://example.com/report"),
     new NavigationOptions
     {
         TimeoutExpiration = 60_000,
         WaitUntilFlags = WaitUntil.Networkidle0
-    });
+    }, cancellationToken);
 
 await using var output = File.Create("report.pdf");
 await pdfStream.CopyToAsync(output);</code></pre>
@@ -112,7 +119,7 @@ await pdfStream.CopyToAsync(output);</code></pre>
           <p>
             <code>NavigationOptions</code> controls URL navigation. The default timeout is 30 seconds. The wait flags
             map to browser navigation states such as <code>Load</code>, <code>DOMContentLoaded</code>,
-            <code>Networkidle0</code>, and <code>Networkidle2</code>.
+            <code>Networkidle0</code>, and <code>Networkidle2</code>. Set <code>TimeoutExpiration</code> to zero to disable the navigation timeout. A finite renderer deadline still applies to the conversion; the original static converter disables that overall deadline and retains a finite startup budget.
           </p>
           <pre><code class="language-csharp">var options = NavigationOptions.WaitUntil(WaitUntil.DOMContentLoaded);
 options.TimeoutExpiration = 15_000;</code></pre>
@@ -121,11 +128,15 @@ options.TimeoutExpiration = 15_000;</code></pre>
         <section class="article-section" id="deployment">
           <h2>Deployment notes</h2>
           <ul>
-            <li>The HTML package is separate from the core <code>ZingPDF</code> package because browser rendering has additional runtime requirements.</li>
-            <li>The string overload sets the supplied HTML as page content. The URL overload navigates to the address and waits for browser font readiness before returning the PDF stream.</li>
-            <li>The returned stream is positioned for copying and belongs to the caller.</li>
-            <li>Use <code>ZingPDF.Templates.LiquidHtml</code> for HTML rendered from Liquid variables, loops, and conditionals before conversion.</li>
-          </ul>
+              <li>Supply an installed Chromium-compatible executable through <code>BrowserExecutablePath</code>. Browser downloading is disabled by default; <code>AllowBrowserDownload</code> enables it explicitly.</li>
+              <li>Reuse <code>HtmlToPdfRenderer</code> across jobs. One browser serves isolated contexts; <code>MaxConcurrency</code> defaults to four and additional jobs queue.</li>
+              <li>The new renderer's default 30-second <code>RenderTimeout</code> covers queueing, startup, loading, font readiness and printing. <code>Timeout.InfiniteTimeSpan</code> disables the overall deadline. The separate <code>BrowserStartupTimeout</code> defaults to 30 seconds and must remain finite. Expiry throws <code>TimeoutException</code>; caller cancellation throws <code>OperationCanceledException</code>. Context creation and cleanup must finish; browser startup or downloading can remain renderer-owned after a caller stops waiting, within the separate startup budget. Disposal cancels browser provisioning. The deadline is not an OS-enforced hard worker bound.</li>
+              <li>Options are copied at construction. The caller disposes the renderer and returned streams. New defaults use print media, background printing and CSS page sizes; customize <code>PdfOptions</code> for paper, margins, headers or page ranges.</li>
+              <li>Original static <code>Converter.ToPdfAsync(...)</code> overloads retain automatic browser downloading, screen media and default PuppeteerSharp print settings. They disable the overall deadline to preserve explicit navigation timeouts, including zero; the browser startup budget remains finite. The overload taking <code>HtmlToPdfOptions</code> uses explicit settings for one job.</li>
+              <li><code>Offline</code> emulates offline page networking. Embed fonts and images as data URLs. It is not a network sandbox or security guarantee. Accept trusted HTML and scripts; isolated contexts do not replace OS process isolation.</li>
+              <li>Install the browser, OS libraries and fonts with the deployment. The renderer does not disable Chromium's sandbox by default.</li>
+            </ul>
+          <p><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/GenerateInvoices">GenerateInvoices</a> includes a paginated invoice template, embedded fonts and a Linux container recipe. It exercises 0, 1, 40 and 500 rows, repeated table headers and totals. Validate the recipe in the target Linux image.</p>
         </section>
 
         <section class="article-section" id="next-step">
