@@ -468,7 +468,9 @@ namespace ZingPDF.Elements.Forms
         /// <remarks>
         /// Flattening preserves the current widget appearance streams by placing them onto their pages as normal
         /// XObject content. After flattening, <see cref="IPdf.GetFormAsync"/> will no longer return a form for the
-        /// saved document.
+        /// saved document. Every widget must have a usable normal appearance stream before flattening begins; if
+        /// one is missing or malformed, this method throws <see cref="InvalidPdfException"/> without changing the
+        /// document. XFA forms are not supported and cause <see cref="NotSupportedException"/>.
         /// </remarks>
         public async Task FlattenAsync()
         {
@@ -479,14 +481,53 @@ namespace ZingPDF.Elements.Forms
 
             var acroFormObject = await _acroForm;
             var acroFormDictionary = await _acroFormDictionary;
+            if (await acroFormDictionary.XFA.GetAsync() is not null)
+            {
+                throw new NotSupportedException("Flattening XFA forms is not supported. The XFA data and fields have been left unchanged.");
+            }
+
             var rootFieldRefs = await acroFormDictionary.Fields.GetAsync() ?? [];
-
-            await FlattenWidgetAnnotationsAsync();
-
             var fieldHierarchyObjectIds = new Dictionary<int, ushort>();
+            var fieldWidgetIds = new HashSet<IndirectObjectId>();
+            var visitedFieldObjects = new HashSet<IndirectObjectId>();
             foreach (var fieldRef in rootFieldRefs.OfType<IndirectObjectReference>())
             {
-                await CollectFieldHierarchyObjectIdsAsync(fieldRef, fieldHierarchyObjectIds);
+                await CollectFieldHierarchyObjectIdsAsync(fieldRef, fieldHierarchyObjectIds, fieldWidgetIds, visitedFieldObjects);
+            }
+
+            // Validate every widget before writing page content or deleting any annotations. A later
+            // missing /AP must not leave a partially flattened document.
+            var widgetsToFlatten = await ValidateWidgetAppearancesAsync(fieldWidgetIds);
+
+            foreach (var widget in widgetsToFlatten)
+            {
+                if (!widget.Appearance.IsNoOp)
+                {
+                    await FlattenWidgetAnnotationAsync(widget.Page, widget.Widget, widget.Appearance.Reference!, widget.Appearance.Bounds!);
+                }
+                _pdf.Objects.Delete(new IndirectObjectId(widget.Object.Id.Index, widget.Object.Id.GenerationNumber));
+            }
+
+            foreach (var group in widgetsToFlatten.GroupBy(widget => widget.Page))
+            {
+                var page = group.Key;
+                var annotations = await page.Dictionary.Annots.GetAsync();
+                if (annotations is null)
+                {
+                    continue;
+                }
+
+                var flattenedReferences = group
+                    .Select(widget => widget.Object.Reference)
+                    .ToHashSet();
+                var retained = annotations
+                    .Where(annotation => annotation is not IndirectObjectReference reference || !flattenedReferences.Contains(reference))
+                    .ToList();
+
+                page.Dictionary.Set(
+                    Constants.DictionaryKeys.PageTree.Page.Annots,
+                    retained.Count == 0 ? null : new ArrayObject(retained, ObjectContext.UserCreated));
+                _pdf.Objects.Update(page.IndirectObject);
             }
 
             foreach (var (index, generationNumber) in fieldHierarchyObjectIds)
@@ -535,7 +576,8 @@ namespace ZingPDF.Elements.Forms
             foreach (var field in fields)
             {
                 // A field without a name is considered a widget annotation, and not a form field
-                if (field.Object is not FieldDictionary fieldDict || fieldDict.T is null)
+                var fieldDict = GetFieldDictionary(field);
+                if (fieldDict is null || fieldDict.T is null)
                 {
                     continue;
                 }
@@ -566,10 +608,33 @@ namespace ZingPDF.Elements.Forms
             return formFields;
         }
 
+        private FieldDictionary? GetFieldDictionary(IndirectObject field)
+        {
+            if (field.Object is FieldDictionary fieldDictionary)
+            {
+                return fieldDictionary;
+            }
+
+            if (field.Object is not Dictionary dictionary
+                || (dictionary.GetAs<Name>(Constants.DictionaryKeys.Subtype) == AnnotationDictionary.Subtypes.Widget
+                    && dictionary.GetAs<PdfString>(Constants.DictionaryKeys.Field.T) is null))
+            {
+                return null;
+            }
+
+            // A non-terminal field may omit inheritable /FT. The generic dictionary
+            // parser cannot identify that node by /FT alone, so wrap it when walking
+            // the AcroForm field tree.
+            fieldDictionary = FieldDictionary.FromDictionary(dictionary.InnerDictionary, _pdf, dictionary.Context);
+            field.Object = fieldDictionary;
+            return fieldDictionary;
+        }
+
         private static bool FieldIsTerminal(List<IndirectObject> kids)
         {
             // A terminal field can be identified by having no Kids array,
-            //  OR all entries in its Kids array are widget annotations, not fields.
+            // or by having only widget annotations as children. A child field
+            // may inherit /FT and therefore need not contain /FT locally.
 
             if (kids.Count == 0)
             {
@@ -579,10 +644,11 @@ namespace ZingPDF.Elements.Forms
             foreach (var kid in kids)
             {
                 var kidDict = (Dictionary)kid.Object;
-
-                if (kidDict.ContainsKey(Constants.DictionaryKeys.Field.FT))
+                var subtype = kidDict.GetAs<Name>(Constants.DictionaryKeys.Subtype);
+                var hasFieldName = kidDict.GetAs<PdfString>(Constants.DictionaryKeys.Field.T) is not null;
+                if (subtype != AnnotationDictionary.Subtypes.Widget || hasFieldName)
                 {
-                    // field has field children, therefore it's non-terminal
+                    // A non-widget child is a field child, so this node is non-terminal.
                     return false;
                 }
             }
@@ -806,6 +872,31 @@ namespace ZingPDF.Elements.Forms
             }, _pdf, ObjectContext.UserCreated);
         }
 
+        internal async Task EnsureButtonAppearanceAsync(
+            IndirectObject widgetObject,
+            string exportValue,
+            bool radioStyle)
+        {
+            ArgumentNullException.ThrowIfNull(widgetObject);
+            ArgumentException.ThrowIfNullOrWhiteSpace(exportValue, nameof(exportValue));
+
+            var widget = widgetObject.Object as WidgetAnnotationDictionary
+                ?? throw new InvalidPdfException("A button field option does not reference a widget annotation.");
+            var appearance = await widget.AP.GetAsync();
+            var normal = appearance is null ? null : await appearance.N.GetAsync();
+            if (normal?.Value is Dictionary states
+                && states.ContainsKey(Constants.ButtonStates.Off)
+                && states.ContainsKey(exportValue))
+            {
+                return;
+            }
+
+            var bounds = await widget.Rect.GetAsync();
+            widget.Set(Constants.DictionaryKeys.Annotation.AP,
+                await CreateButtonAppearanceDictionaryAsync(bounds.Size, exportValue, radioStyle));
+            _pdf.Objects.Update(widgetObject);
+        }
+
         private async Task<StreamObject<Type1FormDictionary>> CreateButtonAppearanceStreamAsync(Size bounds, bool isOn, bool radioStyle)
         {
             var width = Math.Max(bounds.Width, 12);
@@ -835,28 +926,13 @@ namespace ZingPDF.Elements.Forms
                 }
                 else
                 {
-                    var fontResourceName = (Name)"ZaDb";
-                    var dingbatsFont = new Type1FontDictionary(_pdf, ObjectContext.UserCreated);
-                    dingbatsFont.Set(Constants.DictionaryKeys.Font.BaseFont, (Name)StandardPdfFonts.ZapfDingbats);
-                    var fontObject = await _pdf.Objects.AddAsync(dingbatsFont);
-                    resources = new ResourceDictionary(_pdf, ObjectContext.UserCreated);
-                    await resources.AddFontAsync(fontResourceName, fontObject.Reference, _pdf);
-
-                    var fontSize = Math.Max(Math.Min(width, height) * 0.75d, 9d);
-                    stream
-                        .BeginTextObject()
-                        .SetTextState(fontResourceName, fontSize)
-                        .SetColour(RGBColour.Black)
-                        .SetTextMatrix(
-                            1,
-                            0,
-                            0,
-                            1,
-                            Math.Max((width - fontSize * 0.8d) / 2d, 1.6d),
-                            Math.Max((height - fontSize * 0.7d) / 2d, 1.4d)
-                            )
-                        .ShowText(PdfString.FromAscii("4", PdfStringSyntax.Literal, ObjectContext.UserCreated))
-                        .EndTextObject();
+                    // Draw the mark as vector geometry so it renders consistently even when a
+                    // viewer has no configured ZapfDingbats font substitute.
+                    stream.SetStrokeColour(RGBColour.Black).SetLineWidth(Math.Max(Math.Min(width, height) * 0.09d, 1.25d));
+                    stream.MoveTo(new Coordinate(width * 0.20d, height * 0.50d));
+                    stream.LineTo(new Coordinate(width * 0.43d, height * 0.27d));
+                    stream.LineTo(new Coordinate(width * 0.82d, height * 0.74d));
+                    stream.Operations.Add(new ContentStreamOperation { Operator = ContentStream.Operators.PathPainting.S });
                 }
             }
 
@@ -959,9 +1035,10 @@ namespace ZingPDF.Elements.Forms
                     fieldProperties,
                     this,
                     _pdf,
-                    _contentStreamParser
+                    _contentStreamParser,
+                    kids.Where(kid => kid.Object is WidgetAnnotationDictionary)
                     ),
-                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties),
+                FormFieldType.Choice => DeriveChoiceField(fieldIndirectObject, fullFieldName, fieldDescription, fieldProperties, kids),
                 FormFieldType.Signature => new SignatureFormField(
                     fieldIndirectObject,
                     fullFieldName,
@@ -978,7 +1055,8 @@ namespace ZingPDF.Elements.Forms
             IndirectObject fieldIndirectObject,
             string fullFieldName,
             string? fieldDescription,
-            FieldProperties fieldProperties
+            FieldProperties fieldProperties,
+            List<IndirectObject> kids
             )
         {
             if (fieldProperties.IsCombo)
@@ -990,7 +1068,8 @@ namespace ZingPDF.Elements.Forms
                     fieldProperties,
                     this,
                     _pdf,
-                    _contentStreamParser
+                    _contentStreamParser,
+                    kids.Where(kid => kid.Object is WidgetAnnotationDictionary)
                 );
             }
             else
@@ -1002,7 +1081,8 @@ namespace ZingPDF.Elements.Forms
                     fieldProperties,
                     this,
                     _pdf,
-                    _contentStreamParser
+                    _contentStreamParser,
+                    kids.Where(kid => kid.Object is WidgetAnnotationDictionary)
                 );
             }
         }
@@ -1053,8 +1133,10 @@ namespace ZingPDF.Elements.Forms
             }
         }
 
-        private async Task FlattenWidgetAnnotationsAsync()
+        private async Task<List<WidgetToFlatten>> ValidateWidgetAppearancesAsync(IReadOnlySet<IndirectObjectId> fieldWidgetIds)
         {
+            var widgets = new List<WidgetToFlatten>();
+            var pageWidgetIds = new HashSet<IndirectObjectId>();
             var pageCount = await _pdf.GetPageCountAsync();
 
             for (var pageNumber = 1; pageNumber <= pageCount; pageNumber++)
@@ -1066,53 +1148,47 @@ namespace ZingPDF.Elements.Forms
                     continue;
                 }
 
-                var retainedAnnotations = new List<IPdfObject>();
-                var pageUpdated = false;
-
                 foreach (var annotationRef in annotations.OfType<IndirectObjectReference>())
                 {
                     var annotationObject = await _pdf.Objects.GetAsync(annotationRef);
                     if (annotationObject.Object is not WidgetAnnotationDictionary widgetAnnotation)
                     {
-                        retainedAnnotations.Add(annotationRef);
                         continue;
                     }
 
-                    var flattened = await TryFlattenWidgetAnnotationAsync(page, widgetAnnotation);
-                    if (!flattened)
+                    // Some real-world PDFs put named terminal widget dictionaries in page
+                    // /Annots but omit them from AcroForm /Fields. Their appearance still
+                    // carries visible page content, so preserve it through the same AP
+                    // preflight and flattening path instead of silently discarding it.
+                    pageWidgetIds.Add(annotationObject.Id);
+
+                    var appearance = await TryResolveAppearanceAsync(widgetAnnotation);
+                    if (appearance is null)
                     {
-                        retainedAnnotations.Add(annotationRef);
-                        continue;
+                        throw new InvalidPdfException(
+                            $"Cannot flatten widget {annotationRef}: it has no usable normal appearance stream for its current /AS state.");
                     }
 
-                    _pdf.Objects.Delete(new IndirectObjectId(annotationObject.Id.Index, annotationObject.Id.GenerationNumber));
-                    pageUpdated = true;
+                    widgets.Add(new WidgetToFlatten(page, annotationObject, widgetAnnotation, appearance));
                 }
-
-                if (!pageUpdated)
-                {
-                    continue;
-                }
-
-                page.Dictionary.Set(
-                    Constants.DictionaryKeys.PageTree.Page.Annots,
-                    retainedAnnotations.Count == 0
-                        ? null
-                        : new ArrayObject(retainedAnnotations, ObjectContext.UserCreated));
-
-                _pdf.Objects.Update(page.IndirectObject);
             }
+
+            var unplacedWidget = fieldWidgetIds.FirstOrDefault(id => !pageWidgetIds.Contains(id));
+            if (unplacedWidget is not null)
+            {
+                throw new InvalidPdfException(
+                    $"Cannot flatten widget {unplacedWidget.Index} {unplacedWidget.GenerationNumber} R: it is in the AcroForm field hierarchy but is missing from page /Annots.");
+            }
+
+            return widgets;
         }
 
-        private async Task<bool> TryFlattenWidgetAnnotationAsync(Page page, WidgetAnnotationDictionary widgetAnnotation)
+        private async Task FlattenWidgetAnnotationAsync(
+            Page page,
+            WidgetAnnotationDictionary widgetAnnotation,
+            IndirectObjectReference appearanceReference,
+            Rectangle appearanceBounds)
         {
-            var appearance = await TryResolveAppearanceAsync(widgetAnnotation);
-            if (appearance is null)
-            {
-                return true;
-            }
-
-            var (appearanceReference, appearanceBounds) = appearance.Value;
             var resourceName = (Name)UniqueStringGenerator.Generate();
 
             await page.Dictionary.AddXObjectResourceAsync(resourceName.Value, appearanceReference, _pdf);
@@ -1126,7 +1202,6 @@ namespace ZingPDF.Elements.Forms
 
             await AddPageContentStreamAsync(page, contentStream);
 
-            return true;
         }
 
         private async Task AddPageContentStreamAsync(Page page, ContentStream contentStream)
@@ -1140,7 +1215,7 @@ namespace ZingPDF.Elements.Forms
             _pdf.Objects.Update(page.IndirectObject);
         }
 
-        private async Task<(IndirectObjectReference Reference, Rectangle Bounds)?> TryResolveAppearanceAsync(
+        private async Task<ResolvedAppearance?> TryResolveAppearanceAsync(
             WidgetAnnotationDictionary widgetAnnotation)
         {
             var appearanceDictionary = await widgetAnnotation.AP.GetAsync();
@@ -1161,7 +1236,7 @@ namespace ZingPDF.Elements.Forms
                 return null;
             }
 
-            IStreamObject appearanceStream;
+            IStreamObject? appearanceStream;
             IndirectObjectReference appearanceReference;
 
             switch (selectedAppearance)
@@ -1170,21 +1245,113 @@ namespace ZingPDF.Elements.Forms
                     appearanceReference = reference;
                     appearanceStream = await _pdf.Objects.GetAsync<IStreamObject>(reference);
                     break;
-                case IStreamObject stream:
+                case IStreamObject stream when stream.Context.NearestParent is { } streamReference:
+                    appearanceReference = streamReference;
                     appearanceStream = stream;
-                    appearanceReference = (await _pdf.Objects.AddAsync(stream)).Reference;
+                    break;
+                case IStreamObject stream when appearanceDictionary.GetAs<IPdfObject>(Constants.DictionaryKeys.Appearance.N) is IndirectObjectReference rawStreamReference:
+                    appearanceReference = rawStreamReference;
+                    appearanceStream = stream;
                     break;
                 default:
                     return null;
             }
 
+            if (appearanceStream is null)
+            {
+                return null;
+            }
+
             var appearanceBounds = await appearanceStream.Dictionary
                 .GetOptionalProperty<Rectangle>(Constants.DictionaryKeys.Form.Type1.BBox)
-                .GetAsync()
-                ?? await widgetAnnotation.Rect.GetAsync();
+                .GetAsync();
+            if (appearanceBounds is null)
+            {
+                throw new InvalidPdfException("Cannot flatten widget appearance: its /BBox entry is missing.");
+            }
 
-            return (appearanceReference, appearanceBounds);
+            var appearanceMatrixObject = await appearanceStream.Dictionary
+                .GetOptionalProperty<IPdfObject>(Constants.DictionaryKeys.Form.Type1.Matrix)
+                .GetAsync();
+            if (appearanceMatrixObject is not null)
+            {
+                if (appearanceMatrixObject is not ArrayObject appearanceMatrix)
+                {
+                    throw new InvalidPdfException("Cannot flatten widget appearance: its /Matrix entry is not an array.");
+                }
+
+                appearanceBounds = TransformRectangle(appearanceBounds, appearanceMatrix);
+            }
+
+            var targetBounds = await widgetAnnotation.Rect.GetAsync();
+            if (!IsUsableRectangle(targetBounds) || !IsUsableRectangle(appearanceBounds))
+            {
+                if (IsZeroAreaRectangle(targetBounds)
+                    && IsZeroAreaRectangle(appearanceBounds)
+                    && await HasNoNonEmptyFieldValueAsync(widgetAnnotation)
+                    && await AppearanceHasNoVisibleOperationsAsync(appearanceStream))
+                {
+                    return ResolvedAppearance.NoOp;
+                }
+
+                return null;
+            }
+
+            return new ResolvedAppearance(appearanceReference, appearanceBounds, false);
         }
+
+        private async Task<bool> HasNoNonEmptyFieldValueAsync(WidgetAnnotationDictionary widgetAnnotation)
+        {
+            var fieldDictionary = FieldDictionary.FromDictionary(
+                widgetAnnotation.InnerDictionary,
+                _pdf,
+                widgetAnnotation.Context);
+            var value = await fieldDictionary.V.GetAsync();
+            return value is null || value is PdfString text && text.Decode().Length == 0;
+        }
+
+        private async Task<bool> AppearanceHasNoVisibleOperationsAsync(IStreamObject appearanceStream)
+        {
+            await using var data = await appearanceStream.GetDecompressedDataAsync();
+            var content = await _contentStreamParser.ParseAsync(data, appearanceStream.Context);
+            foreach (var operation in content.Operations)
+            {
+                if (operation.Operator is "Tj" or "'" or "\"")
+                {
+                    if (operation.Operands is not [PdfString text] || text.Bytes.Length != 0)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (operation.Operator == "TJ")
+                {
+                    if (operation.Operands is not [ArrayObject textArray]
+                        || textArray.Any(item => item is not Number && item is not PdfString { Bytes.Length: 0 }))
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (!NonPaintingAppearanceOperators.Contains(operation.Operator))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static readonly HashSet<string> NonPaintingAppearanceOperators = new(StringComparer.Ordinal)
+        {
+            "q", "Q", "cm", "BT", "ET", "Tf", "Td", "TD", "Tm", "T*", "Tc", "Tw", "Tz", "TL", "Ts", "Tr",
+            "BMC", "BDC", "EMC", "MP", "DP", "w", "J", "j", "M", "d", "ri", "i", "gs", "g", "G", "rg",
+            "RG", "k", "K", "m", "l", "c", "v", "y", "h", "re", "W", "W*", "n"
+        };
 
         private async Task<IPdfObject?> ResolveSelectedAppearanceEntryAsync(
             WidgetAnnotationDictionary widgetAnnotation,
@@ -1201,27 +1368,120 @@ namespace ZingPDF.Elements.Forms
             }
 
             var appearanceState = await widgetAnnotation.AS.GetAsync();
-            if (appearanceState is not null && appearanceStates.InnerDictionary.TryGetValue(appearanceState.Value, out var selectedByState))
+            if (appearanceState is not null)
             {
-                return selectedByState;
+                return appearanceStates.InnerDictionary.TryGetValue(appearanceState.Value, out var selectedByState)
+                    ? selectedByState
+                    : null;
             }
 
-            if (appearanceStates.InnerDictionary.TryGetValue(Constants.ButtonStates.Off, out var offState))
+            if (appearanceStates.Count() == 1
+                && appearanceStates.InnerDictionary.TryGetValue(Constants.ButtonStates.Off, out var offState))
             {
                 return offState;
             }
 
-            return appearanceStates.FirstOrDefault().Value;
+            return null;
+        }
+
+        private static bool IsUsableRectangle(Rectangle rectangle)
+        {
+            var left = (double)rectangle.LowerLeft.X;
+            var bottom = (double)rectangle.LowerLeft.Y;
+            var right = (double)rectangle.UpperRight.X;
+            var top = (double)rectangle.UpperRight.Y;
+            return double.IsFinite(left)
+                && double.IsFinite(bottom)
+                && double.IsFinite(right)
+                && double.IsFinite(top)
+                && right > left
+                && top > bottom;
+        }
+
+        private static bool IsZeroAreaRectangle(Rectangle rectangle)
+        {
+            var left = (double)rectangle.LowerLeft.X;
+            var bottom = (double)rectangle.LowerLeft.Y;
+            var right = (double)rectangle.UpperRight.X;
+            var top = (double)rectangle.UpperRight.Y;
+            return double.IsFinite(left)
+                && double.IsFinite(bottom)
+                && double.IsFinite(right)
+                && double.IsFinite(top)
+                && right >= left
+                && top >= bottom
+                && (right == left || top == bottom);
+        }
+
+        private static Rectangle TransformRectangle(Rectangle rectangle, ArrayObject matrix)
+        {
+            if (matrix.Count() != 6 || matrix.Any(value => value is not Number))
+            {
+                throw new InvalidPdfException("Cannot flatten widget appearance: its /Matrix must contain six numbers.");
+            }
+
+            var a = (double)matrix.Get<Number>(0)!;
+            var b = (double)matrix.Get<Number>(1)!;
+            var c = (double)matrix.Get<Number>(2)!;
+            var d = (double)matrix.Get<Number>(3)!;
+            var e = (double)matrix.Get<Number>(4)!;
+            var f = (double)matrix.Get<Number>(5)!;
+            if (!double.IsFinite(a) || !double.IsFinite(b) || !double.IsFinite(c)
+                || !double.IsFinite(d) || !double.IsFinite(e) || !double.IsFinite(f))
+            {
+                throw new InvalidPdfException("Cannot flatten widget appearance: its /Matrix contains a non-finite value.");
+            }
+            var corners = new[]
+            {
+                Transform(rectangle.LowerLeft),
+                Transform(new Coordinate(rectangle.LowerLeft.X, rectangle.UpperRight.Y)),
+                Transform(new Coordinate(rectangle.UpperRight.X, rectangle.LowerLeft.Y)),
+                Transform(rectangle.UpperRight)
+            };
+
+            return Rectangle.FromCoordinates(
+                new Coordinate(corners.Min(point => point.X), corners.Min(point => point.Y)),
+                new Coordinate(corners.Max(point => point.X), corners.Max(point => point.Y)));
+
+            Coordinate Transform(Coordinate point)
+                => new(a * (double)point.X + c * (double)point.Y + e, b * (double)point.X + d * (double)point.Y + f);
+        }
+
+        private sealed record WidgetToFlatten(
+            Page Page,
+            IndirectObject Object,
+            WidgetAnnotationDictionary Widget,
+            ResolvedAppearance Appearance);
+
+        private sealed record ResolvedAppearance(
+            IndirectObjectReference? Reference,
+            Rectangle? Bounds,
+            bool IsNoOp)
+        {
+            public static ResolvedAppearance NoOp { get; } = new(null, null, true);
         }
 
         private async Task CollectFieldHierarchyObjectIdsAsync(
             IndirectObjectReference fieldReference,
-            IDictionary<int, ushort> objectIds)
+            IDictionary<int, ushort> objectIds,
+            ISet<IndirectObjectId> widgetIds,
+            ISet<IndirectObjectId> visited)
         {
             var fieldObject = await _pdf.Objects.GetAsync(fieldReference);
+            if (!visited.Add(fieldObject.Id))
+            {
+                return;
+            }
+
             objectIds[fieldObject.Id.Index] = fieldObject.Id.GenerationNumber;
 
-            if (fieldObject.Object is not FieldDictionary fieldDictionary)
+            if (IsWidgetDictionary(fieldObject.Object))
+            {
+                widgetIds.Add(fieldObject.Id);
+            }
+
+            var fieldDictionary = GetFieldDictionary(fieldObject);
+            if (fieldDictionary is null)
             {
                 return;
             }
@@ -1237,11 +1497,20 @@ namespace ZingPDF.Elements.Forms
                 var kidObject = await _pdf.Objects.GetAsync(kidReference);
                 objectIds[kidObject.Id.Index] = kidObject.Id.GenerationNumber;
 
-                if (kidObject.Object is FieldDictionary)
+                if (IsWidgetDictionary(kidObject.Object))
                 {
-                    await CollectFieldHierarchyObjectIdsAsync(kidReference, objectIds);
+                    widgetIds.Add(kidObject.Id);
+                }
+
+                if (GetFieldDictionary(kidObject) is not null)
+                {
+                    await CollectFieldHierarchyObjectIdsAsync(kidReference, objectIds, widgetIds, visited);
                 }
             }
         }
+
+        private static bool IsWidgetDictionary(IPdfObject pdfObject)
+            => pdfObject is Dictionary dictionary
+                && dictionary.GetAs<Name>(Constants.DictionaryKeys.Subtype) == AnnotationDictionary.Subtypes.Widget;
     }
 }

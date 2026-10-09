@@ -55,7 +55,7 @@ Notes:
 - add text with registered fonts
 - add images including PNG support
 - draw vector paths with stroke and fill options
-- extract text, including content streams with inline marked-content property dictionaries
+- extract text, including inline marked-content property dictionaries and positioned line boundaries across a page's content streams
 - OCR image-based pages through the `ZingPDF.OCR` package
 - add simple text watermarks
 
@@ -89,9 +89,10 @@ These limits should be treated as part of the current product contract unless ex
 - high-level registration does not yet cover Symbol or ZapfDingbats usage
 - `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
-- `ZingPDF.OCR` works best on image-based pages and supported image XObjects rather than arbitrary rendered page content
+- `ZingPDF.OCR` defaults to embedded text or one supported image XObject; opt into `PdfOcrMode.RenderedPage` for OCR of the visible page through PDFium, including mixed content and scan tiles. Result provenance describes input coverage rather than recognition completeness.
 - `Page.RenderAsync(...)` and `Pdf.RenderPageAsync(...)` render PNG bytes through a native PDFium-backed dependency and should be validated on each deployment platform
 - text fields currently have the richest form write support
+- form flattening requires usable normal widget appearances; missing or malformed appearances reject before widget removal, and XFA flattening is unsupported
 - signing currently requires unencrypted input and unencrypted output; password-protected input signing is not implemented yet
 - encrypting an already signed PDF is not a supported high-level workflow because rewriting signed bytes invalidates existing signatures
 - signature validation does not yet validate trusted timestamp tokens, DSS/VRI long-term validation data, or DocMDP certification permissions

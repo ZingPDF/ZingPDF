@@ -14,6 +14,7 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
     public class TextFormField : FormField<PdfString>
     {
         private readonly IParser<ContentStream> _contentStreamParser;
+        private readonly IReadOnlyList<IndirectObject> _widgetObjects;
 
         /// <summary>
         /// Initializes a text field wrapper.
@@ -27,9 +28,24 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             IPdf pdf,
             IParser<ContentStream> contentStreamParser
             )
+            : this(fieldIndirectObject, name, description, properties, parent, pdf, contentStreamParser, null)
+        {
+        }
+
+        internal TextFormField(
+            IndirectObject fieldIndirectObject,
+            string name,
+            string? description,
+            FieldProperties properties,
+            Form parent,
+            IPdf pdf,
+            IParser<ContentStream> contentStreamParser,
+            IEnumerable<IndirectObject>? widgetObjects
+            )
             : base(fieldIndirectObject, name, description, properties, parent, pdf)
         {
             _contentStreamParser = contentStreamParser;
+            _widgetObjects = widgetObjects?.ToList() ?? [];
         }
 
         /// <summary>
@@ -63,8 +79,15 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
             {
                 pdfValue = PdfString.FromTextAuto(value, ObjectContext.FromImplicitOperator);
 
-                await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdf, _contentStreamParser, fontProviders)
-                    .WriteTextAsync(pdfValue);
+                foreach (var widget in GetWidgetObjects())
+                {
+                    await new VariableTextAppearanceStreamManager(formDict, _fieldDictionary, _pdf, _contentStreamParser, fontProviders, widget)
+                        .WriteTextAsync(pdfValue);
+                    if (!ReferenceEquals(widget, _fieldIndirectObject))
+                    {
+                        _pdf.Objects.Update(widget);
+                    }
+                }
             }
 
             SetValue(pdfValue);
@@ -75,7 +98,8 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         /// </summary>
         public async Task<ContentStream?> GetAPAsync()
         {
-            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);
+            var widget = GetWidgetObjects().FirstOrDefault();
+            var test = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, [], widget);
 
             return await test.GetAPAsync();
         }
@@ -85,13 +109,22 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Text
         /// </summary>
         public async Task ClearAsync()
         {
-            var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, []);
-
-            await manager.WipeFieldAsync();
+            foreach (var widget in GetWidgetObjects())
+            {
+                var manager = new VariableTextAppearanceStreamManager(await _parent.GetFormDictionaryAsync(), _fieldDictionary, _pdf, _contentStreamParser, [], widget);
+                await manager.WipeFieldAsync();
+                if (!ReferenceEquals(widget, _fieldIndirectObject))
+                {
+                    _pdf.Objects.Update(widget);
+                }
+            }
 
             _pdf.Objects.Update(_fieldIndirectObject);
 
             _parent.MarkForUpdate();
         }
+
+        private IEnumerable<IndirectObject> GetWidgetObjects()
+            => _widgetObjects.Count == 0 ? [_fieldIndirectObject] : _widgetObjects;
     }
 }

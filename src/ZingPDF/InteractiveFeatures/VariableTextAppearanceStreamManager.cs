@@ -5,6 +5,7 @@ using ZingPDF.Elements.Forms;
 using ZingPDF.Extensions;
 using ZingPDF.Fonts;
 using ZingPDF.Graphics.FormXObjects;
+using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.InteractiveFeatures.Annotations.AppearanceStreams;
 using ZingPDF.InteractiveFeatures.Forms;
 using ZingPDF.Parsing;
@@ -28,9 +29,11 @@ internal class VariableTextAppearanceStreamManager
 {
     private readonly InteractiveFormDictionary _formDict;
     private readonly FieldDictionary _fieldDict;
+    private readonly WidgetAnnotationDictionary _appearanceWidget;
     private readonly IPdf _pdf;
     private readonly IParser<ContentStream> _contentStreamParser;
     private readonly IEnumerable<IFontMetricsProvider> _fontProviders;
+    private readonly bool _forceMultiline;
 
     private readonly AsyncLazy<ResourceDictionary?> _formDefaultResources;
 
@@ -48,7 +51,9 @@ internal class VariableTextAppearanceStreamManager
         FieldDictionary fieldDict,
         IPdf pdf,
         IParser<ContentStream> contentStreamParser,
-        IEnumerable<IFontMetricsProvider> fontProviders
+        IEnumerable<IFontMetricsProvider> fontProviders,
+        IndirectObject? widgetObject = null,
+        bool forceMultiline = false
         )
     {
         ArgumentNullException.ThrowIfNull(formDict, nameof(formDict));
@@ -59,13 +64,15 @@ internal class VariableTextAppearanceStreamManager
 
         _formDict = formDict;
         _fieldDict = fieldDict;
+        _appearanceWidget = widgetObject?.Object as WidgetAnnotationDictionary ?? fieldDict;
         _pdf = pdf;
         _contentStreamParser = contentStreamParser;
         _fontProviders = fontProviders;
+        _forceMultiline = forceMultiline;
 
         _formDA = new AsyncLazy<PdfString?>(async () =>
         {
-            if (_formDict.DA != null)
+            if (await _formDict.DA.GetRawValueAsync() is not null)
             {
                 return await _formDict.DA.GetAsync();
             }
@@ -75,7 +82,7 @@ internal class VariableTextAppearanceStreamManager
 
         _fieldDA = new AsyncLazy<PdfString?>(async () =>
         {
-            if (_fieldDict.DA != null)
+            if (await _fieldDict.DA.GetRawValueAsync() is not null)
             {
                 return await _fieldDict.DA.GetAsync();
             }
@@ -98,7 +105,7 @@ internal class VariableTextAppearanceStreamManager
 
         _fieldAppearanceStreamObject = new AsyncLazy<IStreamObject?>(async () =>
         {
-            var existingAppearanceDictionary = await _fieldDict.AP.GetAsync();
+            var existingAppearanceDictionary = await _appearanceWidget.AP.GetAsync();
             if (existingAppearanceDictionary == null)
             {
                 return null;
@@ -147,7 +154,7 @@ internal class VariableTextAppearanceStreamManager
 
     internal async Task WipeFieldAsync()
     {
-        _fieldDict.SetAppearanceDictionary(null);
+        _appearanceWidget.SetAppearanceDictionary(null);
         _fieldDict.SetValue(null);
     }
 
@@ -171,12 +178,55 @@ internal class VariableTextAppearanceStreamManager
         // If there is a marked content region, generate a new one and replace the existing one
         // If there is no marked content region, add a new one to the end of the stream
 
-        // There is a marked content region, replace contents with new operations
-        await fieldAp.ClearAndOperateBetweenAsync(
-            x => x.Operator == MarkedContent.BMC && x.Operands != null && x.GetOperand<Name>(0) == Constants.Acrobat.MarkedContent.Tx,
-            x => x.Operator == MarkedContent.EMC,
-            async stream => await WriteNewAppearanceStreamAsync(stream, value)
-        );
+        // Replace Acrobat's marked text region when present. External producers sometimes omit that
+        // region, so remove prior text objects before writing the new value; appending would leave
+        // the old value visible underneath or beside the replacement.
+        var markedTextRegionIndex = fieldAp.Operations.FindIndex(x =>
+            x.Operator == MarkedContent.BMC
+            && x.Operands != null
+            && x.GetOperand<Name>(0) == Constants.Acrobat.MarkedContent.Tx);
+        if (markedTextRegionIndex >= 0)
+        {
+            var endIndex = fieldAp.Operations.FindIndex(markedTextRegionIndex + 1, x => x.Operator == MarkedContent.EMC);
+            if (endIndex < 0)
+            {
+                throw new InvalidPdfException("The field appearance has an unterminated /Tx marked-content region.");
+            }
+
+            var originalOperations = fieldAp.Operations.ToList();
+            fieldAp.Operations.Clear();
+            fieldAp.Operations.AddRange(originalOperations.Take(markedTextRegionIndex + 1));
+            await WriteNewAppearanceStreamAsync(fieldAp, value);
+            fieldAp.Operations.AddRange(originalOperations.Skip(endIndex));
+        }
+        else
+        {
+            var insideTextObject = false;
+            var retainedOperations = new List<ContentStreamOperation>();
+            foreach (var operation in fieldAp.Operations)
+            {
+                if (operation.Operator == "BT")
+                {
+                    insideTextObject = true;
+                    continue;
+                }
+
+                if (operation.Operator == "ET")
+                {
+                    insideTextObject = false;
+                    continue;
+                }
+
+                if (!insideTextObject)
+                {
+                    retainedOperations.Add(operation);
+                }
+            }
+
+            fieldAp.Operations.Clear();
+            fieldAp.Operations.AddRange(retainedOperations);
+            await WriteNewAppearanceStreamAsync(fieldAp, value);
+        }
 
         // From the spec: "To update an existing appearance stream to reflect a new field value, the interactive PDF processor shall
         // first copy any needed resources from the document’s DR dictionary (see "Table 224 — Entries in the interactive
@@ -268,15 +318,22 @@ internal class VariableTextAppearanceStreamManager
         var maxLength = await _fieldDict.MaxLen.GetAsync();
         var quadding = await ResolveQuaddingAsync();
         var requestedFontSize = (double)fontSize;
+        var decodedText = newText.Decode();
+        if (decodedText.Length > 0 && decodedText[0] == '\uFEFF')
+        {
+            decodedText = decodedText[1..];
+        }
+        var layoutText = PdfString.FromTextAuto(decodedText, newText.Context, syntax: newText.Syntax);
+
         var textLayout = new TextCalculations(layoutFontProviders).CalculateTextLayout(
             fontName,
             appearanceBounds,
-            newText.Decode(),
+            decodedText,
             new TextFitOptions
             {
                 RequestedFontSize = requestedFontSize > 0 ? requestedFontSize : null,
                 Quadding = quadding,
-                IsMultiline = fieldProperties.IsMultiline,
+                IsMultiline = fieldProperties.IsMultiline || _forceMultiline,
                 IsComb = fieldProperties.IsComb,
                 DoNotScroll = fieldProperties.DoNotScroll,
                 MaxLength = (int?)maxLength
@@ -307,7 +364,7 @@ internal class VariableTextAppearanceStreamManager
                 && x.Operator != TextPositioning.Td
                 && x.Operator != TextPositioning.TD));
 
-        WriteTextLayout(stream, defaultAppearanceStream, textLayout, newText)
+        WriteTextLayout(stream, defaultAppearanceStream, textLayout, layoutText)
             .EndTextObject()
             .RestoreGraphicsState();
     }
@@ -360,7 +417,7 @@ internal class VariableTextAppearanceStreamManager
 
         var apIndirectObject = await _pdf.Objects.AddAsync(apFormXObject);
 
-        _fieldDict.SetAppearanceDictionary(
+        _appearanceWidget.SetAppearanceDictionary(
             AppearanceDictionary.Create(
                 _pdf,
                 ObjectContext.UserCreated,
@@ -482,7 +539,7 @@ internal class VariableTextAppearanceStreamManager
             }
         }
 
-        var fieldRect = await _fieldDict.Rect.GetAsync();
+        var fieldRect = await _appearanceWidget.Rect.GetAsync();
         var originalHeight = _fieldDict.GetAs<Number>("OH");
         if (originalHeight is not null && fieldRect.Height != 0)
         {

@@ -8,7 +8,8 @@
             "src/ZingPDF/ZingPDF.csproj",
             "src/ZingPDF.FromHTML/ZingPDF.FromHTML.csproj",
             "src/ZingPDF.Templates/ZingPDF.Templates.csproj",
-            "src/ZingPDF.Templates.LiquidHtml/ZingPDF.Templates.LiquidHtml.csproj"
+            "src/ZingPDF.Templates.LiquidHtml/ZingPDF.Templates.LiquidHtml.csproj",
+            "src/ZingPDF.OCR/ZingPDF.OCR.csproj"
           ]
         }
       ],

@@ -128,6 +128,8 @@ await pdf.SaveAsync(File.Create("form-completed.pdf"));</code></pre>
             That means the result looks like the completed form, but no longer exposes those fields as editable
             AcroForm controls.
           </p>
+          <p>Every widget must have a usable normal appearance for its current state. A missing or malformed appearance causes <code>InvalidPdfException</code> before flattening changes page content or removes widgets. XFA forms cause <code>NotSupportedException</code>. Route these files to review rather than saving a partially flattened result.</p>
+          <p>Flattening removes interactive fields; it does not prevent later PDF editing or preserve a digital signature after its covered bytes change. Retain signed originals separately from transformed working copies.</p>
         </section>
 
         <section class="article-cta" id="next-step">
