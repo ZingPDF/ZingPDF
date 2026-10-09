@@ -239,6 +239,7 @@ public class TextExtractor : ITextExtractor
         var fontResources = await GetFontResourceSetAsync(pageDictionary, usedFontResourceNames, includeDisplayName: false, includeMetrics: false);
         using var pageExtractor = new LowLevelTextPageExtractor(fontResources);
         var builder = new StringBuilder();
+        var plainTextCollector = pageExtractor.CreatePlainTextCollector(builder);
 
         foreach (var content in contents)
         {
@@ -248,7 +249,7 @@ public class TextExtractor : ITextExtractor
             }
 
             using var data = await streamObject.GetDecompressedDataAsync();
-            await pageExtractor.AppendPlainTextAsync(data, builder);
+            await pageExtractor.AppendPlainTextAsync(data, plainTextCollector);
         }
 
         var plainText = builder.ToString();

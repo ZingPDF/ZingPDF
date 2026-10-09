@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/ZingPDF.OCR/**'
       - 'src/ZingPDF/Elements/Forms/**'
+      - 'src/ZingPDF/Elements/Drawing/Text/Extraction/**'
       - 'src/ZingPDF/InteractiveFeatures/**'
       - 'src/ZingPDF/Logging/**'
       - 'src/ZingPDF/Rendering/**'

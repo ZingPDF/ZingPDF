@@ -55,7 +55,7 @@ Notes:
 - add text with registered fonts
 - add images including PNG support
 - draw vector paths with stroke and fill options
-- extract text, including content streams with inline marked-content property dictionaries
+- extract text, including inline marked-content property dictionaries and positioned line boundaries across a page's content streams
 - OCR image-based pages through the `ZingPDF.OCR` package
 - add simple text watermarks
 
