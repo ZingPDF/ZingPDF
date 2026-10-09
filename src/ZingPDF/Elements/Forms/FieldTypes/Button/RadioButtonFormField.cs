@@ -59,11 +59,12 @@ public class RadioButtonFormField : ButtonOptionsFormField
                 }
             }
 
+            await _parent.EnsureButtonAppearanceAsync(annot, exportValue, radioStyle: true);
             _pdf.Objects.Update(annot);
         }
     }
 
-    protected override Task DeselectOptionAsync(SelectableOption option)
+    protected override async Task DeselectOptionAsync(SelectableOption option)
     {
         // When deselected
         // - If the NoToggleToOff flag is present
@@ -83,9 +84,8 @@ public class RadioButtonFormField : ButtonOptionsFormField
         var widgetAnnotation = (WidgetAnnotationDictionary)option.AssociatedDictionary.Object;
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
+        await _parent.EnsureButtonAppearanceAsync(option.AssociatedDictionary, option.Value, radioStyle: true);
 
         _pdf.Objects.Update(option.AssociatedDictionary);
-
-        return Task.CompletedTask;
     }
 }

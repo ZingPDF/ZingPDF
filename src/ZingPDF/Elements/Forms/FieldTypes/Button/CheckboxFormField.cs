@@ -48,11 +48,12 @@ public class CheckboxFormField : ButtonOptionsFormField
                 widgetDictionary.SetAppearanceState(Constants.ButtonStates.Off);
             }
 
+            await _parent.EnsureButtonAppearanceAsync(annot, await GetExportValueAsync(widgetDictionary), radioStyle: false);
             _pdf.Objects.Update(annot);
         }
     }
 
-    protected override Task DeselectOptionAsync(SelectableOption option)
+    protected override async Task DeselectOptionAsync(SelectableOption option)
     {
         // When unchecked
         // - The checkbox field dictionary value (V) must be updated to /Off
@@ -63,9 +64,8 @@ public class CheckboxFormField : ButtonOptionsFormField
         var widgetAnnotation = (WidgetAnnotationDictionary)option.AssociatedDictionary.Object;
 
         widgetAnnotation.SetAppearanceState(Constants.ButtonStates.Off);
+        await _parent.EnsureButtonAppearanceAsync(option.AssociatedDictionary, option.Value, radioStyle: false);
 
         _pdf.Objects.Update(option.AssociatedDictionary);
-
-        return Task.CompletedTask;
     }
 }

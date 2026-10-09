@@ -1,8 +1,10 @@
 ﻿using ZingPDF.InteractiveFeatures.Annotations;
 using ZingPDF.Syntax.Objects;
+using ZingPDF.Extensions;
 using ZingPDF.Syntax.Objects.Dictionaries;
 using ZingPDF.Syntax.Objects.IndirectObjects;
 using ZingPDF.Syntax.Objects.Streams;
+using ZingPDF.Syntax.Objects.Strings;
 
 namespace ZingPDF.Elements.Forms.FieldTypes.Button;
 
@@ -67,26 +69,35 @@ public abstract class ButtonOptionsFormField : FormField<Name>
 
     protected async Task<string> GetExportValueAsync(WidgetAnnotationDictionary widgetDict)
     {
-        // TODO: consider supporting Opt, which may take precedence for the definition of export values.
-
         var ap = await widgetDict.AP.GetAsync();
-        if (ap == null)
+        var normalAppearance = ap is null ? null : await ap.N.GetAsync();
+        if (normalAppearance?.Value is Dictionary stateDictionary)
         {
-            return Constants.ButtonStates.On;
+            var onState = stateDictionary.Keys.FirstOrDefault(k => k != Constants.ButtonStates.Off);
+            if (onState is not null)
+            {
+                return onState;
+            }
         }
 
-        var normalAppearance = await ap.N.GetAsync();
-        if (normalAppearance.Value is IStreamObject)
+        return await GetExportValueFromOptAsync(widgetDict) ?? Constants.ButtonStates.On;
+    }
+
+    private async Task<string?> GetExportValueFromOptAsync(WidgetAnnotationDictionary widgetDict)
+    {
+        var options = await _fieldDictionary.GetOptionalProperty<ArrayObject>(Constants.DictionaryKeys.Field.Opt).GetAsync();
+        if (options is null)
         {
-            return Constants.ButtonStates.On;
+            return null;
         }
 
-        if (normalAppearance.Value is Dictionary stateDictionary)
+        var widgetIndex = WidgetAnnotationObjects.ToList().FindIndex(item => ReferenceEquals(item.Object, widgetDict));
+        if (widgetIndex < 0 || widgetIndex >= options.Count())
         {
-            return stateDictionary.Keys.First(k => k != Constants.ButtonStates.Off);
+            return null;
         }
 
-        return Constants.ButtonStates.On;
+        return options[widgetIndex] is PdfString text ? text.Decode() : null;
     }
 
     protected IEnumerable<IndirectObject> WidgetAnnotationObjects

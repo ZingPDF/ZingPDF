@@ -20,7 +20,21 @@ public class ComboBoxFormField : ChoiceFormField
         IPdf pdf,
         IParser<ContentStream> contentStreamParser
         )
-        : base(fieldIndirectObject, name, description, properties, parent, pdf, contentStreamParser)
+        : this(fieldIndirectObject, name, description, properties, parent, pdf, contentStreamParser, null)
+    {
+    }
+
+    internal ComboBoxFormField(
+        IndirectObject fieldIndirectObject,
+        string name,
+        string? description,
+        FieldProperties properties,
+        Form parent,
+        IPdf pdf,
+        IParser<ContentStream> contentStreamParser,
+        IEnumerable<IndirectObject>? widgetObjects
+        )
+        : base(fieldIndirectObject, name, description, properties, parent, pdf, contentStreamParser, widgetObjects)
     {
     }
 
