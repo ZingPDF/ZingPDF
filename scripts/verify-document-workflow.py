@@ -178,6 +178,19 @@ def verify(root: Path) -> None:
         assert page["UsedOcr"] is expected_case["ocr"]
         assert page["Source"] == expected_case["source"]
         assert page["InputCoverage"] == expected_case["coverage"]
+        trials = page["OrientationTrials"]
+        if page["UsedOcr"]:
+            assert [trial["RotationDegrees"] for trial in trials] == [0, 90, 180, 270]
+            assert all(0 <= trial["LengthWeightedWordConfidence"] <= 100 for trial in trials)
+            eligible = [trial for trial in trials if trial["RecognizedWordCount"] >= 3
+                        and trial["RecognizedLetterCount"] >= 12]
+            assert eligible, f"No eligible orientation in {name}"
+            chosen = sorted(eligible, key=lambda trial: (-trial["LengthWeightedWordConfidence"], trial["RotationDegrees"]))[0]
+            assert page["SelectedOcrRotationDegrees"] == chosen["RotationDegrees"]
+            assert page["LengthWeightedWordConfidence"] == chosen["LengthWeightedWordConfidence"]
+            assert page["RecognizedWordCount"] == chosen["RecognizedWordCount"]
+        else:
+            assert trials == [] and page["SelectedOcrRotationDegrees"] is None
         expected = normalize(page["ExpectedText"])
         actual = normalize(page["OcrText"])
         assert sha256_text(page["OcrText"]) == page["OcrTextSha256"], f"OCR result hash mismatch: {name}"

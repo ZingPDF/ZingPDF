@@ -18,6 +18,13 @@ if (args.Contains("--simulate-stall", StringComparer.Ordinal))
     return;
 }
 
+if (args.Contains("--engine-self-check", StringComparer.Ordinal))
+{
+    TesseractCliEngine.RunSelfCheck();
+    Console.WriteLine("OCR orientation and TSV parsing self-check passed.");
+    return;
+}
+
 var outputDirectory = Path.GetFullPath(args.FirstOrDefault(x => !x.StartsWith("--", StringComparison.Ordinal)) ?? ".tools/document-workflow");
 Directory.CreateDirectory(outputDirectory);
 var corpusDirectory = Path.Combine(outputDirectory, "corpus");
@@ -86,6 +93,10 @@ foreach (var item in cases)
         var source = ocr.Source.ToString();
         var inputCoverage = ocr.InputCoverage.ToString();
         var usedOcr = ocr.UsedOcr;
+        var orientation = usedOcr ? engine.LastOrientation : null;
+        var ocrConfidence = usedOcr ? engine.LastConfidence : null;
+        var recognizedWordCount = usedOcr ? engine.LastRecognizedWordCount : null;
+        var orientationTrials = usedOcr ? engine.LastTrials.ToArray() : [];
 
         var preview = await pdf.RenderPageAsync(pageNumber, new PdfPageRenderOptions
         {
@@ -107,7 +118,7 @@ foreach (var item in cases)
         pages.Add(new PageResult(pageNumber, expected.Description, source, inputCoverage, usedOcr,
             preview.PixelWidth, preview.PixelHeight, previewName,
             await HashFileAsync(previewPath, workerDeadline.Token), HashText(actualText), timer.ElapsedMilliseconds,
-            expected.Text, actualText, cer, expectedTokens, missingTokens));
+            expected.Text, actualText, cer, expectedTokens, missingTokens, orientation, ocrConfidence, recognizedWordCount, orientationTrials));
         var partialCase = new CaseResult(item.Name, Path.GetFileName(item.PdfPath), pdfHash, pageCount, pages.ToArray());
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "progress.json"),
             JsonSerializer.Serialize(new { CurrentCase = item.Name, CompletedCases = results, Current = partialCase }, new JsonSerializerOptions { WriteIndented = true }),
@@ -317,12 +328,53 @@ static async Task<WorkerEnvironment> ReadWorkerEnvironmentAsync(CancellationToke
 
 internal sealed class TesseractCliEngine(string tessdataPath, string language) : IOcrEngine
 {
+    private static readonly int[] TrialRotations = [0, 90, 180, 270];
+    private const int MinimumRecognizedWords = 3;
+    private const int MinimumRecognizedLetters = 12;
+
+    public int? LastOrientation { get; private set; }
+    public double? LastConfidence { get; private set; }
+    public int? LastRecognizedWordCount { get; private set; }
+    public IReadOnlyList<OrientationTrialResult> LastTrials { get; private set; } = [];
+
     public async Task<string> RecognizeAsync(OcrInputImage image, CancellationToken cancellationToken = default)
+    {
+        LastOrientation = null;
+        LastConfidence = null;
+        LastRecognizedWordCount = null;
+        LastTrials = [];
+        using var sourceBitmap = SKBitmap.Decode(image.Data)
+            ?? throw new InvalidDataException("Tesseract input was not a decodable image.");
+        var candidates = new List<OcrCandidate>(TrialRotations.Length);
+        foreach (var rotation in TrialRotations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var trialBitmap = RotateBitmap(sourceBitmap, rotation);
+            using var trialImage = SKImage.FromBitmap(trialBitmap);
+            using var png = trialImage.Encode(SKEncodedImageFormat.Png, 100)
+                ?? throw new InvalidDataException("Could not encode a rotated OCR trial image.");
+            var candidate = await RecognizeTsvAsync(png.ToArray(), cancellationToken);
+            candidates.Add(candidate with { Rotation = rotation });
+        }
+
+        LastTrials = candidates.Select(candidate => new OrientationTrialResult(candidate.Rotation,
+            candidate.LengthWeightedConfidence, candidate.WordCount, candidate.Text.Length, candidate.LetterCount)).ToArray();
+        var best = SelectCandidate(candidates);
+        if (best is null)
+            throw new InvalidDataException("Tesseract orientation trials found too few recognized words.");
+
+        LastOrientation = best.Rotation;
+        LastConfidence = best.LengthWeightedConfidence;
+        LastRecognizedWordCount = best.WordCount;
+        return best.Text;
+    }
+
+    private async Task<OcrCandidate> RecognizeTsvAsync(byte[] pngBytes, CancellationToken cancellationToken)
     {
         var inputPath = Path.Combine(Path.GetTempPath(), $"zingpdf-ocr-{Guid.NewGuid():N}.png");
         try
         {
-            await File.WriteAllBytesAsync(inputPath, image.Data, cancellationToken);
+            await File.WriteAllBytesAsync(inputPath, pngBytes, cancellationToken);
             var start = new ProcessStartInfo("/usr/bin/tesseract")
             {
                 RedirectStandardOutput = true,
@@ -337,7 +389,8 @@ internal sealed class TesseractCliEngine(string tessdataPath, string language) :
             start.ArgumentList.Add("-l");
             start.ArgumentList.Add(language);
             start.ArgumentList.Add("--psm");
-            start.ArgumentList.Add("1");
+            start.ArgumentList.Add("3");
+            start.ArgumentList.Add("tsv");
 
             using var process = new Process { StartInfo = start, EnableRaisingEvents = true };
             if (!process.Start()) throw new InvalidOperationException("Could not start the installed Tesseract executable.");
@@ -348,10 +401,10 @@ internal sealed class TesseractCliEngine(string tessdataPath, string language) :
             try
             {
                 await process.WaitForExitAsync(timeout.Token);
-                var text = await stdoutTask;
+                var tsv = await stdoutTask;
                 _ = await stderrTask;
                 if (process.ExitCode != 0) throw new InvalidOperationException($"Tesseract exited with code {process.ExitCode}.");
-                return text;
+                return ParseTsv(tsv);
             }
             catch (OperationCanceledException)
             {
@@ -369,18 +422,116 @@ internal sealed class TesseractCliEngine(string tessdataPath, string language) :
         }
     }
 
+    private static SKBitmap RotateBitmap(SKBitmap source, int clockwiseDegrees)
+    {
+        var swapDimensions = clockwiseDegrees is 90 or 270;
+        var width = swapDimensions ? source.Height : source.Width;
+        var height = swapDimensions ? source.Width : source.Height;
+        var rotated = new SKBitmap(width, height, source.ColorType, source.AlphaType);
+        using var canvas = new SKCanvas(rotated);
+        canvas.Clear(SKColors.White);
+        canvas.Translate(width / 2f, height / 2f);
+        canvas.RotateDegrees(clockwiseDegrees);
+        canvas.DrawBitmap(source, -source.Width / 2f, -source.Height / 2f);
+        canvas.Flush();
+        return rotated;
+    }
+
+    private static OcrCandidate ParseTsv(string tsv)
+    {
+        var words = new List<(int Page, int Block, int Paragraph, int Line, int Order, string Text, double Confidence)>();
+        foreach (var line in tsv.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (line.StartsWith("level\t", StringComparison.Ordinal)) continue;
+            var fields = line.TrimEnd('\r').Split('\t', 12, StringSplitOptions.None);
+            if (fields.Length < 12 || fields[0] != "5" || string.IsNullOrWhiteSpace(fields[11])) continue;
+            if (!double.TryParse(fields[10], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var wordConfidence)
+                || !double.IsFinite(wordConfidence) || wordConfidence is < 0d or > 100d)
+                continue;
+            if (!int.TryParse(fields[1], out var page) || !int.TryParse(fields[2], out var block)
+                || !int.TryParse(fields[3], out var paragraph) || !int.TryParse(fields[4], out var lineNumber)
+                || !int.TryParse(fields[5], out var wordOrder))
+                continue;
+            words.Add((page, block, paragraph, lineNumber, wordOrder, fields[11].Trim(), wordConfidence));
+        }
+
+        var ordered = words.OrderBy(x => x.Page).ThenBy(x => x.Block).ThenBy(x => x.Paragraph)
+            .ThenBy(x => x.Line).ThenBy(x => x.Order).ToArray();
+        var textLines = ordered.GroupBy(x => (x.Page, x.Block, x.Paragraph, x.Line))
+            .Select(group => string.Join(' ', group.Select(word => word.Text)));
+        var totalLength = ordered.Sum(word => word.Text.Length);
+        var confidence = totalLength == 0 ? 0d : ordered.Sum(word => word.Confidence * word.Text.Length) / totalLength;
+        if (!double.IsFinite(confidence)) confidence = 0d;
+        var text = string.Join(Environment.NewLine, textLines);
+        return new OcrCandidate(0, text, confidence, ordered.Length, text.Count(char.IsLetter));
+    }
+
+    private static OcrCandidate? SelectCandidate(IEnumerable<OcrCandidate> candidates) => candidates
+        .Where(candidate => candidate.WordCount >= MinimumRecognizedWords
+            && candidate.LetterCount >= MinimumRecognizedLetters
+            && double.IsFinite(candidate.LengthWeightedConfidence)
+            && candidate.LengthWeightedConfidence is >= 0d and <= 100d)
+        .OrderByDescending(candidate => candidate.LengthWeightedConfidence)
+        .ThenBy(candidate => candidate.Rotation)
+        .FirstOrDefault();
+
+    internal static void RunSelfCheck()
+    {
+        const string sample = "level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n"
+            + "5\t1\t1\t1\t2\t2\t20\t20\t10\t10\t90\tWORLD\n"
+            + "5\t1\t1\t1\t1\t2\t20\t10\t10\t10\t80\tTWO\n"
+            + "5\t1\t1\t1\t1\t1\t5\t10\t10\t10\t100\tONE\n"
+            + "5\t1\t1\t1\t2\t1\t5\t20\t10\t10\t60\tHELLO\n";
+        var parsed = ParseTsv(sample);
+        if (parsed.Text != $"ONE TWO{Environment.NewLine}HELLO WORLD" || parsed.WordCount != 4
+            || Math.Abs(parsed.LengthWeightedConfidence - 80.625d) > 0.001)
+            throw new InvalidOperationException("TSV parser did not preserve line order or length-weighted confidence.");
+
+        var candidates = new[]
+        {
+            new OcrCandidate(0, "selected tie break", 92, 4, 17),
+            new OcrCandidate(90, "same confidence", 92, 4, 17),
+            new OcrCandidate(180, "too few", 99, 2, 20),
+            new OcrCandidate(270, "too few letters", 98, 8, 11),
+            new OcrCandidate(270, "lower confidence", 88, 8, 18)
+        };
+        var selected = SelectCandidate(candidates);
+        if (selected?.Rotation != 0)
+            throw new InvalidOperationException("Orientation selector did not apply minimum-content and deterministic tie-break rules.");
+
+        using var source = new SKBitmap(13, 7);
+        source.Erase(SKColors.White);
+        using (var sourceCanvas = new SKCanvas(source))
+        {
+            using var red = new SKPaint { Color = SKColors.Red };
+            using var blue = new SKPaint { Color = SKColors.Blue };
+            sourceCanvas.DrawRect(0, 0, 3, 2, red);
+            sourceCanvas.DrawRect(10, 5, 3, 2, blue);
+        }
+        using var rotated = RotateBitmap(source, 90);
+        if (rotated.Width != 7 || rotated.Height != 13
+            || rotated.GetPixel(5, 0) != SKColors.Red || rotated.GetPixel(0, 10) != SKColors.Blue)
+            throw new InvalidOperationException("Quarter-turn image rotation did not preserve clockwise orientation and dimensions.");
+    }
+
     private static async Task ObserveCompletionAsync(Task<string> outputTask)
     {
         try { _ = await outputTask; } catch (Exception) { }
     }
 }
 
+internal sealed record OcrCandidate(int Rotation, string Text, double LengthWeightedConfidence, int WordCount, int LetterCount);
+internal sealed record OrientationTrialResult(int RotationDegrees, double LengthWeightedWordConfidence, int RecognizedWordCount,
+    int TextCharacterCount, int RecognizedLetterCount);
+
 internal sealed record ExpectedPage(string Description, string Text, string[] Tokens, double MaximumCer, bool MustUseOcr, bool MustUseEmbeddedText);
 internal sealed record CorpusCase(string Name, string PdfPath, IReadOnlyList<ExpectedPage> Pages);
 internal sealed record InputRecord(string File, string Sha256);
 internal sealed record PageResult(int Page, string Description, string Source, string InputCoverage, bool UsedOcr, int PreviewWidth, int PreviewHeight,
     string PreviewFile, string PreviewSha256, string OcrTextSha256, long ElapsedMilliseconds, string ExpectedText, string OcrText, double CharacterErrorRate,
-    string[] ExpectedTokens, string[] MissingTokens);
+    string[] ExpectedTokens, string[] MissingTokens, int? SelectedOcrRotationDegrees, double? LengthWeightedWordConfidence,
+    int? RecognizedWordCount, IReadOnlyList<OrientationTrialResult> OrientationTrials);
 internal sealed record CaseResult(string Name, string PdfFile, string PdfSha256, int PageCount, IReadOnlyList<PageResult> Pages);
 internal sealed record NamedHash(string Name, string Sha256);
 internal sealed record RunManifest(string Name, DateTimeOffset StartedUtc, string DotnetRuntime, string OcrEngine, string Language,
