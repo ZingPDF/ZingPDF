@@ -369,7 +369,7 @@ internal static class BrowserLocation
         {
             @"C:\Program Files\Google\Chrome\Application\chrome.exe",
             @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-            "/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser",
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         }.FirstOrDefault(File.Exists);
     }
