@@ -1,7 +1,7 @@
 param(
     [string]$Image = 'zingpdf-invoice-smoke:local',
     [string]$ChromiumVersion = '',
-    [string]$SdkImage = 'mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim',
+    [string]$SdkImage = 'mcr.microsoft.com/dotnet/sdk:10.0-noble',
     [string]$RuntimeImage = 'mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim',
     [string]$Python = 'python'
 )

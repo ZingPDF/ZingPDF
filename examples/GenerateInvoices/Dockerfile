@@ -1,6 +1,6 @@
 # Build from the repository root: docker build -f examples/GenerateInvoices/Dockerfile .
 # Supply approved image digests and an apt package version for a release image.
-ARG SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim
+ARG SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0-noble
 ARG RUNTIME_IMAGE=mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim
 FROM ${SDK_IMAGE} AS build
 WORKDIR /src

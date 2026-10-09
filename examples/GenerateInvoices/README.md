@@ -24,7 +24,7 @@ python -m pip install pypdf==6.10.0
 ./scripts/verify-invoices-linux.ps1
 ```
 
-The Dockerfile publishes the application with .NET 8 and installs Debian Chromium during the image build. Image building requires access to NuGet, the image registry and Debian package repositories. Rendering runs as UID 1654 with networking disabled, a read-only root filesystem, dropped capabilities, `no-new-privileges`, a writable output volume and temporary storage. The worker is limited to 2 CPUs, 2 GiB memory, 256 processes and 256 MiB shared memory. Its temporary filesystem is limited to 512 MiB.
+The Dockerfile builds with the .NET 10 SDK because the repository source generator requires C# 13. The published application targets .NET 8 and runs on the Debian .NET 8 runtime image. Debian Chromium is installed during the image build. Image building requires access to NuGet, the image registry and Debian package repositories. Rendering runs as UID 1654 with networking disabled, a read-only root filesystem, dropped capabilities, `no-new-privileges`, a writable output volume and temporary storage. The worker is limited to 2 CPUs, 2 GiB memory, 256 processes and 256 MiB shared memory. Its temporary filesystem is limited to 512 MiB.
 
 The wrapper explicitly sets `ZINGPDF_NO_SANDBOX=1` for this isolated container because Chromium's sandbox can require privileges unavailable under those restrictions. This is an opt-in, not the application default. Use the browser sandbox for ordinary deployments; review the worker isolation before accepting untrusted HTML. This corpus uses an application-owned template and escaped model text.
 
