@@ -12,18 +12,37 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
     /// <summary>
     /// Base class for choice fields such as combo boxes and list boxes.
     /// </summary>
-    public abstract class ChoiceFormField(
-        IndirectObject fieldIndirectObject,
-        string name,
-        string? description,
-        FieldProperties properties,
-        Form parent,
-        IPdf pdf,
-        IParser<ContentStream> contentStreamParser
-        )
-        : FormField<IPdfObject>(fieldIndirectObject, name, description, properties, parent, pdf)
+    public abstract class ChoiceFormField : FormField<IPdfObject>
     {
-        private readonly IParser<ContentStream> _contentStreamParser = contentStreamParser;
+        private readonly IParser<ContentStream> _contentStreamParser;
+        private readonly IReadOnlyList<IndirectObject> _widgetObjects;
+
+        public ChoiceFormField(
+            IndirectObject fieldIndirectObject,
+            string name,
+            string? description,
+            FieldProperties properties,
+            Form parent,
+            IPdf pdf,
+            IParser<ContentStream> contentStreamParser)
+            : this(fieldIndirectObject, name, description, properties, parent, pdf, contentStreamParser, null)
+        {
+        }
+
+        internal ChoiceFormField(
+            IndirectObject fieldIndirectObject,
+            string name,
+            string? description,
+            FieldProperties properties,
+            Form parent,
+            IPdf pdf,
+            IParser<ContentStream> contentStreamParser,
+            IEnumerable<IndirectObject>? widgetObjects)
+            : base(fieldIndirectObject, name, description, properties, parent, pdf)
+        {
+            _contentStreamParser = contentStreamParser;
+            _widgetObjects = widgetObjects?.ToList() ?? [];
+        }
 
         /// <summary>
         /// Gets the available options for the field, including their current selected state.
@@ -44,7 +63,9 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
                 var optionValues = GetOptionValues(option);
                 var selected = await IsSelectedAsync(optionValues.Item1);
 
-                options.Add(new ChoiceItem(optionValues.Item1, optionValues.Item2, selected, SelectOptionAsync, DeselectOptionAsync));
+                // In a two-string /Opt entry the first string is the export value
+                // stored in /V, while the second string is the displayed label.
+                options.Add(new ChoiceItem(optionValues.Item2, optionValues.Item1, selected, SelectOptionAsync, DeselectOptionAsync));
             }
 
             return options.AsReadOnly();
@@ -181,23 +202,38 @@ namespace ZingPDF.Elements.Forms.FieldTypes.Choice
         private async Task UpdateAppearanceAsync()
         {
             var selectedDisplayText = await GetSelectedDisplayTextAsync();
-            var manager = new VariableTextAppearanceStreamManager(
-                await _parent.GetFormDictionaryAsync(),
-                _fieldDictionary,
-                _pdf,
-                _contentStreamParser,
-                await _parent.GetFontProvidersAsync());
-
-            if (string.IsNullOrWhiteSpace(selectedDisplayText))
+            foreach (var widget in GetWidgetObjects())
             {
-                await manager.WipeFieldAsync();
-                _pdf.Objects.Update(_fieldIndirectObject);
-                _parent.MarkForUpdate();
-                return;
+                var manager = new VariableTextAppearanceStreamManager(
+                    await _parent.GetFormDictionaryAsync(),
+                    _fieldDictionary,
+                    _pdf,
+                    _contentStreamParser,
+                    await _parent.GetFontProvidersAsync(),
+                    widget,
+                    forceMultiline: Properties.IsMultiSelect);
+
+                if (string.IsNullOrWhiteSpace(selectedDisplayText))
+                {
+                    await manager.WipeFieldAsync();
+                }
+                else
+                {
+                    await manager.WriteTextAsync(PdfString.FromTextAuto(selectedDisplayText, ObjectContext.FromImplicitOperator));
+                }
+
+                if (!ReferenceEquals(widget, _fieldIndirectObject))
+                {
+                    _pdf.Objects.Update(widget);
+                }
             }
 
-            await manager.WriteTextAsync(PdfString.FromTextAuto(selectedDisplayText, ObjectContext.FromImplicitOperator));
+            _pdf.Objects.Update(_fieldIndirectObject);
+            _parent.MarkForUpdate();
         }
+
+        private IEnumerable<IndirectObject> GetWidgetObjects()
+            => _widgetObjects.Count == 0 ? [_fieldIndirectObject] : _widgetObjects;
 
         private async Task<string?> GetSelectedDisplayTextAsync()
         {

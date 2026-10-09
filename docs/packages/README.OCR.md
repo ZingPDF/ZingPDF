@@ -2,7 +2,7 @@
 
 # ZingPDF.OCR
 
-`ZingPDF.OCR` adds OCR support for scanned and image-based PDF pages.
+`ZingPDF.OCR` supplies image-candidate OCR and an explicit rendered-page OCR mode for mixed text, scans and tiled images.
 
 ## Installation
 
@@ -25,6 +25,22 @@ var engine = new TesseractOcrEngine("./tessdata", "eng");
 var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 ```
 
+This preserves the default: return existing nonblank embedded text, otherwise OCR the largest supported image XObject. A digital header can therefore bypass a scanned body, and one candidate can omit other image tiles. Use the rendered-page mode for visible-page input coverage:
+
+```csharp
+var result = await pdf.ExtractTextWithOcrAsync(1, engine, new PdfOcrOptions
+{
+    Mode = PdfOcrMode.RenderedPage,
+    Dpi = 300,
+    MaxPixelCount = 50_000_000
+}, cancellationToken);
+
+Console.WriteLine(result.Source);
+Console.WriteLine(result.InputCoverage);
+```
+
+Rendered-page mode uses PDFium to produce a PNG of the visible crop/media intersection with page rotation and annotations. It ignores `PreferEmbeddedText` and sends that rendered image to the selected `IOcrEngine`. `InputCoverage` describes the supplied image, not recognition accuracy or recovered-text completeness. `Source` distinguishes embedded text, a single image candidate, a rendered page and no input.
+
 ## Main workflows
 
 - extract OCR text from scanned or image-based PDF pages
@@ -33,9 +49,11 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);
 
 ## Current limits
 
-- this package does not render arbitrary PDF drawing commands into an OCR image
-- OCR works on image-based pages and other pages with usable image XObjects
-- JPEG, JPEG 2000 passthrough, and common 8-bit RGB or grayscale image streams are the main supported inputs today
+- image-candidate mode processes one usable image XObject; it does not cover arbitrary page drawing commands or multiple scan tiles
+- JPEG, JPEG 2000 passthrough, and common 8-bit RGB or grayscale streams are supported candidate inputs; rendered-page mode uses PNG output from the page renderer
+- rendered-page mode requires the native PDFium rendering dependencies on the deployed platform; install and validate them before disabling runtime network access
+- rendering resolution is 72–600 DPI; the default is 300 DPI and the default rendered-image limit is 50 million pixels
+- cancellation is checked between operations and passed to the engine; native rendering and in-process OCR are not guaranteed to stop immediately after cancellation, so enforce hard job deadlines in a separately supervised worker
 - `TesseractOcrEngine` requires native Tesseract support and language data files at runtime
 
 ## Licensing

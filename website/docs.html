@@ -405,7 +405,7 @@ Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
                 <ul>
                   <li>Target framework: <code>net8.0</code></li>
                   <li>Use for OCR-driven text extraction on scanned or image-based pages</li>
-                  <li>Best fit for image-based pages and supported image XObjects</li>
+                  <li>Choose image-candidate input or render the visible page through PDFium</li>
                   <li>Ships with a Tesseract-backed engine option</li>
                 </ul>
               </article>
@@ -871,6 +871,7 @@ if (form is null)
 
 await form.FlattenAsync();
 await pdf.SaveAsync(File.Create("form-flattened.pdf"));</code></pre>
+            <p>Flattening validates widget appearances before removal. A missing or malformed normal appearance causes <code>InvalidPdfException</code>; XFA causes <code>NotSupportedException</code>. Reject or route these inputs to review. Flattening does not make the PDF uneditable or protect an existing signature.</p>
 
             <div class="doc-grid">
               <article class="doc-card">
@@ -1172,7 +1173,9 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(engine);</code></pre>
             <ul>
               <li><code>ExtractTextWithOcrAsync(...)</code> prefers embedded text first by default, and that behavior can be changed with <code>PdfOcrOptions</code>.</li>
               <li><code>ExtractPlainTextWithOcrAsync(...)</code> returns a joined plain-text view across pages.</li>
-              <li>The current OCR path works best on image-based pages and supported image XObjects.</li>
+              <li>The default image-candidate path processes one image and can omit mixed content. Use <code>Mode = PdfOcrMode.RenderedPage</code> to render the visible page at <code>Dpi = 300</code> before OCR.</li>
+              <li><code>OcrPageResult.Source</code> and <code>InputCoverage</code> report the source and image area supplied to OCR; they do not establish recognition completeness.</li>
+              <li>Rendered input requires installed native PDFium dependencies. The default limit is 50 million pixels and the supported resolution range is 72–600 DPI.</li>
             </ul>
           </section>
 
@@ -1311,7 +1314,7 @@ Console.WriteLine(PerformanceTrace.GetSummary());</code></pre>
               high-level API.</p>
             <ul>
               <li>Encrypted PDFs are outside the current signing path, and visible signing uses an existing signature field.</li>
-              <li>OCR works best on image-based pages and supported image XObjects rather than arbitrary rendered page content.</li>
+              <li>OCR defaults to embedded text or one image candidate. Rendered-page mode covers visible mixed content through PDFium and requires native deployment validation.</li>
               <li>Push-button action dictionaries are exposed as metadata for viewers and editing software.</li>
               <li>Malformed file repair is limited to a few common recovery paths rather than full document reconstruction.</li>
             </ul>
