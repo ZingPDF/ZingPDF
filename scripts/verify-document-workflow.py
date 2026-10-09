@@ -94,7 +94,23 @@ def png_dimensions(path: Path) -> tuple[int, int]:
     return width, height
 
 
+def has_enabled_no_new_privileges(options: list[str]) -> bool:
+    accepted = {"no-new-privileges", "no-new-privileges:true", "no-new-privileges=true"}
+    return any(option.strip().lower() in accepted for option in options)
+
+
+def check_no_new_privileges_parser() -> None:
+    assert has_enabled_no_new_privileges(["no-new-privileges"])
+    assert has_enabled_no_new_privileges(["no-new-privileges:true"])
+    assert has_enabled_no_new_privileges(["no-new-privileges=true"])
+    assert not has_enabled_no_new_privileges([])
+    assert not has_enabled_no_new_privileges(["no-new-privileges:false"])
+    assert not has_enabled_no_new_privileges(["no-new-privileges=false"])
+    assert not has_enabled_no_new_privileges(["seccomp=unconfined"])
+
+
 def verify(root: Path) -> None:
+    check_no_new_privileges_parser()
     manifest = json.loads((root / "results.json").read_text(encoding="utf-8"))
     environment = json.loads((root / "worker-environment.json").read_text(encoding="utf-8"))
     assert manifest["OcrEngine"] == "tesseract-cli"
@@ -132,7 +148,7 @@ def verify(root: Path) -> None:
     host = docker_state["HostConfig"]
     assert config["User"] == "1654:1654"
     assert host["NetworkMode"] == "none" and host["ReadonlyRootfs"] is True
-    assert "ALL" in host["CapDrop"] and "no-new-privileges:true" in host["SecurityOpt"]
+    assert "ALL" in host["CapDrop"] and has_enabled_no_new_privileges(host["SecurityOpt"])
     assert host["Memory"] == 8 * 1024**3 and host["NanoCpus"] == 4_000_000_000
     assert host["PidsLimit"] == 256 and host["ShmSize"] == 256 * 1024**2
     assert any(path == "/tmp" and ("size=512m" in options or "size=536870912" in options) for path, options in host["Tmpfs"].items())
