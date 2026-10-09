@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="PuppeteerSharp" Version="20.2.2" />
+    <InternalsVisibleTo Include="ZingPDF.Tests.Integration" />
   </ItemGroup>
 
   <ItemGroup>

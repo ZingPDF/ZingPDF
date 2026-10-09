@@ -95,13 +95,39 @@ public class LiquidHtmlPdfTemplateTests
         exception.Which.Diagnostics.Should().ContainSingle(x => x.Severity == PdfTemplateDiagnosticSeverity.Error);
     }
 
+    [Fact]
+    public async Task RenderAsync_ForwardsCallerCancellationToPublicConverter()
+    {
+        var converter = new RecordingHtmlToPdfConverter("%PDF-test");
+        var template = LiquidHtmlPdfTemplate.FromSource(PdfTemplateSource.FromString("<p>{{ Title }}</p>"), converter);
+        using var cancellation = new CancellationTokenSource();
+        using var output = new MemoryStream();
+        await template.RenderAsync(new { Title = "Invoice" }, output, cancellationToken: cancellation.Token);
+        converter.CancellationToken.Should().Be(cancellation.Token);
+    }
+
+    [Fact]
+    public async Task RenderAsync_PreCancelledTokenDoesNotConvertOrWriteOutput()
+    {
+        var converter = new RecordingHtmlToPdfConverter("%PDF-test");
+        var template = LiquidHtmlPdfTemplate.FromSource(PdfTemplateSource.FromString("<p>{{ Title }}</p>"), converter);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        using var output = new MemoryStream();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => template.RenderAsync(new { Title = "Invoice" }, output, cancellationToken: cancellation.Token));
+        converter.Html.Should().BeNull();
+        output.Length.Should().Be(0);
+    }
+
     private sealed class RecordingHtmlToPdfConverter(string pdfText) : IHtmlToPdfConverter
     {
         public string? Html { get; private set; }
+        public CancellationToken CancellationToken { get; private set; }
 
         public Task<Stream> ConvertAsync(string html, CancellationToken cancellationToken = default)
         {
             Html = html;
+            CancellationToken = cancellationToken;
             Stream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(pdfText));
             return Task.FromResult(stream);
         }

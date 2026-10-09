@@ -53,6 +53,7 @@
         <nav class="article-toc" aria-label="On this page">
           <strong>On this page</strong>
           <a href="#minimal-example">Minimal example</a>
+          <a href="#shared-renderer">Shared browser</a>
           <a href="#template-file">Template file</a>
           <a href="#html-preview">Inspect HTML</a>
           <a href="#includes">Includes</a>
@@ -87,6 +88,28 @@ await LiquidHtmlPdfTemplate
     .RenderAsync(invoice, output);</code></pre>
         </section>
 
+        <section class="article-section" id="shared-renderer">
+          <h2>Share an installed browser</h2>
+          <p>Use the invoice model above with a configured renderer. Set <code>ZINGPDF_BROWSER_PATH</code> to an installed browser and supply the application's <code>cancellationToken</code>.</p>
+          <pre><code class="language-csharp">using ZingPDF.FromHTML;
+using ZingPDF.Templates;
+using ZingPDF.Templates.LiquidHtml;
+
+await using var renderer = new HtmlToPdfRenderer(new HtmlToPdfOptions
+{
+    BrowserExecutablePath = Environment.GetEnvironmentVariable("ZINGPDF_BROWSER_PATH")
+        ?? throw new InvalidOperationException("Set ZINGPDF_BROWSER_PATH to an installed browser.")
+});
+
+var template = LiquidHtmlPdfTemplate.FromSource(
+    PdfTemplateSource.FromFile("invoice.liquid.html"),
+    new RendererHtmlToPdfConverter(renderer));
+
+await using var output = File.Create("invoice.pdf");
+await template.RenderAsync(invoice, output, cancellationToken: cancellationToken);</code></pre>
+          <p>The template forwards cancellation to the converter and output copy. The renderer deadline starts after Liquid rendering. The template and adapter do not dispose the shared renderer. Liquid parsing and rendering are not an interruptible OS-level workload.</p>
+        </section>
+
         <section class="article-section" id="template-file">
           <h2>Write a Liquid HTML template</h2>
           <p>
@@ -97,7 +120,10 @@ await LiquidHtmlPdfTemplate
 &lt;html&gt;
   &lt;head&gt;
     &lt;style&gt;
-      body { font-family: Arial, sans-serif; margin: 40px; }
+      @page { size: A4; margin: 15mm; }
+      body { font-family: Arial, sans-serif; margin: 0; }
+      thead { display: table-header-group; }
+      tr { break-inside: avoid; }
       table { border-collapse: collapse; width: 100%; }
       th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
       .amount { text-align: right; }
@@ -159,11 +185,17 @@ await File.WriteAllTextAsync("invoice-preview.html", html);</code></pre>
 
         <section class="article-section" id="runtime">
           <h2>Account for browser conversion</h2>
-          <p>
-            Liquid rendering is in-process .NET code. PDF conversion uses <code>ZingPDF.FromHTML</code>, which depends
-            on PuppeteerSharp and a Chromium runtime. Validate containers, serverless hosts, CI, and locked-down
-            desktops before relying on this package in those environments.
-          </p>
+          <ul>
+              <li>Supply an installed Chromium-compatible executable through <code>BrowserExecutablePath</code>. Browser downloading is disabled by default; <code>AllowBrowserDownload</code> enables it explicitly.</li>
+              <li>Reuse <code>HtmlToPdfRenderer</code> across jobs. One browser serves isolated contexts; <code>MaxConcurrency</code> defaults to four and additional jobs queue.</li>
+              <li>The new renderer's default 30-second <code>RenderTimeout</code> covers queueing, startup, loading, font readiness and printing. <code>Timeout.InfiniteTimeSpan</code> disables the overall deadline. The separate <code>BrowserStartupTimeout</code> defaults to 30 seconds and must remain finite. Expiry throws <code>TimeoutException</code>; caller cancellation throws <code>OperationCanceledException</code>. Context creation and cleanup must finish; browser startup or downloading can remain renderer-owned after a caller stops waiting, within the separate startup budget. Disposal cancels browser provisioning. The deadline is not an OS-enforced hard worker bound.</li>
+              <li>Options are copied at construction. The caller disposes the renderer and returned streams. New defaults use print media, background printing and CSS page sizes; customize <code>PdfOptions</code> for paper, margins, headers or page ranges.</li>
+              <li>Original static <code>Converter.ToPdfAsync(...)</code> overloads retain automatic browser downloading, screen media and default PuppeteerSharp print settings. They disable the overall deadline to preserve explicit navigation timeouts, including zero; the browser startup budget remains finite. The overload taking <code>HtmlToPdfOptions</code> uses explicit settings for one job.</li>
+              <li><code>Offline</code> emulates offline page networking. Embed fonts and images as data URLs. It is not a network sandbox or security guarantee. Accept trusted HTML and scripts; isolated contexts do not replace OS process isolation.</li>
+              <li>Install the browser, OS libraries and fonts with the deployment. The renderer does not disable Chromium's sandbox by default.</li>
+            </ul>
+          <p>Default <code>FromFile</code>, <code>FromString</code> and single-argument <code>FromSource</code> use the original static converter. Use the two-argument <code>FromSource</code> overload for explicit deployment settings.</p>
+          <p><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/GenerateInvoices">GenerateInvoices</a> supplies a long-table template with 0, 1, 40 and 500 rows, repeated headers, totals and embedded fonts. Validate the recipe in the target Linux image.</p>
         </section>
 
         <section class="article-cta" id="next-step">
