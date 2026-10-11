@@ -112,6 +112,8 @@ var result = await pdf.ExtractTextAsync(1, new TextExtractionOptions
 });
 
 Console.WriteLine(result.PlainText);</code></pre>
+          <p>Plain text uses positioned runs to insert line breaks and spaces, including across a page's content
+            streams. It does not reconstruct arbitrary columns, tables or semantic reading order.</p>
         </section>
 
         <section class="article-section" id="shape-choice">
