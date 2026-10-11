@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.59] - 2026-10-11
+
+### Changed
+
+- Preserve external form appearances and add rendered-page OCR (#14)
+- Make HTML invoice rendering configurable and verify offline Linux output (#13)
+- Clarify continuing paid-version license and instrument sales funnel
+- Install Google Analytics
+- Add PDF to PNG support (#12)
+
 ## [1.0.58] - 2026-05-28
 
 ### Changed
