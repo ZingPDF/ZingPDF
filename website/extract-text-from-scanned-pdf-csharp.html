@@ -116,16 +116,32 @@ var text = await pdf.ExtractPlainTextWithOcrAsync(
     });</code></pre>
         </section>
 
+        <section class="article-section" id="rendered-page">
+          <h2>OCR the visible page</h2>
+          <p>Choose rendered-page mode for mixed PDF text and scans, tiled images or drawing commands. A digital header does not bypass OCR of the scanned body in this mode.</p>
+          <pre><code class="language-csharp">var result = await pdf.ExtractTextWithOcrAsync(1, engine,
+    new PdfOcrOptions
+    {
+        Mode = PdfOcrMode.RenderedPage,
+        Dpi = 300,
+        MaxPixelCount = 50_000_000
+    }, cancellationToken);
+
+Console.WriteLine(result.Source);
+Console.WriteLine(result.InputCoverage);</code></pre>
+          <p>PDFium renders the visible crop/media intersection with page rotation and annotations to PNG. The selected OCR engine receives that image. <code>PreferEmbeddedText</code> is ignored in rendered-page mode.</p>
+          <p><code>InputCoverage</code> reports the area supplied to OCR. It does not certify recognition accuracy or that every visible word was recovered.</p>
+        </section>
+
         <section class="article-section" id="limits">
           <h2>Current limits</h2>
           <p>
-            This package is aimed at image-based pages. It looks for the largest supported image on each page and sends
-            that image to the OCR engine.
+            The default image-candidate mode returns nonblank embedded text first, otherwise sends the largest supported image XObject to OCR. It can omit a scanned body after a digital header or process only one scan tile.
           </p>
           <p>
-            That works well for scanned PDFs where each page is mostly one scan image. It is not a full page renderer
-            for arbitrary vector content, annotations, or mixed scanned and drawn layouts.
+            Rendered-page mode requires the native PDFium dependencies and an OCR engine with installed language data. Resolution is 72–600 DPI; the defaults are 300 DPI and a 50-million-pixel limit. Validate the native dependencies on the deployed image.
           </p>
+          <p>Cancellation is passed through the workflow, but native rendering and in-process OCR may finish their current operation before stopping. Enforce hard deadlines with a separately supervised worker process.</p>
         </section>
 
         <section class="article-cta" id="next-step">
