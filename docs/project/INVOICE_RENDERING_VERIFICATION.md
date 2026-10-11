@@ -1,6 +1,6 @@
 # Invoice rendering remediation
 
-Evaluation follow-up: 9 October 2026. Draft implementation: [PR #13](https://github.com/ZingPDF/ZingPDF/pull/13).
+Evaluation follow-up: 9 October 2026. Implementation [PR #13](https://github.com/ZingPDF/ZingPDF/pull/13) was merged on 11 October 2026.
 
 The smallest procurement remediation is an operationally controlled HTML invoice route. `HtmlToPdfRenderer` accepts an installed browser, copies its configuration, reuses one browser process, gives each job a separate context, limits concurrency, waits for fonts and forwards cancellation. Its default is print media. Existing `Converter` helpers retain screen media and automatic provisioning. Liquid templates can use the public converter injection factory and `RendererHtmlToPdfConverter`.
 
