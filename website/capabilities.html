@@ -152,7 +152,7 @@
                   <tr>
                     <td><a class="inline-link" href="./convert-html-to-pdf-csharp.html">HTML-to-PDF conversion</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td><code>ZingPDF.FromHTML</code> converts rendered HTML through browser automation.</td>
+                    <td><code>ZingPDF.FromHTML</code> converts trusted HTML using Chromium. <code>HtmlToPdfRenderer</code> reuses an explicitly installed browser with isolated job contexts, configurable printing, cancellation and a conversion deadline. Four concurrent contexts are allowed by default; extra jobs queue.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./fluent-pdf-authoring-csharp.html">Fluent page editing for existing PDFs</a></td>
@@ -202,7 +202,7 @@
                   <tr>
                     <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">PDF-native flow templates</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
-                    <td>The current template package is Liquid HTML backed by browser conversion, not a PDF-native flow layout engine.</td>
+                    <td>The current template package uses Liquid HTML and Chromium pagination. <code>RendererHtmlToPdfConverter</code> shares a caller-owned configured renderer. The invoice example covers 0, 1, 40 and 500 rows, repeated headers and totals; validate the container recipe in the target Linux image. A PDF-native flow layout engine is not supplied.</td>
                   </tr>
                 </tbody>
               </table>
@@ -389,7 +389,7 @@
                   <tr>
                     <td><a class="inline-link" href="./convert-html-to-pdf-csharp.html">HTML-to-PDF package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>HTML-to-PDF package with browser automation requirements.</td>
+                    <td>HTML-to-PDF package requiring Chromium, OS libraries and fonts. New renderer defaults disable browser downloading and use print media with CSS page sizes. Offline mode is page networking emulation, not a security boundary.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">Liquid HTML template package</a></td>

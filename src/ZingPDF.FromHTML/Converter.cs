@@ -1,53 +1,42 @@
-﻿using PuppeteerSharp;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
 
-namespace ZingPDF.FromHTML
+namespace ZingPDF.FromHTML;
+
+/// <summary>One-shot conversion helpers. Use HtmlToPdfRenderer to reuse a configured browser across jobs.</summary>
+public static class Converter
 {
-    public static class Converter
+    /// <summary>Converts HTML using the original screen-media/default-print settings and automatic browser provisioning.</summary>
+    public static Task<Stream> ToPdfAsync(string htmlContent)
+        => ToPdfAsync(htmlContent, CancellationToken.None);
+
+    /// <summary>Converts HTML using the original settings, with cancellation and font-readiness waiting.</summary>
+    public static Task<Stream> ToPdfAsync(string htmlContent, CancellationToken cancellationToken)
+        => ToPdfAsync(htmlContent, LegacyOptions(), cancellationToken);
+
+    /// <summary>Converts HTML with explicit browser/print settings. The returned PDF stream is owned by the caller.</summary>
+    public static async Task<Stream> ToPdfAsync(string htmlContent, HtmlToPdfOptions options, CancellationToken cancellationToken = default)
     {
-        public static async Task<Stream> ToPdfAsync(string htmlContent)
-        {
-            using (var browser = await PrepareBrowserAsync())
-            using (var page = await PreparePageAsync(browser))
-            {
-                await page.SetContentAsync(htmlContent);
-
-                return await page.PdfStreamAsync();
-            }  
-        }
-
-        public static async Task<Stream> ToPdfAsync(Uri uri, NavigationOptions? navigationOptions = null)
-        {
-            navigationOptions ??= NavigationOptions.Default;
-
-            using var browser = await PrepareBrowserAsync();
-            using var page = await PreparePageAsync(browser);
-
-            await page.GoToAsync(
-                uri.AbsoluteUri,
-                timeout: navigationOptions.TimeoutExpiration,
-                waitUntil: navigationOptions.WaitUntilFlags.ToWaitUntilNavigations()
-                );
-
-            // Wait for fonts to be loaded. Omitting this might result in no text rendered in pdf.
-            await page.EvaluateExpressionHandleAsync("document.fonts.ready");
-
-            return await page.PdfStreamAsync();
-        }
-
-        private static async Task<IBrowser> PrepareBrowserAsync()
-        {
-            await new BrowserFetcher().DownloadAsync();
-
-            return await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true, DumpIO = true });
-        }
-
-        private static async Task<IPage> PreparePageAsync(IBrowser browser)
-        {
-            var page = await browser.NewPageAsync();
-
-            await page.EmulateMediaTypeAsync(PuppeteerSharp.Media.MediaType.Screen);
-
-            return page;
-        } 
+        await using var renderer = new HtmlToPdfRenderer(options);
+        return await renderer.RenderAsync(htmlContent, cancellationToken);
     }
+
+    /// <summary>Converts a URL using the original settings and optional navigation wait states.</summary>
+    public static Task<Stream> ToPdfAsync(Uri uri, NavigationOptions? navigationOptions = null)
+        => ToPdfAsync(uri, navigationOptions, CancellationToken.None);
+
+    /// <summary>Converts a URL using the original settings, optional navigation wait states and cancellation.</summary>
+    public static async Task<Stream> ToPdfAsync(Uri uri, NavigationOptions? navigationOptions, CancellationToken cancellationToken)
+    {
+        await using var renderer = new HtmlToPdfRenderer(LegacyOptions());
+        return await renderer.RenderAsync(uri, navigationOptions, cancellationToken);
+    }
+
+    private static HtmlToPdfOptions LegacyOptions() => new()
+    {
+        AllowBrowserDownload = true,
+        RenderTimeout = Timeout.InfiniteTimeSpan,
+        MediaType = MediaType.Screen,
+        PdfOptions = new PdfOptions()
+    };
 }

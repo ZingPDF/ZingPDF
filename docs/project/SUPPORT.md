@@ -11,6 +11,16 @@ This document records the current support expectations for ZingPDF ahead of publ
 - `ZingPDF.Templates`: `net8.0`
 - `ZingPDF.Templates.LiquidHtml`: `net8.0`
 
+## HTML renderer deployment
+
+`HtmlToPdfRenderer` accepts an installed Chromium-compatible executable and does not download by default. Reuse the caller-owned renderer for concurrent conversions; its default limit is four isolated contexts, with remaining calls queued. Options are copied at construction. Print media, background printing and CSS page sizes are the new renderer defaults. Original static converter overloads retain their browser download, screen-media and default-print behavior. Their overall conversion deadline is disabled to preserve explicit navigation timeouts; the browser startup budget remains finite.
+
+The new renderer's default 30-second `RenderTimeout` covers queueing, startup, navigation, font readiness and printing. `Timeout.InfiniteTimeSpan` disables this overall deadline. A separate finite `BrowserStartupTimeout` covers provisioning and launch, defaulting to 30 seconds. Cancellation is forwarded through `RendererHtmlToPdfConverter`; the renderer deadline begins after Liquid rendering. Browser context creation and cleanup must finish; browser startup or downloading can remain renderer-owned after a caller stops waiting, within the separate startup budget. Disposal cancels browser provisioning. Deadline and disposal behavior depend on browser protocol responsiveness. This is not an OS-enforced hard worker bound.
+
+Deploy browser libraries and fonts with the application and test the actual host. `Offline` is page network emulation, not a security boundary; embed assets and accept only trusted HTML/scripts. The renderer leaves the Chromium sandbox enabled unless the caller changes launch arguments. Caller disposal closes the owned browser; templates do not own the supplied renderer.
+
+`examples/GenerateInvoices` provides a long-table invoice corpus and a Linux container recipe. Validate the recipe in the target Linux image. No Linux readiness or cross-library performance claim follows from the recipe alone.
+
 ## Operating systems
 
 ZingPDF is developed as a managed .NET library and is expected to work on:
@@ -45,7 +55,7 @@ Notes:
 - add text with registered fonts
 - add images including PNG support
 - draw vector paths with stroke and fill options
-- extract text
+- extract text, including content streams with inline marked-content property dictionaries
 - OCR image-based pages through the `ZingPDF.OCR` package
 - add simple text watermarks
 

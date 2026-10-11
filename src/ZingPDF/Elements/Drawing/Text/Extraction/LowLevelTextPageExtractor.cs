@@ -1220,6 +1220,10 @@ internal sealed class LowLevelTextPageExtractor : IDisposable
         {
             switch (token)
             {
+                case (byte)'/':
+                    _ = ReadNameBounds(data, ref index);
+                    break;
+
                 case (byte)'(':
                     _ = ReadLiteralStringBounds(data, ref index);
                     break;
@@ -1378,6 +1382,13 @@ internal sealed class LowLevelTextPageExtractor : IDisposable
         var start = index;
 
         while (index < data.Length && !IsDelimiterOrWhitespace(data[index]))
+        {
+            index++;
+        }
+
+        // Unknown/stray delimiters must still advance the tolerant content scanner.
+        // Rewinding an unhandled delimiter and returning an empty token otherwise loops forever.
+        if (index == start && index < data.Length)
         {
             index++;
         }
