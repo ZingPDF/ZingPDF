@@ -1,6 +1,6 @@
 # Document workflow remediation plan
 
-Started 9 October 2026. This follows the invoice rendering change in PR #13. Work is on `codex/document-workflow-remediation-20261009`; the draft PR will target the invoice branch until that change is merged.
+Started 9 October 2026. The work was developed on `codex/document-workflow-remediation-20261009`, initially stacked on invoice PR #13. Both PRs were merged on 11 October 2026 after rebasing the workflow branch onto the invoice merge.
 
 ## Scope and acceptance
 

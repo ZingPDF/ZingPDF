@@ -1,6 +1,6 @@
 # Document workflow verification
 
-9 October 2026. Implementation is in draft [PR #14](https://github.com/ZingPDF/ZingPDF/pull/14), stacked on invoice PR #13. The delegated implementation agents used `gpt-6-luna` with high reasoning effort; the coordinator reviewed integration and independent evidence. See [the plan](DOCUMENT_WORKFLOW_PLAN.md) for ownership and acceptance criteria.
+Verification began 9 October 2026. [PR #14](https://github.com/ZingPDF/ZingPDF/pull/14) and its invoice dependency PR #13 were merged on 11 October 2026. The delegated implementation agents used `gpt-6-luna` with high reasoning effort; the coordinator reviewed integration and independent evidence. See [the plan](DOCUMENT_WORKFLOW_PLAN.md) for ownership and acceptance criteria.
 
 ## Implemented behavior
 
@@ -21,6 +21,8 @@ The five-field-type, seven-widget external-form example passed the independent `
 `pwsh ./website/check-copy.ps1` passed. `pwsh ./website/generate-api-reference.ps1` completed with zero warnings/errors; the OCR options page was previewed through the local HTTP server.
 
 ## Linux acceptance evidence
+
+The final [Linux acceptance workflow](https://github.com/ZingPDF/ZingPDF/actions/runs/37890075317) passed both OCR/supervisor and independent form jobs at implementation commit `2efde17b960e7cc92ccd07f51b0919f59d8d2ab9`. [OCR evidence](https://github.com/ZingPDF/ZingPDF/actions/runs/37890075317/artifacts/11597557911) and [form evidence](https://github.com/ZingPDF/ZingPDF/actions/runs/37890075317/artifacts/11597507991) are retained. Platform CI and benchmark checks also passed. The rebased branch used for merging had an identical file tree.
 
 Initial [run 37888594888](https://github.com/ZingPDF/ZingPDF/actions/runs/37888594888) passed the independent external-form appearance job. The OCR container built and recorded native/model inventories, then exposed eager default debug-file creation in the library logger on the read-only filesystem. That unused initializer was removed; subsequent runs retain the same worker restrictions.
 

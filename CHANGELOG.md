@@ -8,13 +8,24 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [1.0.59] - 2026-10-11
 
+### Added
+
+- PDF page-to-PNG rendering through PDFium, with visible-box and page-rotation options (#12).
+- A reusable `HtmlToPdfRenderer` for caller-provisioned Chromium, isolated contexts, bounded concurrency, print settings, cancellation and startup controls; a Liquid HTML adapter uses the same renderer (#13).
+- Opt-in `PdfOcrMode.RenderedPage` with DPI/pixel limits and source/input-coverage metadata for mixed pages and scan tiles (#14).
+- Runnable offline Linux invoice and native OCR acceptance examples, independent form appearance comparisons, and procurement evaluation reports.
+
+### Fixed
+
+- Inherited and repeated external form widget appearances, checkbox/radio selections and choice export/display values. Flattening preflights usable normal appearances and rejects unsupported XFA before destructive changes (#14).
+- Positioned plain-text line breaks and gaps across a page's content streams, while preserving contiguous same-line fragments (#14).
+- Default parser logging no longer creates an unused debug file, allowing read-only application directories (#14).
+- Text extraction from inline marked-content property dictionaries and a signing certificate fixture timing race (#13).
+
 ### Changed
 
-- Preserve external form appearances and add rendered-page OCR (#14)
-- Make HTML invoice rendering configurable and verify offline Linux output (#13)
-- Clarify continuing paid-version license and instrument sales funnel
-- Install Google Analytics
-- Add PDF to PNG support (#12)
+- Clarify continuing rights to paid versions in the licence documentation and add website sales-funnel measurement and Google Analytics configuration.
+- Original static HTML converter overloads retain their existing download and rendering defaults; full-page OCR requires an explicit mode selection.
 
 ## [1.0.58] - 2026-05-28
 
