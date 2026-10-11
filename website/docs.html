@@ -429,21 +429,39 @@ Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
 
             <h3>Direct HTML-to-PDF conversion</h3>
             <p>
-              <code>ZingPDF.FromHTML</code> exposes <code>Converter.ToPdfAsync(...)</code> for direct conversion from an
-              HTML string or a URL.
+              <code>ZingPDF.FromHTML</code> exposes <code>HtmlToPdfRenderer</code> for conversion from an
+              HTML string or a URL using a shared configured browser.
             </p>
+            <p>Set <code>ZINGPDF_BROWSER_PATH</code> to an installed browser and supply the application cancellation token.</p>
             <pre><code class="language-csharp">using ZingPDF.FromHTML;
 
-await using var pdfStream = await Converter.ToPdfAsync(
-    new Uri("https://example.com/report"),
-    new NavigationOptions
-    {
-        TimeoutExpiration = 60_000,
-        WaitUntilFlags = WaitUntil.Networkidle0
-    });
+await using var renderer = new HtmlToPdfRenderer(new HtmlToPdfOptions
+{
+    BrowserExecutablePath = Environment.GetEnvironmentVariable("ZINGPDF_BROWSER_PATH")
+        ?? throw new InvalidOperationException("Set ZINGPDF_BROWSER_PATH to an installed browser."),
+    MaxConcurrency = 4,
+    RenderTimeout = TimeSpan.FromSeconds(30)
+});
 
-await using var output = File.Create("report.pdf");
-await pdfStream.CopyToAsync(output);</code></pre>
+await using var pdfStream = await renderer.RenderAsync("""
+&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;style&gt;@page { size: A4; margin: 15mm; }&lt;/style&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Invoice INV-1001&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;
+""", cancellationToken);
+
+await using var output = File.Create("invoice.pdf");
+await pdfStream.CopyToAsync(output, cancellationToken);</code></pre>
+            <ul>
+              <li>Supply an installed Chromium-compatible executable through <code>BrowserExecutablePath</code>. Browser downloading is disabled by default; <code>AllowBrowserDownload</code> enables it explicitly.</li>
+              <li>Reuse <code>HtmlToPdfRenderer</code> across jobs. One browser serves isolated contexts; <code>MaxConcurrency</code> defaults to four and additional jobs queue.</li>
+              <li>The new renderer's default 30-second <code>RenderTimeout</code> covers queueing, startup, loading, font readiness and printing. <code>Timeout.InfiniteTimeSpan</code> disables the overall deadline. The separate <code>BrowserStartupTimeout</code> defaults to 30 seconds and must remain finite. Expiry throws <code>TimeoutException</code>; caller cancellation throws <code>OperationCanceledException</code>. Context creation and cleanup must finish; browser startup or downloading can remain renderer-owned after a caller stops waiting, within the separate startup budget. Disposal cancels browser provisioning. The deadline is not an OS-enforced hard worker bound.</li>
+              <li>Options are copied at construction. The caller disposes the renderer and returned streams. New defaults use print media, background printing and CSS page sizes; customize <code>PdfOptions</code> for paper, margins, headers or page ranges.</li>
+              <li>Original static <code>Converter.ToPdfAsync(...)</code> overloads retain automatic browser downloading, screen media and default PuppeteerSharp print settings. They disable the overall deadline to preserve explicit navigation timeouts, including zero; the browser startup budget remains finite. The overload taking <code>HtmlToPdfOptions</code> uses explicit settings for one job.</li>
+              <li><code>Offline</code> emulates offline page networking. Embed fonts and images as data URLs. It is not a network sandbox or security guarantee. Accept trusted HTML and scripts; isolated contexts do not replace OS process isolation.</li>
+              <li>Install the browser, OS libraries and fonts with the deployment. The renderer does not disable Chromium's sandbox by default.</li>
+            </ul>
             <p>
               Dedicated guide:
               <a class="inline-link" href="./convert-html-to-pdf-csharp.html">How to convert HTML to PDF in C#</a>.
@@ -480,6 +498,26 @@ await using var output = File.Create("invoice.pdf");
 await LiquidHtmlPdfTemplate
     .FromFile("invoice.liquid.html")
     .RenderAsync(invoice, output);</code></pre>
+
+            <h3>Use a configured shared renderer</h3>
+            <p>The invoice model above can use explicit browser settings. Cancellation reaches browser conversion; the renderer deadline starts after Liquid rendering. The caller owns renderer disposal.</p>
+            <pre><code class="language-csharp">using ZingPDF.FromHTML;
+using ZingPDF.Templates;
+using ZingPDF.Templates.LiquidHtml;
+
+await using var renderer = new HtmlToPdfRenderer(new HtmlToPdfOptions
+{
+    BrowserExecutablePath = Environment.GetEnvironmentVariable("ZINGPDF_BROWSER_PATH")
+        ?? throw new InvalidOperationException("Set ZINGPDF_BROWSER_PATH to an installed browser.")
+});
+
+var template = LiquidHtmlPdfTemplate.FromSource(
+    PdfTemplateSource.FromFile("invoice.liquid.html"),
+    new RendererHtmlToPdfConverter(renderer));
+
+await using var output = File.Create("invoice.pdf");
+await template.RenderAsync(invoice, output, cancellationToken: cancellationToken);</code></pre>
+            <p><a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/examples/GenerateInvoices">GenerateInvoices</a> contains a 0, 1, 40 and 500-row invoice corpus with repeated headers, totals and embedded fonts. Validate the recipe in the target Linux image.</p>
 
             <h3>Inspect rendered HTML</h3>
             <pre><code class="language-csharp">var html = await LiquidHtmlPdfTemplate
