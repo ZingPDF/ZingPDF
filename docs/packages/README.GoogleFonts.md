@@ -4,6 +4,13 @@
 
 `ZingPDF.GoogleFonts` resolves Google Fonts through the Google Fonts Developer API and registers them into a `ZingPDF` document as embedded TrueType fonts.
 
+
+## .NET compatibility
+
+Targets `net8.0`, with .NET 8 as the minimum. Runtime validation covers .NET 8,
+9, and 10 on Windows. .NET Framework 4.x and applications targeting .NET 6 or 7
+are not supported. Native dependencies and deployment requirements remain package-specific. See [runtime and platform requirements](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md).
+
 ## Installation
 
 ```bash

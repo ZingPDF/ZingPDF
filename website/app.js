@@ -12,6 +12,19 @@
   const guideCards = Array.from(document.querySelectorAll("[data-guide-card]"));
   const guidesCount = document.querySelector("[data-guides-count]");
   const guidesEmpty = document.querySelector("[data-guides-empty]");
+  const resources = document.querySelector(".nav-resources");
+
+  if (resources) {
+    document.addEventListener("click", (event) => {
+      if (!resources.contains(event.target)) resources.open = false;
+    });
+    resources.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        resources.open = false;
+        resources.querySelector("summary").focus();
+      }
+    });
+  }
 
   if (dialog && emailText && emailLink) {
     const supportEmail = config.supportEmail || "sales@example.com";
@@ -96,7 +109,7 @@
           observer.disconnect();
         }
       }, { threshold: 0.25 });
-      observer.observe(pricingSection);
+      observer.observe(pricingSection.querySelector("h2") || pricingSection);
     }
 
     document.addEventListener("click", (event) => {
@@ -106,6 +119,31 @@
       }
 
       const destination = new URL(link.href, window.location.href);
+      const exampleDownloads = {
+        "/assets/examples/first-pdf.zip": "first_pdf",
+        "/assets/examples/project-report.zip": "project_report"
+      };
+      const pdfPreviews = {
+        "/assets/examples/first-pdf/original.pdf": "first_pdf_input",
+        "/assets/examples/first-pdf/edited.pdf": "first_pdf_output",
+        "/assets/showcase/project-status-report.pdf": "project_report"
+      };
+      if (destination.origin === window.location.origin) {
+        if (destination.hash === "#first-pdf") {
+          trackEvent("evaluation_start_click");
+        } else if (Object.hasOwn(exampleDownloads, destination.pathname)) {
+          trackEvent("example_download", { example: exampleDownloads[destination.pathname] });
+        } else if (Object.hasOwn(pdfPreviews, destination.pathname)) {
+          trackEvent("pdf_preview_click", { example: pdfPreviews[destination.pathname] });
+        }
+      }
+      if (link.hasAttribute("data-evaluation-contact")) {
+        trackEvent("evaluation_contact_click");
+      } else if (link.hasAttribute("data-pricing-contact")) {
+        trackEvent("pricing_help_click");
+      } else if (link.hasAttribute("data-subscription-contact")) {
+        trackEvent("subscription_help_click");
+      }
       if (destination.origin === window.location.origin && destination.hash === "#licenses") {
         trackEvent("pricing_link_click");
       } else if (destination.hostname === "www.nuget.org") {
@@ -173,7 +211,7 @@
     if (state === "success") {
       checkoutBanner.hidden = false;
       checkoutBanner.setAttribute("data-state", "success");
-      checkoutBanner.textContent = "Stripe returned you to ZingPDF after checkout. Check your Stripe confirmation email for your subscription details.";
+      checkoutBanner.textContent = "Stripe returned you to ZingPDF after checkout. Check your payment confirmation for subscription details. Keep using the same NuGet packages; no activation key is required. For support or billing questions, email tom@zingpdf.dev with your subscription email address.";
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
       return state;

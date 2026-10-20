@@ -11,7 +11,7 @@
     <PackageId>ZingPDF</PackageId>
     <Authors>Thomas Bowers</Authors>
     <Company>ZingPDF</Company>
-    <Description>.NET 8 PDF library for loading, creating, editing, rendering, merging, watermarking, compressing, extracting text, filling and flattening forms, and encrypting PDF documents.</Description>
+    <Description>PDF library for .NET 8 and later for loading, creating, editing, rendering, merging, watermarking, compressing, extracting text, filling and flattening forms, and encrypting PDF documents.</Description>
     <PackageTags>pdf;dotnet-pdf;csharp;forms;acroform;text-extraction;pdf-rendering;png;encryption;compression;watermark;merge-pdf;split-pdf</PackageTags>
     <PackageProjectUrl>https://zingpdf.dev</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ZingPDF/ZingPDF</RepositoryUrl>

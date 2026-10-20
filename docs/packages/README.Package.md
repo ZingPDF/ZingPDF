@@ -2,9 +2,16 @@
 
 # ZingPDF
 
-`ZingPDF` is a proprietary .NET 8 PDF library for loading, creating, editing, rendering, signing, validating signatures, redacting, and saving PDFs in C#.
+`ZingPDF` is a proprietary PDF library for .NET 8 and later for loading, creating, editing, rendering, signing, validating signatures, redacting, and saving PDFs in C#.
 
 It covers the PDF jobs many applications need first: fluent PDF authoring, Liquid HTML template rendering through a companion package, existing-PDF page editing, page-to-PNG rendering, text extraction, form creation and completion, signing, signature validation, encryption, redaction, metadata updates, and rewritten saves without prior incremental history.
+
+
+## .NET compatibility
+
+Targets `net8.0`, with .NET 8 as the minimum. Runtime validation covers .NET 8,
+9, and 10 on Windows. .NET Framework 4.x and applications targeting .NET 6 or 7
+are not supported. Native dependencies and deployment requirements remain package-specific. See [runtime and platform requirements](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md).
 
 ## Installation
 

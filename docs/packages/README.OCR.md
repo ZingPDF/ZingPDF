@@ -4,6 +4,13 @@
 
 `ZingPDF.OCR` supplies image-candidate OCR and an explicit rendered-page OCR mode for mixed text, scans and tiled images.
 
+
+## .NET compatibility
+
+Targets `net8.0`, with .NET 8 as the minimum. Runtime validation covers .NET 8,
+9, and 10 on Windows. .NET Framework 4.x and applications targeting .NET 6 or 7
+are not supported. Native dependencies and deployment requirements remain package-specific. See [runtime and platform requirements](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/SUPPORT.md).
+
 ## Installation
 
 ```bash

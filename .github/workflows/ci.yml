@@ -10,6 +10,8 @@ on:
       - "ZingPDF.sln"
       - "Directory.Build.props"
       - "scripts/assert-binary-fixtures.ps1"
+      - "scripts/verify-runtime-consumers.ps1"
+      - "website/assets/examples/first-pdf.zip"
   workflow_dispatch:
 
 jobs:
@@ -31,7 +33,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Show environment
         run: dotnet --info
@@ -46,5 +51,10 @@ jobs:
       - name: Build
         run: dotnet build ZingPDF.sln --configuration Release --no-restore
 
-      - name: Test
+      # The unit, integration, and smoke projects each target net8.0, net9.0, and net10.0.
+      - name: Test all supported runtimes
         run: dotnet test ZingPDF.sln --configuration Release --no-build
+
+      - name: Verify published-package consumers on .NET 8, 9, and 10
+        shell: pwsh
+        run: ./scripts/verify-runtime-consumers.ps1

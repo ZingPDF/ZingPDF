@@ -55,7 +55,7 @@ When that value is blank, analytics stays disabled.
 
 When it is set, the site loads `gtag.js`, sends the default page-view event, and skips tracking on `localhost`, `127.0.0.1`, and `[::1]` so local preview traffic does not pollute reporting.
 
-The site also records pricing views, clicks to pricing and ZingPDF package resources, sales-contact actions, and recognised Stripe return URLs. It cannot observe Subscribe clicks inside Stripe's embedded table.
+The site also records example download and PDF preview clicks, evaluation contacts, pricing views, clicks to pricing and ZingPDF package resources, sales-contact actions, and recognised Stripe return URLs. It cannot observe Subscribe clicks inside Stripe's embedded table.
 
 ## How to run locally
 
@@ -72,6 +72,30 @@ You can also use the helper script:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\serve-local.ps1
+```
+
+## Homepage showcase
+
+The homepage installation command links to two downloadable projects under
+`assets/examples/`. They restore ZingPDF 1.0.59 from NuGet, independently of the
+working tree. Regenerate the source archives, PDFs, text output, verification
+manifest, and page previews with `pwsh ./scripts/update-homepage-examples.ps1`.
+The helper requires Python with pypdf and Poppler; see
+[`assets/examples/README.md`](./assets/examples/README.md) for visual checks.
+
+`showcase.js` rotates the hero through a generated report, authoring code, and
+links to PDF editing guides every 6.5 seconds. Visitors navigate with the dots
+or arrow keys. Hover, keyboard focus, hidden tabs, and leaving the viewport suspend
+rotation; reduced motion disables autoplay and transitions. Without JavaScript,
+the first slide remains visible.
+
+The PDF and first-page image are generated from the repository example. See
+[`assets/showcase/README.md`](./assets/showcase/README.md) for regeneration commands.
+
+Run website behavior checks with:
+
+```powershell
+node --test website/tests/analytics.test.cjs website/tests/showcase.test.cjs
 ```
 
 ## Editorial guardrails
@@ -159,7 +183,7 @@ If you pick a different Pages project name, update `.github/workflows/cloudflare
 
 On every push to `main`, GitHub Actions will:
 
-1. set up .NET 8
+1. install the .NET 8, 9, and 10 SDKs/runtimes (the .NET 10 SDK builds the source generator)
 2. run `pwsh ./website/generate-api-reference.ps1`
 3. deploy the `website/` folder to Cloudflare Pages
 
@@ -179,3 +203,19 @@ Cloudflare will guide you through the required DNS records if your DNS is alread
 2. Confirm that the embedded Stripe Pricing Table shows the right plans, billing intervals, and currencies.
 3. Confirm that Solo, Team, and Business pricing and subscription language match the commercial model.
 4. Confirm the published legal pages match the current commercial terms.
+
+## Purchase journey verification before deployment
+
+The pricing help email is ordinary HTML outside the Stripe embed and remains available if Stripe scripts are blocked or JavaScript is disabled. No local price copy is maintained.
+
+The current packages require no activation key or separate commercial binary. The homepage explains continuing with NuGet packages and contacting `tom@zingpdf.dev` for subscription help. It does not promise an automatically issued key, licence certificate, or a configured customer portal.
+
+Before treating the purchase journey as verified, check the following in Stripe and with a controlled purchase:
+
+- Monthly and yearly checkout show the intended amount, currency, billing interval, seats, and tax treatment.
+- A completed payment creates the intended subscription and the buyer receives the configured confirmation or receipt.
+- Any configured redirect reaches the homepage; `?checkout=success` alone is not payment verification.
+- Billing and cancellation requests can be handled for the subscription email address; verify any customer portal before linking to it publicly.
+- After deployment, confirm evaluation events in GA4 Realtime or DebugView. Localhost intentionally sends none.
+
+Local page tests do not prove these Stripe settings, email delivery, a completed payment, or production analytics ingestion.

@@ -30,6 +30,18 @@ Support channels, response expectations, and any service commitments may vary by
 
 Where a checkout page, quote, order, or pricing page defines a specific support level for a plan, that plan-specific description controls.
 
+Solo includes email support. Team and Business include priority email support:
+requests are reviewed ahead of Solo requests with comparable business impact.
+Production-blocking defects take precedence over routine usage questions within
+each support queue. Priority is a handling order, not a guaranteed fix or release date.
+
+Send requests to `tom@zingpdf.dev` with the order email, package version, .NET
+version, operating system, and a minimal reproduction. Include a sample document
+where needed and lawful to share. For a production-blocking issue, use
+`Production issue` in the subject and state the affected workflow, business impact,
+and any workaround. Escalate an unresolved request by replying to the same thread
+with updated impact and the original request date.
+
 ## 5. Supported Versions And Updates
 
 While subscribed, customers may access all generally released versions and updates made available by Licensor.
@@ -47,9 +59,25 @@ To receive effective support, Customer should provide:
 
 ## 7. Response Targets
 
-Default response targets and SLAs are not fixed in this repository.
+Support hours are Monday to Friday, 9am to 5pm in Sydney, Australia
+(`Australia/Sydney`, AEST/AEDT as applicable).
+
+| Plan | Initial reply target |
+| --- | --- |
+| Solo | Within 2 business days |
+| Team and Business | Within 1 business day |
+
+We aim to provide an initial human reply within these targets during an active
+paid support term. Business days are Monday to Friday in Sydney. For requests
+received outside support hours, the target period starts at 9am on the next
+weekday.
 
 Any publicly offered response targets are business targets only unless Licensor expressly agrees to an SLA in writing.
+
+An initial reply may request a reproduction, explain a documented limit, or
+propose a workaround. It does not guarantee a fix or release date. Guaranteed
+response or resolution times and 24/7 incident coverage are not included unless
+agreed in writing.
 
 ## 8. Maintenance And Updates
 

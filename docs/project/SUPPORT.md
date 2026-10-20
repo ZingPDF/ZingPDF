@@ -11,6 +11,51 @@ This document records the current support expectations for ZingPDF ahead of publ
 - `ZingPDF.Templates`: `net8.0`
 - `ZingPDF.Templates.LiquidHtml`: `net8.0`
 
+The package target is the minimum application framework, not a restriction to
+applications running .NET 8. Applications targeting `net8.0`, `net9.0`, or
+`net10.0` can reference these packages. .NET Framework 4.x and applications
+targeting .NET 6 or 7 are not supported.
+
+### Runtime validation
+
+Windows validation on 20 October 2026 covers the unit, integration, and smoke
+projects on .NET 8, 9, and 10. Each project targets all three frameworks, so the
+test hosts execute on each runtime while the library continues to target `net8.0`.
+The `.github/workflows/ci.yml` matrix is configured to run the same projects on
+Windows, Ubuntu, and macOS with the .NET 8, 9, and 10 SDKs/runtimes installed.
+Configuration of that matrix does not by itself prove a remote CI run has passed.
+
+| Application target | Unit | Integration (real Chromium) | Smoke |
+| --- | ---: | ---: | ---: |
+| `net8.0` | 468 passed | 18 passed | 122 passed |
+| `net9.0` | 468 passed | 18 passed | 122 passed |
+| `net10.0` | 468 passed | 18 passed | 122 passed |
+
+The .NET 9 browser run initially hit two timing failures (a four-second warmup
+deadline and a stall-request wait). Both tests passed unchanged in isolation,
+then the complete integration project passed unchanged. Test framework runs are
+serialized rather than relaxing the existing timeout or cancellation assertions.
+
+The separate published-package consumer check uses all six ZingPDF 1.0.59
+packages from NuGet. It requires the expected runtime major version, loads each
+package assembly, and checks core authoring, editing, save/reopen, two-page output,
+and expected embedded text. Run it with:
+
+```powershell
+pwsh ./scripts/verify-runtime-consumers.ps1
+```
+
+Evidence and generated PDFs are retained in a unique `.tools/runtime-consumers`
+directory. This consumer check does not validate every HTML or native OCR
+deployment. The source integration tests require a real Chromium executable;
+rendered-page OCR smoke tests exercise PDFium/SkiaSharp and an injected OCR engine.
+Native Tesseract and the separate Linux CLI corpus retain their existing limits.
+
+The downloadable homepage projects target `net8.0` by default and therefore need
+the .NET 8 runtime even when built with a later SDK. Change their `TargetFramework`
+to `net9.0` or `net10.0` to run on those runtimes. This does not require retargeting
+the library package itself.
+
 ## HTML renderer deployment
 
 `HtmlToPdfRenderer` accepts an installed Chromium-compatible executable and does not download by default. Reuse the caller-owned renderer for concurrent conversions; its default limit is four isolated contexts, with remaining calls queued. Options are copied at construction. Print media, background printing and CSS page sizes are the new renderer defaults. Original static converter overloads retain their browser download, screen-media and default-print behavior. Their overall conversion deadline is disabled to preserve explicit navigation timeouts; the browser startup budget remains finite.
@@ -120,7 +165,7 @@ These limits should be treated as part of the current product contract unless ex
 - evaluation and other non-commercial use are free; paid seats are required for commercial use and internal business operations outside genuine evaluation
 - seats are licensed per developer, and contractors may use seats licensed to the same customer legal entity
 - versions released during a paid subscription remain licensed for commercial use within the purchased scope after cancellation or expiry; new versions and support require an active subscription
-- the core library targets `net8.0` and is intended for Windows, Linux, and macOS environments that support .NET 8
+- the core library targets `net8.0`, with .NET 8 as the minimum; Windows runtime validation covers .NET 8, 9, and 10, while Windows, Linux, and macOS deployments retain their native dependency requirements
 - the core library is suitable for desktop apps, services, workers, background jobs, and CLI tools
 
 ## Commercial support terms

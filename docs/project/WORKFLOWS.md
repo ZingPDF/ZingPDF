@@ -14,6 +14,16 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 
 ## Testing Matrix
 
+Unit, integration, and smoke projects target `net8.0;net9.0;net10.0`. A normal
+`dotnet test` runs all three runtimes; install the .NET 10 SDK and the .NET 8, 9,
+and 10 runtimes. Use `--framework net10.0` (or `net8.0`/`net9.0`) for an isolated
+runtime check. Product packages continue to target `net8.0`. To validate published
+package consumption rather than project references, run
+`pwsh ./scripts/verify-runtime-consumers.ps1`.
+The test projects set `TestTfmsInParallel=false` so browser and native-runtime
+checks do not launch three framework runs at once. This preserves their existing
+timeouts and assertions.
+
 - Parser, syntax object, helper, font, and copy changes: start with `dotnet test tests/ZingPDF.Tests.Unit/ZingPDF.Tests.Unit.csproj`.
 - Trailer, xref, save, encrypted file, object stream, and fixture-driven behavior: include `dotnet test tests/ZingPDF.Tests.Integration/ZingPDF.Tests.Integration.csproj`.
 - End-to-end document operations or package-level confidence: include `dotnet test tests/ZingPDF.Tests.Smoke/ZingPDF.Tests.Smoke.csproj`.

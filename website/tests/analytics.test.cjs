@@ -10,6 +10,7 @@ function runPage(url, measurementId = "G-TEST") {
   const calls = [];
   const listeners = {};
   const observers = [];
+  const pricingHeading = {};
   const banner = {
     hidden: true,
     setAttribute(name, value) { this[name] = value; }
@@ -29,7 +30,7 @@ function runPage(url, measurementId = "G-TEST") {
   const document = {
     head: { appendChild() {} },
     getElementById(id) {
-      return id === "checkout-banner" ? banner : id === "licenses" ? {} : null;
+      return id === "checkout-banner" ? banner : id === "licenses" ? { querySelector: () => pricingHeading } : null;
     },
     querySelectorAll() { return []; },
     querySelector() { return null; },
@@ -38,7 +39,7 @@ function runPage(url, measurementId = "G-TEST") {
   };
   class IntersectionObserver {
     constructor(callback) { this.callback = callback; observers.push(this); }
-    observe() {}
+    observe(target) { this.target = target; }
     disconnect() { this.disconnected = true; }
   }
   window.IntersectionObserver = IntersectionObserver;
@@ -48,11 +49,13 @@ function runPage(url, measurementId = "G-TEST") {
     calls,
     banner,
     location,
+    observers,
+    pricingHeading,
     showPricing() {
       observers[0].callback([{ isIntersecting: true }]);
     },
-    click(href, id = "") {
-      listeners.click({ target: { closest: () => ({ href, id }) } });
+    click(href, id = "", attributes = []) {
+      listeners.click({ target: { closest: () => ({ href, id, hasAttribute: name => attributes.includes(name) }) } });
     }
   };
 }
@@ -60,6 +63,7 @@ function runPage(url, measurementId = "G-TEST") {
 test("production page records funnel signals without treating pricing as checkout", () => {
   const page = runPage("https://zingpdf.dev/");
   page.showPricing();
+  assert.equal(page.observers[0].target, page.pricingHeading);
   page.showPricing();
   page.click("https://zingpdf.dev/#licenses");
   page.click("https://www.nuget.org/packages/ZingPDF");
@@ -84,4 +88,39 @@ test("a checkout return is counted once as a return, not a purchase", () => {
   assert.equal(page.banner.hidden, false);
   assert.deepEqual(page.calls.filter(([kind]) => kind === "event").map(([, name]) => name), ["checkout_return"]);
   assert.equal(page.calls.find(([, name]) => name === "checkout_return")[2].result, "success");
+  assert.match(page.banner.textContent, /no activation key/);
+});
+
+test("evaluation signals distinguish previews, downloads and contact without collecting URL data", () => {
+  const page = runPage("https://zingpdf.dev/");
+  page.click("https://zingpdf.dev/#first-pdf");
+  page.click("https://zingpdf.dev/assets/examples/first-pdf.zip?campaign=private");
+  page.click("https://zingpdf.dev/assets/examples/project-report.zip");
+  page.click("https://zingpdf.dev/assets/examples/first-pdf/original.pdf");
+  page.click("https://zingpdf.dev/assets/examples/first-pdf/edited.pdf");
+  page.click("https://zingpdf.dev/assets/showcase/project-status-report.pdf");
+  page.click("mailto:tom@zingpdf.dev?subject=Private", "", ["data-evaluation-contact"]);
+  page.click("mailto:tom@zingpdf.dev", "", ["data-pricing-contact"]);
+  page.click("mailto:tom@zingpdf.dev", "", ["data-subscription-contact"]);
+  page.click("https://another.example/assets/examples/first-pdf.zip");
+  page.click("https://zingpdf.dev/unrelated.pdf");
+  const events = page.calls.filter(([kind]) => kind === "event");
+  assert.deepEqual(events.map(([, name]) => name), [
+    "evaluation_start_click", "example_download", "example_download",
+    "pdf_preview_click", "pdf_preview_click", "pdf_preview_click",
+    "evaluation_contact_click", "pricing_help_click", "subscription_help_click"
+  ]);
+  assert.deepEqual(events.slice(1, 6).map(([, , parameters]) => parameters.example), [
+    "first_pdf", "project_report", "first_pdf_input", "first_pdf_output", "project_report"
+  ]);
+  assert.doesNotMatch(JSON.stringify(events), /private|mailto|campaign|https:/i);
+});
+
+test("evaluation events stay disabled on localhost and when no analytics ID is configured", () => {
+  for (const page of [runPage("http://localhost:8080/"), runPage("https://zingpdf.dev/", "")]) {
+    page.click("http://localhost:8080/#first-pdf");
+    page.click("https://zingpdf.dev/assets/examples/first-pdf.zip");
+    page.click("mailto:tom@zingpdf.dev", "", ["data-evaluation-contact"]);
+    assert.equal(page.calls.length, 0);
+  }
 });

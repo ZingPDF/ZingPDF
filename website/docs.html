@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="stylesheet" href="./styles.css?v=20261020-hero-refinement">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 </head>
 
@@ -24,14 +24,20 @@
           <img src="./logo.svg" alt="ZingPDF logo">
         </span>
       </a>
-      <nav class="topnav" aria-label="Primary">
+      <nav class="topnav site-nav" aria-label="Primary">
         <a href="./docs.html">Docs</a>
-        <a href="./index.html#licenses">Pricing</a>
         <a href="./guides.html">Guides</a>
-        <a href="./capabilities.html">Capabilities</a>
-        <a href="./performance.html">Performance</a>
-        <a href="./api/">API</a>
-        <a href="./commercial-terms.html">Terms</a>
+        <a href="./index.html#licenses">Pricing</a>
+        <details class="nav-resources">
+          <summary>Resources</summary>
+          <div class="nav-resources-menu">
+            <a href="./capabilities.html">Capabilities</a>
+            <a href="./performance.html">Performance</a>
+            <a href="./api/">API reference</a>
+            <a href="https://www.nuget.org/packages/ZingPDF" target="_blank" rel="noreferrer">NuGet package</a>
+            <a href="https://github.com/ZingPDF/ZingPDF" target="_blank" rel="noreferrer">Source on GitHub</a>
+          </div>
+        </details>
       </nav>
     </header>
 
@@ -72,6 +78,10 @@
           <section class="doc-section" id="quick-start">
             <p class="eyebrow">Quick Start</p>
             <h2>Load, create, edit, and save</h2>
+            <p>ZingPDF is free to try and free for non-commercial use, with no fixed trial period.
+              Commercial plans include email support and version upgrades while subscribed. Versions released during
+              your paid term remain licensed indefinitely within your purchased scope, even after cancellation.
+              <a class="inline-link" href="./index.html#licenses">See pricing and licensing</a>.</p>
             <p>Start by installing the package, importing the core namespaces, and deciding whether you are loading an
               existing PDF or creating a new one from scratch. The main entry points are <code>Pdf.Load(...)</code> for
               existing documents, <code>Pdf.Create(...)</code> for low-level blank documents, and <code>Pdf.New()</code>
@@ -80,6 +90,10 @@
 
             <h3>Install the package</h3>
             <pre><code class="language-bash">dotnet add package ZingPDF</code></pre>
+
+            <p><a class="inline-link" href="./assets/examples/first-pdf.zip" download>Download a complete runnable project</a>
+              to create a PDF, edit it, and check the saved pages and extracted text.
+              See <a class="inline-link" href="./index.html#first-pdf">the example inputs, outputs, and run instructions</a>.</p>
 
             <h3>Import the namespaces used in the examples</h3>
             <pre><code class="language-csharp">using ZingPDF;
@@ -1299,15 +1313,28 @@ Console.WriteLine(PerformanceTrace.GetSummary());</code></pre>
               <li>See the pricing section and legal terms for the exact commercial contract.</li>
             </ul>
 
-            <h3>Deployment environments</h3>
-            <p>ZingPDF targets <code>net8.0</code> and is intended for Windows, Linux, and macOS deployments that support
-              .NET 8.</p>
+            <h3 id="runtime-compatibility">.NET versions and deployment environments</h3>
+            <p>All ZingPDF packages target <code>net8.0</code>. .NET 8 is the minimum, rather than the only application
+              runtime. Runtime validation covers .NET 8, 9, and 10 on Windows, including unit, integration, and smoke
+              tests. Published-package consumer checks load all six packages and verify core authoring, editing,
+              save/reopen, page counts, and embedded-text extraction on each of those runtimes.</p>
+            <p>.NET Framework 4.x and applications targeting .NET 6 or 7 are not supported.
+              The core library supports Windows, Linux, and macOS, subject to the dependencies of the operations used.
+              The Windows runtime checks do not establish native dependency readiness on every operating system.</p>
             <ul>
               <li>The core library fits desktop apps, background jobs, services, workers, and CLI tools.</li>
               <li><code>ZingPDF.FromHTML</code> has additional browser-runtime requirements.</li>
               <li><code>ZingPDF.Templates.LiquidHtml</code> has the same browser-runtime requirements after Liquid rendering.</li>
+              <li>Page rendering requires PDFium and SkiaSharp native assets. OCR also requires the selected engine and language data. The rendered-page OCR tests use an injected engine; they do not verify every native Tesseract deployment.</li>
               <li>Input streams passed to <code>Pdf.Load(...)</code> must be seekable.</li>
             </ul>
+
+            <h3 id="example-runtimes">Run the downloadable examples on a newer runtime</h3>
+            <p>The downloadable projects target <code>net8.0</code>, so their default commands require the .NET 8 runtime
+              even when built with a newer SDK. To run with .NET 9 or 10 instead, change the project's
+              <code>&lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;</code> to <code>net9.0</code> or
+              <code>net10.0</code>, then run it with the matching SDK and runtime installed. The library package can
+              retain its <code>net8.0</code> target when referenced by that newer application.</p>
 
             <h3>Current limits</h3>
             <p>ZingPDF covers the main document-editing path, but some PDF features are still outside the current

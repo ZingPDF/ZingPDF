@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZingPDF for .NET</title>
   <meta name="description"
-    content="ZingPDF is a commercial .NET PDF library for loading, editing, creating, templating, extracting, redacting, filling and flattening forms, signing, encrypting, and saving PDFs. Evaluate it freely and subscribe when commercial use begins.">
+    content="Read, create, and edit PDFs in .NET. Free to try and free for non-commercial use. Commercial plans include support and version upgrades, with indefinite use of paid-term versions.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=20260515180751">
+  <link rel="stylesheet" href="./styles.css?v=20261020-buyer-confidence">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 </head>
@@ -25,79 +25,96 @@
           <img src="./logo.svg" alt="ZingPDF logo">
         </span>
       </a>
-      <nav class="topnav" aria-label="Primary">
+      <nav class="topnav site-nav" aria-label="Primary">
         <a href="./docs.html">Docs</a>
-        <a href="#licenses">Pricing</a>
         <a href="./guides.html">Guides</a>
-        <a href="./capabilities.html">Capabilities</a>
-        <a href="./performance.html">Performance</a>
-        <a href="./api/">API</a>
-        <a href="./commercial-terms.html">Terms</a>
-        &vert;
-        <a class="topnav-brand-link" href="https://www.nuget.org/packages/ZingPDF" target="_blank" rel="noreferrer"
-          aria-label="ZingPDF on NuGet">
-          <img src="./NuGet_project_logo.svg" alt="nuget logo" height="18" width="18" />
-          <span>NuGet</span>
-        </a>
-        <a class="topnav-brand-link" href="https://github.com/ZingPDF/ZingPDF" target="_blank" rel="noreferrer"
-          aria-label="ZingPDF on GitHub">
-          <img src="./github-logo.svg" alt="github logo" height="18" width="18" />
-          <span>GitHub</span>
-        </a>
+        <a href="#licenses">Pricing</a>
+        <details class="nav-resources">
+          <summary>Resources</summary>
+          <div class="nav-resources-menu">
+            <a href="./capabilities.html">Capabilities</a>
+            <a href="./performance.html">Performance</a>
+            <a href="./api/">API reference</a>
+            <a href="https://www.nuget.org/packages/ZingPDF" target="_blank" rel="noreferrer">NuGet package</a>
+            <a href="https://github.com/ZingPDF/ZingPDF" target="_blank" rel="noreferrer">Source on GitHub</a>
+          </div>
+        </details>
       </nav>
     </header>
 
     <main id="top" class="landing-main">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">Commercial PDF toolkit for .NET</p>
-          <h1>PDF editing, authoring, and templating for .NET.</h1>
+          <p class="eyebrow">PDF library for .NET 8 and later</p>
+          <h1>Read, create, and edit PDFs in .NET.</h1>
           <p class="lead">
-            Load existing PDFs, create new ones, render Liquid HTML templates, fill and sign forms, extract text,
-            redact content, and save through one .NET API.
+            Generate reports, fill forms, and extract text.
           </p>
           <p class="hero-subnote"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="lucide lucide-heart-handshake-icon lucide-heart-handshake">
               <path
                 d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" />
-            </svg><strong>Free for non-commercial use.</strong></p>
+            </svg><strong>Free to try. Free for non-commercial use.</strong></p>
+          <p class="hero-license-note">Paid plans add commercial use, support, and upgrades.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="./docs.html">Docs</a>
-            <a class="button button-secondary button-brand-link" href="https://github.com/ZingPDF/ZingPDF"
-              target="_blank" rel="noreferrer">
-              <img src="./github-logo.svg" alt="github logo" height="18" width="18" />
-              <span>GitHub</span>
-            </a>
-            <a class="button button-secondary button-brand-link" href="https://www.nuget.org/packages/ZingPDF"
-              target="_blank" rel="noreferrer">
-              <img src="./NuGet_project_logo.svg" alt="nuget logo" height="18" width="18" />
-              <span>NuGet</span>
-            </a>
+            <a class="button button-primary" href="#first-pdf">Try it free</a>
+            <a class="button button-secondary" href="#licenses">Pricing &amp; licensing</a>
+          </div>
+          <div class="quick-install" aria-label="Install ZingPDF">
+            <code>dotnet add package ZingPDF</code>
+            <a href="#first-pdf">Run a complete example &rarr;</a>
           </div>
         </div>
 
-        <div class="hero-panel">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span class="traffic">
-                <span></span><span></span><span></span>
-              </span>
-              <span>Liquid HTML template API</span>
-            </div>
-            <pre><code>await LiquidHtmlPdfTemplate
-  .FromFile("invoice.liquid.html")
-  .RenderAsync(new
-  {
-    Number = "INV-1001",
-    CustomerName = "Ada Lovelace",
-    Items = invoiceLines
-  }, File.Create("invoice.pdf"));</code></pre>
+        <section class="hero-panel showcase" data-carousel aria-roledescription="carousel" aria-label="Explore ZingPDF">
+          <div class="showcase-stage">
+            <article class="showcase-slide" data-slide data-active="true" role="group" aria-roledescription="slide" aria-label="See a generated PDF">
+              <div class="showcase-caption"><span class="showcase-number">01 / OUTPUT</span><h2>From API calls to a finished report.</h2></div>
+              <a class="report-preview" href="./assets/showcase/project-status-report.pdf" target="_blank" rel="noreferrer" aria-label="Open the generated two-page PDF report">
+                <img src="./assets/showcase/project-status-report.png" width="707" height="1000" alt="First page of a ZingPDF-generated project report, with delivery metrics, completed work, milestones, and an executive summary.">
+                <span>Open the two-page PDF &nearr;</span>
+              </a>
+              <p class="showcase-note">Generated with ZingPDF. <a href="https://github.com/ZingPDF/ZingPDF/blob/main/examples/CreateProjectStatusReport/Program.cs" target="_blank" rel="noreferrer">View the C# source &rarr;</a></p>
+            </article>
+            <article class="showcase-slide" data-slide hidden role="group" aria-roledescription="slide" aria-label="Write PDFs in C#">
+              <div class="showcase-caption"><span class="showcase-number">02 / AUTHOR</span><h2>A document, written in C#.</h2></div>
+              <div class="code-card">
+                <div class="code-card-header"><span class="traffic" aria-hidden="true"><span></span><span></span><span></span></span><span>Fluent authoring API</span></div>
+                <pre><code>await Pdf.New()
+  .Page(page => page
+    .Size(595, 842)
+    .Text(text => text
+      .Value("Monthly delivery report")
+      .HelveticaBold()
+      .FontSize(24)
+      .At(48, 780)))
+  .SaveToFileAsync("report.pdf");</code></pre>
+              </div>
+              <p class="showcase-note"><a href="./fluent-pdf-authoring-csharp.html">Explore the authoring API &rarr;</a></p>
+            </article>
+            <article class="showcase-slide" data-slide hidden role="group" aria-roledescription="slide" aria-label="Work with existing PDFs">
+              <div class="showcase-caption"><span class="showcase-number">03 / TRANSFORM</span><h2>Keep the PDF. Change what it does.</h2></div>
+              <div class="pdf-workflows">
+                <a href="./merge-pdfs-csharp.html"><span class="workflow-glyph" aria-hidden="true">A + B</span><span><strong>Merge pages</strong></span><span aria-hidden="true">&rarr;</span></a>
+                <a href="./fill-pdf-form-fields-csharp.html"><span class="workflow-glyph" aria-hidden="true">Aa</span><span><strong>Fill forms</strong></span><span aria-hidden="true">&rarr;</span></a>
+                <a href="./extract-text-from-pdf-csharp.html"><span class="workflow-glyph" aria-hidden="true">&para;</span><span><strong>Extract text</strong></span><span aria-hidden="true">&rarr;</span></a>
+              </div>
+              <p class="showcase-note"><a href="./capabilities.html">See all supported operations &rarr;</a></p>
+            </article>
           </div>
-        </div>
+          <div class="showcase-controls" data-carousel-controls hidden>
+            <div class="showcase-dots" aria-label="Choose a slide">
+              <button type="button" data-slide-to="0" aria-label="Show slide 1: See a generated PDF" aria-current="true"></button>
+              <button type="button" data-slide-to="1" aria-label="Show slide 2: Write PDFs in C#" aria-current="false"></button>
+              <button type="button" data-slide-to="2" aria-label="Show slide 3: Work with existing PDFs" aria-current="false"></button>
+            </div>
+          </div>
+          <span class="visually-hidden" data-slide-status aria-live="polite" aria-atomic="true"></span>
+        </section>
       </section>
 
-      <section class="hero-strip" aria-label="Key product highlights">
+      <section class="hero-strip" aria-label="Free use and commercial licensing">
         <article class="hero-strip-item">
           <span class="mini-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
@@ -107,8 +124,9 @@
             </svg>
           </span>
           <div>
-            <strong>Document generation</strong>
-            <p>Create PDFs with fluent authoring or render Liquid HTML templates from .NET models.</p>
+            <strong>Free to try</strong>
+            <p>No fixed trial period.
+              <a class="inline-link" href="#first-pdf">Quick start &rarr;</a></p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -122,8 +140,9 @@
             </svg>
           </span>
           <div>
-            <strong>Fast reads</strong>
-            <p>Fast page access and plain-text extraction for applications that open lots of PDFs.</p>
+            <strong>Free non-commercial use</strong>
+            <p>No payment for non-commercial work.
+              <a class="inline-link" href="./evaluation.html">Free-use terms &rarr;</a></p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -135,8 +154,9 @@
             </svg>
           </span>
           <div>
-            <strong>Clear licensing</strong>
-            <p>Evaluate freely and only subscribe once commercial use begins.</p>
+            <strong>Paid support and upgrades</strong>
+            <p>Email support and new releases while subscribed.
+              <a class="inline-link" href="#licenses">Compare plans &rarr;</a></p>
           </div>
         </article>
         <article class="hero-strip-item">
@@ -149,8 +169,9 @@
             </svg>
           </span>
           <div>
-            <strong>Public docs and guides</strong>
-            <p>Check the docs, guides, benchmarks, API reference, NuGet package, and source before you commit.</p>
+            <strong>Indefinite version use</strong>
+            <p>Keep paid-term versions within your purchased scope.
+              <a class="inline-link" href="./commercial-terms.html">Commercial terms &rarr;</a></p>
           </div>
         </article>
       </section>
@@ -160,7 +181,7 @@
         <div class="homepage-performance-shell">
           <div class="section-copy">
             <p class="eyebrow">Performance</p>
-            <h2 id="performance-summary-title">Ongoing transparent performance improvement</h2>
+            <h2 id="performance-summary-title">Measured PDF performance</h2>
           </div>
 
           <div class="homepage-performance-grid">
@@ -200,7 +221,7 @@
 
             <article class="homepage-performance-card homepage-performance-cta">
               <span class="metric-label">Detailed comparison</span>
-              <strong>Latest verified performance tests</strong>
+              <strong>Compare benchmark results</strong>
               <p>See the benchmark methodology and the full multi-library comparison.</p>
               <a class="button button-performance" href="./performance.html">View performance page</a>
             </article>
@@ -209,281 +230,106 @@
       </section>
 <!-- AUTO-GENERATED:homepage-performance:end -->
 
-      <section class="homepage-grid-section" id="why">
-        <div class="section-copy homepage-section-copy">
-          <p class="eyebrow">Why ZingPDF</p>
-          <h2>What ZingPDF is built for.</h2>
-          <p>
-            Open existing PDFs, create new ones, render template-driven documents, and ship commercial .NET workflows
-            without stitching multiple libraries together.
-          </p>
-        </div>
-
-        <div class="feature-grid homepage-feature-grid">
-          <article class="feature-card">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="4" y="5" width="16" height="14" rx="2"></rect>
-                <path d="M8 9h8M8 13h8M8 17h5"></path>
-              </svg>
-            </span>
-            <h3>Open and edit existing PDFs</h3>
-            <p>Inspect pages, update metadata, merge, watermark, rotate, split, and save back to streams or files.</p>
-          </article>
-          <article class="feature-card">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M6 18h12"></path>
-                <path d="M8 15h8"></path>
-                <path d="M6 10h4l2-3 2 6 2-3h2"></path>
-              </svg>
-            </span>
-            <h3>Create and draw new PDFs</h3>
-            <p>Author new documents with <code>Pdf.New()</code>, add text, shapes, images, and layout boxes, and save
-              with the same library.</p>
-          </article>
-          <article class="feature-card">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-                <path d="M8 9h8"></path>
-                <path d="M8 13h4"></path>
-                <path d="M14 13h2"></path>
-                <path d="M8 17h8"></path>
-              </svg>
-            </span>
-            <h3>Render PDFs from templates</h3>
-            <p>Use <code>ZingPDF.Templates.LiquidHtml</code> to merge Liquid variables, loops, and conditionals into
-              HTML before PDF conversion.</p>
-          </article>
-          <article class="feature-card">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="4" y="11" width="16" height="9" rx="2"></rect>
-                <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
-              </svg>
-            </span>
-            <h3>Handle forms and signatures</h3>
-            <p>Fill, create, flatten, and sign AcroForm fields without dropping into low-level PDF dictionaries.</p>
-          </article>
-          <article class="feature-card">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <circle cx="11" cy="11" r="6"></circle>
-                <path d="m20 20-4.2-4.2"></path>
-                <path d="M11 8v6M8 11h6"></path>
-              </svg>
-            </span>
-            <h3>Evaluate against your own files</h3>
-            <p>Use the public docs, guides, benchmarks, source, and examples to validate the library against real
-              workloads.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="platform-band" aria-label="Platform support">
-        <div class="platform-copy">
-          <p class="eyebrow">Platform Support</p>
-          <h2>.NET 8 PDF library for Windows, Linux, and macOS.</h2>
-          <p>
-            The core package targets <code>net8.0</code> and is intended for .NET 8 applications and services running
-            on supported operating systems. Related packages add Liquid HTML templates, HTML rendering, Google Fonts,
-            and OCR when you need them.
-          </p>
-        </div>
-        <div class="platform-grid">
-          <article class="platform-card">
-            <div class="platform-card-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                  <path d="M9 2v4M15 2v4M9 18v4M15 18v4M18 9h4M18 15h4M2 9h4M2 15h4"></path>
-                </svg>
-              </span>
-              <span class="platform-label">Runtime</span>
-            </div>
-            <strong>.NET 8</strong>
-            <p>The core package targets <code>net8.0</code>.</p>
-          </article>
-          <article class="platform-card">
-            <div class="platform-card-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <rect x="3" y="5" width="18" height="12" rx="2"></rect>
-                  <path d="M8 21h8M12 17v4"></path>
-                </svg>
-              </span>
-              <span class="platform-label">Operating Systems</span>
-            </div>
-            <strong>Windows, Linux, macOS</strong>
-            <p>Use the core library on supported .NET 8 environments across these operating systems.</p>
-          </article>
-          <article class="platform-card">
-            <div class="platform-card-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <rect x="4" y="4" width="16" height="6" rx="2"></rect>
-                  <rect x="4" y="14" width="16" height="6" rx="2"></rect>
-                  <path d="M8 7h.01M8 17h.01"></path>
-                </svg>
-              </span>
-              <span class="platform-label">App Types</span>
-            </div>
-            <strong>Desktop apps, services, workers, CLI tools</strong>
-            <p>The same core package fits typical .NET application and service hosts.</p>
-          </article>
-          <article class="platform-card">
-            <div class="platform-card-head">
-              <span class="mini-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <path d="M12 3l7 4v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V7l7-4z"></path>
-                  <path d="M9 12h6M12 9v6"></path>
-                </svg>
-              </span>
-              <span class="platform-label">Related Packages</span>
-            </div>
-            <ul class="platform-package-list" aria-label="Related packages">
-              <li><code>ZingPDF.Templates.LiquidHtml</code></li>
-              <li><code>ZingPDF.FromHTML</code></li>
-              <li><code>ZingPDF.GoogleFonts</code></li>
-              <li><code>ZingPDF.OCR</code></li>
-            </ul>
-            <p>Add Liquid HTML templates, browser-based HTML rendering, Google Fonts support, or OCR for scanned and
-              image-based pages when your application needs them.</p>
-          </article>
-        </div>
-      </section>
-
       <section class="capabilities homepage-grid-section" id="capabilities">
+        <span id="why" aria-hidden="true"></span>
         <div class="section-copy homepage-section-copy">
           <p class="eyebrow">Capabilities</p>
-          <h2>What ZingPDF covers today.</h2>
-          <p>
-            The main product surface, in one quick scan.
-          </p>
+          <h2>Create new PDFs. Edit existing ones.</h2>
+          <p><a class="inline-link" href="./capabilities.html">View the support matrix and current limits &rarr;</a></p>
         </div>
-
-        <div class="capability-summary-list homepage-capability-grid">
-          <article class="capability-summary-row">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M7 4h7l5 5v10a1.8 1.8 0 0 1-1.8 1.8H7A1.8 1.8 0 0 1 5.2 19V5.8A1.8 1.8 0 0 1 7 4z"></path>
-                <path d="M14 4v5h5"></path>
-              </svg>
-            </span>
-            <h3>Open and restructure PDFs</h3>
-            <p>Load documents from streams, create blank PDFs, get pages, append, insert, delete, rotate, merge, and
-              update metadata.</p>
+        <div class="feature-grid homepage-feature-grid">
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span>
+            <h3><a href="./merge-pdfs-csharp.html">Open and edit PDFs</a></h3>
+            <p>Merge, split, insert, delete, and rotate pages. Update metadata, add watermarks, and save to streams or files.</p>
           </article>
-          <article class="capability-summary-row">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M6 18h12"></path>
-                <path d="M8 15h8"></path>
-                <path d="M6 10h4l2-3 2 6 2-3h2"></path>
-              </svg>
-            </span>
-            <h3>Author content and extract text</h3>
-            <p>Add text, images, vector paths, watermarks, and fonts, author new documents with <code>Pdf.New()</code>,
-              extract plain text from existing files, and run OCR on scanned or image-based pages.</p>
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m15 5 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15zM4 15l4 4"/></svg></span>
+            <h3><a href="./fluent-pdf-authoring-csharp.html">Create and draw</a></h3>
+            <p>Author documents with <code>Pdf.New()</code>. Add text, shapes, images, fonts, and layout boxes.</p>
           </article>
-          <article class="capability-summary-row">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M5 4h14v16H5z"></path>
-                <path d="M8 8h8M8 12h3M13 12h3M8 16h8"></path>
-              </svg>
-            </span>
-            <h3>Create PDFs from templates</h3>
-            <p>Render Liquid HTML templates with Fluid, inspect the generated HTML, and convert the result to PDF
-              through <code>ZingPDF.FromHTML</code>.</p>
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18m-13 4-2 2 2 2m8-4 2 2-2 2m-3-4-2 4"/></svg></span>
+            <h3><a href="./convert-html-to-pdf-csharp.html">HTML and templates</a></h3>
+            <p>Convert HTML with Chromium, or populate Liquid HTML templates from .NET models before PDF conversion.</p>
           </article>
-          <article class="capability-summary-row">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="4" y="11" width="16" height="9" rx="2"></rect>
-                <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
-              </svg>
-            </span>
-            <h3>Work with forms and security</h3>
-            <p>Handle AcroForm fields, flatten completed forms, sign existing or hidden validation-only fields,
-              authenticate encrypted PDFs, apply password protection, structurally redact supported page text, save
-              incrementally, and rewrite to a clean latest state.</p>
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h4m-4 4 2 2 4-4m2 2h2"/></svg></span>
+            <h3><a href="./fill-pdf-form-fields-csharp.html">Fill forms and sign</a></h3>
+            <p>Create, fill, and flatten AcroForm fields. Sign PDFs and validate existing signatures.</p>
           </article>
-          <article class="capability-summary-row capability-summary-row-cta">
-            <span class="mini-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                stroke-linejoin="round">
-                <path d="M12 5v14"></path>
-                <path d="M5 12h14"></path>
-              </svg>
-            </span>
-            <h3>Review the full capability matrix.</h3>
-            <p>See the detailed support table, deployment notes, and roadmap areas in one place.</p>
-            <a class="button button-secondary" href="./capabilities.html">View capabilities</a>
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3M7 8h10m-5 0v9m-3 0h6"/></svg></span>
+            <h3><a href="./extract-text-from-pdf-csharp.html">Extract text and OCR</a></h3>
+            <p>Read embedded text from PDFs. Add <code>ZingPDF.OCR</code> for scanned and image-based pages.</p>
+          </article>
+          <article class="feature-card">
+            <span class="capability-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 3 8 4v5c0 4-3 7-8 9-5-2-8-5-8-9V7z"/><rect x="8" y="11" width="8" height="6" rx="1"/><path d="M10 11V9a2 2 0 0 1 4 0v2"/></svg></span>
+            <h3><a href="./redact-pdf-csharp.html">Encrypt, redact, and save</a></h3>
+            <p>Apply password protection and redact supported content. Save incrementally or rewrite without earlier revisions.</p>
           </article>
         </div>
       </section>
 
-      <section class="faq" id="faq">
-        <div class="section-copy">
-          <p class="eyebrow">FAQ</p>
-          <h2>Common technical and licensing questions.</h2>
+      <section class="homepage-examples homepage-grid-section" id="first-pdf" aria-labelledby="examples-title">
+        <div class="section-copy homepage-section-copy">
+          <p class="eyebrow">Runnable examples</p>
+          <h2 id="examples-title">Run the code. Inspect the PDFs.</h2>
+          <p>Download a complete .NET project, unzip it, and run it locally. Both projects use the published ZingPDF 1.0.59 package.</p>
         </div>
+        <div class="example-grid">
+          <article class="example-card">
+            <h3>Create, edit, and extract text</h3>
+            <p>Create a PDF, add an approval note and a second page, then reopen the result and check its text.</p>
+            <div class="example-pdfs">
+              <a href="./assets/examples/first-pdf/original.pdf" target="_blank" rel="noreferrer"><span class="example-page-crop"><img src="./assets/examples/first-pdf/original.png" width="339" height="480" loading="lazy" alt="Top of the generated input PDF with the heading Delivery report."></span><span>Input: 1 page &nearr;</span></a>
+              <span aria-hidden="true">&rarr;</span>
+              <a href="./assets/examples/first-pdf/edited.pdf" target="_blank" rel="noreferrer"><span class="example-page-crop"><img src="./assets/examples/first-pdf/edited.png" width="339" height="480" loading="lazy" alt="Top of the edited first page with the added text Approved for delivery."></span><span>Output: 2 pages &nearr;</span></a>
+            </div>
+            <a class="example-download" href="./assets/examples/first-pdf.zip" download>Download runnable project (.zip) &darr;</a>
+            <details class="example-run">
+              <summary>Run and verify</summary>
+              <p>These projects target .NET 8. Install the .NET 8 SDK, or a newer SDK with the .NET 8 runtime, then unzip and run in the project folder. The first restore needs internet access.
+                <a href="./docs.html#example-runtimes">Run the examples on .NET 9 or 10</a>.</p>
+              <pre><code class="language-bash">dotnet run --project FirstPdf.csproj</code></pre>
+              <p>The program requires two pages and the original heading, approval note, and checklist heading in extracted text. A failed check exits with an exception.</p>
+              <p><a href="./assets/examples/first-pdf/extracted-text.txt">Read the extracted text</a>. This uses a generated PDF with embedded text; test your own documents before deployment.</p>
+            </details>
+          </article>
+          <article class="example-card">
+            <h3>Generate a two-page report</h3>
+            <p>Build a report with metric cards, milestones, a risk register, and an executive summary using the fluent C# API.</p>
+            <a class="example-report" href="./assets/showcase/project-status-report.pdf" target="_blank" rel="noreferrer"><img src="./assets/showcase/project-status-report.png" width="707" height="1000" loading="lazy" alt="Generated report with delivery metrics and milestones."><span>Open the two-page report &nearr;</span></a>
+            <a class="example-download" href="./assets/examples/project-report.zip" download>Download runnable project (.zip) &darr;</a>
+            <details class="example-run">
+              <summary>Run and verify</summary>
+              <p>These projects target .NET 8. Install the .NET 8 SDK, or a newer SDK with the .NET 8 runtime, then unzip and run in the project folder. The first restore needs internet access.
+                <a href="./docs.html#example-runtimes">Run the examples on .NET 9 or 10</a>.</p>
+              <pre><code class="language-bash">dotnet run --project ProjectReport.csproj</code></pre>
+              <p>Open <code>output/project-status-report.pdf</code>. The published example was checked with an independent PDF reader for two pages and both page headings, and both rendered pages were visually reviewed.</p>
+              <p>The report uses fictional data, standard PDF fonts, and a fixed layout. Test variable-length content in your own layout before deployment.</p>
+            </details>
+          </article>
+        </div>
+        <p class="example-verification">Verified on Windows using the published package. <a href="./assets/examples/verification.json">Read the verification results &rarr;</a></p>
+        <p class="example-contact">Questions about compatibility with your PDFs? <a href="mailto:tom@zingpdf.dev?subject=ZingPDF%20evaluation" data-evaluation-contact>Email us about your workflow &rarr;</a></p>
+      </section>
 
-        <div class="faq-list">
-          <details open>
-            <summary>How do you handle malformed PDFs?</summary>
-            <p>ZingPDF tolerates malformed content in some parsing paths and recovers from some broken
-              <code>startxref</code>
-              cases when a usable xref table is still present. It is not a full PDF repair engine.
-            </p>
-          </details>
-          <details>
-            <summary>What is the memory model?</summary>
-            <p>ZingPDF keeps the input stream open, parses lazily, and caches objects as they are touched. It does not
-              build a full in-memory document graph up front.</p>
-          </details>
-          <details>
-            <summary>Is it thread-safe?</summary>
-            <p>Treat each <code>Pdf</code> instance as not thread-safe. Use one document instance per workflow or
-              request,
-              and use separate instances for parallel work.</p>
-          </details>
-          <details>
-            <summary>What does the commercial license actually cover?</summary>
-            <p>A paid subscription with sufficient seats allows commercial use of ZingPDF, including bundling the
-              unmodified binaries inside your own application. You can keep using versions released during your paid
-              term after cancelling, within the seats and scope you purchased.</p>
-          </details>
-          <details>
-            <summary>What happens when my subscription ends?</summary>
-            <p>You can keep using, building, and distributing your application with unmodified ZingPDF versions released
-              during your paid term, within your purchased license scope. Renew to receive newer versions and support.</p>
-          </details>
-          <details>
-            <summary>Can I evaluate ZingPDF before paying?</summary>
-            <p>Yes. Evaluation and other non-commercial use are allowed without a fixed trial period. You only need a
-              paid subscription when commercial use begins.</p>
-          </details>
-          <details>
-            <summary>Can I ship ZingPDF inside my own product?</summary>
-            <p>Yes. Bundling the unmodified binaries in your own application is allowed, provided the required licensing
-              terms, notices, and attribution remain intact.</p>
-          </details>
+      <section class="platform-band platform-summary" aria-label="Platform support">
+        <div class="platform-copy">
+          <p class="eyebrow">Platform support</p>
+          <h2>.NET 8 and later.<br>Windows, Linux, and macOS.</h2>
+          <p>The packages target <code>net8.0</code>, with .NET 8 as the minimum. Runtime validation covers .NET 8, 9, and 10 on Windows.
+            <a class="inline-link" href="./docs.html#runtime-compatibility">Runtime compatibility and native dependencies &rarr;</a></p>
+        </div>
+        <div class="platform-addons">
+          <h3>Optional packages</h3>
+          <ul>
+            <li><a href="./docs.html#templates">Liquid HTML templates <span aria-hidden="true">&rarr;</span></a></li>
+            <li><a href="./docs.html#packages">HTML rendering <span aria-hidden="true">&rarr;</span></a></li>
+            <li><a href="./docs.html#fonts">Google Fonts <span aria-hidden="true">&rarr;</span></a></li>
+            <li><a href="./docs.html#ocr">OCR <span aria-hidden="true">&rarr;</span></a></li>
+          </ul>
         </div>
       </section>
 
@@ -492,8 +338,10 @@
           <div class="pricing-header-row">
             <div class="section-copy pricing-section-copy">
               <p class="eyebrow">Licensing</p>
-              <h2>Choose the plan that matches your team size.</h2>
-              <p>Keep using versions released during your paid term after cancellation. Renew for new versions and support.</p>
+              <h2>Free to try.<br>Paid for commercial use.</h2>
+              <p>Choose developer seats for your team. Every paid plan includes email support and version upgrades
+                while subscribed. Keep using versions released during your paid term indefinitely, within your
+                purchased scope, even after cancellation. Renew for newer releases and support.</p>
             </div>
 
             <aside class="pricing-free-callout">
@@ -505,20 +353,45 @@
                 </svg>
               </div>
               <div>
-                <strong>Free to evaluate</strong>
+                <strong>Free to try and use non-commercially</strong>
                 <p>Use ZingPDF for trial, evaluation, and other non-commercial work without a time-limited trial. You
-                  only need a paid plan when commercial use begins.</p>
+                  only need paid coverage when commercial use begins.</p>
+                <a class="inline-link" href="#first-pdf">Try it free &rarr;</a>
               </div>
             </aside>
           </div>
 
           <div class="checkout-banner" id="checkout-banner" hidden></div>
 
+          <div class="pricing-assurance-grid">
+            <aside class="pricing-refund-note">
+              <strong>Initial purchase not a fit?</strong>
+              <p>Request a refund within 14 days of the first charge.
+                <a href="./refund-policy.html">Read the refund conditions &rarr;</a></p>
+            </aside>
+            <aside class="pricing-refund-note pricing-support-note">
+              <strong>Technical support by email</strong>
+              <p>Mon&ndash;Fri, 9am&ndash;5pm Sydney time. Initial reply targets: 2 business days for Solo;
+                1 for Team and Business.
+                <a href="./support-policy.html">Targets, scope, and escalation &rarr;</a></p>
+            </aside>
+          </div>
+
           <div class="stripe-pricing-table-shell">
             <stripe-pricing-table pricing-table-id="prctbl_1TMfzpL6fCXAz4BdbX1euTjF"
               publishable-key="pk_live_51TGo2pL6fCXAz4BdL8ZGRrXvQYRqJ3UdRxEJbnhEkVQStSUma0Z37q6fdsJbNGMQGUJE0B10wAusZa4rRszysFCa00ywYd1gBH">
             </stripe-pricing-table>
           </div>
+
+          <p class="pricing-fallback">Plans not loading? <a href="mailto:tom@zingpdf.dev?subject=ZingPDF%20pricing" data-pricing-contact>Email us for pricing and purchase help</a>.</p>
+          <details class="purchase-next-steps">
+            <summary>What happens after I subscribe?</summary>
+            <p>Keep using the same NuGet packages. No activation key or separate commercial build is required.
+              Your paid subscription covers commercial use within the seats and scope you purchase; keep your payment confirmation for your records.</p>
+            <p>Install updates from NuGet while subscribed. For technical support, billing questions, or cancellation,
+              <a href="mailto:tom@zingpdf.dev?subject=ZingPDF%20subscription" data-subscription-contact>email tom@zingpdf.dev</a> with your subscription email address.
+              Cancellation stops future renewals; your paid term continues through the end of the billing cycle.</p>
+          </details>
 
           <div class="pricing-context-grid">
             <article class="doc-card pricing-context-card">
@@ -569,6 +442,58 @@
           </p>
         </div>
       </section>
+      <section class="faq" id="faq">
+        <div class="section-copy">
+          <p class="eyebrow">FAQ</p>
+          <h2>Common technical and licensing questions.</h2>
+        </div>
+
+        <div class="faq-list">
+          <details open>
+            <summary>Can I evaluate ZingPDF before paying?</summary>
+            <p>Yes. Evaluation and other non-commercial use are allowed without a fixed trial period. You only need a
+              paid subscription when commercial use begins.</p>
+          </details>
+          <details>
+            <summary>What happens when my subscription ends?</summary>
+            <p>You can keep using, building, and distributing your application with unmodified ZingPDF versions released
+              during your paid term, within your purchased license scope. Renew to receive newer versions and support.</p>
+          </details>
+          <details>
+            <summary>What does the commercial license actually cover?</summary>
+            <p>A paid subscription with sufficient seats allows commercial use of ZingPDF, including bundling the
+              unmodified binaries inside your own application. You can keep using versions released during your paid
+              term after cancelling, within the seats and scope you purchased.</p>
+          </details>
+          <details>
+            <summary>Can I ship ZingPDF inside my own product?</summary>
+            <p>Yes, with paid coverage for the required developer seats. Bundle the unmodified binaries with your
+              application and retain the supplied licensing assets, terms, copyright notices, and attribution,
+              including <code>LICENSE.txt</code>. Preserve applicable third-party notices too.</p>
+            <p>The ZingPDF terms do not require adding a ZingPDF logo to your application or generated PDFs.
+              Retaining the supplied notices is a separate requirement. See the <a href="./eula.html">EULA</a> for the full scope.</p>
+          </details>
+          <details>
+            <summary>How do you handle malformed PDFs?</summary>
+            <p>ZingPDF tolerates malformed content in some parsing paths and recovers from some broken
+              <code>startxref</code>
+              cases when a usable xref table is still present. It is not a full PDF repair engine.
+            </p>
+          </details>
+          <details>
+            <summary>What is the memory model?</summary>
+            <p>ZingPDF keeps the input stream open, parses lazily, and caches objects as they are touched. It does not
+              build a full in-memory document graph up front.</p>
+          </details>
+          <details>
+            <summary>Is it thread-safe?</summary>
+            <p>Treat each <code>Pdf</code> instance as not thread-safe. Use one document instance per workflow or
+              request,
+              and use separate instances for parallel work.</p>
+          </details>
+        </div>
+      </section>
+
     </main>
     <footer class="site-footer">
       <a href="./license.html">License Notice</a>
@@ -595,6 +520,7 @@
 
   <script src="./config.js"></script>
   <script src="./app.js"></script>
+  <script src="./showcase.js?v=20261020-hero-refinement"></script>
 </body>
 
 </html>

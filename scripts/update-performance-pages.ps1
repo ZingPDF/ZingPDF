@@ -851,7 +851,7 @@ $homepagePerformance = @"
         <div class="homepage-performance-shell">
           <div class="section-copy">
             <p class="eyebrow">Performance</p>
-            <h2 id="performance-summary-title">Ongoing transparent performance improvement</h2>
+            <h2 id="performance-summary-title">Measured PDF performance</h2>
           </div>
 
           <div class="homepage-performance-grid">
@@ -873,7 +873,7 @@ $(New-CompactBarsHtml -ScenarioValues $appendTenValues)
 
             <article class="homepage-performance-card homepage-performance-cta">
               <span class="metric-label">Detailed comparison</span>
-              <strong>Latest verified performance tests</strong>
+              <strong>Compare benchmark results</strong>
               <p>See the benchmark methodology and the full multi-library comparison.</p>
               <a class="button button-performance" href="./performance.html">View performance page</a>
             </article>

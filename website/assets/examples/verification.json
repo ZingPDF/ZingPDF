@@ -1,0 +1,36 @@
+{
+  "verified_at_utc": "2026-10-20T01:32:28.447322+00:00",
+  "platform": "Windows",
+  "package": "ZingPDF 1.0.59",
+  "independent_reader": "pypdf",
+  "checks": [
+    {
+      "file": "assets/examples/first-pdf/original.pdf",
+      "pages": 1,
+      "required_text": [
+        "Delivery report"
+      ],
+      "passed": true
+    },
+    {
+      "file": "assets/examples/first-pdf/edited.pdf",
+      "pages": 2,
+      "required_text": [
+        "Delivery report",
+        "Approved for delivery",
+        "Delivery checklist"
+      ],
+      "passed": true
+    },
+    {
+      "file": "assets/showcase/project-status-report.pdf",
+      "pages": 2,
+      "required_text": [
+        "Northwind ERP Modernisation",
+        "Operational detail"
+      ],
+      "passed": true
+    }
+  ],
+  "scope": "Generated text-based inputs and a fixed-layout report. Validate your own documents and deployment environment."
+}
