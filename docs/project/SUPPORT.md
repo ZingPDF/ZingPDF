@@ -100,13 +100,14 @@ Notes:
 - add text with registered fonts
 - add images including PNG support
 - draw vector paths with stroke and fill options
+- replace supported existing text lines through `Pdf.CreateTextEditor()`, with font coverage and overflow checks, automatic TrueType embedding, and source positions retained
 - extract text, including inline marked-content property dictionaries and positioned line boundaries across a page's content streams
 - OCR image-based pages through the `ZingPDF.OCR` package
 - add simple text watermarks
 
 ### Fonts and packages
 
-- register standard PDF fonts and embedded TrueType fonts
+- register standard PDF fonts and embedded TrueType fonts; `RegisterUnicodeTrueTypeFontAsync` creates Unicode CID mappings automatically, with font coverage checks and measured advances
 - download and register Google Fonts through the `ZingPDF.GoogleFonts` package
 
 ### Forms, security, and save workflows
@@ -130,9 +131,9 @@ These limits should be treated as part of the current product contract unless ex
 - `RemoveHistoryAsync()` switches saving to a rewritten-file path that removes earlier revisions from the output
 - encryption writing supports Standard security handler RC4-128 (`V=2`, `R=3`), AES-128 (`V=4`, `R=4`), and AES-256 (`V=5`, `R=6`)
 - removing encryption from an incrementally saved document does not physically remove older encrypted revisions from the file bytes
-- high-level custom font registration currently targets WinAnsi / Windows-1252 text workflows
+- `RegisterTrueTypeFontAsync` retains WinAnsi / Windows-1252 encoding; use `RegisterUnicodeTrueTypeFontAsync` for Unicode TrueType authoring. Unicode registration embeds the full font, checks glyph coverage, and does not provide shaping or fallback.
 - high-level registration does not yet cover Symbol or ZapfDingbats usage
-- `ZingPDF.GoogleFonts` requires a Google Fonts Developer API key and network access at registration time
+- `ZingPDF.GoogleFonts` can download TrueType variants without a key; family metadata and variable-font preference require the keyed Developer API path. The keyless CSS path requests Latin, extended Latin, Greek, Cyrillic and Vietnamese scripts; check glyph coverage before use. Initial downloads require network access.
 - `ZingPDF.Templates.LiquidHtml` uses HTML/CSS browser rendering and is not a PDF-native layout engine
 - `ZingPDF.OCR` defaults to embedded text or one supported image XObject; opt into `PdfOcrMode.RenderedPage` for OCR of the visible page through PDFium, including mixed content and scan tiles. Result provenance describes input coverage rather than recognition completeness.
 - `Page.RenderAsync(...)` and `Pdf.RenderPageAsync(...)` render PNG bytes through a native PDFium-backed dependency and should be validated on each deployment platform
@@ -144,7 +145,62 @@ These limits should be treated as part of the current product contract unless ex
 - push-button action dictionaries are exposed as metadata; form reset is not implemented yet
 - unusual viewer-specific form appearance behaviour may still require low-level object access
 
+### Existing-line editing limits
+
+`Pdf.CreateTextEditor()` reads and replaces same-style text on one baseline in
+page and Form XObject content streams. Compatible runs can span adjacent page content streams and equivalent font aliases; effective painting state is compared rather than command history. Simple fonts need a reliable Unicode
+mapping; composite fonts currently require Identity-H. It preserves surrounding
+content and clones shared streams for the edited occurrence. Replacements can
+supply a registered `PdfFont` or TrueType bytes; embedding, CID widths, CIDToGIDMap and ToUnicode are
+created automatically. A full embedded TrueType program can be remapped when it
+contains missing characters; an actual subset cannot recover absent glyphs.
+
+Paragraph reflow, mixed-style paragraph editing, vertical writing, complex-script
+shaping, Type 3 fonts, invisible/clipping text modes, ExtGState font selection and
+marked content with ActualText are unsupported for replacement. These runs do not disable supported text elsewhere on the page. Rejected checks leave page content
+unchanged. The operation follows normal incremental-save semantics and is not secure
+redaction. Keep input streams open, readable and seekable; outputs must be empty,
+writable and seekable. See [text editing](TEXT_EDITING.md).
+
+## Desktop editor MVP
+
+`apps/ZingPDF.Editor` is an Avalonia desktop application targeting .NET 10 and
+referencing the repository's ZingPDF library. It adds text, rotates/reorders/deletes
+pages, appends PDFs without forms, exports selected pages, fills supported text
+fields, replaces supported existing text lines, and saves a copy. Missing characters
+and overflow are checked before applying. Users can choose a Google font, which is
+embedded automatically. The PDF is never uploaded. Image insertion and OCR
+editing are not implemented. Added text and field writes use Windows-1252
+characters; existing-line replacement can use further left-to-right Unicode characters
+covered by its selected font. Encrypted and digitally signed input is rejected.
+
+The Pages tab supports single-page drag reordering, including across wrapped
+thumbnail rows, an insertion indicator, and edge scrolling. Escape or releasing
+outside the overview cancels a drag. Completed moves support undo and redo;
+the move buttons remain available for keyboard use, with Move to for arbitrary destinations.
+
+The editor renders visible thumbnails on demand, retaining at most 64 images and
+creating at most 48 overview cards at a time. The sidebar is virtualized. Go to
+jumps directly to a page. Input PDFs above 256 MiB are rejected before allocation;
+document revisions still reside in memory. The local Recent list retains up to
+ten opened/saved file paths, can be cleared without deleting files, and does not
+archive earlier document versions.
+
+The editor opens at Fit page by default and offers Fit width and fixed zoom
+percentages. Fit modes follow the window size and the page's displayed crop and
+rotation. The chosen zoom mode is stored locally between launches; changing zoom
+does not apply drafts or change the PDF.
+
+The initial publish target is Windows x64. Other desktop platforms require
+runtime and packaging validation. No standalone editor price, bundle entitlement,
+or activation policy is introduced by this developer MVP. Build instructions,
+verification commands, and product limits are in
+[`apps/ZingPDF.Editor/README.md`](../../apps/ZingPDF.Editor/README.md).
+
 ## Deployment expectations
+
+- repository builds use ImageSharp 3.2.0 and require a private SixLabors build licence; see [build-licence setup](WORKFLOWS.md#sixlabors-build-licence)
+- applications consuming ZingPDF with ImageSharp only as a transitive dependency are not directly subject to ImageSharp's build-time key validation; directly referencing ImageSharp has its own licence requirements
 
 - input streams passed to `Pdf.Load(...)` must be seekable
 - output streams passed to `SaveAsync(...)` must be writable and seekable
@@ -177,3 +233,11 @@ Commercial licensing and support terms are defined in:
 - `../legal/EVALUATION_TERMS.md`
 - `../legal/COMMERCIAL_TERMS.md`
 - `SUPPORT_POLICY.md`
+
+## Editor-facing API behaviour
+
+- `MovePageAsync(from, to)` uses final 1-based page indices, preserves page object identities, inherited geometry/resources and widgets. It does not remap page-label ranges or numeric page references in application data.
+- `Page.AddTextAsync(text, baselineOrigin, font, size, colour, placement)` handles explicit line breaks and counterclockwise text rotation. Existing graphics state is isolated before high-level page additions.
+- Font resource-name collisions are assigned page-local aliases; shared resource dictionaries and original text are preserved. A font registered in another document is rejected.
+- Font program stream properties resolve compatible generic stream dictionaries for both created and loaded streams, retaining decryption behaviour. Stream parsers consume only the stream delimiter line ending, preserving leading binary whitespace, including AES initialization-vector bytes.
+- `IsEncryptedAsync()` includes queued encryption/removal settings. It does not authenticate or grant permissions.

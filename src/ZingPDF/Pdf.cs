@@ -52,6 +52,7 @@ namespace ZingPDF;
 public class Pdf : IPdf, IDisposable
 {
     private const int PageTreeBranchFactor = 32;
+    private readonly List<IDisposable> _registeredFontEncoders = [];
 
     private static readonly ServiceProvider _rootServices = new ServiceCollection()
         .AddDocumentServices()
@@ -104,6 +105,40 @@ public class Pdf : IPdf, IDisposable
     public async Task AuthenticateAsync(string password)
     {
         await _encryptionProvider.AuthenticateAsync(password);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> IsEncryptedAsync()
+    {
+        if (_removeEncryptionOnSave) return false;
+        if (_pendingEncryptionOptions is not null) return true;
+        return await (await Objects.GetLatestTrailerDictionaryAsync()).Encrypt.GetRawValueAsync() is not null;
+    }
+
+    /// <inheritdoc />
+    public async Task MovePageAsync(int fromPageNumber, int toPageNumber)
+    {
+        var pages = (await GetAllPagesAsync()).ToList();
+        if (fromPageNumber < 1 || fromPageNumber > pages.Count) throw new ArgumentOutOfRangeException(nameof(fromPageNumber));
+        if (toPageNumber < 1 || toPageNumber > pages.Count) throw new ArgumentOutOfRangeException(nameof(toPageNumber));
+        if (fromPageNumber == toPageNumber) return;
+        var root = await Objects.PageTree.GetRootPageTreeNodeAsync();
+        // Materialize inherited values before reparenting. Keep page identities, widgets and destinations.
+        foreach (var obj in pages)
+        {
+            var page = (PageDictionary)obj.Object;
+            var resources = await page.Resources.GetAsync();
+            var media = await page.MediaBox.GetAsync();
+            var crop = await page.CropBox.GetAsync();
+            var rotate = await page.Rotate.GetAsync();
+            page.Set("Resources", resources); page.Set("MediaBox", media);
+            page.Set("CropBox", crop ?? media); page.Set("Rotate", rotate ?? (Number)0);
+            page.SetParent(root.Reference); Objects.Update(obj);
+        }
+        var moving = pages[fromPageNumber - 1]; pages.RemoveAt(fromPageNumber - 1); pages.Insert(toPageNumber - 1, moving);
+        var dictionary = await Objects.PageTree.GetRootPageTreeNodeDictionaryAsync();
+        dictionary.Set("Kids", new ArrayObject(pages.Select(p => p.Reference), ObjectContext.UserCreated));
+        dictionary.Set("Count", (Number)pages.Count); Objects.Update(root); Objects.PageTree.Reset();
     }
 
     /// <inheritdoc />
@@ -160,6 +195,14 @@ public class Pdf : IPdf, IDisposable
             new StrictContentStreamParser(
                 _services.GetRequiredService<IParserResolver>(),
                 _services.GetRequiredService<ITokenTypeIdentifier>())));
+
+    /// <summary>
+    /// Creates an editor for existing single-baseline text in page and Form XObject content
+    /// streams. The editor uses this document's readable, seekable input stream and current
+    /// object state; save changes using the document's normal save APIs.
+    /// </summary>
+    public Text.Editing.PdfTextEditor CreateTextEditor() => new(this,
+        new StrictContentStreamParser(_services.GetRequiredService<IParserResolver>(), _services.GetRequiredService<ITokenTypeIdentifier>()));
 
     /// <inheritdoc />
     public async Task<Page> GetPageAsync(int pageNumber)
@@ -405,7 +448,7 @@ public class Pdf : IPdf, IDisposable
             fontObject.Reference,
             resolvedFontName,
             FontTextEncoding.WinAnsi,
-            isEmbedded: false);
+            isEmbedded: false, metrics: metrics, owner: this);
     }
 
     /// <inheritdoc />
@@ -430,7 +473,31 @@ public class Pdf : IPdf, IDisposable
             embeddedFont.Reference,
             fontFace.FontName,
             FontTextEncoding.WinAnsi,
-            isEmbedded: true);
+            isEmbedded: true, metrics: fontFace.Metrics, owner: this);
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null)
+    {
+        ArgumentNullException.ThrowIfNull(fontData);
+        var face = await TrueTypeFontLoader.LoadAsync(fontData, fontName);
+        var encoder = UnicodeTrueTypeFont.FromFace(face, "");
+        try
+        {
+            var reference = await encoder.EmbedAsync(this);
+            _registeredFontEncoders.Add(encoder);
+            return new PdfFont((Name)(resourceName ?? UniqueStringGenerator.Generate()), reference, face.FontName,
+                FontTextEncoding.Auto, true, encoder, owner: this);
+        }
+        catch { encoder.Dispose(); throw; }
+    }
+
+    /// <inheritdoc />
+    public async Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fontPath);
+        await using var input = File.OpenRead(fontPath);
+        return await RegisterUnicodeTrueTypeFontAsync(input, resourceName, fontName);
     }
 
     /// <inheritdoc />
@@ -1432,7 +1499,7 @@ public class Pdf : IPdf, IDisposable
 
     private sealed record AppendBranch(IndirectObject Root, IndirectObject Leaf);
 
-    private async Task<IndirectObject> CreateTrueTypeFontAsync(TrueTypeFontFace fontFace)
+    internal async Task<IndirectObjectReference> EmbedTrueTypeProgramAsync(TrueTypeFontFace fontFace)
     {
         var fontProgramDictionary = new StreamDictionary(this, ObjectContext.UserCreated);
         fontProgramDictionary.Set<Number>(Constants.DictionaryKeys.Stream.Length, fontFace.FontData.Length);
@@ -1464,8 +1531,12 @@ public class Pdf : IPdf, IDisposable
         descriptor.Set(Constants.DictionaryKeys.FontDescriptor.MissingWidth, (Number)fontFace.MissingWidth);
         descriptor.Set(Constants.DictionaryKeys.FontDescriptor.FontFile2, fontProgramObject.Reference);
 
-        var descriptorObject = await Objects.AddAsync(descriptor);
+        return (await Objects.AddAsync(descriptor)).Reference;
+    }
 
+    private async Task<IndirectObject> CreateTrueTypeFontAsync(TrueTypeFontFace fontFace)
+    {
+        var descriptorReference = await EmbedTrueTypeProgramAsync(fontFace);
         var firstChar = 32;
         var lastChar = 255;
         var widths = new ArrayObject(
@@ -1478,7 +1549,7 @@ public class Pdf : IPdf, IDisposable
         fontDictionary.Set(Constants.DictionaryKeys.Font.FirstChar, (Number)firstChar);
         fontDictionary.Set(Constants.DictionaryKeys.Font.LastChar, (Number)lastChar);
         fontDictionary.Set(Constants.DictionaryKeys.Font.Widths, widths);
-        fontDictionary.Set(Constants.DictionaryKeys.Font.FontDescriptor, descriptorObject.Reference);
+        fontDictionary.Set(Constants.DictionaryKeys.Font.FontDescriptor, descriptorReference);
 
         return await Objects.AddAsync(fontDictionary);
     }
@@ -1839,6 +1910,8 @@ public class Pdf : IPdf, IDisposable
     {
         if (disposing)
         {
+            foreach (var encoder in _registeredFontEncoders) encoder.Dispose();
+            _registeredFontEncoders.Clear();
             ((IDisposable)Data).Dispose();
             _documentLifetime.Dispose();
         }

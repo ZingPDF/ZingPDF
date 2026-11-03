@@ -168,7 +168,7 @@
                   <tr>
                     <td><a class="inline-link" href="./add-text-to-pdf-page-csharp.html">Add text</a> and image content</td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>Text and image placement through the page API.</td>
+                    <td>Text and image placement through the page API. Baseline text supports explicit line breaks and rotation. Existing graphics state is isolated automatically.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./fluent-pdf-authoring-csharp.html">Draw vector paths</a></td>
@@ -179,6 +179,11 @@
                     <td><a class="inline-link" href="./add-watermark-to-pdf-csharp.html">Text watermarks</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
                     <td>Simple all-pages watermarking.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./docs.html#existing-text-editing">Replace existing text lines</a></td>
+                    <td><span class="status-pill status-live">Available</span></td>
+                    <td><code>Pdf.CreateTextEditor()</code> checks coverage and width, rewrites compatible same-style lines across adjacent page streams and within Form occurrences, and accepts registered fonts or TrueType bytes. Unsupported logical-text/font runs leave other text editable. No paragraph reflow, vertical writing or complex-script shaping. Not secure redaction.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./extract-text-from-pdf-csharp.html">Extract text</a></td>
@@ -198,12 +203,12 @@
                   <tr>
                     <td><a class="inline-link" href="./embed-truetype-font-pdf-csharp.html">Register embedded TrueType fonts</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>Document-level registration API for local TrueType font files and streams.</td>
+                    <td>WinAnsi registration remains available. Unicode registration creates CID mappings automatically, with glyph coverage checks and no shaping, fallback or font subsetting.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./use-google-fonts-in-pdf-csharp.html">Google Fonts package</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>Package for registering Google Fonts through the Google Fonts Developer API.</td>
+                    <td>Download TrueType variants through the keyless CSS API or use the keyed Developer API for family metadata. Character coverage must be checked.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./create-pdf-from-liquid-html-template-csharp.html">PDF-native flow templates</a></td>
@@ -390,7 +395,7 @@
                   <tr>
                     <td><a class="inline-link" href="./docs.html#packages">Cross-platform core library support</a></td>
                     <td><span class="status-pill status-live">Available</span></td>
-                    <td>Packages target <code>net8.0</code>; .NET 8 is the minimum. Runtime validation covers .NET 8, 9, and 10 on Windows. Windows, Linux, and macOS deployments remain subject to native dependencies. .NET Framework 4.x is not supported. See <a class="inline-link" href="./docs.html#runtime-compatibility">runtime compatibility</a>.</td>
+                    <td>Packages target <code>net8.0</code>; .NET 8 is the minimum. Runtime validation covers .NET 8, 9, and 10 on Windows. Windows, Linux, and macOS deployments remain subject to native dependencies. .NET Framework 4.x is not supported. Compiling the core project from source also requires an ImageSharp build licence. See <a class="inline-link" href="./docs.html#runtime-compatibility">runtime compatibility</a> and <a class="inline-link" href="./docs.html#packages">package requirements</a>.</td>
                   </tr>
                   <tr>
                     <td><a class="inline-link" href="./convert-html-to-pdf-csharp.html">HTML-to-PDF package</a></td>
@@ -411,6 +416,11 @@
                     <td><a class="inline-link" href="./inspect-pdf-object-graph-csharp.html">Full malformed-PDF repair and xref rebuild</a></td>
                     <td><span class="status-pill status-roadmap">Planned</span></td>
                     <td>Current recovery covers a few common defects. Full object-graph reconstruction is not implemented yet.</td>
+                  </tr>
+                  <tr>
+                    <td><a class="inline-link" href="./docs.html#desktop-editor">Desktop PDF editor</a></td>
+                    <td><span class="status-pill">Developer preview</span></td>
+                    <td>Source MVP for replacing supported existing lines, adding text, organising pages with drag reordering, filling text fields, and saving copies. Page viewing supports Fit page, Fit width, and fixed zoom percentages, with a remembered mode. Recent file paths stay local; source inputs are limited to 256 MiB, with visible thumbnails and a bounded cache. Targets .NET 10; initial publish target is Windows x64. Existing-line edits check font coverage and overflow, with automatic embedding of chosen Google fonts. Paragraph reflow, complex-script shaping, signed input, and encrypted input are not supported. Commercial editor distribution has not been released.</td>
                   </tr>
                     <tr>
                       <td><a class="inline-link" href="./sign-pdf-form-field-csharp.html">Sign password-protected input PDFs</a></td>

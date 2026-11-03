@@ -11,10 +11,8 @@ namespace ZingPDF.Text;
 public class TextObject : ContentStream
 {
     private static readonly System.Text.Encoding _winAnsi = CreateWinAnsiEncoding();
-    internal IReadOnlyList<PdfFont> ReferencedFonts { get; private init; } = [];
+    internal IReadOnlyList<PdfFont> ReferencedFonts { get; private set; } = [];
 
-    // TODO: should the position of the text box be controlled outside this object?
-    //  text object should be text, font, size, box size
     public TextObject(string text, Rectangle boundingBox, FontOptions fontOptions)
         : base(ObjectContext.UserCreated)
     {
@@ -22,44 +20,49 @@ public class TextObject : ContentStream
         ArgumentNullException.ThrowIfNull(boundingBox, nameof(boundingBox));
         ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));
 
-        this
-            .SaveGraphicsState()
-            .SetClippingPath(boundingBox)
-            .SetTextState(fontOptions.ResourceName, fontOptions.Size)
-            .SetColour(fontOptions.Colour)
-            .BeginTextObject()
-            .SetTextPosition(boundingBox.LowerLeft)
-            .ShowText(EncodeText(text, fontOptions.TextEncoding))
-            .EndTextObject()
-            .RestoreGraphicsState();
+        Build(text, boundingBox.LowerLeft, fontOptions, new(), boundingBox);
     }
 
     public TextObject(string text, Coordinate textOrigin, FontOptions fontOptions, Rectangle? clipBounds = null)
+        : this(text, textOrigin, fontOptions, clipBounds, new TextPlacementOptions()) { }
+
+    /// <summary>Creates baseline-positioned text with explicit line breaks and optional rotation.</summary>
+    public TextObject(string text, Coordinate textOrigin, FontOptions fontOptions, Rectangle? clipBounds, TextPlacementOptions placement)
         : base(ObjectContext.UserCreated)
     {
-        ArgumentNullException.ThrowIfNull(text, nameof(text));
-        ArgumentNullException.ThrowIfNull(textOrigin, nameof(textOrigin));
-        ArgumentNullException.ThrowIfNull(fontOptions, nameof(fontOptions));
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(textOrigin);
+        ArgumentNullException.ThrowIfNull(fontOptions);
+        ArgumentNullException.ThrowIfNull(placement);
+        Build(text, textOrigin, fontOptions, placement, clipBounds);
+    }
 
+    private void Build(string text, Coordinate origin, FontOptions options, TextPlacementOptions placement, Rectangle? clip)
+    {
+        var size = options.Size.Value;
+        var height = placement.LineHeight ?? size * 1.25;
+        if (!double.IsFinite(size) || size <= 0) throw new ArgumentOutOfRangeException(nameof(options), "Font size must be positive and finite.");
+        if (!double.IsFinite(height) || height <= 0 || !double.IsFinite(placement.RotationDegrees)) throw new ArgumentOutOfRangeException(nameof(placement));
+        var lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        // Encode before building operations, so missing glyphs cannot leave half-built content.
+        var encoded = lines.Select(line => options.RegisteredFont?.Encode(line) ?? EncodeText(line, options.TextEncoding)).ToArray();
+        var angle = placement.RotationDegrees * Math.PI / 180;
+        var cos = Math.Cos(angle); var sin = Math.Sin(angle);
+        if (Math.Abs(cos) < 1e-12) cos = 0; if (Math.Abs(sin) < 1e-12) sin = 0;
         this.SaveGraphicsState();
-
-        if (clipBounds is not null)
+        if (clip is not null) this.SetClippingPath(clip);
+        this.SetColour(options.Colour).BeginTextObject().SetTextState(options.ResourceName, options.Size);
+        for (var index = 0; index < encoded.Length; index++)
         {
-            this.SetClippingPath(clipBounds);
+            var drop = height * index;
+            this.SetTextMatrix(cos, sin, sin == 0 ? 0 : -sin, cos, origin.X + sin * drop, origin.Y - cos * drop).ShowText(encoded[index]);
         }
-
-        this
-            .SetTextState(fontOptions.ResourceName, fontOptions.Size)
-            .SetColour(fontOptions.Colour)
-            .BeginTextObject()
-            .SetTextPosition(textOrigin)
-            .ShowText(EncodeText(text, fontOptions.TextEncoding))
-            .EndTextObject()
-            .RestoreGraphicsState();
+        this.EndTextObject().RestoreGraphicsState();
+        if (options.RegisteredFont is { } font) ReferencedFonts = [font];
     }
 
     public TextObject(string text, Rectangle boundingBox, PdfFont font, Number size, Graphics.RGBColour colour)
-        : this(text, boundingBox, font.CreateOptions(size, colour))
+        : this(text, boundingBox, font?.CreateOptions(size, colour) ?? throw new ArgumentNullException(nameof(font)))
     {
         ArgumentNullException.ThrowIfNull(font, nameof(font));
         ArgumentNullException.ThrowIfNull(colour, nameof(colour));
@@ -67,7 +70,7 @@ public class TextObject : ContentStream
     }
 
     public TextObject(string text, Coordinate textOrigin, PdfFont font, Number size, Graphics.RGBColour colour, Rectangle? clipBounds = null)
-        : this(text, textOrigin, font.CreateOptions(size, colour), clipBounds)
+        : this(text, textOrigin, font?.CreateOptions(size, colour) ?? throw new ArgumentNullException(nameof(font)), clipBounds)
     {
         ArgumentNullException.ThrowIfNull(font, nameof(font));
         ArgumentNullException.ThrowIfNull(colour, nameof(colour));
@@ -76,10 +79,6 @@ public class TextObject : ContentStream
 
     private static PdfString EncodeText(string text, FontTextEncoding encoding)
     {
-        // Replace EOL characters with T* operators
-        // TODO: test this
-        text = text.Replace(new string(Constants.EndOfLineCharacters), $") {Operators.TextPositioning.TStar} (");
-
         return encoding switch
         {
             FontTextEncoding.Auto => PdfString.FromTextAuto(text, ObjectContext.UserCreated),

@@ -36,6 +36,20 @@ public interface IPdf
     Task<IList<IndirectObject>> GetAllPagesAsync();
 
     /// <summary>
+    /// Returns whether the document is encrypted, including queued encryption/removal settings.
+    /// Does not authenticate passwords or grant permission to modify the document.
+    /// </summary>
+    Task<bool> IsEncryptedAsync();
+
+    /// <summary>
+    /// Moves a page to its final 1-based destination index. Other pages shift to fill its former position.
+    /// Preserves page object identities, inherited geometry/resources, widgets and object destinations.
+    /// Page-label ranges and numeric page indices in application data are not remapped.
+    /// </summary>
+    Task MovePageAsync(int fromPageNumber, int toPageNumber);
+
+
+    /// <summary>
     /// Gets a page by its 1-based page number.
     /// </summary>
     Task<Page> GetPageAsync(int pageNumber);
@@ -82,6 +96,13 @@ public interface IPdf
     /// Starts a redaction plan for marking text or regions and then applying redaction overlays.
     /// </summary>
     Task<PdfRedactionPlan> RedactionAsync();
+
+    /// <summary>
+    /// Creates an editor for existing single-baseline text in page and Form XObject content
+    /// streams. The document input must remain readable and seekable while analyzing or
+    /// replacing lines. Save edits through the document's normal save APIs.
+    /// </summary>
+    Text.Editing.PdfTextEditor CreateTextEditor();
 
     /// <summary>
     /// Appends a new page to the end of the document.
@@ -159,6 +180,16 @@ public interface IPdf
     /// Registers an embedded TrueType font from a stream.
     /// </summary>
     Task<PdfFont> RegisterTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null);
+
+    /// <summary>
+    /// Registers a complete TrueType outline font for Unicode text. Glyph coverage is checked when
+    /// adding text; CID mappings and embedding are automatic. No shaping or font fallback is performed.
+    /// The readable, seekable font stream is read during registration and remains caller-owned.
+    /// </summary>
+    Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null);
+
+    /// <summary>Registers a Unicode TrueType font from a file. The file is closed after registration.</summary>
+    Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null);
 
     /// <summary>
     /// Compresses eligible streams in the document.

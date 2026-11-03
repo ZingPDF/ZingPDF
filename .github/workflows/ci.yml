@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "src/**"
+      - "apps/**"
       - "tests/**"
       - "tools/**"
       - ".github/workflows/ci.yml"
@@ -13,6 +14,9 @@ on:
       - "scripts/verify-runtime-consumers.ps1"
       - "website/assets/examples/first-pdf.zip"
   workflow_dispatch:
+
+env:
+  SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
 
 jobs:
   build-test:

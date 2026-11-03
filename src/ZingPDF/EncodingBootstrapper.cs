@@ -13,5 +13,6 @@ internal static class EncodingBootstrapper
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         Encoding.RegisterProvider(PDFDocEncodingProvider.Instance);
+        Encoding.RegisterProvider(Text.Encoding.StandardEncoding.StandardEncodingProvider.Instance);
     }
 }

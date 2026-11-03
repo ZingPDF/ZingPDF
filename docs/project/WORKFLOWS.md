@@ -12,6 +12,41 @@ Use this file for repeatable repo workflows that are easy to forget between sess
 6. Run the narrow test project first.
 7. Run `dotnet test ZingPDF.sln --configuration Release` when shared behavior, public APIs, save behavior, or package wiring changed.
 
+## SixLabors build licence
+
+The core project directly references ImageSharp 3.2.0. SixLabors validates a
+licence when compiling that project. Keep the complete licence file private;
+do not add it to source control, publish it in artifacts, or pass its value on
+the command line. Use a valid licence for your build environment.
+
+For local builds, store `sixlabors.lic` outside the repository and create an
+ignored `Directory.Build.local.props` at the repository root:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <SixLaborsLicenseFile Condition="'$(SixLaborsLicenseKey)' == ''">/absolute/private/path/sixlabors.lic</SixLaborsLicenseFile>
+  </PropertyGroup>
+</Project>
+```
+
+Alternatively, set `SIXLABORS_LICENSE_KEY` to the complete file contents in the
+build process environment. `Directory.Build.props` maps it to the property the
+SixLabors validator reads. Do not use only the signature or `Key` field.
+
+GitHub Actions uses the private repository secret `SIXLABORS_LICENSE_KEY`.
+Fork pull requests do not receive repository secrets; contributors need their
+own eligible licence to compile the core project. Do not expose the key through
+public workflow logs or use a privileged pull-request trigger to bypass that boundary.
+
+The Linux corpus scripts pass the licence to Docker as a BuildKit secret.
+The key is mounted for the publish step and is not copied into the build context,
+image layers, or runtime image. Direct Docker invocations need
+`--secret id=sixlabors_license,env=SIXLABORS_LICENSE_KEY`, or the same secret ID
+with `src=/absolute/private/path/sixlabors.lic`.
+
+See [SixLabors build-licence documentation](https://docs.sixlabors.com/articles/imagesharp/).
+
 ## Testing Matrix
 
 Unit, integration, and smoke projects target `net8.0;net9.0;net10.0`. A normal

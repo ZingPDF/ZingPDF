@@ -8,6 +8,19 @@ public class CMap
 
     public int MappingCount { get; private set; }
 
+    internal IEnumerable<(byte[] Code, string Text)> EnumerateMappings()
+    {
+        return Walk(_root, []);
+        static IEnumerable<(byte[], string)> Walk(Node node, byte[] prefix)
+        {
+            if (node.MappedValue is { } text) yield return (prefix, text);
+            if (node.Children is null) yield break;
+            for (var index = 0; index < node.Children.Length; index++)
+                if (node.Children[index] is { } child)
+                    foreach (var mapping in Walk(child, [.. prefix, (byte)index])) yield return mapping;
+        }
+    }
+
     public void AddMapping(byte[] src, string dst)
     {
         RegisterCodeLength(src.Length);
@@ -122,6 +135,7 @@ public class CMap
     private sealed class Node
     {
         private Node[]? _children;
+        public Node[]? Children => _children;
 
         public string? MappedValue { get; set; }
 

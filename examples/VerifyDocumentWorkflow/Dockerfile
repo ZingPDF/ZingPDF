@@ -1,4 +1,5 @@
-# Build from the repository root: docker build -f examples/VerifyDocumentWorkflow/Dockerfile .
+# syntax=docker/dockerfile:1
+# Build from the repository root using --secret id=sixlabors_license,env=SIXLABORS_LICENSE_KEY.
 ARG SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0-noble
 ARG RUNTIME_IMAGE=mcr.microsoft.com/dotnet/runtime:8.0-bookworm-slim
 FROM ${SDK_IMAGE} AS build
@@ -10,7 +11,9 @@ COPY LICENSE.txt ./
 COPY tests/TestFiles/font/NotoSans-Regular.ttf ./tests/TestFiles/font/NotoSans-Regular.ttf
 COPY examples/GenerateInvoices/OFL.txt ./examples/GenerateInvoices/OFL.txt
 COPY examples/VerifyDocumentWorkflow/ ./examples/VerifyDocumentWorkflow/
-RUN dotnet publish examples/VerifyDocumentWorkflow/VerifyDocumentWorkflow.csproj --configuration Release --output /publish
+RUN --mount=type=secret,id=sixlabors_license,required=true \
+    SixLaborsLicenseFile=/run/secrets/sixlabors_license \
+    dotnet publish examples/VerifyDocumentWorkflow/VerifyDocumentWorkflow.csproj --configuration Release --output /publish
 
 FROM ${RUNTIME_IMAGE} AS runtime
 ARG TESSERACT_VERSION=

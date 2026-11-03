@@ -18,6 +18,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
 jobs:
   linux-invoices:
     runs-on: ubuntu-24.04

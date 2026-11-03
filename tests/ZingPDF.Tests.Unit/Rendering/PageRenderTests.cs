@@ -26,6 +26,44 @@ public class PageRenderTests
     private static readonly RGBColour SnapshotGreen = new(0.1, 0.64, 0.34);
     private static readonly RGBColour SnapshotRed = new(0.85, 0.16, 0.16);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RenderAsync_ExposedMemoryBuffer_MatchesStreamSnapshotWithAndWithoutEdits(bool edit)
+    {
+        using var original = Pdf.Create(options => options.MediaBox = PdfRectangle.FromDimensions(100, 100));
+        var originalFont = await original.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+        await (await original.GetPageAsync(1)).AddTextAsync("Original", PdfRectangle.FromDimensions(90, 80), originalFont, 12, RGBColour.Black);
+        using var saved = new MemoryStream(); await original.SaveAsync(saved);
+        var bytes = saved.ToArray(); var unchanged = bytes.ToArray();
+        using var exposed = new ExposedRenderStream(bytes);
+        using var hidden = new MemoryStream(bytes, writable: false);
+        using var fastPdf = Pdf.Load(exposed); using var fallbackPdf = Pdf.Load(hidden);
+        if (edit)
+        {
+            foreach (var pdf in new[] { fastPdf, fallbackPdf })
+            {
+                var font = await pdf.RegisterStandardFontAsync(StandardPdfFonts.Helvetica);
+                await (await pdf.GetPageAsync(1)).AddTextAsync("Edit", PdfRectangle.FromDimensions(70, 50), font, 12, RGBColour.Black);
+            }
+        }
+        var fast = await fastPdf.RenderPageAsync(1);
+        var fallback = await fallbackPdf.RenderPageAsync(1);
+        fast.PngBytes.ToArray().Should().Equal(fallback.PngBytes.ToArray());
+        bytes.Should().Equal(unchanged);
+        exposed.SnapshotCopies.Should().Be(edit ? 1 : 0);
+    }
+
+    private sealed class ExposedRenderStream(byte[] bytes) : MemoryStream(bytes, 0, bytes.Length, writable: false, publiclyVisible: true)
+    {
+        public int SnapshotCopies { get; private set; }
+        public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            SnapshotCopies++;
+            return base.CopyToAsync(destination, bufferSize, cancellationToken);
+        }
+    }
+
     [Fact]
     public async Task RenderAsync_CreatedPage_ReturnsPngWithExpectedDimensions()
     {

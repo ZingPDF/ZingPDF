@@ -5,6 +5,7 @@ namespace ZingPDF.Text;
 
 public record FontOptions
 {
+    internal PdfFont? RegisteredFont { get; init; }
     /// <summary>
     /// The name of the font resource.
     /// </summary>

@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip deploy]')

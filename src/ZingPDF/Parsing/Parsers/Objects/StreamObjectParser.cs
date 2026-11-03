@@ -30,7 +30,7 @@ namespace ZingPDF.Parsing.Parsers.Objects
             var streamLength = await _dict.Length.GetAsync();
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
-            stream.AdvancePastWhitepace();
+            stream.ConsumeStreamLineEnding();
 
             var streamDataOffset = stream.Position;
 

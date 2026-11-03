@@ -21,31 +21,63 @@ public class StandardEncoding : System.Text.Encoding
         for (int i = 0x20; i <= 0x7E; i++)
             _codeToChar[i] = (char)i;
 
-        // Special StandardEncoding mappings
-        _codeToChar[0x18] = '\u02D8'; _codeToChar[0x19] = '\u02C7';
-        _codeToChar[0x1A] = '\u02C6'; _codeToChar[0x1B] = '\u02D9';
-        _codeToChar[0x1C] = '\u02DD'; _codeToChar[0x1D] = '\u02DB';
-        _codeToChar[0x1E] = '\u02DA'; _codeToChar[0x1F] = '\u02DC';
-        _codeToChar[0x80] = '\u2022'; _codeToChar[0x81] = '\u2020';
-        _codeToChar[0x82] = '\u2021'; _codeToChar[0x83] = '\u2026';
-        _codeToChar[0x84] = '\u2014'; _codeToChar[0x85] = '\u2013';
-        _codeToChar[0x86] = '\u0192'; _codeToChar[0x87] = '\u2044';
-        _codeToChar[0x88] = '\u2039'; _codeToChar[0x89] = '\u203A';
-        _codeToChar[0x8A] = '\u2212'; _codeToChar[0x8B] = '\u2030';
-        _codeToChar[0x8C] = '\u201E'; _codeToChar[0x8D] = '\u201C';
-        _codeToChar[0x8E] = '\u201D'; _codeToChar[0x8F] = '\u2018';
-        _codeToChar[0x90] = '\u2019'; _codeToChar[0x91] = '\u201A';
-        _codeToChar[0x92] = '\u2122'; _codeToChar[0x93] = '\uFB01';
-        _codeToChar[0x94] = '\uFB02'; _codeToChar[0x95] = '\u0141';
-        _codeToChar[0x96] = '\u0152'; _codeToChar[0x97] = '\u0160';
-        _codeToChar[0x98] = '\u0178'; _codeToChar[0x99] = '\u017D';
-        _codeToChar[0x9A] = '\u0131'; _codeToChar[0x9B] = '\u0142';
-        _codeToChar[0x9C] = '\u0153'; _codeToChar[0x9D] = '\u0161';
-        _codeToChar[0x9E] = '\u017E'; _codeToChar[0xA0] = '\u20AC';
-
-        // Latin-1 Supplement
-        for (int i = 0xA1; i <= 0xFF; i++)
-            _codeToChar[i] = (char)(0x00A0 + (i - 0xA0));
+        // Adobe PDF Reference, Appendix C: StandardEncoding is distinct from PDFDocEncoding.
+        _codeToChar[0x27] = '\u2019';
+        _codeToChar[0x60] = '\u2018';
+        _codeToChar[0xA1] = '\u00A1';
+        _codeToChar[0xA2] = '\u00A2';
+        _codeToChar[0xA3] = '\u00A3';
+        _codeToChar[0xA4] = '\u2044';
+        _codeToChar[0xA5] = '\u00A5';
+        _codeToChar[0xA6] = '\u0192';
+        _codeToChar[0xA7] = '\u00A7';
+        _codeToChar[0xA8] = '\u00A4';
+        _codeToChar[0xA9] = '\u0027';
+        _codeToChar[0xAA] = '\u201C';
+        _codeToChar[0xAB] = '\u00AB';
+        _codeToChar[0xAC] = '\u2039';
+        _codeToChar[0xAD] = '\u203A';
+        _codeToChar[0xAE] = '\uFB01';
+        _codeToChar[0xAF] = '\uFB02';
+        _codeToChar[0xB1] = '\u2013';
+        _codeToChar[0xB2] = '\u2020';
+        _codeToChar[0xB3] = '\u2021';
+        _codeToChar[0xB4] = '\u00B7';
+        _codeToChar[0xB6] = '\u00B6';
+        _codeToChar[0xB7] = '\u2022';
+        _codeToChar[0xB8] = '\u201A';
+        _codeToChar[0xB9] = '\u201E';
+        _codeToChar[0xBA] = '\u201D';
+        _codeToChar[0xBB] = '\u00BB';
+        _codeToChar[0xBC] = '\u2026';
+        _codeToChar[0xBD] = '\u2030';
+        _codeToChar[0xBF] = '\u00BF';
+        _codeToChar[0xC1] = '\u0060';
+        _codeToChar[0xC2] = '\u00B4';
+        _codeToChar[0xC3] = '\u02C6';
+        _codeToChar[0xC4] = '\u02DC';
+        _codeToChar[0xC5] = '\u00AF';
+        _codeToChar[0xC6] = '\u02D8';
+        _codeToChar[0xC7] = '\u02D9';
+        _codeToChar[0xC8] = '\u00A8';
+        _codeToChar[0xCA] = '\u02DA';
+        _codeToChar[0xCB] = '\u00B8';
+        _codeToChar[0xCD] = '\u02DD';
+        _codeToChar[0xCE] = '\u02DB';
+        _codeToChar[0xCF] = '\u02C7';
+        _codeToChar[0xD0] = '\u2014';
+        _codeToChar[0xE1] = '\u00C6';
+        _codeToChar[0xE3] = '\u00AA';
+        _codeToChar[0xE8] = '\u0141';
+        _codeToChar[0xE9] = '\u00D8';
+        _codeToChar[0xEA] = '\u0152';
+        _codeToChar[0xEB] = '\u00BA';
+        _codeToChar[0xF1] = '\u00E6';
+        _codeToChar[0xF5] = '\u0131';
+        _codeToChar[0xF8] = '\u0142';
+        _codeToChar[0xF9] = '\u00F8';
+        _codeToChar[0xFA] = '\u0153';
+        _codeToChar[0xFB] = '\u00DF';
 
         // Build reverse lookup
         for (int i = 0; i < _codeToChar.Length; i++)

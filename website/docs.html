@@ -56,6 +56,7 @@
           <nav>
             <a href="#quick-start">Quick Start</a>
             <a href="#page-geometry">Page Geometry</a>
+            <a href="#desktop-editor">Desktop Editor Preview</a>
             <a href="#packages">Packages</a>
             <a href="#templates">Templates</a>
             <a href="#fonts">Fonts</a>
@@ -342,9 +343,72 @@ Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
             <p>For automated checks, render simple vector pages and compare sampled pixels or approved image signatures. Use <code>PdfPageGeometry.PageToDisplay(...)</code> to turn PDF coordinates into expected display pixels when testing overlays, crops, or rotation. The benchmark project includes page-rendering scenarios for thumbnail-scale previews, 1x previews, image-heavy input, and unsaved edits.</p>
           </section>
 
+          <section class="doc-section" id="editor-library-apis">
+            <h2>Place text and move pages</h2>
+            <pre><code class="language-csharp">var font = await pdf.RegisterUnicodeTrueTypeFontAsync("NotoSans-Regular.ttf");
+var page = await pdf.GetPageAsync(1);
+await page.AddTextAsync("First line\nSecond line", new Coordinate(40, 700), font, 14,
+    RGBColour.Black, new TextPlacementOptions { RotationDegrees = 0, LineHeight = 18 });
+var missing = font.GetMissingCharacters("More wording");
+var width = font.MeasureText("More wording", 14);
+await pdf.MovePageAsync(1, 3);
+var encrypted = await pdf.IsEncryptedAsync();</code></pre>
+            <p>Register fonts once per document. Baseline placement supports CRLF, CR and LF, with
+              counterclockwise text rotation in page coordinates. High-level additions isolate existing
+              graphics state and assign page-local aliases when font resource names collide.</p>
+            <p><code>MovePageAsync(from, to)</code> uses final 1-based page indices and preserves page objects,
+              inherited geometry/resources and widgets. Page-label ranges and numeric indices in application
+              metadata are not remapped. <code>IsEncryptedAsync()</code> includes queued encryption/removal
+              settings; it does not authenticate passwords or grant permissions.</p>
+          </section>
+
+          <section class="doc-section" id="existing-text-editing">
+            <h2>Replace an existing text line</h2>
+            <p><code>Pdf.CreateTextEditor()</code> reads same-style lines from page and Form XObject content
+              streams. Select a line by its text and bounds, check the replacement, then apply it.</p>
+            <pre><code class="language-csharp">var editor = pdf.CreateTextEditor();
+var line = (await editor.GetLinesAsync(1)).First();
+var check = await editor.CheckReplacementAsync(line, "Corrected wording");
+if (!check.CanApply)
+    throw new InvalidOperationException(check.Message);
+await editor.ReplaceLineAsync(line, "Corrected wording");</code></pre>
+            <p>Supply a registered <code>PdfTextReplacementOptions.Font</code> or <code>TrueTypeFontData</code> to choose another font.
+              Embedding, CID widths and Unicode mappings are created automatically. Check missing characters
+              and overflow before mutation, and obtain fresh line handles after content changes.</p>
+            <p>This replaces one baseline while preserving painting state and surrounding content. Shared
+              streams are copied for the edited occurrence. Compatible runs can span adjacent page content streams and font aliases; unsupported ActualText/graphics-state font runs leave other text editable. Paragraph reflow, mixed-style paragraph editing,
+              complex-script shaping, vertical writing and text clipping modes are unsupported. The operation
+              follows normal incremental saving and is not secure redaction.</p>
+          </section>
+
+          <section class="doc-section" id="desktop-editor">
+            <p class="eyebrow">Developer Preview</p>
+            <h2>Desktop PDF editor</h2>
+            <p>The repository includes an Avalonia desktop editor that uses ZingPDF to add text, organise pages,
+              fill existing text fields, replace supported existing lines, and save a copy. Signed and
+              encrypted input is rejected, and added text uses Western European characters.</p>
+            <p>Existing-line edits retain position and colour. The editor checks missing characters and line
+              overflow before applying. Choose a Google font when needed; embedding is automatic and PDF text
+              stays on your computer. Paragraph reflow and complex-script shaping are not implemented.</p>
+            <p>Page viewing offers Fit page, Fit width, and fixed zoom percentages. Fit modes adjust to window
+              size, page crop, and rotation. The selected mode is remembered between launches.</p>
+            <p>The Pages tab supports dragging a thumbnail to a new position, with an insertion indicator,
+              edge scrolling, and undo/redo. Move buttons are also available for keyboard use.</p>
+            <p>Recent files lists up to ten local paths to opened PDFs and saved copies. Thumbnail rendering is
+              limited to visible cards, with a 64-image cache and 48 cards per overview group. Source files above
+              256 MiB are rejected before allocation; document revisions are held in memory.</p>
+            <p>The editor targets .NET 10, with Windows x64 as the initial publish target. It is a developer MVP;
+              a commercial download, standalone pricing, and bundle entitlements have not been released.
+              See the <a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/tree/main/apps/ZingPDF.Editor">editor build instructions and limits</a>.</p>
+          </section>
+
           <section class="doc-section" id="packages">
             <p class="eyebrow">Packages</p>
             <h2>NuGet packages</h2>
+            <p>The current source tree references ImageSharp 3.2.0. Compiling ZingPDF from source requires a SixLabors
+              build licence. Applications consuming the compiled ZingPDF package do not directly invoke
+              ImageSharp's build-time key validation unless they also directly reference ImageSharp.
+              See the <a class="inline-link" href="https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/WORKFLOWS.md#sixlabors-build-licence">source-build licence setup</a>.</p>
             <p>ZingPDF ships as a small set of packages. Use the core package unless you specifically need HTML
               rendering, Liquid HTML templates, Google Fonts, or OCR support for scanned or image-based pages.</p>
 
@@ -410,7 +474,7 @@ Console.WriteLine($"{preview.PixelWidth} x {preview.PixelHeight}");</code></pre>
                   <li>Target framework: <code>net8.0</code></li>
                   <li>Use for fetching Google Fonts at document build time</li>
                   <li>Cross-platform with outbound HTTPS access</li>
-                  <li>Requires a Google Fonts Developer API key at registration time</li>
+                  <li>Download TrueType variants without a key; family metadata requires a Developer API key</li>
                 </ul>
               </article>
               <article class="doc-card">
@@ -602,7 +666,7 @@ await page.AddTextAsync(
             </ul>
 
             <h3>Register an embedded TrueType font from disk</h3>
-            <pre><code class="language-csharp">var font = await pdf.RegisterTrueTypeFontAsync(
+            <pre><code class="language-csharp">var font = await pdf.RegisterUnicodeTrueTypeFontAsync(
     "MyFont-Regular.ttf");
 
 await page.AddTextAsync(
@@ -617,7 +681,7 @@ await page.AddTextAsync(
     .Page(page => page
         .Text(text => text
             .Value("Custom font text")
-            .WithTrueTypeFont("MyFont-Regular.ttf", fontName: "MyFont-Regular")
+            .WithUnicodeTrueTypeFont("MyFont-Regular.ttf", fontName: "MyFont-Regular")
             .FontSize(18)
             .At(48, 780)))
     .SaveToFileAsync("custom-font.pdf");</code></pre>
@@ -625,8 +689,8 @@ await page.AddTextAsync(
             <h3>Register a Google Font</h3>
             <pre><code class="language-csharp">using ZingPDF.GoogleFonts;
 
-var client = new GoogleFontsClient("&lt;google-fonts-api-key&gt;");
-var font = await pdf.RegisterGoogleFontAsync(
+var client = new GoogleFontsClient();
+var font = await pdf.RegisterUnicodeGoogleFontAsync(
     client,
     new GoogleFontRequest
     {
@@ -643,9 +707,9 @@ await page.AddTextAsync(
 
             <h3>Font notes</h3>
             <ul>
-              <li>The current high-level registration path targets WinAnsi / Windows-1252 text.</li>
+              <li><code>RegisterUnicodeTrueTypeFontAsync</code> and <code>RegisterUnicodeGoogleFontAsync</code> create Unicode mappings automatically. Existing <code>RegisterTrueTypeFontAsync</code> retains WinAnsi behaviour. Unicode authoring checks glyph coverage without shaping, fallback or font subsetting.</li>
               <li>Symbol and ZapfDingbats are not yet exposed through the high-level registration API.</li>
-              <li><code>ZingPDF.GoogleFonts</code> requires a Google Fonts Developer API key and network access.</li>
+              <li><code>ZingPDF.GoogleFonts</code> downloads require network access. The keyless path requests Latin, extended Latin, Greek, Cyrillic and Vietnamese script ranges. Check glyph coverage; not every family or variant supplies one combined TrueType file. Family metadata requires a Developer API key.</li>
             </ul>
 
             <p>

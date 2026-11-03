@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ZingPDF.GoogleFonts;
 
@@ -14,6 +15,18 @@ public sealed class GoogleFontsClient
     };
 
     private readonly HttpClient _httpClient;
+
+    /// <summary>
+    /// Creates a client that downloads TrueType variants through the public Google
+    /// Fonts CSS API without an API key. Family metadata still requires the keyed constructor.
+    /// Latin, extended Latin, Greek, Cyrillic and Vietnamese subsets are requested together.
+    /// Font requests never contain document text. Character coverage must be checked before use.
+    /// </summary>
+    public GoogleFontsClient(HttpClient? httpClient = null)
+    {
+        ApiKey = "";
+        _httpClient = httpClient ?? new HttpClient();
+    }
 
     public GoogleFontsClient(string apiKey, HttpClient? httpClient = null)
     {
@@ -31,6 +44,7 @@ public sealed class GoogleFontsClient
     public async Task<GoogleFontFamily> GetFamilyAsync(string family, bool preferVariableFont = false, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(family);
+        if (ApiKey.Length == 0) throw new InvalidOperationException("Family metadata requires a Google Fonts Developer API key. Font downloads can use the keyless constructor.");
 
         var fontFamily = await TryGetFamilyAsync(family, preferVariableFont, cancellationToken);
         if (fontFamily is not null)
@@ -54,6 +68,8 @@ public sealed class GoogleFontsClient
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        if (ApiKey.Length == 0) return await DownloadCssFontAsync(request, cancellationToken);
+
         var family = await GetFamilyAsync(request.Family, request.PreferVariableFont, cancellationToken);
         var variantKey = ResolveVariantKey(family, request.Variant);
         var downloadUri = family.Variants[variantKey];
@@ -67,6 +83,49 @@ public sealed class GoogleFontsClient
         output.Position = 0;
 
         return output;
+    }
+
+    private async Task<MemoryStream> DownloadCssFontAsync(GoogleFontRequest request, CancellationToken token)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Family);
+        if (request.Family.Length > 120 || request.Family.Any(c => !(char.IsLetterOrDigit(c) || c is ' ' or '-')))
+            throw new ArgumentException("Use a Google Fonts family name containing letters, numbers, spaces or hyphens.", nameof(request));
+        var variant = request.Variant.ToLowerInvariant() switch { "regular" => "400", "italic" => "400italic", var v => v };
+        if (!Regex.IsMatch(variant, "^[1-9]00(italic)?$", RegexOptions.CultureInvariant))
+            throw new ArgumentException("Choose a font weight from 100 to 900, optionally followed by italic.", nameof(request));
+        var uri = new Uri("https://fonts.googleapis.com/css?family=" + Uri.EscapeDataString(request.Family).Replace("%20", "+") + ":" + variant + "&subset=latin,latin-ext,greek,greek-ext,cyrillic,cyrillic-ext,vietnamese");
+        using var message = new HttpRequestMessage(HttpMethod.Get, uri);
+        // The legacy CSS response for this generic agent exposes one combined TrueType
+        // program for the requested scripts instead of browser-specific WOFF2 ranges.
+        message.Headers.UserAgent.ParseAdd("Mozilla/5.0");
+        using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, token);
+        response.EnsureSuccessStatusCode();
+        if (response.Content.Headers.ContentLength > 128 * 1024) throw new InvalidOperationException("Google Fonts returned an unexpectedly large stylesheet.");
+        var css = await response.Content.ReadAsStringAsync(token);
+        if (css.Length > 128 * 1024) throw new InvalidOperationException("Google Fonts returned an unexpectedly large stylesheet.");
+        var matches = Regex.Matches(css, "url\\(\\s*['\"]?(https://[^)'\"\\s]+)['\"]?\\s*\\)\\s*format\\(['\"]truetype['\"]\\)", RegexOptions.CultureInvariant);
+        var urls = matches.Select(m => m.Groups[1].Value).Distinct(StringComparer.Ordinal).ToArray();
+        if (urls.Length != 1 || !Uri.TryCreate(urls[0], UriKind.Absolute, out var fontUri) || fontUri.Host != "fonts.gstatic.com")
+            throw new NotSupportedException("Google Fonts did not provide one combined TrueType file for this variant. Choose another font or variant.");
+        using var fontResponse = await _httpClient.GetAsync(fontUri, HttpCompletionOption.ResponseHeadersRead, token);
+        fontResponse.EnsureSuccessStatusCode();
+        const int maximumBytes = 32 * 1024 * 1024;
+        if (fontResponse.Content.Headers.ContentLength > maximumBytes) throw new NotSupportedException("This font exceeds the 32 MB download limit.");
+        await using var source = await fontResponse.Content.ReadAsStreamAsync(token);
+        var output = new MemoryStream();
+        try
+        {
+            var buffer = new byte[65536];
+            int count;
+            while ((count = await source.ReadAsync(buffer, token)) != 0)
+            {
+                if (output.Length + count > maximumBytes) throw new NotSupportedException("This font exceeds the 32 MB download limit.");
+                await output.WriteAsync(buffer.AsMemory(0, count), token);
+            }
+            output.Position = 0;
+            return output;
+        }
+        catch { output.Dispose(); throw; }
     }
 
     internal static string ResolveVariantKey(GoogleFontFamily family, string requestedVariant)

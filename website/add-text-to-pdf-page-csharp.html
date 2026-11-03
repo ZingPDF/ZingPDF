@@ -69,8 +69,8 @@
         <section class="article-section" id="minimal-example">
           <h2>The shortest working example</h2>
           <p>
-            If you want to place text onto a page with explicit font options, use the overload that accepts
-            <code>FontOptions</code>.
+            Register a font once for the document, then pass the returned <code>PdfFont</code> to the page API.
+            ZingPDF attaches its resource and handles name collisions automatically.
           </p>
 
           <pre><code class="language-csharp">using ZingPDF;
@@ -80,20 +80,26 @@ using ZingPDF.Text;
 
 using var pdf = Pdf.Create();
 var page = await pdf.GetPageAsync(1);
+var font = await pdf.RegisterStandardFontAsync("Helvetica");
 
 await page.AddTextAsync(
     "Invoice paid",
     Rectangle.FromCoordinates(new Coordinate(72, 720), new Coordinate(260, 760)),
-    new FontOptions
-    {
-        ResourceName = "Helv",
-        Size = 18,
-        Colour = RGBColour.Black
-    });
+    font,
+    18,
+    RGBColour.Black);
 
 await pdf.SaveAsync(File.Create("text-added.pdf"));</code></pre>
         </section>
 
+        <section class="article-section">
+          <h2>Place explicit lines at a baseline</h2>
+          <pre><code class="language-csharp">await page.AddTextAsync("First line\nSecond line", new Coordinate(40, 700), font, 14,
+    RGBColour.Black, new TextPlacementOptions { RotationDegrees = 90, LineHeight = 18 });</code></pre>
+          <p>Rotation is counterclockwise in page coordinates. CRLF, CR and LF start a new line. High-level
+            additions isolate existing page graphics state. For Unicode text, register a font with
+            <code>RegisterUnicodeTrueTypeFontAsync</code>; character coverage and embedding are handled by the library.</p>
+        </section>
         <section class="article-section" id="bounding-box">
           <h2>The rectangle controls where the text is laid out</h2>
           <p>
@@ -117,12 +123,9 @@ await pdf.SaveAsync(File.Create("text-added.pdf"));</code></pre>
 await page.AddTextAsync(
     "This sentence is longer than the original box width.",
     Rectangle.FromCoordinates(new Coordinate(72, 680), new Coordinate(240, 720)),
-    new FontOptions
-    {
-        ResourceName = "Helv",
-        Size = 24,
-        Colour = RGBColour.Black
-    },
+    font,
+    24,
+    RGBColour.Black,
     new TextLayoutOptions
     {
         Overflow = TextOverflowMode.ShrinkToFit
@@ -135,7 +138,7 @@ await page.AddTextAsync(
         </section>
 
         <section class="article-section" id="registered-fonts">
-          <h2>Switch to a registered font when you need one</h2>
+          <h2>Use a registered standard or embedded font</h2>
           <p>
             The registered-font overload is a better fit when you want a standard font helper or an embedded TrueType
             font.

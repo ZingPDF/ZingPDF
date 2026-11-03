@@ -1884,6 +1884,11 @@ internal sealed class ResolvedFontResourceSet
         var encoding = await fontDictionary.Encoding.GetAsync();
         if (encoding.Value == null)
         {
+            var name = (await fontDictionary.BaseFont.GetAsync())?.Value;
+            var hasProgram = fontDescriptor?.InnerDictionary.Keys.Any(k => k is "FontFile" or "FontFile2" or "FontFile3") == true;
+            if (!hasProgram && name is not null && StandardPdfFonts.All.Contains(name) &&
+                name is not (StandardPdfFonts.Symbol or StandardPdfFonts.ZapfDingbats))
+                return Encoding.GetEncoding(PDFEncoding.Standard);
             return Encoding.GetEncoding(PDFEncoding.PDFDoc);
         }
 

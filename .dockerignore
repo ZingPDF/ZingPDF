@@ -8,3 +8,5 @@ website/api-src/api/
 output/
 .env
 .env.*
+**/sixlabors.lic
+Directory.Build.local.props

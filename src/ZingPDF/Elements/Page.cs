@@ -30,8 +30,10 @@ namespace ZingPDF.Elements
         private const double MultilineLineHeightMultiplier = 1.2d;
         private static readonly Regex LineTokenRegex = new(@"\S+\s*", RegexOptions.Compiled);
 
+        private sealed class ContentIsolationState { public IPdfObject? LastContents { get; set; } }
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<PageDictionary, ContentIsolationState> IsolatedPages = new();
         private readonly IPdf _pdf;
-        private readonly int? _pageNumber;
+        private int? _pageNumber;
 
         internal Page(IndirectObject pageObject, IPdf pdf, int? pageNumber = null)
         {
@@ -171,12 +173,27 @@ namespace ZingPDF.Elements
         {
             ArgumentNullException.ThrowIfNull(text);
 
+            var content = (ContentStream)text.Clone();
             foreach (var font in text.ReferencedFonts)
             {
-                await EnsureFontResourceAsync(font);
+                var actualName = await EnsureFontResourceAsync(font);
+                if (actualName.Value != font.ResourceName.Value)
+                    foreach (var operation in content.Operations.Where(o => o.Operator == "Tf" && o.GetOperand<Name>(0).Value == font.ResourceName.Value))
+                        operation.Operands![0] = actualName;
             }
+            await AddContentStreamAsync(content);
+        }
 
-            await AddContentStreamAsync(text);
+        /// <summary>
+        /// Adds text at a baseline origin in page coordinates, with optional rotation and explicit line spacing.
+        /// CRLF, CR and LF start a new line. No wrapping, shaping or fallback is performed.
+        /// Original page graphics state is isolated automatically before appending text.
+        /// </summary>
+        public Task AddTextAsync(string text, Coordinate baselineOrigin, PdfFont font, Number size,
+            RGBColour colour, TextPlacementOptions? placement = null)
+        {
+            ArgumentNullException.ThrowIfNull(font);
+            return AddTextAsync(new TextObject(text, baselineOrigin, font.CreateOptions(size, colour), null, placement ?? new()));
         }
 
         /// <summary>
@@ -206,8 +223,8 @@ namespace ZingPDF.Elements
             ArgumentNullException.ThrowIfNull(font);
             ArgumentNullException.ThrowIfNull(colour);
 
-            await EnsureFontResourceAsync(font);
-            await AddTextAsync(text, boundingBox, font.CreateOptions(size, colour), layoutOptions);
+            var actualName = await EnsureFontResourceAsync(font);
+            await AddTextAsync(text, boundingBox, font.CreateOptions(size, colour) with { ResourceName = actualName }, layoutOptions);
         }
 
         /// <summary>
@@ -325,9 +342,10 @@ namespace ZingPDF.Elements
 
         private async Task<int> GetPageNumberAsync(CancellationToken cancellationToken)
         {
-            if (_pageNumber is int pageNumber)
+            if (_pageNumber is int pageNumber && pageNumber <= await _pdf.GetPageCountAsync())
             {
-                return pageNumber;
+                var current = await _pdf.Objects.PageTree.GetPageAsync(pageNumber);
+                if (current?.Id == IndirectObject.Id) return pageNumber;
             }
 
             var pageObjects = await _pdf.GetAllPagesAsync();
@@ -336,11 +354,12 @@ namespace ZingPDF.Elements
                 cancellationToken.ThrowIfCancellationRequested();
                 if (pageObjects[index].Id == IndirectObject.Id)
                 {
+                    _pageNumber = index + 1;
                     return index + 1;
                 }
             }
 
-            throw new InvalidOperationException("Unable to determine the page number for geometry retrieval.");
+            throw new InvalidOperationException("This page no longer belongs to the document.");
         }
 
         private static Rectangle NormalizeBox(Rectangle box)
@@ -383,6 +402,15 @@ namespace ZingPDF.Elements
 
             try
             {
+                var incrementalUpdate = await _pdf.Objects.GenerateUpdateDeltaAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+                // A complete, exposed MemoryStream buffer can be passed directly to the
+                // renderer for unchanged PDFs. Avoid two document-sized snapshot copies.
+                if (incrementalUpdate is null && _pdf.Data is MemoryStream memory &&
+                    memory.TryGetBuffer(out var buffer) && buffer.Offset == 0 &&
+                    buffer.Array is { } bytes && buffer.Count == bytes.Length)
+                    return bytes;
+
                 using var snapshot = new MemoryStream();
                 if (_pdf.Data.CanSeek)
                 {
@@ -391,7 +419,7 @@ namespace ZingPDF.Elements
 
                 await _pdf.Data.CopyToAsync(snapshot, cancellationToken);
 
-                if (await _pdf.Objects.GenerateUpdateDeltaAsync() is { } incrementalUpdate)
+                if (incrementalUpdate is not null)
                 {
                     await incrementalUpdate.WriteAsync(snapshot);
                 }
@@ -468,6 +496,25 @@ namespace ZingPDF.Elements
             return ((int)newWidth, (int)newHeight);
         }
 
+        private async Task IsolateExistingContentAsync()
+        {
+            var raw = await Dictionary.Contents.GetRawValueAsync();
+            if (IsolatedPages.TryGetValue(Dictionary, out var previous) && ReferenceEquals(previous.LastContents, raw)) return;
+            if (raw is IndirectObjectReference reference && (await _pdf.Objects.GetAsync(reference)).Object is ArrayObject indirect) raw = indirect;
+            if (raw is not null)
+            {
+                async Task<IndirectObjectReference> GuardAsync(ContentStream content)
+                    => (await _pdf.Objects.AddAsync(await new ContentStreamFactory([content]).CreateAsync(
+                        new StreamDictionary(_pdf, ObjectContext.UserCreated), ObjectContext.UserCreated))).Reference;
+                var contents = new ArrayObject();
+                contents.Add(await GuardAsync(new ContentStream().SaveGraphicsState()));
+                if (raw is ArrayObject array) contents.AddRange(array); else contents.Add(raw);
+                contents.Add(await GuardAsync(new ContentStream().RestoreGraphicsState()));
+                Dictionary.Set("Contents", contents);
+            }
+            IsolatedPages.GetValue(Dictionary, _ => new()).LastContents = await Dictionary.Contents.GetRawValueAsync();
+        }
+
         private async Task AddContentStreamAsync(ContentStream contentStream)
         {
             var contentStreamObject = await new ContentStreamFactory([contentStream])
@@ -475,8 +522,9 @@ namespace ZingPDF.Elements
 
             var contentStreamIndirectObject = await _pdf.Objects.AddAsync(contentStreamObject);
 
+            await IsolateExistingContentAsync();
             await Dictionary.AddContentAsync(contentStreamIndirectObject.Reference);
-
+            IsolatedPages.GetValue(Dictionary, _ => new()).LastContents = await Dictionary.Contents.GetRawValueAsync();
             _pdf.Objects.Update(IndirectObject);
         }
 
@@ -534,11 +582,21 @@ namespace ZingPDF.Elements
             return dictionary;
         }
 
-        private async Task EnsureFontResourceAsync(PdfFont font)
+        private async Task<Name> EnsureFontResourceAsync(PdfFont font)
         {
-            var resources = ResourceDictionary.FromDictionary(await Dictionary.Resources.GetAsync());
-            await resources.AddFontAsync(font.ResourceName, font.FontReference, _pdf);
+            if (font.Owner is not null && !ReferenceEquals(font.Owner, _pdf))
+                throw new ArgumentException("Register the font with the same PDF document as this page.", nameof(font));
+            var original = await Dictionary.Resources.GetAsync();
+            var resources = original is null ? new ResourceDictionary(_pdf, ObjectContext.UserCreated) : ResourceDictionary.FromDictionary(original);
+            var fonts = await resources.Font.GetAsync();
+            if (fonts is not null)
+                foreach (var entry in fonts.InnerDictionary)
+                    if (entry.Value.Equals(font.FontReference)) return (Name)entry.Key;
+            var name = font.ResourceName;
+            for (var suffix = 1; fonts?.ContainsKey(name) == true; suffix++) name = (Name)(font.ResourceName.Value + "_" + suffix);
+            await resources.AddFontAsync(name, font.FontReference, _pdf);
             Dictionary.SetResources(resources);
+            return name;
         }
 
         private async Task<ResolvedTextLayout> ResolveTextLayoutAsync(
@@ -548,11 +606,11 @@ namespace ZingPDF.Elements
             TextLayoutOptions layoutOptions)
         {
             var contentBounds = ApplyPadding(boundingBox, layoutOptions.Padding);
-            var metrics = await ResolveFontMetricsAsync(fontOptions.ResourceName);
+            var metrics = new TextMeasurement(await ResolveFontMetricsAsync(fontOptions.ResourceName), fontOptions.RegisteredFont);
             var readingDirection = ResolveReadingDirection(text, layoutOptions.ReadingDirection);
-
+            var wrapText = layoutOptions.Wrap || text.Contains('\n') || text.Contains('\r');
             var fontSize = (double)fontOptions.Size;
-            if (layoutOptions.Overflow == TextOverflowMode.ShrinkToFit)
+            if (layoutOptions.Overflow == TextOverflowMode.ShrinkToFit && !wrapText)
             {
                 fontSize = ShrinkToFit(text, metrics, fontSize, contentBounds, layoutOptions.MinFontSize);
             }
@@ -563,8 +621,6 @@ namespace ZingPDF.Elements
             var contentTop = (double)contentBounds.UpperRight.Y;
             var availableWidth = Math.Max(0, contentRight - contentLeft);
             var availableHeight = Math.Max(0, contentTop - contentBottom);
-
-            var wrapText = layoutOptions.Wrap || text.Contains('\n') || text.Contains('\r');
 
             if (wrapText)
             {
@@ -626,7 +682,7 @@ namespace ZingPDF.Elements
             string text,
             TextLayoutOptions layoutOptions,
             FontOptions fontOptions,
-            FontMetrics? metrics,
+            TextMeasurement? metrics,
             double contentLeft,
             double contentRight,
             double contentBottom,
@@ -771,7 +827,7 @@ namespace ZingPDF.Elements
             return Rectangle.FromCoordinates(new Coordinate(left, bottom), new Coordinate(right, top));
         }
 
-        private static double ShrinkToFit(string text, FontMetrics? metrics, double requestedFontSize, Rectangle contentBounds, double minFontSize)
+        private static double ShrinkToFit(string text, TextMeasurement? metrics, double requestedFontSize, Rectangle contentBounds, double minFontSize)
         {
             var fontSize = requestedFontSize;
             var availableWidth = Math.Max(0, (double)contentBounds.Width);
@@ -805,7 +861,7 @@ namespace ZingPDF.Elements
             return Math.Max(minimum, fontSize);
         }
 
-        private static double MeasureTextWidth(string text, FontMetrics? metrics, double fontSize)
+        private static double MeasureTextWidth(string text, TextMeasurement? metrics, double fontSize)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -820,7 +876,7 @@ namespace ZingPDF.Elements
             return text.Sum(ch => char.IsWhiteSpace(ch) ? fontSize * 0.33d : fontSize * 0.55d);
         }
 
-        private static List<string> WrapTextIntoLines(string text, FontMetrics? metrics, double fontSize, double availableWidth)
+        private static List<string> WrapTextIntoLines(string text, TextMeasurement? metrics, double fontSize, double availableWidth)
         {
             var normalizedText = text.Replace("\r\n", "\n").Replace('\r', '\n');
             var paragraphs = normalizedText.Split('\n');
@@ -866,17 +922,18 @@ namespace ZingPDF.Elements
             return lines.Count == 0 ? [string.Empty] : lines;
         }
 
-        private static int FindLargestPrefixThatFits(string text, FontMetrics? metrics, double fontSize, double availableWidth)
+        private static int FindLargestPrefixThatFits(string text, TextMeasurement? metrics, double fontSize, double availableWidth)
         {
             for (var length = text.Length; length > 1; length--)
             {
+                if (length < text.Length && char.IsHighSurrogate(text[length - 1]) && char.IsLowSurrogate(text[length])) continue;
                 if (MeasureTextWidth(text[..length], metrics, fontSize) <= availableWidth)
                 {
                     return length;
                 }
             }
 
-            return 1;
+            return char.IsHighSurrogate(text[0]) && text.Length > 1 && char.IsLowSurrogate(text[1]) ? 2 : 1;
         }
 
         private static double ScaleMetric(int metric, double fontSize)
@@ -971,6 +1028,16 @@ namespace ZingPDF.Elements
 
         private sealed record ResolvedTextSegment(string Text, Coordinate TextOrigin);
         private sealed record WrappedTextLayout(double FontSize, IReadOnlyList<ResolvedTextSegment> Segments);
+        private sealed record TextMeasurement(FontMetrics? Original, PdfFont? Font)
+        {
+            private FontMetrics? Effective => Font?.Metrics ?? Original;
+            public int Ascent => Effective?.Ascent ?? 800;
+            public int Descent => Effective?.Descent ?? -200;
+            public double CalculateStringWidth(string text, double size) => Font is null
+                ? Original?.CalculateStringWidth(text, size) ?? text.Length * size * .55
+                : Font.MeasureText(text, size);
+        }
+
         private sealed record ResolvedTextLayout(FontOptions FontOptions, IReadOnlyList<ResolvedTextSegment> Segments, Rectangle? ClipBounds);
     }
 }

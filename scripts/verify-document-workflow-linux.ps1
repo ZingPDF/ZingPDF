@@ -13,6 +13,8 @@ foreach ($command in @('docker', $Python)) {
     if (-not (Get-Command $command -ErrorAction SilentlyContinue)) { throw "Required command not found: $command" }
 }
 $repository = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'sixlabors-docker-secret.ps1')
+$licenseSecretArguments = @(Get-SixLaborsDockerSecretArguments -Repository $repository)
 $runId = [guid]::NewGuid().ToString('N')
 $container = "zingpdf-document-workflow-$runId"
 $supervisorContainer = "zingpdf-document-workflow-stall-$runId"
@@ -27,10 +29,10 @@ function Invoke-Docker {
     if ($LASTEXITCODE -ne 0) { throw "Docker failed: $($DockerArguments -join ' ')" }
 }
 try {
-    Invoke-Docker -DockerArguments @('build', '-f', (Join-Path $repository 'examples/VerifyDocumentWorkflow/Dockerfile'), '-t', $Image,
+    Invoke-Docker -DockerArguments (@('build') + $licenseSecretArguments + @('-f', (Join-Path $repository 'examples/VerifyDocumentWorkflow/Dockerfile'), '-t', $Image,
         '--build-arg', "TESSERACT_VERSION=$TesseractVersion", '--build-arg', "ENG_DATA_VERSION=$EngDataVersion",
         '--build-arg', "OSD_DATA_VERSION=$OsdDataVersion",
-        '--build-arg', "SDK_IMAGE=$SdkImage", '--build-arg', "RUNTIME_IMAGE=$RuntimeImage", $repository)
+        '--build-arg', "SDK_IMAGE=$SdkImage", '--build-arg', "RUNTIME_IMAGE=$RuntimeImage", $repository))
     New-Item -ItemType Directory -Path $output -Force | Out-Null
     Invoke-Docker -DockerArguments @('volume', 'create', $volume)
     $volumeCreated = $true
