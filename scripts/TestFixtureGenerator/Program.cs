@@ -8,6 +8,7 @@ using ZingPDF.Text;
 var root = Directory.GetCurrentDirectory();
 var pdfDir = System.IO.Path.Combine(root, "TestFiles", "pdf");
 var imagePath = System.IO.Path.Combine(root, "TestFiles", "image", "cat.jpg");
+// This seed is a synthetic invoice; never substitute personal or customer documents.
 var basePdfPath = System.IO.Path.Combine(root, "TestFiles", "pdf", "test.pdf");
 var basePdfPath2 = System.IO.Path.Combine(root, "TestFiles", "pdf", "minimal3.pdf");
 
