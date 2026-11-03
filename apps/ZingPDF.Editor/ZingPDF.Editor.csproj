@@ -12,7 +12,6 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <!-- Patch PKCS in the application without changing the library package's versions. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <ProjectReference Include="../ZingPDF.Editor.Core/ZingPDF.Editor.Core.csproj" />
     <ProjectReference Include="../../src/ZingPDF.GoogleFonts/ZingPDF.GoogleFonts.csproj" />

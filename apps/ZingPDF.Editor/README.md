@@ -61,8 +61,8 @@ Tests create PDFs at runtime and exercise saved-file text, source preservation, 
 
 The library references ImageSharp 3.2.0, which includes security fixes for the
 previous 3.1.11 dependency. Building the repository requires a valid SixLabors
-licence. Keep licence files and keys outside source control. The editor also pins the PKCS security update in its
-application project. It does not expose image insertion or processing.
+licence. Keep licence files and keys outside source control. The core library and editor
+reference PKCS 10.0.14. The editor does not expose image insertion or processing.
 
 The editor now uses `MovePageAsync`, baseline `Page.AddTextAsync` with `TextPlacementOptions`,
 and `IsEncryptedAsync` directly. Page-tree changes, original-content isolation, rotated text
