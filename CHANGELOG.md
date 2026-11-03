@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+## [1.0.60] - 2026-11-03
+
 ### Added
 
 - Existing-line text analysis, replacement checks and operator rewriting through `Pdf.CreateTextEditor()`, including compatible runs across content streams and supported Form XObject occurrences. Paragraph reflow, complex-script shaping and secure redaction remain outside this API.
