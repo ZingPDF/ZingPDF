@@ -184,6 +184,9 @@ internal static class PdfBootstrapper
         public Task<Form> GetOrCreateFormAsync() => throw new NotSupportedException();
         public Task<PdfMetadata> GetMetadataAsync() => throw new NotSupportedException();
         public Task<PdfRedactionPlan> RedactionAsync() => throw new NotSupportedException();
+        public Task<bool> IsEncryptedAsync() => throw new NotSupportedException();
+        public Task MovePageAsync(int fromPageNumber, int toPageNumber) => throw new NotSupportedException();
+        public Text.Editing.PdfTextEditor CreateTextEditor() => throw new NotSupportedException();
         public Task<Page> AppendPageAsync(Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task<Page> InsertPageAsync(int pageNumber, Action<PageDictionary.PageCreationOptions>? configureOptions = null) => throw new NotSupportedException();
         public Task DeletePageAsync(int pageNumber) => throw new NotSupportedException();
@@ -196,6 +199,8 @@ internal static class PdfBootstrapper
         public Task<TextExtractionResult> ExtractTextAsync(int pageNumber, TextExtractionOptions options) => throw new NotSupportedException();
         public Task AddWatermarkAsync(string text) => throw new NotSupportedException();
         public Task<PdfFont> RegisterStandardFontAsync(string fontName, string? resourceName = null) => throw new NotSupportedException();
+        public Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
+        public Task<PdfFont> RegisterUnicodeTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
         public Task<PdfFont> RegisterTrueTypeFontAsync(string fontPath, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
         public Task<PdfFont> RegisterTrueTypeFontAsync(Stream fontData, string? resourceName = null, string? fontName = null) => throw new NotSupportedException();
         public void Compress(int dpi, int quality) => throw new NotSupportedException();

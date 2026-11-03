@@ -127,6 +127,13 @@ await pdf.SaveAsync(File.Create("pages-updated.pdf"));</code></pre>
           </p>
         </section>
 
+        <section class="article-section">
+          <h2>Move an existing page</h2>
+          <pre><code class="language-csharp">await pdf.MovePageAsync(1, 3);</code></pre>
+          <p>Both indices are 1-based; the destination is the final position. Page objects, inherited geometry,
+            resources and widgets are preserved. Page-label ranges and numeric page indices in application data
+            are not remapped.</p>
+        </section>
         <section class="article-cta" id="next-step">
           <h2>Need to export or split pages after reordering them?</h2>
           <p>

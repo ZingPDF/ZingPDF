@@ -44,6 +44,9 @@ This is a compact map for future maintenance. Keep it factual and update it when
 
 ## Text And Fonts
 
+- Existing-line analysis and replacement live under `Text/Editing`, exposed by `Pdf.CreateTextEditor()`. The editor rewrites structured content-stream operators, clones shared streams/Form invocations, and embeds Unicode TrueType replacements with explicit CID mappings. It does not reconstruct paragraphs; see `TEXT_EDITING.md`.
+- `Text/UnicodeTrueTypeFont.cs` owns TrueType glyph coverage, CID widths, CIDToGIDMap and ToUnicode for both authoring and replacement. It embeds the font program directly through a shared descriptor builder, without creating an unused WinAnsi font.
+- Page moves are exposed through `Pdf.MovePageAsync`; baseline text placement and graphics-state isolation live in `Page`/`TextObject`. The desktop editor does not rebuild page trees or rewrite text operators.
 - Text extraction lives under `Elements/Drawing/Text/Extraction`.
 - Font dictionaries and text encodings live under `Text`.
 - Standard and embedded font metrics are supplied by `ZingPDF.Fonts`.

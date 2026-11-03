@@ -410,3 +410,7 @@ FodyWeavers.xsd
 /website/api-src/api/
 
 .tools/
+
+# Private local build configuration and third-party licence keys
+Directory.Build.local.props
+sixlabors.lic

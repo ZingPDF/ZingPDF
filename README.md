@@ -34,6 +34,7 @@ ZingPDF is a library for .NET 8 and later for reading, editing, creating, templa
 ## Repository layout
 
 - `src/`: core library and companion packages
+- `apps/`: the Avalonia desktop editor and its application layer
 - `tests/`: unit, integration, smoke, and performance coverage
 - `examples/`: small runnable examples for common tasks
 - `website/`: product site, docs, guides, and generated API reference
@@ -49,6 +50,7 @@ ZingPDF is a library for .NET 8 and later for reading, editing, creating, templa
 - generated API reference: [zingpdf.dev/api/](https://zingpdf.dev/api/)
 - examples folder: [examples](./examples)
 - support and compatibility notes: [docs/project/SUPPORT.md](./docs/project/SUPPORT.md)
+- desktop editor MVP: [build, run, and supported operations](apps/ZingPDF.Editor/README.md)
 
 ## Packages
 

@@ -987,7 +987,7 @@ public class PdfTests
         writtenPdf.Should().NotContain("20 20 m 80 20 l 80 60 l 20 60 l 20 20 l B");
         writtenPdf.Should().Contain("(REDACTED)");
         writtenPdf.Should().Contain("20 20 m 80 20 l 80 60 l 20 60 l 20 20 l n");
-        writtenPdf.Should().Contain("20 120 Td (      ) Tj");
+        writtenPdf.Should().MatchRegex(@"20\s+120\s+Tm\s+\( {6}\)\s+Tj");
     }
 
     [Fact]
@@ -1058,7 +1058,10 @@ public class PdfTests
 
         var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
         writtenPdf.Should().NotContain(" re W n");
-        writtenPdf.Should().Contain("BT 42");
+        output.Position = 0;
+        using var reopened = Pdf.Load(output);
+        var line = (await reopened.CreateTextEditor().GetLinesAsync(1)).Single(l => l.Text == "hello");
+        line.BaselineOrigin.X.Should().BeApproximately(42, .001);
     }
 
     [Fact]
@@ -1085,7 +1088,10 @@ public class PdfTests
 
         var writtenPdf = Encoding.ASCII.GetString(output.ToArray());
         writtenPdf.Should().Contain("42 122 276 56 re W n");
-        writtenPdf.Should().Contain("BT 42");
+        output.Position = 0;
+        using var reopened = Pdf.Load(output);
+        var line = (await reopened.CreateTextEditor().GetLinesAsync(1)).Single(l => l.Text == "hello");
+        line.BaselineOrigin.X.Should().BeApproximately(42, .001);
     }
 
     [Fact]

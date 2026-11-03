@@ -235,6 +235,22 @@ internal static class StreamExtensions
         return Encoding.UTF8.GetString(buffer, 0, read);
     }
 
+    // The stream keyword is followed by one EOL marker. Payload bytes may themselves
+    // be PDF whitespace (including a random AES IV); never trim past the delimiter.
+    internal static void ConsumeStreamLineEnding(this Stream stream)
+    {
+        var value = stream.ReadByte();
+        while (value is 0 or 9 or 12 or 32) value = stream.ReadByte(); // tolerate horizontal padding before EOL
+        if (value == 10) return;
+        if (value == 13)
+        {
+            var next = stream.ReadByte();
+            if (next != 10 && next != -1) stream.Position--;
+            return;
+        }
+        throw new InvalidPdfException("The stream keyword must be followed by a line ending before its binary data.");
+    }
+
     /// <summary>
     /// Advance the stream to the next non-whitespace character.
     /// </summary>

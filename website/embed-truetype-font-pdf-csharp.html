@@ -47,7 +47,7 @@
           <p class="eyebrow">Guide</p>
           <h1>How to embed a TrueType font in a PDF in C#</h1>
           <p class="article-dek">
-            Register the font with <code>RegisterTrueTypeFontAsync(...)</code>, then pass the returned
+            Register the font with <code>RegisterUnicodeTrueTypeFontAsync(...)</code>, then pass the returned
             <code>PdfFont</code> into <code>Page.AddTextAsync(...)</code>.
           </p>
           <p>
@@ -77,7 +77,7 @@ using ZingPDF.Syntax.CommonDataStructures;
 
 using var pdf = Pdf.Create();
 var page = await pdf.GetPageAsync(1);
-var font = await pdf.RegisterTrueTypeFontAsync("NotoSans-Regular.ttf");
+var font = await pdf.RegisterUnicodeTrueTypeFontAsync("NotoSans-Regular.ttf");
 
 await page.AddTextAsync(
     "Custom font text",
@@ -96,7 +96,7 @@ await pdf.SaveAsync(File.Create("truetype-font.pdf"));</code></pre>
           </p>
 
           <pre><code class="language-csharp">using var fontStream = File.OpenRead("NotoSans-Regular.ttf");
-var font = await pdf.RegisterTrueTypeFontAsync(fontStream);</code></pre>
+var font = await pdf.RegisterUnicodeTrueTypeFontAsync(fontStream);</code></pre>
         </section>
 
         <section class="article-section" id="when-to-use">
@@ -113,8 +113,10 @@ var font = await pdf.RegisterTrueTypeFontAsync(fontStream);</code></pre>
         <section class="article-section" id="encoding-note">
           <h2>Current text encoding note</h2>
           <p>
-            The current high-level text path targets WinAnsi or Windows-1252 text. If your output needs a broader text
-            range, test the exact characters you intend to write before you rely on the result.
+            Unicode registration checks glyph coverage and creates CID widths and Unicode mappings automatically.
+            Use <code>font.GetMissingCharacters(text)</code> before writing and <code>font.MeasureText(text, size)</code>
+            for a single line's advance. Complete fonts are embedded; shaping, kerning, fallback and subsetting are
+            not performed. The older <code>RegisterTrueTypeFontAsync</code> keeps its WinAnsi behaviour.
           </p>
         </section>
 

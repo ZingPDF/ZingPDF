@@ -13,11 +13,12 @@ namespace ZingPDF.Syntax.Objects.Streams;
 /// <remarks>
 /// A Stream object consists of a stream dictionary, followed by the stream data.
 /// </remarks>
-public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
+public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject, IStreamObjectConversion
     where TDictionary : class, IStreamDictionary
 {
     private readonly IPdfEncryptionProvider? _encryptionProvider;
     private readonly object _decodedDataLock = new();
+    private readonly Dictionary<Type, object> _typedViews = [];
     private Task<byte[]>? _decodedDataTask;
 
     public StreamObject(Stream data, TDictionary dictionary, ObjectContext context)
@@ -151,6 +152,20 @@ public sealed class StreamObject<TDictionary> : PdfObject, IStreamObject
         }
 
         return await decryptedStream.ReadToEndAsync();
+    }
+
+    object? IStreamObjectConversion.ConvertTo(Type target)
+    {
+        if (!target.IsGenericType || target.GetGenericTypeDefinition() != typeof(StreamObject<>)) return null;
+        if (!target.GetGenericArguments()[0].IsInstanceOfType(Dictionary)) return null;
+        lock (_typedViews)
+        {
+            if (_typedViews.TryGetValue(target, out var existing)) return existing;
+            var view = Activator.CreateInstance(target, BindingFlags.Instance | BindingFlags.NonPublic, null,
+                [Data, Dictionary, Context, _encryptionProvider], null)!;
+            _typedViews[target] = view;
+            return view;
+        }
     }
 
     public override object Clone()

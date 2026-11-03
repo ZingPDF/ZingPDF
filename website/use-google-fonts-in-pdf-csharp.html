@@ -79,8 +79,8 @@ using ZingPDF.Syntax.CommonDataStructures;
 using var pdf = Pdf.Create();
 var page = await pdf.GetPageAsync(1);
 
-var client = new GoogleFontsClient("&lt;google-fonts-api-key&gt;");
-var font = await pdf.RegisterGoogleFontAsync(
+var client = new GoogleFontsClient();
+var font = await pdf.RegisterUnicodeGoogleFontAsync(
     client,
     new GoogleFontRequest
     {
@@ -109,17 +109,25 @@ await pdf.SaveAsync(File.Create("google-fonts.pdf"));</code></pre>
         <section class="article-section" id="request">
           <h2>Choose the family and variant you actually want</h2>
           <p>
-            The <code>GoogleFontRequest</code> tells the client which family and variant to download. That keeps the
+            <code>RegisterUnicodeGoogleFontAsync</code> creates Unicode CID mappings and embeds the font automatically. The older <code>RegisterGoogleFontAsync</code> keeps WinAnsi behaviour. The <code>GoogleFontRequest</code> tells the client which family and variant to download. That keeps the
             registration call explicit and makes it easier to control typography in generated documents.
           </p>
         </section>
 
+        <section class="article-section">
+          <h2>Check font coverage</h2>
+          <p>The keyless path requests Latin, extended Latin, Greek, Cyrillic and Vietnamese scripts together.
+            It accepts one combined TrueType file. Check glyph coverage before use; not every family, variant
+            or script is available. Requests never include document text. For existing-line replacement,
+            pass downloaded bytes to <code>PdfTextReplacementOptions.TrueTypeFontData</code>; ZingPDF checks
+            the replacement and embeds the font automatically.</p>
+        </section>
         <section class="article-section" id="when-to-use">
           <h2>Use it when fetching fonts at build time is acceptable</h2>
           <p>
             If your application already ships with a local font file, plain TrueType registration is simpler. The
-            Google Fonts path is more useful when you want a remote source for a known family and have an API key in
-            the runtime environment.
+            Google Fonts path downloads a known family through the keyless CSS API. Use the keyed constructor
+            when you need Developer API family metadata.
           </p>
         </section>
 

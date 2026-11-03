@@ -1,0 +1,41 @@
+<Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="ZingPDF.Editor.App" RequestedThemeVariant="Light">
+  <Application.Resources>
+    <!-- Existing brand mark from website/favicon.svg. -->
+    <StreamGeometry x:Key="BrandMark">M 81.086728,93.832132 140.38975,76.184454 102.97036,151.87476 145.32961,139.26929 96.917264,209.00872 112.24852,167.55796 65.653208,181.424 103.07267,105.73369 69.185187,115.81813 Z</StreamGeometry>
+    <StreamGeometry x:Key="IconText">M 3,4 L 21,4 M 12,4 L 12,21 M 8,21 L 16,21 M 3,4 L 3,8 M 21,4 L 21,8</StreamGeometry>
+    <StreamGeometry x:Key="IconPages">M 7,3 L 21,3 L 21,19 L 7,19 Z M 3,7 L 3,23 L 17,23</StreamGeometry>
+    <StreamGeometry x:Key="IconForm">M 4,3 L 20,3 L 20,22 L 4,22 Z M 8,8 L 16,8 M 8,12 L 16,12 M 8,16 L 12,16</StreamGeometry>
+    <StreamGeometry x:Key="IconPointer">M 5,2 L 5,19 L 10,14 L 14,22 L 17,20 L 13,13 L 20,13 Z</StreamGeometry>
+    <StreamGeometry x:Key="IconRotate">M 19,8 C 16,1 5,2 4,11 C 3,20 16,23 20,15 M 19,3 L 19,8 L 14,8</StreamGeometry>
+    <StreamGeometry x:Key="IconDelete">M 4,6 L 20,6 M 9,6 L 9,3 L 15,3 L 15,6 M 6,6 L 7,22 L 17,22 L 18,6 M 10,10 L 10,18 M 14,10 L 14,18</StreamGeometry>
+    <StreamGeometry x:Key="IconExport">M 4,10 L 4,22 L 20,22 L 20,10 M 12,16 L 12,2 M 7,7 L 12,2 L 17,7</StreamGeometry>
+    <StreamGeometry x:Key="IconAdd">M 4,3 L 15,3 L 20,8 L 20,22 L 4,22 Z M 8,13 L 16,13 M 12,9 L 12,17</StreamGeometry>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="PathIcon.line"><Setter Property="Width" Value="17" /><Setter Property="Height" Value="17" /><Setter Property="Template"><ControlTemplate><Viewbox><Path Data="{TemplateBinding Data}" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.7" StrokeLineCap="Round" StrokeJoin="Round" /></Viewbox></ControlTemplate></Setter></Style>
+    <Style Selector="RadioButton.tool"><Setter Property="Padding" Value="12,8" /><Setter Property="Cursor" Value="Hand" /><Setter Property="Template"><ControlTemplate><Border Name="ToolBorder" Padding="{TemplateBinding Padding}" Background="Transparent" CornerRadius="5"><ContentPresenter Content="{TemplateBinding Content}" /></Border></ControlTemplate></Setter></Style>
+    <Style Selector="RadioButton.tool:pointerover /template/ Border#ToolBorder"><Setter Property="Background" Value="#F0F4FA" /></Style>
+    <Style Selector="RadioButton.tool:checked /template/ Border#ToolBorder"><Setter Property="Background" Value="#E3ECFC" /></Style>
+    <Style Selector="RadioButton.tool:checked"><Setter Property="Foreground" Value="#244E9B" /></Style>
+    <Style Selector="RadioButton.tool:focus-visible /template/ Border#ToolBorder"><Setter Property="BorderBrush" Value="#2859B8" /><Setter Property="BorderThickness" Value="1" /></Style>
+    <Style Selector="Button, RadioButton, ComboBox"><Setter Property="Cursor" Value="Hand" /></Style>
+    <Style Selector="Button:disabled"><Setter Property="Cursor" Value="Arrow" /></Style>
+    <Style Selector="Window"><Setter Property="Foreground" Value="#1E293B" /></Style>
+    <Style Selector="Button.recent"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Margin" Value="0,2" /><Setter Property="Padding" Value="10" /></Style>
+    <Style Selector="Button"><Setter Property="CornerRadius" Value="7" /><Setter Property="Padding" Value="12,8" /><Setter Property="MinHeight" Value="36" /><Setter Property="Background" Value="#FFFFFF" /><Setter Property="BorderBrush" Value="#D5DDE7" /><Setter Property="BorderThickness" Value="1" /><Setter Property="FontWeight" Value="Medium" /></Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#EDF2F8" /><Setter Property="BorderBrush" Value="#BCCBDD" /></Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#DEE7F3" /></Style>
+    <Style Selector="Button.task"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Foreground" Value="#526176" /><Setter Property="Padding" Value="16,9" /></Style>
+    <Style Selector="Button.task.active, Button.active"><Setter Property="Background" Value="#EAF0FC" /><Setter Property="Foreground" Value="#244E9B" /><Setter Property="BorderBrush" Value="#AFC4EA" /></Style>
+    <Style Selector="Button.primary"><Setter Property="Background" Value="#2859B8" /><Setter Property="BorderBrush" Value="#2859B8" /><Setter Property="Foreground" Value="White" /></Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#214D9F" /><Setter Property="BorderBrush" Value="#214D9F" /><Setter Property="Foreground" Value="White" /></Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#193D82" /><Setter Property="Foreground" Value="White" /></Style>
+    <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#F3F5F8" /><Setter Property="BorderBrush" Value="#E5EAF0" /><Setter Property="Foreground" Value="#9AA6B6" /></Style>
+    <Style Selector="TextBlock.hint"><Setter Property="Foreground" Value="#627080" /><Setter Property="FontSize" Value="13" /></Style>
+    <Style Selector="TextBlock.panelTitle"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="FontSize" Value="15" /><Setter Property="Margin" Value="0,0,0,8" /></Style>
+    <Style Selector="TextBox, ComboBox"><Setter Property="CornerRadius" Value="6" /><Setter Property="BorderBrush" Value="#D5DDE7" /></Style>
+    <Style Selector="ListBox.pages ListBoxItem"><Setter Property="CornerRadius" Value="8" /><Setter Property="Margin" Value="6,3" /><Setter Property="Padding" Value="4" /><Setter Property="HorizontalContentAlignment" Value="Center" /></Style>
+    <Style Selector="ListBox.pages ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#E3ECFB" /><Setter Property="BorderBrush" Value="#AEC3E8" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="8" /></Style>
+  </Application.Styles>
+</Application>

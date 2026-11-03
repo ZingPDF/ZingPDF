@@ -2,7 +2,7 @@
 
 # ZingPDF.GoogleFonts
 
-`ZingPDF.GoogleFonts` resolves Google Fonts through the Google Fonts Developer API and registers them into a `ZingPDF` document as embedded TrueType fonts.
+`ZingPDF.GoogleFonts` downloads TrueType fonts through the public CSS API or the keyed Google Fonts Developer API and registers them into a `ZingPDF` document as embedded TrueType fonts.
 
 
 ## .NET compatibility
@@ -28,8 +28,8 @@ using ZingPDF.Syntax.CommonDataStructures;
 using var pdf = Pdf.Create();
 var page = await pdf.GetPageAsync(1);
 
-var client = new GoogleFontsClient("<google-fonts-api-key>");
-var font = await pdf.RegisterGoogleFontAsync(
+var client = new GoogleFontsClient();
+var font = await pdf.RegisterUnicodeGoogleFontAsync(
     client,
     new GoogleFontRequest
     {
@@ -48,8 +48,11 @@ await page.AddTextAsync("Hello from Google Fonts", Rectangle.FromDimensions(300,
 
 ## Notes
 
-- This package requires a Google Fonts Developer API key.
-- High-level text registration currently targets WinAnsi / Windows-1252 text workflows.
+- `new GoogleFontsClient()` needs no API key for downloads. It requests Latin, extended Latin, Greek, Cyrillic and Vietnamese script ranges together, accepts one combined TrueType response, and never sends document text. Not every family or variant provides this format.
+- `new GoogleFontsClient(apiKey)` retains the Developer API path, including family metadata and variable-font preference.
+- Check character coverage before using a downloaded font. A successful download does not guarantee that every requested character exists.
+- Downloads require network access. Applications can cache returned bytes locally.
+- `RegisterUnicodeGoogleFontAsync` and fluent `WithUnicodeGoogleFont` use Unicode CID mappings with glyph checks, automatic embedding and no script shaping. `RegisterGoogleFontAsync` retains WinAnsi / Windows-1252 behaviour for compatibility. `Pdf.CreateTextEditor()` can use downloaded bytes through `PdfTextReplacementOptions.TrueTypeFontData` for existing-line replacement with Unicode CID mappings and automatic embedding.
 - Most applications should reference this package alongside `ZingPDF`, not instead of it.
 
 ## Licensing

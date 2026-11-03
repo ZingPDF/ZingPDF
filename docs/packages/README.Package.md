@@ -21,6 +21,11 @@ dotnet add package ZingPDF
 
 ## Quick start
 
+The core package depends on ImageSharp 3.2.0. Building ZingPDF itself from source
+requires a valid SixLabors licence. Consuming the compiled ZingPDF package does
+not directly invoke ImageSharp's build-time validation unless your application
+also directly references ImageSharp. See [source-build setup](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/WORKFLOWS.md#sixlabors-build-licence).
+
 Create a new PDF with the fluent API:
 
 ```csharp
@@ -58,6 +63,45 @@ await pdf.Pages(pages => pages
             .At(48, 780))))
     .SaveAsync(output);
 ```
+
+Replace a supported existing line:
+
+```csharp
+var editor = pdf.CreateTextEditor();
+var line = (await editor.GetLinesAsync(1)).First(); // choose by text/bounds in your UI
+var check = await editor.CheckReplacementAsync(line, "Corrected wording");
+if (!check.CanApply)
+    throw new InvalidOperationException(check.Message);
+await editor.ReplaceLineAsync(line, "Corrected wording");
+```
+
+The line keeps its original baseline and painting state. Supply `PdfTextReplacementOptions.TrueTypeFontData`
+when another font is needed; embedding and Unicode mappings are automatic. Coverage and available
+width are checked before mutation. Obtain fresh line handles after content changes. This is
+single-baseline editing, without paragraph reflow or complex-script shaping. It follows incremental
+save semantics and is not secure redaction. See [text editing and limits](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/TEXT_EDITING.md).
+
+Author Unicode text without building PDF font dictionaries:
+
+```csharp
+var font = await pdf.RegisterUnicodeTrueTypeFontAsync("NotoSans-Regular.ttf");
+var page = await pdf.GetPageAsync(1);
+await page.AddTextAsync("Greek: \u03A9\nCyrillic: \u0416", new Coordinate(40, 700),
+    font, 14, RGBColour.Black, new ZingPDF.Text.TextPlacementOptions { LineHeight = 18 });
+var missing = font.GetMissingCharacters("More wording");
+var width = font.MeasureText("More wording", 14);
+```
+
+Register once per document; character mappings expand as text is added. Font streams remain
+caller-owned. Existing `RegisterTrueTypeFontAsync` retains WinAnsi behaviour. Unicode authoring
+checks glyph coverage but does not perform shaping, kerning, fallback or font subsetting.
+Use `WithUnicodeTrueTypeFont` in fluent authoring. Existing-line options can also take
+`Font = font` instead of raw font bytes. See [editor-facing APIs](https://github.com/ZingPDF/ZingPDF/blob/main/docs/project/TEXT_EDITING.md).
+
+`MovePageAsync(from, to)` reorders final 1-based page indices while retaining page identities,
+geometry, resources and widgets. `IsEncryptedAsync()` avoids trailer inspection and includes
+queued encryption/removal settings. High-level page additions isolate existing graphics state;
+font resource collisions are assigned local aliases automatically.
 
 Create a blank PDF with the standard page API:
 

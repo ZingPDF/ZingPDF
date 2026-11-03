@@ -9,11 +9,8 @@ public class RequiredMultiProperty<T1, T2>(string key, Dictionary dictionary, IP
     {
         var value = await ResolveAsync() ?? throw new InvalidPdfException($"Missing value for required property: {Key}");
 
-        return value switch
-        {
-            T1 t1 => new Either<T1, T2>(t1, t1.Context),
-            T2 t2 => new Either<T1, T2>(t2, t2.Context),
-            _ => throw new InvalidOperationException($"Requested Either<{typeof(T1)},{typeof(T2)}> instance cannot contain type: {value.GetType()}")
-        };
+        if (TryConvertValue<T1>(value) is { } first) return new Either<T1, T2>(first, first.Context);
+        if (TryConvertValue<T2>(value) is { } second) return new Either<T1, T2>(second, second.Context);
+        throw new InvalidOperationException($"Requested Either<{typeof(T1)},{typeof(T2)}> instance cannot contain type: {value.GetType()}");
     }
 }

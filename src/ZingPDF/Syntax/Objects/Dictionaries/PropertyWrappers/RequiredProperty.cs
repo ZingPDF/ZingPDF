@@ -17,6 +17,7 @@ public class RequiredProperty<T>(string key, Dictionary dictionary, IPdf pdf)
     /// </summary>
     /// <remarks>
     /// Returns the property value, whether it is a direct object or indirect object reference.
+    /// Compatible generic stream dictionary types are adapted while preserving data, filters and decryption.
     /// </remarks>
     /// <returns>An instance of <typeparamref name="T"/>.</returns>
     /// <exception cref="InvalidPdfException"></exception>
@@ -25,7 +26,6 @@ public class RequiredProperty<T>(string key, Dictionary dictionary, IPdf pdf)
     {
         var value = await ResolveAsync() ?? throw new InvalidPdfException($"Missing value for required property: {Key}");
 
-        return value as T
-            ?? throw new InvalidOperationException($"Requested type {typeof(T)} cannot contain type: {value.GetType()}");
+        return ConvertValue<T>(value);
     }
 }

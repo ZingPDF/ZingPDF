@@ -31,6 +31,9 @@ concurrency:
   group: linux-document-workflow-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+
 jobs:
   external-form-appearances:
     runs-on: ubuntu-24.04

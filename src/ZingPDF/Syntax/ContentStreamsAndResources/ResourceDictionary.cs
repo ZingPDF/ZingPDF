@@ -140,9 +140,9 @@ namespace ZingPDF.Syntax.ContentStreamsAndResources
             IPdf pdf
             )
         {
-            var dict = await dictionaryProperty.GetAsync()
-                ?? new Dictionary(pdf, ObjectContext.UserCreated);
-
+            var existing = await dictionaryProperty.GetAsync();
+            var dict = existing is null ? new Dictionary(pdf, ObjectContext.UserCreated)
+                : new Dictionary(existing, pdf, ObjectContext.UserCreated);
             dict.Set(name, reference);
 
             return dict;

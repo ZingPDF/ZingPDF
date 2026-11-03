@@ -6,6 +6,23 @@ The format is based on Keep a Changelog, and this project aims to follow Semanti
 
 ## [Unreleased]
 
+### Added
+
+- Existing-line text analysis, replacement checks and operator rewriting through `Pdf.CreateTextEditor()`, including compatible runs across content streams and supported Form XObject occurrences. Paragraph reflow, complex-script shaping and secure redaction remain outside this API.
+- Unicode TrueType font registration and Google Fonts helpers with glyph-coverage checks and automatic embedding.
+- `MovePageAsync`, multiline and rotated baseline text placement, font measurement and missing-character checks, and `IsEncryptedAsync`.
+- An Avalonia desktop editor preview for text editing, form filling, page reordering, undo/redo and saving a copy, with lazy page previews and local recent-file history.
+
+### Fixed
+
+- Preserve original graphics state and shared font resources when adding page content; assign resource aliases when names collide.
+- Resolve compatible typed font streams without caller-side object conversion, and preserve binary stream bytes when parsing stream delimiters.
+- Correct StandardEncoding mappings and retain editable text around unsupported text runs.
+
+### Changed
+
+- Upgrade ImageSharp to 3.2.0 and PKCS to 10.0.14. Compiling the core project requires a valid private SixLabors build licence; CI and Docker builds pass it through secrets.
+
 ## [1.0.59] - 2026-10-11
 
 ### Added

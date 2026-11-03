@@ -126,6 +126,52 @@ public class GoogleFontsClientTests
             null)).MustHaveHappenedOnceExactly();
     }
 
+    [Fact]
+    public async Task KeylessDownload_RequestsCombinedTrueTypeVariant_WithoutDocumentTextOrKey()
+    {
+        var requests = new List<string>();
+        using var http = new HttpClient(new StubHttpMessageHandler(request =>
+        {
+            requests.Add(request.RequestUri!.AbsoluteUri);
+            if (request.RequestUri.Host == "fonts.googleapis.com")
+            {
+                request.Headers.UserAgent.ToString().Should().Be("Mozilla/5.0");
+                return new(HttpStatusCode.OK) { Content = new StringContent("@font-face { src: url(https://fonts.gstatic.com/example.ttf) format('truetype'); }") };
+            }
+            return new(HttpStatusCode.OK) { Content = new ByteArrayContent([0, 1, 0, 0]) };
+        }));
+        var client = new GoogleFontsClient(http);
+        using var stream = await client.DownloadFontAsync(new() { Family = "Noto Sans", Variant = "700italic" });
+        stream.Position.Should().Be(0); stream.ToArray().Should().Equal(0, 1, 0, 0);
+        requests.Should().Equal("https://fonts.googleapis.com/css?family=Noto+Sans:700italic&subset=latin,latin-ext,greek,greek-ext,cyrillic,cyrillic-ext,vietnamese", "https://fonts.gstatic.com/example.ttf");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.GetFamilyAsync("Noto Sans"));
+    }
+
+    [Theory]
+    [InlineData("url(https://example.test/font.ttf) format('truetype')")]
+    [InlineData("url(https://fonts.gstatic.com/font.woff2) format('woff2')")]
+    [InlineData("url(https://fonts.gstatic.com/a.ttf) format('truetype'); url(https://fonts.gstatic.com/b.ttf) format('truetype')")]
+    public async Task KeylessDownload_RejectsNonTrueTypeSplitOrUntrustedResponses(string css)
+    {
+        using var http = new HttpClient(new StubHttpMessageHandler(_ => new(HttpStatusCode.OK) { Content = new StringContent(css) }));
+        await Assert.ThrowsAsync<NotSupportedException>(() => new GoogleFontsClient(http).DownloadFontAsync(new() { Family = "Noto Sans" }));
+    }
+
+    [Fact]
+    public async Task RegisterUnicodeGoogleFontAsync_UsesUnicodeRegistration()
+    {
+        using var http = new HttpClient(new StubHttpMessageHandler(request => request.RequestUri!.Host == "fonts.googleapis.com"
+            ? new(HttpStatusCode.OK) { Content = new StringContent("url(https://fonts.gstatic.com/font.ttf) format('truetype')") }
+            : new(HttpStatusCode.OK) { Content = new ByteArrayContent([0, 1, 0, 0]) }));
+        var pdf = A.Fake<IPdf>(); byte[]? bytes = null;
+        A.CallTo(() => pdf.RegisterUnicodeTrueTypeFontAsync(A<Stream>.Ignored, "Unicode", null))
+            .Invokes((Stream input, string _, string? _) => bytes = ReadAllBytes(input))
+            .Returns(Task.FromResult<ZingPDF.Text.PdfFont>(null!));
+        await pdf.RegisterUnicodeGoogleFontAsync(new GoogleFontsClient(http), new() { Family = "Noto Sans" }, "Unicode");
+        bytes.Should().Equal(0, 1, 0, 0);
+        A.CallTo(() => pdf.RegisterTrueTypeFontAsync(A<Stream>.Ignored, A<string?>.Ignored, A<string?>.Ignored)).MustNotHaveHappened();
+    }
+
     private static byte[] ReadAllBytes(Stream stream)
     {
         var originalPosition = stream.Position;

@@ -471,6 +471,26 @@ public sealed class PdfAuthoringBuilder
             return this;
         }
 
+        /// <summary>Uses a Unicode TrueType font file, automatically embedding its program and character mappings.</summary>
+        public PdfTextAuthoringBuilder WithUnicodeTrueTypeFont(string fontPath, string? resourceName = null, string? fontName = null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(fontPath);
+            var fullPath = System.IO.Path.GetFullPath(fontPath);
+            return Font(pdf => pdf.RegisterUnicodeTrueTypeFontAsync(fullPath, resourceName, fontName),
+                string.Join("|", "unicode-truetype-file", fullPath, resourceName, fontName));
+        }
+
+        /// <summary>Uses a readable, seekable TrueType stream supplied during authoring. The stream is disposed after registration.</summary>
+        public PdfTextAuthoringBuilder WithUnicodeTrueTypeFont(Func<Stream> streamFactory, object? cacheKey = null, string? resourceName = null, string? fontName = null)
+        {
+            ArgumentNullException.ThrowIfNull(streamFactory);
+            return Font(async pdf =>
+            {
+                using var input = streamFactory();
+                return await pdf.RegisterUnicodeTrueTypeFontAsync(input, resourceName, fontName);
+            }, cacheKey ?? streamFactory);
+        }
+
         /// <summary>
         /// Registers and uses an embedded TrueType font from a file path.
         /// </summary>

@@ -72,7 +72,7 @@ namespace ZingPDF.Parsing.Parsers.FileStructure.CrossReferences
             }
 
             await stream.AdvanceBeyondNextAsync(Constants.StreamStart);
-            stream.AdvancePastWhitepace();
+            stream.ConsumeStreamLineEnding();
 
             var streamDataOffset = stream.Position;
 

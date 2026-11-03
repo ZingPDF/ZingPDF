@@ -75,6 +75,12 @@ public abstract class BaseProperty(string key, Dictionary dictionary, IPdf pdf)
         return false;
     }
 
+    protected static T? TryConvertValue<T>(IPdfObject value) where T : class, IPdfObject
+        => value as T ?? (value as Streams.IStreamObjectConversion)?.ConvertTo(typeof(T)) as T;
+
+    protected static T ConvertValue<T>(IPdfObject value) where T : class, IPdfObject
+        => TryConvertValue<T>(value) ?? throw new InvalidOperationException($"Requested type {typeof(T)} cannot contain type: {value.GetType()}");
+
     public async Task<IPdfObject?> ResolveAsync()
     {
         var rawValue = await GetRawValueAsync();

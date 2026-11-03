@@ -18,11 +18,8 @@ public class OptionalMultiProperty<T1, T2> : BaseProperty
             return new Either<T1, T2>((T1)null!, ObjectContext.None);
         }
 
-        return value switch
-        {
-            T1 t1 => new Either<T1, T2>(t1, t1.Context),
-            T2 t2 => new Either<T1, T2>(t2, t2.Context),
-            _ => throw new InvalidOperationException($"Requested Either<{typeof(T1)},{typeof(T2)}> instance cannot contain type: {value.GetType()}")
-        };
+        if (TryConvertValue<T1>(value) is { } first) return new Either<T1, T2>(first, first.Context);
+        if (TryConvertValue<T2>(value) is { } second) return new Either<T1, T2>(second, second.Context);
+        throw new InvalidOperationException($"Requested Either<{typeof(T1)},{typeof(T2)}> instance cannot contain type: {value.GetType()}");
     }
 }

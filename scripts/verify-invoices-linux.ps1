@@ -11,6 +11,8 @@ foreach ($command in @('docker', $Python)) {
     if (-not (Get-Command $command -ErrorAction SilentlyContinue)) { throw "Required command not found: $command" }
 }
 $repository = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'sixlabors-docker-secret.ps1')
+$licenseSecretArguments = @(Get-SixLaborsDockerSecretArguments -Repository $repository)
 $runId = [guid]::NewGuid().ToString('N')
 $container = "zingpdf-invoices-$runId"
 $volume = "zingpdf-invoices-$runId"
@@ -23,9 +25,9 @@ function Invoke-Docker {
     if ($LASTEXITCODE -ne 0) { throw "Docker failed: $($DockerArguments -join ' ')" }
 }
 try {
-    Invoke-Docker -DockerArguments @('build', '-f', (Join-Path $repository 'examples/GenerateInvoices/Dockerfile'), '-t', $Image,
+    Invoke-Docker -DockerArguments (@('build') + $licenseSecretArguments + @('-f', (Join-Path $repository 'examples/GenerateInvoices/Dockerfile'), '-t', $Image,
         '--build-arg', "CHROMIUM_VERSION=$ChromiumVersion", '--build-arg', "SDK_IMAGE=$SdkImage",
-        '--build-arg', "RUNTIME_IMAGE=$RuntimeImage", $repository)
+        '--build-arg', "RUNTIME_IMAGE=$RuntimeImage", $repository))
     New-Item -ItemType Directory -Path $output -Force | Out-Null
     Invoke-Docker -DockerArguments @('volume', 'create', $volume)
     $volumeCreated = $true

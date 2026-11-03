@@ -17,6 +17,7 @@ public class OptionalProperty<T>(string key, Dictionary dictionary, IPdf pdf)
     /// </summary>
     /// <remarks>
     /// Returns the property value, whether it is a direct object or indirect object reference.
+    /// Compatible generic stream dictionary types are adapted while preserving data, filters and decryption.
     /// </remarks>
     /// <returns>An instance of <typeparamref name="T"/> when present; otherwise <see langword="null"/>.</returns>
     /// <exception cref="InvalidPdfException"></exception>
@@ -30,7 +31,6 @@ public class OptionalProperty<T>(string key, Dictionary dictionary, IPdf pdf)
             return null;
         }
 
-        return value as T
-            ?? throw new InvalidOperationException($"Requested type {typeof(T)} cannot contain type: {value.GetType()}");
+        return ConvertValue<T>(value);
     }
 }
