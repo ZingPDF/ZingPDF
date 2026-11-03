@@ -443,7 +443,9 @@ public sealed class EditorUiTests
         var window = new MainWindow(null, System.IO.Path.ChangeExtension(path, ".preferences.json")); window.Show();
         var vm = window.ViewModel;
         Assert.True(await vm.OpenAsync(path), vm.Error);
-        Dispatcher.UIThread.RunJobs();
+        // Initial layout can queue an asynchronous fit-page render. Let it finish
+        // before starting the controlled refresh below, especially on busy CI hosts.
+        await WaitIdleAsync(vm);
         var workspace = window.FindControl<Grid>("DocumentWorkspace")!;
         var surface = window.FindControl<PageSurface>("DocumentSurface")!;
         var originalPages = vm.Pages.ToArray();
